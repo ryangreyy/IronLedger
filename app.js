@@ -81,6 +81,41 @@ function friendlyError(code) {
   })[code] || 'Something went wrong. Please try again.';
 }
 
+/* ===== SETTINGS — save display name ===============================
+   Attached at the top level so it always works, independent of
+   whether initApp ran fully. Uses event delegation on the document. */
+document.addEventListener('click', async e => {
+  if (!e.target.closest('#saveSettings')) return;
+
+  const newName = (document.getElementById('settingsName')?.value || '').trim();
+  const msg     = document.getElementById('settingsMsg');
+  const btn     = document.getElementById('saveSettings');
+
+  if (msg) msg.textContent = '';
+
+  if (!newName) {
+    if (msg) { msg.style.color = 'var(--down)'; msg.textContent = 'Please enter a display name.'; }
+    return;
+  }
+
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Not signed in — please refresh the page.');
+    await user.updateProfile({ displayName: newName });
+    /* Update the name shown in the top-right nav */
+    const navName = document.getElementById('nav-user-name');
+    if (navName) navName.textContent = newName;
+    if (msg) { msg.style.color = 'var(--up)'; msg.textContent = '✓ Display name updated.'; }
+    setTimeout(() => { if (msg) msg.textContent = ''; }, 3000);
+  } catch (err) {
+    if (msg) { msg.style.color = 'var(--down)'; msg.textContent = err.message || 'Something went wrong.'; }
+  } finally {
+    if (btn) { btn.textContent = 'Save changes'; btn.disabled = false; }
+  }
+});
+
 /* ===== CUSTOM DATE PICKER =========================================
    Self-contained white calendar widget — no external libraries.
    Hides the native <input type="date"> and replaces it with a
@@ -578,39 +613,10 @@ function initApp(uid) {
       .catch(err => alert('Could not save: ' + err.message));
   });
 
-  /* ---- 6) SETTINGS — update display name ----------------------------- */
-  document.getElementById('settingsName').value  = auth.currentUser.displayName || '';
-  document.getElementById('settingsEmail').value = auth.currentUser.email || '';
-
-  document.getElementById('saveSettings').addEventListener('click', async () => {
-    const newName = document.getElementById('settingsName').value.trim();
-    const msg     = document.getElementById('settingsMsg');
-    const btn     = document.getElementById('saveSettings');
-
-    msg.textContent = '';
-
-    if (!newName) {
-      msg.style.color = 'var(--down)';
-      msg.textContent = 'Please enter a display name.';
-      return;
-    }
-
-    btn.textContent = 'Saving…';
-    btn.disabled    = true;
-
-    try {
-      await auth.currentUser.updateProfile({ displayName: newName });
-      navUserName.textContent = newName;
-      msg.style.color         = 'var(--up)';
-      msg.textContent         = '✓ Display name updated.';
-      setTimeout(() => { msg.textContent = ''; }, 3000);
-    } catch (err) {
-      msg.style.color = 'var(--down)';
-      msg.textContent = err.message || 'Something went wrong — please try again.';
-    } finally {
-      btn.textContent = 'Save changes';
-      btn.disabled    = false;
-    }
-  });
+  /* Settings fields are populated here when user signs in */
+  const nameField  = document.getElementById('settingsName');
+  const emailField = document.getElementById('settingsEmail');
+  if (nameField)  nameField.value  = auth.currentUser.displayName || '';
+  if (emailField) emailField.value = auth.currentUser.email || '';
 
 } /* end initApp */
