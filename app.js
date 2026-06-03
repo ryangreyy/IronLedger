@@ -578,4 +578,31 @@ function initApp(uid) {
       .catch(err => alert('Could not save: ' + err.message));
   });
 
+  /* ---- 6) SETTINGS — update display name ----------------------------- */
+  const user = auth.currentUser;
+  document.getElementById('settingsName').value  = user.displayName || '';
+  document.getElementById('settingsEmail').value = user.email || '';
+
+  document.getElementById('saveSettings').addEventListener('click', () => {
+    const newName = document.getElementById('settingsName').value.trim();
+    const msg     = document.getElementById('settingsMsg');
+    if (!newName) {
+      msg.style.color = 'var(--down)';
+      msg.textContent = 'Please enter a display name.';
+      return;
+    }
+    user.updateProfile({ displayName: newName })
+      .then(() => {
+        /* Update the name shown in the nav immediately */
+        navUserName.textContent  = newName;
+        msg.style.color          = 'var(--up)';
+        msg.textContent          = '✓ Display name updated.';
+        setTimeout(() => { msg.textContent = ''; }, 3000);
+      })
+      .catch(err => {
+        msg.style.color = 'var(--down)';
+        msg.textContent = err.message;
+      });
+  });
+
 } /* end initApp */
