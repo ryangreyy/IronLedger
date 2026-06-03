@@ -164,8 +164,23 @@ function createDatePicker(inputId, initialDate) {
 
   trigger.addEventListener('click', e => {
     e.stopPropagation();
-    if (popup.style.display === 'none') { renderCalendar(); popup.style.display = 'block'; }
-    else popup.style.display = 'none';
+    if (popup.style.display === 'none') {
+      /* Position the popup relative to the trigger using screen coordinates,
+         so it floats above card overflow:hidden boundaries */
+      const rect = trigger.getBoundingClientRect();
+      popup.style.top  = (rect.bottom + 6) + 'px';
+      popup.style.left = rect.left + 'px';
+      renderCalendar();
+      popup.style.display = 'block';
+      /* If it goes off the right edge, nudge it left */
+      requestAnimationFrame(() => {
+        const pr = popup.getBoundingClientRect();
+        if (pr.right > window.innerWidth - 8)
+          popup.style.left = Math.max(8, window.innerWidth - pr.width - 8) + 'px';
+      });
+    } else {
+      popup.style.display = 'none';
+    }
   });
 
   popup.addEventListener('click', e => {
