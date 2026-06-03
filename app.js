@@ -199,10 +199,14 @@ function initApp(uid) {
     return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
   }
 
+  /* Stored so the edit handler can look up original values without a Firestore round-trip */
+  let currentSessions = [];
+
   function renderLog(sessions) {
+    currentSessions = sessions;
     document.getElementById('logBody').innerHTML = sessions.length
       ? sessions.map(s => `
-          <tr>
+          <tr data-id="${s.id}">
             <td style="color:var(--text-dim)">${s.date}</td>
             <td><span class="pill ${s.cls}">${s.lift}</span></td>
             <td>${s.sets} × ${s.reps}</td>
@@ -211,16 +215,46 @@ function initApp(uid) {
             <td>${s.note
               ? '<span class="pr-flag">★ ' + s.note + '</span>'
               : '<span style="color:var(--text-dimmer)">—</span>'}</td>
-            <td><button class="btn-delete" data-id="${s.id}" title="Remove">✕</button></td>
+            <td class="row-actions">
+              <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
+              <button class="btn-delete"   data-id="${s.id}" title="Remove this session">✕</button>
+            </td>
           </tr>`).join('')
       : `<tr><td colspan="7" style="color:var(--text-dimmer);text-align:center;padding:32px 0;">
            No sessions yet — add one above.
          </td></tr>`;
   }
 
+  /* Builds an inline-editable version of a row */
+  function buildEditRow(s) {
+    const dateVal = s.dateRaw || new Date().toISOString().split('T')[0];
+    return `
+      <tr data-id="${s.id}" class="editing-row">
+        <td><input class="edit-field" id="ed-date" type="date" value="${dateVal}"></td>
+        <td><select class="edit-field" id="ed-lift">
+          <option value="Squat|squat"         ${s.cls==='squat' ?'selected':''}>Squat</option>
+          <option value="Bench|bench"          ${s.cls==='bench' ?'selected':''}>Bench</option>
+          <option value="Deadlift|dead"        ${s.cls==='dead'  ?'selected':''}>Deadlift</option>
+          <option value="Overhead Press|press" ${s.cls==='press' ?'selected':''}>Overhead Press</option>
+        </select></td>
+        <td class="sets-reps-cell">
+          <input class="edit-field edit-num" id="ed-sets" type="number" value="${s.sets}" min="1">
+          <span style="color:var(--text-dimmer)">×</span>
+          <input class="edit-field edit-num" id="ed-reps" type="number" value="${s.reps}" min="1">
+        </td>
+        <td><input class="edit-field edit-num" id="ed-wt" type="number" value="${s.wt}" step="5" min="1"></td>
+        <td style="color:var(--text-dimmer);font-size:12px;font-family:var(--mono);">auto</td>
+        <td><input class="edit-field edit-wide" id="ed-note" type="text" value="${s.note}" placeholder="PR…"></td>
+        <td class="row-actions">
+          <button class="btn-save-edit" data-id="${s.id}" title="Save changes">Save</button>
+          <button class="btn-cancel-edit btn-delete" data-id="${s.id}" title="Cancel">✕</button>
+        </td>
+      </tr>`;
+  }
+
   document.getElementById('logDate').valueAsDate = new Date();
 
-  /* Live listener — rebuilds table instantly on any change */
+  /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
     .orderBy('createdAt', 'desc')
     .onSnapshot(
@@ -228,7 +262,7 @@ function initApp(uid) {
       err  => console.error('Sessions:', err)
     );
 
-  /* Add session */
+  /* Add session — also saves dateRaw so the edit form can pre-fill it */
   document.getElementById('addSession').addEventListener('click', () => {
     const dateVal = document.getElementById('logDate').value;
     const liftVal = document.getElementById('logLift').value;
@@ -240,18 +274,54 @@ function initApp(uid) {
       alert('Please fill in date, sets, reps, and weight.'); return;
     }
     const [lift, cls] = liftVal.split('|');
-    sessionsRef().add({ date: formatDate(dateVal), lift, cls, sets, reps, wt, note,
+    sessionsRef().add({ date: formatDate(dateVal), dateRaw: dateVal,
+                        lift, cls, sets, reps, wt, note,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
       .then(() => { ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = ''); })
       .catch(err => alert('Could not save: ' + err.message));
   });
 
-  /* Delete session */
+  /* Unified click handler for edit / save / cancel / delete */
   document.getElementById('logBody').addEventListener('click', e => {
-    const btn = e.target.closest('.btn-delete'); if (!btn) return;
-    if (confirm('Remove this session?')) {
-      sessionsRef().doc(btn.dataset.id).delete()
-        .catch(err => alert('Could not delete: ' + err.message));
+
+    /* ── Edit button: swap row to inline edit mode ── */
+    const editBtn = e.target.closest('.btn-row-edit');
+    if (editBtn) {
+      const s = currentSessions.find(x => x.id === editBtn.dataset.id);
+      const row = document.querySelector(`tr[data-id="${editBtn.dataset.id}"]`);
+      if (s && row) row.outerHTML = buildEditRow(s);
+      return;
+    }
+
+    /* ── Save button: write edited values back to Firestore ── */
+    const saveBtn = e.target.closest('.btn-save-edit');
+    if (saveBtn) {
+      const id      = saveBtn.dataset.id;
+      const dateVal = document.getElementById('ed-date').value;
+      const liftVal = document.getElementById('ed-lift').value;
+      const sets    = +document.getElementById('ed-sets').value;
+      const reps    = +document.getElementById('ed-reps').value;
+      const wt      = +document.getElementById('ed-wt').value;
+      const note    = document.getElementById('ed-note').value.trim();
+      if (!dateVal || !sets || !reps || !wt) { alert('Please fill in all fields.'); return; }
+      const [lift, cls] = liftVal.split('|');
+      sessionsRef().doc(id)
+        .update({ date: formatDate(dateVal), dateRaw: dateVal, lift, cls, sets, reps, wt, note })
+        .catch(err => alert('Could not save: ' + err.message));
+      return;
+    }
+
+    /* ── Cancel button: restore original row without saving ── */
+    const cancelBtn = e.target.closest('.btn-cancel-edit');
+    if (cancelBtn) { renderLog(currentSessions); return; }
+
+    /* ── Delete button ── */
+    const deleteBtn = e.target.closest('.btn-delete');
+    if (deleteBtn) {
+      if (confirm('Remove this session?')) {
+        sessionsRef().doc(deleteBtn.dataset.id).delete()
+          .catch(err => alert('Could not delete: ' + err.message));
+      }
     }
   });
 
