@@ -115,7 +115,7 @@ nav{
   letter-spacing:0.12em; margin-top:4px;}
 
 /* ---------- KPI CARDS ---------- */
-.grid-kpi{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:8px;}
+.grid-kpi{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:8px;}
 @media(max-width:860px){ .grid-kpi{grid-template-columns:repeat(2,1fr);} }
 @media(max-width:480px){ .grid-kpi{grid-template-columns:1fr;} }
 .card{

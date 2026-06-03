@@ -438,12 +438,10 @@ function initApp(uid) {
     /* Update the four cards */
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
-    set('kpi-volume',   volume ? volume.toLocaleString() : '0');
     set('kpi-sessions', count);
     set('kpi-streak',   streak);
     set('kpi-big3',     big3 ? big3.toLocaleString() : '—');
 
-    set('kpi-volume-delta',   count ? `across ${count} session${count !== 1 ? 's' : ''}` : 'No sessions this month yet');
     set('kpi-sessions-delta', count ? 'logged this month' : 'Add your first session below');
     set('kpi-streak-delta',   streak ? `day${streak !== 1 ? 's' : ''} in a row` : 'Log a session to start a streak');
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
@@ -458,7 +456,6 @@ function initApp(uid) {
             <td><span class="pill ${s.cls}">${s.lift}</span></td>
             <td>${s.sets} × ${s.reps}</td>
             <td>${s.wt} lbs</td>
-            <td>${(s.sets * s.reps * s.wt).toLocaleString()} lbs</td>
             <td>${s.note
               ? '<span class="pr-flag">★ ' + s.note + '</span>'
               : '<span style="color:var(--text-dimmer)">—</span>'}</td>
@@ -486,7 +483,6 @@ function initApp(uid) {
           <input class="edit-field edit-num" id="ed-reps" type="number" value="${s.reps}" min="1">
         </td>
         <td><input class="edit-field edit-num" id="ed-wt" type="number" value="${s.wt}" step="5" min="1"></td>
-        <td style="color:var(--text-dimmer);font-size:12px;font-family:var(--mono);">auto</td>
         <td><input class="edit-field edit-wide" id="ed-note" type="text" value="${s.note}" placeholder="PR…"></td>
         <td class="row-actions">
           <button class="btn-save-edit" data-id="${s.id}" title="Save changes">Save</button>
