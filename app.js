@@ -579,30 +579,38 @@ function initApp(uid) {
   });
 
   /* ---- 6) SETTINGS — update display name ----------------------------- */
-  const user = auth.currentUser;
-  document.getElementById('settingsName').value  = user.displayName || '';
-  document.getElementById('settingsEmail').value = user.email || '';
+  document.getElementById('settingsName').value  = auth.currentUser.displayName || '';
+  document.getElementById('settingsEmail').value = auth.currentUser.email || '';
 
-  document.getElementById('saveSettings').addEventListener('click', () => {
+  document.getElementById('saveSettings').addEventListener('click', async () => {
     const newName = document.getElementById('settingsName').value.trim();
     const msg     = document.getElementById('settingsMsg');
+    const btn     = document.getElementById('saveSettings');
+
+    msg.textContent = '';
+
     if (!newName) {
       msg.style.color = 'var(--down)';
       msg.textContent = 'Please enter a display name.';
       return;
     }
-    user.updateProfile({ displayName: newName })
-      .then(() => {
-        /* Update the name shown in the nav immediately */
-        navUserName.textContent  = newName;
-        msg.style.color          = 'var(--up)';
-        msg.textContent          = '✓ Display name updated.';
-        setTimeout(() => { msg.textContent = ''; }, 3000);
-      })
-      .catch(err => {
-        msg.style.color = 'var(--down)';
-        msg.textContent = err.message;
-      });
+
+    btn.textContent = 'Saving…';
+    btn.disabled    = true;
+
+    try {
+      await auth.currentUser.updateProfile({ displayName: newName });
+      navUserName.textContent = newName;
+      msg.style.color         = 'var(--up)';
+      msg.textContent         = '✓ Display name updated.';
+      setTimeout(() => { msg.textContent = ''; }, 3000);
+    } catch (err) {
+      msg.style.color = 'var(--down)';
+      msg.textContent = err.message || 'Something went wrong — please try again.';
+    } finally {
+      btn.textContent = 'Save changes';
+      btn.disabled    = false;
+    }
   });
 
 } /* end initApp */
