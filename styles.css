@@ -85,6 +85,7 @@ nav{
 .nav-links{display:flex; gap:30px; font-size:14px; font-weight:600;}
 .nav-links a{color:var(--text-dim); transition:color .2s;}
 .nav-links a:hover{color:var(--text);}
+.nav-links a.nav-current{color:var(--accent);}
 @media(max-width:720px){ .nav-links{display:none;} }
 
 /* ---------- HERO ---------- */

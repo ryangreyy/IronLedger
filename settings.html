@@ -1,0 +1,121 @@
+<!-- IRONLEDGER — Settings page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRONLEDGER — Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><span class="mark">IL</span> IRONLEDGER</a>
+      <div class="nav-links">
+        <a href="index.html#dashboard">Dashboard</a>
+        <a href="index.html#progress">Progress</a>
+        <a href="index.html#calc">1RM Calculator</a>
+        <a href="index.html#log">Training Log</a>
+        <a href="index.html#standards">Standards</a>
+        <a href="settings.html" class="nav-current">Settings</a>
+      </div>
+      <div id="nav-signed-in" style="display:none;align-items:center;gap:14px;">
+        <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+        <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SETTINGS CONTENT (shown after auth check) -->
+  <div id="settings-page" style="display:none;position:relative;z-index:1;">
+    <section style="max-width:1140px;margin:0 auto;padding:80px 28px 120px;">
+      <div class="eyebrow">Account</div>
+      <h2 class="title">Settings</h2>
+      <p class="sub">Update your account details. Changes take effect immediately.</p>
+
+      <div class="card" style="margin-top:40px;max-width:480px;padding:32px;">
+
+        <div class="field">
+          <label for="settingsName">Display name</label>
+          <input id="settingsName" type="text" placeholder="Your name" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label>Email</label>
+          <input id="settingsEmail" type="text" disabled
+                 style="opacity:0.45;cursor:not-allowed;"
+                 title="Email cannot be changed here">
+        </div>
+
+        <button id="saveSettings" class="btn btn-primary" style="margin-top:8px;">Save changes</button>
+        <p id="settingsMsg" style="margin-top:14px;font-size:13px;font-family:var(--mono);min-height:18px;"></p>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:28px 0;">
+        <a href="index.html" class="btn btn-ghost" style="display:inline-block;">← Back to dashboard</a>
+
+      </div>
+    </section>
+  </div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  /* If not signed in, send back to the login screen */
+  auth.onAuthStateChanged(user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+
+    document.getElementById('settings-page').style.display = '';
+    document.getElementById('nav-signed-in').style.display = 'flex';
+    document.getElementById('nav-user-name').textContent   = user.displayName || user.email.split('@')[0];
+    document.getElementById('settingsName').value          = user.displayName || '';
+    document.getElementById('settingsEmail').value         = user.email || '';
+  });
+
+  /* Sign out → back to login */
+  document.getElementById('signOut').addEventListener('click', () => {
+    auth.signOut().then(() => { window.location.href = 'index.html'; });
+  });
+
+  /* Save display name */
+  document.getElementById('saveSettings').addEventListener('click', async () => {
+    const newName = document.getElementById('settingsName').value.trim();
+    const msg     = document.getElementById('settingsMsg');
+    const btn     = document.getElementById('saveSettings');
+
+    msg.textContent = '';
+    if (!newName) {
+      msg.style.color = 'var(--down)';
+      msg.textContent = 'Please enter a display name.';
+      return;
+    }
+
+    btn.textContent = 'Saving…';
+    btn.disabled    = true;
+
+    try {
+      await auth.currentUser.updateProfile({ displayName: newName });
+      document.getElementById('nav-user-name').textContent = newName;
+      msg.style.color = 'var(--up)';
+      msg.textContent = '✓ Display name updated.';
+      setTimeout(() => { msg.textContent = ''; }, 3000);
+    } catch (err) {
+      msg.style.color = 'var(--down)';
+      msg.textContent = err.message || 'Something went wrong — please try again.';
+    } finally {
+      btn.textContent = 'Save changes';
+      btn.disabled    = false;
+    }
+  });
+</script>
+</body>
+</html>
