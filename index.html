@@ -151,10 +151,48 @@
     <h2 class="title">Training log</h2>
     <p class="sub">The raw record. Every working set, with volume auto&#8209;calculated.</p>
 
-    <div class="card" style="margin-top:34px;padding:8px 8px 4px;">
+    <!-- Add session form -->
+    <div class="card" style="margin-top:28px;padding:24px 22px 20px;">
+      <p class="controls-label">Log a new session</p>
+      <div class="add-session-grid">
+        <div class="field">
+          <label for="logDate">Date</label>
+          <input id="logDate" type="date">
+        </div>
+        <div class="field">
+          <label for="logLift">Lift</label>
+          <select id="logLift">
+            <option value="Squat|squat">Squat</option>
+            <option value="Bench|bench">Bench</option>
+            <option value="Deadlift|dead">Deadlift</option>
+            <option value="Overhead Press|press">Overhead Press</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="logSets">Sets</label>
+          <input id="logSets" type="number" min="1" max="20" placeholder="3">
+        </div>
+        <div class="field">
+          <label for="logReps">Reps</label>
+          <input id="logReps" type="number" min="1" max="50" placeholder="5">
+        </div>
+        <div class="field">
+          <label for="logWeight">Weight (lbs)</label>
+          <input id="logWeight" type="number" min="1" step="5" placeholder="225">
+        </div>
+        <div class="field">
+          <label for="logNote">Note (optional)</label>
+          <input id="logNote" type="text" placeholder="PR, felt good…">
+        </div>
+      </div>
+      <button id="addSession" class="btn btn-primary" style="margin-top:4px;">Add session</button>
+    </div>
+
+    <!-- Log table -->
+    <div class="card" style="margin-top:18px;padding:8px 8px 4px;">
       <table class="log-table">
         <thead>
-          <tr><th>Date</th><th>Lift</th><th>Sets × Reps</th><th>Weight</th><th>Volume</th><th>Note</th></tr>
+          <tr><th>Date</th><th>Lift</th><th>Sets × Reps</th><th>Weight</th><th>Volume</th><th>Note</th><th></th></tr>
         </thead>
         <tbody id="logBody"></tbody>
       </table>
@@ -165,10 +203,41 @@
   <section id="standards" class="reveal">
     <div class="eyebrow">Benchmarking</div>
     <h2 class="title">Where you stand</h2>
-    <p class="sub">Current estimated maxes plotted against common strength standards
-      for a 180 lb lifter. The lime bar is you.</p>
+    <p class="sub">Enter your current maxes and bodyweight — the bars and tier labels update instantly.</p>
 
-    <div id="standards-list" style="margin-top:10px;"></div>
+    <!-- Controls: update maxes + bodyweight -->
+    <div class="card" style="margin-top:24px;padding:24px 22px 20px;">
+      <p class="controls-label">Update your numbers</p>
+      <div class="controls-grid">
+        <div class="field">
+          <label for="bodyweightSel">Bodyweight</label>
+          <select id="bodyweightSel">
+            <option value="148">Up to 148 lbs</option>
+            <option value="165">149 – 165 lbs</option>
+            <option value="181" selected>166 – 181 lbs</option>
+            <option value="198">182 – 198 lbs</option>
+            <option value="220">199 – 220 lbs</option>
+            <option value="242">221 – 242 lbs</option>
+            <option value="275">243 + lbs</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="squatInput">Squat max (lbs)</label>
+          <input id="squatInput" type="number" placeholder="315" min="45" step="5">
+        </div>
+        <div class="field">
+          <label for="benchInput">Bench max (lbs)</label>
+          <input id="benchInput" type="number" placeholder="225" min="45" step="5">
+        </div>
+        <div class="field">
+          <label for="deadInput">Deadlift max (lbs)</label>
+          <input id="deadInput" type="number" placeholder="405" min="45" step="5">
+        </div>
+      </div>
+      <button id="updateStandards" class="btn btn-primary" style="margin-top:4px;">Save &amp; update bars</button>
+    </div>
+
+    <div id="standards-list" style="margin-top:18px;"></div>
   </section>
 
   <!-- ================= FOOTER ================= -->
@@ -181,7 +250,12 @@
 
 </div>
 
-<!-- data.js must load before app.js so the data arrays are ready when the logic runs -->
+<!-- Firebase SDK (compat version — works without any build tools) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<!-- Your Firebase project credentials (paste them into firebase-config.js) -->
+<script src="firebase-config.js"></script>
+<!-- App data and logic -->
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>

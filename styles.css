@@ -208,3 +208,35 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 /* page-load reveal */
 .reveal{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease;}
 .reveal.in{opacity:1; transform:none;}
+
+/* ---------- INTERACTIVE FORMS (log + standards controls) ---------- */
+.controls-label{
+  font-size:12px; font-family:var(--mono); text-transform:uppercase;
+  letter-spacing:0.18em; color:var(--accent); margin-bottom:18px; display:block;
+}
+/* 4-column grid for the standards controls */
+.controls-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+@media(max-width:860px){ .controls-grid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:480px){ .controls-grid{grid-template-columns:1fr;} }
+
+/* 3-column grid for the add-session form */
+.add-session-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+@media(max-width:860px){ .add-session-grid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:480px){ .add-session-grid{grid-template-columns:1fr;} }
+
+/* Smaller text in the form inputs so they feel compact */
+.controls-grid .field input,
+.controls-grid .field select,
+.add-session-grid .field input,
+.add-session-grid .field select{ font-size:15px; padding:11px 13px; }
+
+/* ---------- DELETE BUTTON ---------- */
+.btn-delete{
+  background:transparent; border:none; color:var(--text-dimmer);
+  font-size:14px; cursor:pointer; padding:5px 9px; border-radius:6px;
+  transition:color .15s, background .15s; line-height:1;
+}
+.btn-delete:hover{ color:var(--down); background:rgba(255,107,107,0.10); }
+
+/* ---------- OVERHEAD PRESS PILL ---------- */
+.pill.press{ background:rgba(183,139,255,0.12); color:#B78BFF; }
