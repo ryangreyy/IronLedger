@@ -319,6 +319,40 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .btn-save-edit:hover{ opacity:0.85; }
 
+/* ---------- SETTINGS PAGE ---------- */
+.settings-group{ margin-top:40px; }
+.settings-group-label{
+  font-family:var(--mono); font-size:11px; text-transform:uppercase;
+  letter-spacing:0.2em; color:var(--text-dimmer); margin-bottom:14px;
+}
+.settings-card-title{ font-weight:700; font-size:16px; margin-bottom:6px; }
+.settings-card-desc{ font-size:14px; color:var(--text-dim); margin-bottom:20px; line-height:1.55; }
+.settings-msg{
+  margin-top:12px; font-size:13px; font-family:var(--mono); min-height:18px; line-height:1.4;
+}
+.settings-danger-card{ border-color:rgba(255,107,107,0.25) !important; }
+
+/* Lbs / kg pill toggle */
+.unit-toggle{
+  display:flex; border:1px solid var(--border-strong); border-radius:10px;
+  overflow:hidden; width:fit-content;
+}
+.unit-toggle button{
+  background:transparent; border:none; color:var(--text-dim);
+  font-family:var(--mono); font-weight:700; font-size:15px;
+  padding:12px 28px; cursor:pointer; transition:all .2s;
+}
+.unit-toggle button.active{ background:var(--accent); color:#0B0C0E; }
+
+/* Danger (delete) button */
+.btn-danger{
+  background:transparent; color:var(--down);
+  border:1px solid rgba(255,107,107,0.4);
+  font-family:var(--body); font-weight:700; font-size:14px;
+  padding:11px 20px; border-radius:10px; cursor:pointer; transition:all .2s;
+}
+.btn-danger:hover{ background:rgba(255,107,107,0.10); border-color:var(--down); }
+
 /* ---------- AUTH SCREEN ---------- */
 #auth-screen{
   min-height:calc(100vh - 64px); display:flex;

@@ -328,6 +328,17 @@ function initApp(uid) {
   let currentSessions = [];
   let currentSettings = null;
 
+  /* Apply unit label (lbs/kg) to key elements across the dashboard */
+  function applyUnit(unit) {
+    document.querySelectorAll('.unit-label').forEach(el => { el.textContent = unit; });
+  }
+
+  /* Apply default lift to the log form */
+  function applyDefaultLift(lift) {
+    const el = document.getElementById('logLift');
+    if (el && lift) el.value = lift;
+  }
+
   function updateKPIs() {
     const now        = new Date();
     const thisMonth  = now.getMonth();
@@ -552,8 +563,10 @@ function initApp(uid) {
   unsubscribeSettings = settingsRef().onSnapshot(doc => {
     if (doc.exists) {
       currentSettings = doc.data();
-      const { squatMax, benchMax, deadMax, bodyweight } = currentSettings;
-      renderStandards(squatMax, benchMax, deadMax, bodyweight);
+      const { squatMax, benchMax, deadMax, bodyweight, unit, defaultLift } = currentSettings;
+      renderStandards(squatMax || 315, benchMax || 225, deadMax || 405, bodyweight || 181);
+      if (unit)        applyUnit(unit);
+      if (defaultLift !== undefined) applyDefaultLift(defaultLift);
     } else {
       currentSettings = null;
       renderStandards(315, 225, 405, 181);

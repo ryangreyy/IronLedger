@@ -31,90 +31,281 @@
     </div>
   </nav>
 
-  <!-- SETTINGS CONTENT (shown after auth check) -->
+  <!-- SETTINGS PAGE (shown after auth check) -->
   <div id="settings-page" style="display:none;position:relative;z-index:1;">
-    <section style="max-width:1140px;margin:0 auto;padding:80px 28px 120px;">
-      <div class="eyebrow">Account</div>
+    <section style="max-width:680px;margin:0 auto;padding:72px 28px 120px;">
+
+      <div class="eyebrow">Your account</div>
       <h2 class="title">Settings</h2>
-      <p class="sub">Update your account details. Changes take effect immediately.</p>
+      <p class="sub">Changes take effect immediately.</p>
 
-      <div class="card" style="margin-top:40px;max-width:480px;padding:32px;">
-
-        <div class="field">
-          <label for="settingsName">Display name</label>
-          <input id="settingsName" type="text" placeholder="Your name" autocomplete="off">
+      <!-- ===== PROFILE ===== -->
+      <div class="settings-group">
+        <p class="settings-group-label">Profile</p>
+        <div class="card" style="padding:28px;">
+          <div class="field">
+            <label for="settingsName">Display name</label>
+            <input id="settingsName" type="text" placeholder="Your name" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input id="settingsEmail" type="text" disabled style="opacity:0.45;cursor:not-allowed;">
+          </div>
+          <button id="saveProfile" class="btn btn-primary">Save name</button>
+          <p id="profileMsg" class="settings-msg"></p>
         </div>
-
-        <div class="field">
-          <label>Email</label>
-          <input id="settingsEmail" type="text" disabled
-                 style="opacity:0.45;cursor:not-allowed;"
-                 title="Email cannot be changed here">
-        </div>
-
-        <button id="saveSettings" class="btn btn-primary" style="margin-top:8px;">Save changes</button>
-        <p id="settingsMsg" style="margin-top:14px;font-size:13px;font-family:var(--mono);min-height:18px;"></p>
-
-        <hr style="border:none;border-top:1px solid var(--border);margin:28px 0;">
-        <a href="index.html" class="btn btn-ghost" style="display:inline-block;">← Back to dashboard</a>
-
       </div>
+
+      <!-- ===== ACCOUNT MANAGEMENT ===== -->
+      <div class="settings-group">
+        <p class="settings-group-label">Account Management</p>
+
+        <!-- Change password (email/password users only) -->
+        <div class="card" style="padding:28px;margin-bottom:16px;" id="passwordCard">
+          <p class="settings-card-title">Change password</p>
+          <p class="settings-card-desc" id="passwordDesc">Enter a new password for your account.</p>
+          <div id="passwordForm">
+            <div class="field">
+              <label for="newPassword">New password</label>
+              <input id="newPassword" type="password" placeholder="At least 6 characters" autocomplete="new-password">
+            </div>
+            <div class="field">
+              <label for="confirmPassword">Confirm new password</label>
+              <input id="confirmPassword" type="password" placeholder="Repeat new password" autocomplete="new-password">
+            </div>
+            <button id="savePassword" class="btn btn-primary">Update password</button>
+            <p id="passwordMsg" class="settings-msg"></p>
+          </div>
+        </div>
+
+        <!-- Delete account -->
+        <div class="card settings-danger-card" style="padding:28px;">
+          <p class="settings-card-title" style="color:var(--down);">Delete account</p>
+          <p class="settings-card-desc">Permanently removes your account and all logged sessions. This cannot be undone.</p>
+          <div id="deleteStep1">
+            <button id="deleteBtn" class="btn-danger">Delete my account</button>
+          </div>
+          <div id="deleteStep2" style="display:none;">
+            <p style="font-size:13px;color:var(--down);margin-bottom:12px;font-family:var(--mono);">
+              Type DELETE to confirm:
+            </p>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <input id="deleteConfirmInput" type="text" placeholder="DELETE"
+                     style="background:var(--bg-2);border:1px solid var(--down);color:var(--text);
+                            font-family:var(--mono);font-size:16px;font-weight:700;
+                            padding:11px 14px;border-radius:10px;outline:none;width:160px;">
+              <button id="deleteConfirmBtn" class="btn-danger">Confirm deletion</button>
+              <button id="deleteCancelBtn" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;">Cancel</button>
+            </div>
+            <p id="deleteMsg" class="settings-msg"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== APP PREFERENCES ===== -->
+      <div class="settings-group">
+        <p class="settings-group-label">App Preferences</p>
+        <div class="card" style="padding:28px;">
+
+          <!-- Weight unit -->
+          <p class="settings-card-title">Weight unit</p>
+          <p class="settings-card-desc">Sets the unit label across the whole app. Enter your weights in whichever unit you train in.</p>
+          <div class="unit-toggle" id="unitToggle">
+            <button data-unit="lbs" class="active">lbs</button>
+            <button data-unit="kg">kg</button>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
+
+          <!-- Default lift -->
+          <p class="settings-card-title">Default lift in the log form</p>
+          <p class="settings-card-desc">The lift field will be pre-filled with this when you open the Training Log.</p>
+          <div class="field" style="max-width:260px;">
+            <select id="defaultLiftSel">
+              <option value="">— No default (leave blank) —</option>
+              <option value="Squat">Squat</option>
+              <option value="Bench">Bench</option>
+              <option value="Deadlift">Deadlift</option>
+              <option value="Overhead Press">Overhead Press</option>
+              <option value="Incline Press">Incline Press</option>
+              <option value="Dips">Dips</option>
+              <option value="Push-Up">Push-Up</option>
+              <option value="Pull-Up">Pull-Up</option>
+              <option value="Row">Row</option>
+              <option value="Pulldown">Pulldown</option>
+              <option value="Bicep Curl">Bicep Curl</option>
+              <option value="Tricep Pushdown">Tricep Pushdown</option>
+              <option value="Lateral Raise">Lateral Raise</option>
+              <option value="Split Squat">Split Squat</option>
+              <option value="Hack Squat">Hack Squat</option>
+              <option value="Leg Extension">Leg Extension</option>
+              <option value="Leg Curl">Leg Curl</option>
+              <option value="Calf Raise">Calf Raise</option>
+            </select>
+          </div>
+
+          <button id="savePrefs" class="btn btn-primary" style="margin-top:8px;">Save preferences</button>
+          <p id="prefsMsg" class="settings-msg"></p>
+        </div>
+      </div>
+
+      <a href="index.html" class="btn btn-ghost" style="display:inline-block;margin-top:8px;">← Back to dashboard</a>
+
     </section>
   </div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script>
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
+  const db   = firebase.firestore();
 
-  /* If not signed in, send back to the login screen */
-  auth.onAuthStateChanged(user => {
+  let currentUid = null;
+  const settingsRef = () => db.collection('users').doc(currentUid).collection('settings').doc('main');
+
+  /* ── AUTH STATE ── */
+  auth.onAuthStateChanged(async user => {
     if (!user) { window.location.href = 'index.html'; return; }
+    currentUid = user.uid;
 
     document.getElementById('settings-page').style.display = '';
     document.getElementById('nav-signed-in').style.display = 'flex';
     document.getElementById('nav-user-name').textContent   = user.displayName || user.email.split('@')[0];
     document.getElementById('settingsName').value          = user.displayName || '';
     document.getElementById('settingsEmail').value         = user.email || '';
+
+    /* Show password card only for email/password users; hide for Google */
+    const isEmailUser = user.providerData.some(p => p.providerId === 'password');
+    if (!isEmailUser) {
+      document.getElementById('passwordForm').style.display = 'none';
+      document.getElementById('passwordDesc').textContent   =
+        'Your password is managed through your Google account.';
+    }
+
+    /* Load saved preferences */
+    try {
+      const doc = await settingsRef().get();
+      if (doc.exists) {
+        const d = doc.data();
+        if (d.unit) setUnitToggle(d.unit);
+        if (d.defaultLift !== undefined) document.getElementById('defaultLiftSel').value = d.defaultLift;
+      }
+    } catch (e) { /* preferences not saved yet — use defaults */ }
   });
 
-  /* Sign out → back to login */
+  /* ── SIGN OUT ── */
   document.getElementById('signOut').addEventListener('click', () => {
     auth.signOut().then(() => { window.location.href = 'index.html'; });
   });
 
-  /* Save display name */
-  document.getElementById('saveSettings').addEventListener('click', async () => {
+  /* ── SAVE DISPLAY NAME ── */
+  document.getElementById('saveProfile').addEventListener('click', async () => {
     const newName = document.getElementById('settingsName').value.trim();
-    const msg     = document.getElementById('settingsMsg');
-    const btn     = document.getElementById('saveSettings');
-
+    const msg     = document.getElementById('profileMsg');
+    const btn     = document.getElementById('saveProfile');
     msg.textContent = '';
-    if (!newName) {
-      msg.style.color = 'var(--down)';
-      msg.textContent = 'Please enter a display name.';
-      return;
-    }
-
-    btn.textContent = 'Saving…';
-    btn.disabled    = true;
-
+    if (!newName) { msg.style.color='var(--down)'; msg.textContent='Please enter a display name.'; return; }
+    btn.textContent = 'Saving…'; btn.disabled = true;
     try {
       await auth.currentUser.updateProfile({ displayName: newName });
       document.getElementById('nav-user-name').textContent = newName;
-      msg.style.color = 'var(--up)';
-      msg.textContent = '✓ Display name updated.';
+      msg.style.color = 'var(--up)'; msg.textContent = '✓ Display name updated.';
       setTimeout(() => { msg.textContent = ''; }, 3000);
     } catch (err) {
-      msg.style.color = 'var(--down)';
-      msg.textContent = err.message || 'Something went wrong — please try again.';
-    } finally {
-      btn.textContent = 'Save changes';
-      btn.disabled    = false;
+      msg.style.color = 'var(--down)'; msg.textContent = err.message || 'Something went wrong.';
+    } finally { btn.textContent = 'Save name'; btn.disabled = false; }
+  });
+
+  /* ── CHANGE PASSWORD ── */
+  document.getElementById('savePassword')?.addEventListener('click', async () => {
+    const np  = document.getElementById('newPassword').value;
+    const cp  = document.getElementById('confirmPassword').value;
+    const msg = document.getElementById('passwordMsg');
+    const btn = document.getElementById('savePassword');
+    msg.textContent = '';
+    if (!np)        { msg.style.color='var(--down)'; msg.textContent='Please enter a new password.'; return; }
+    if (np.length < 6){ msg.style.color='var(--down)'; msg.textContent='Password must be at least 6 characters.'; return; }
+    if (np !== cp)  { msg.style.color='var(--down)'; msg.textContent='Passwords do not match.'; return; }
+    btn.textContent = 'Updating…'; btn.disabled = true;
+    try {
+      await auth.currentUser.updatePassword(np);
+      document.getElementById('newPassword').value    = '';
+      document.getElementById('confirmPassword').value = '';
+      msg.style.color = 'var(--up)'; msg.textContent = '✓ Password updated.';
+      setTimeout(() => { msg.textContent = ''; }, 3000);
+    } catch (err) {
+      if (err.code === 'auth/requires-recent-login') {
+        msg.style.color = 'var(--down)';
+        msg.textContent = 'For security, please sign out and sign back in before changing your password.';
+      } else {
+        msg.style.color = 'var(--down)'; msg.textContent = err.message || 'Something went wrong.';
+      }
+    } finally { btn.textContent = 'Update password'; btn.disabled = false; }
+  });
+
+  /* ── DELETE ACCOUNT ── */
+  document.getElementById('deleteBtn').addEventListener('click', () => {
+    document.getElementById('deleteStep1').style.display = 'none';
+    document.getElementById('deleteStep2').style.display = '';
+  });
+  document.getElementById('deleteCancelBtn').addEventListener('click', () => {
+    document.getElementById('deleteStep2').style.display = 'none';
+    document.getElementById('deleteStep1').style.display = '';
+    document.getElementById('deleteConfirmInput').value  = '';
+  });
+  document.getElementById('deleteConfirmBtn').addEventListener('click', async () => {
+    const input = document.getElementById('deleteConfirmInput').value.trim();
+    const msg   = document.getElementById('deleteMsg');
+    const btn   = document.getElementById('deleteConfirmBtn');
+    if (input !== 'DELETE') {
+      msg.style.color = 'var(--down)'; msg.textContent = 'Type DELETE (all caps) to confirm.'; return;
     }
+    btn.textContent = 'Deleting…'; btn.disabled = true;
+    try {
+      /* Remove Firestore data then delete the Auth account */
+      await settingsRef().delete().catch(() => {});
+      await auth.currentUser.delete();
+      window.location.href = 'index.html';
+    } catch (err) {
+      if (err.code === 'auth/requires-recent-login') {
+        msg.style.color = 'var(--down)';
+        msg.textContent = 'For security, please sign out and sign back in before deleting your account.';
+      } else {
+        msg.style.color = 'var(--down)'; msg.textContent = err.message || 'Something went wrong.';
+      }
+      btn.textContent = 'Confirm deletion'; btn.disabled = false;
+    }
+  });
+
+  /* ── UNIT TOGGLE ── */
+  function setUnitToggle(unit) {
+    document.querySelectorAll('#unitToggle button').forEach(b => {
+      b.classList.toggle('active', b.dataset.unit === unit);
+    });
+  }
+  document.getElementById('unitToggle').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-unit]'); if (!btn) return;
+    setUnitToggle(btn.dataset.unit);
+  });
+
+  /* ── SAVE PREFERENCES ── */
+  document.getElementById('savePrefs').addEventListener('click', async () => {
+    const unit        = document.querySelector('#unitToggle button.active')?.dataset.unit || 'lbs';
+    const defaultLift = document.getElementById('defaultLiftSel').value;
+    const msg         = document.getElementById('prefsMsg');
+    const btn         = document.getElementById('savePrefs');
+    btn.textContent = 'Saving…'; btn.disabled = true;
+    try {
+      await settingsRef().set({ unit, defaultLift }, { merge: true });
+      msg.style.color = 'var(--up)'; msg.textContent = '✓ Preferences saved.';
+      setTimeout(() => { msg.textContent = ''; }, 3000);
+    } catch (err) {
+      msg.style.color = 'var(--down)'; msg.textContent = err.message || 'Something went wrong.';
+    } finally { btn.textContent = 'Save preferences'; btn.disabled = false; }
   });
 </script>
 </body>
