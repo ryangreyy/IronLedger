@@ -8,8 +8,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IRONLEDGER — Training Analytics</title>
 
-<!-- Fonts load from the web when online; if you're offline during the demo,
-     the browser falls back to clean system fonts and nothing breaks. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -17,243 +15,290 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="wrap">
 
-  <!-- ================= NAV ================= -->
+  <!-- ================= NAV (always visible) ================= -->
   <nav>
     <div class="nav-inner">
       <div class="brand"><span class="mark">IL</span> IRONLEDGER</div>
-      <div class="nav-links">
+      <div class="nav-links" id="nav-links">
         <a href="#dashboard">Dashboard</a>
         <a href="#progress">Progress</a>
         <a href="#calc">1RM Calculator</a>
         <a href="#log">Training Log</a>
         <a href="#standards">Standards</a>
       </div>
-      <a href="#calc" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Try It</a>
+      <!-- Shown when signed out -->
+      <div id="nav-signed-out">
+        <a href="#auth-screen" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+      </div>
+      <!-- Shown when signed in -->
+      <div id="nav-signed-in" style="display:none;align-items:center;gap:14px;">
+        <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+        <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+      </div>
     </div>
   </nav>
 
-  <!-- ================= HERO ================= -->
-  <section class="hero reveal">
-    <div class="eyebrow">Training Analytics Platform</div>
-    <h1>Train hard.<br>Track <span class="lime">everything.</span></h1>
-    <p class="lede">IRONLEDGER turns every set, rep, and pound into clean data — so progress
-      isn't a feeling, it's a number you can prove.</p>
-    <div class="hero-cta">
-      <a href="#calc" class="btn btn-primary">Estimate my 1&#8209;rep max →</a>
-      <a href="#dashboard" class="btn btn-ghost">View dashboard</a>
-    </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><div class="n" data-count="945">0</div><div class="l">Total (lbs)</div></div>
-      <div class="hero-stat"><div class="n" data-count="23">0</div><div class="l">Day streak</div></div>
-      <div class="hero-stat"><div class="n" data-count="142">0</div><div class="l">K lbs / month</div></div>
-    </div>
-  </section>
+  <!-- ================= AUTH SCREEN (shown when signed out) ================= -->
+  <div id="auth-screen">
+    <div class="auth-wrap">
+      <div class="card auth-card">
+        <div class="brand auth-brand"><span class="mark">IL</span> IRONLEDGER</div>
+        <p class="auth-sub">Sign in to access your personal training dashboard.</p>
 
-  <!-- ================= DASHBOARD / KPIs ================= -->
-  <section id="dashboard" class="reveal">
-    <div class="eyebrow">Overview</div>
-    <h2 class="title">This month at a glance</h2>
-    <p class="sub">The headline numbers a lifter actually cares about, updated every session.</p>
+        <button id="googleSignIn" class="btn btn-google">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Continue with Google
+        </button>
 
-    <div class="grid-kpi" style="margin-top:40px;">
-      <div class="card kpi">
-        <div class="label">Volume Lifted</div>
-        <div class="value"><span data-count="142840">0</span><span class="unit">lbs</span></div>
-        <div class="delta up">▲ 8.4% vs last month</div>
-      </div>
-      <div class="card kpi">
-        <div class="label">Sessions</div>
-        <div class="value"><span data-count="16">0</span><span class="unit">/ 16 planned</span></div>
-        <div class="delta up">▲ 100% adherence</div>
-      </div>
-      <div class="card kpi">
-        <div class="label">Current Streak</div>
-        <div class="value"><span data-count="23">0</span><span class="unit">days</span></div>
-        <div class="delta up">▲ best this year</div>
-      </div>
-      <div class="card kpi">
-        <div class="label">Est. Big&#8209;3 Total</div>
-        <div class="value"><span data-count="945">0</span><span class="unit">lbs</span></div>
-        <div class="delta up">▲ 35 lbs in 12 wks</div>
-      </div>
-    </div>
-  </section>
+        <div class="auth-divider"><span>or</span></div>
 
-  <!-- ================= PROGRESS CHART ================= -->
-  <section id="progress" class="reveal">
-    <div class="eyebrow">Strength Trend</div>
-    <h2 class="title">Estimated 1RM over time</h2>
-    <p class="sub">Twelve weeks of training, lift by lift. Toggle between the big three.</p>
-
-    <div class="card chart-card">
-      <div class="chart-head">
-        <div class="toggle" id="liftToggle">
-          <button data-lift="squat" class="active"><span class="dot" style="background:var(--squat)"></span>Squat</button>
-          <button data-lift="bench"><span class="dot" style="background:var(--bench)"></span>Bench</button>
-          <button data-lift="dead"><span class="dot" style="background:var(--dead)"></span>Deadlift</button>
-        </div>
-        <div class="legend-note" id="chartNote">Squat · +60 lbs since week 1</div>
-      </div>
-      <svg class="chart" id="chart" viewBox="0 0 920 300" preserveAspectRatio="none"></svg>
-    </div>
-  </section>
-
-  <!-- ================= 1RM CALCULATOR ================= -->
-  <section id="calc" class="reveal">
-    <div class="eyebrow">Interactive Tool</div>
-    <h2 class="title">One&#8209;rep max calculator</h2>
-    <p class="sub">Enter a set you actually did. We estimate your max and the working
-      weights for every rep range. This is the live, functional piece — change a number
-      and everything below updates instantly.</p>
-
-    <div class="calc-grid" style="margin-top:40px;">
-      <div class="card">
         <div class="field">
-          <label for="lift">Lift</label>
-          <select id="lift">
-            <option value="Squat">Squat</option>
-            <option value="Bench Press">Bench Press</option>
-            <option value="Deadlift">Deadlift</option>
-            <option value="Overhead Press">Overhead Press</option>
-          </select>
+          <label for="authEmail">Email</label>
+          <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
         </div>
         <div class="field">
-          <label for="weight">Weight lifted (lbs)</label>
-          <input id="weight" type="number" value="225" min="1" step="5">
+          <label for="authPassword">Password</label>
+          <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password">
         </div>
-        <div class="field">
-          <label for="reps">Reps performed</label>
-          <input id="reps" type="number" value="5" min="1" max="12">
+
+        <button id="emailSignIn" class="btn btn-primary" style="width:100%;margin-top:4px;">Sign in</button>
+        <button id="emailSignUp" class="btn btn-ghost" style="width:100%;margin-top:10px;">Create account</button>
+
+        <p id="authError" class="auth-error"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN DASHBOARD (shown when signed in) ================= -->
+  <div id="main-content" style="display:none;">
+  <div class="wrap">
+
+    <!-- ================= HERO ================= -->
+    <section class="hero reveal">
+      <div class="eyebrow">Training Analytics Platform</div>
+      <h1>Train hard.<br>Track <span class="lime">everything.</span></h1>
+      <p class="lede">IRONLEDGER turns every set, rep, and pound into clean data — so progress
+        isn't a feeling, it's a number you can prove.</p>
+      <div class="hero-cta">
+        <a href="#calc" class="btn btn-primary">Estimate my 1&#8209;rep max →</a>
+        <a href="#dashboard" class="btn btn-ghost">View dashboard</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="n" data-count="945">0</div><div class="l">Total (lbs)</div></div>
+        <div class="hero-stat"><div class="n" data-count="23">0</div><div class="l">Day streak</div></div>
+        <div class="hero-stat"><div class="n" data-count="142">0</div><div class="l">K lbs / month</div></div>
+      </div>
+    </section>
+
+    <!-- ================= DASHBOARD / KPIs ================= -->
+    <section id="dashboard" class="reveal">
+      <div class="eyebrow">Overview</div>
+      <h2 class="title">This month at a glance</h2>
+      <p class="sub">The headline numbers a lifter actually cares about, updated every session.</p>
+
+      <div class="grid-kpi" style="margin-top:40px;">
+        <div class="card kpi">
+          <div class="label">Volume Lifted</div>
+          <div class="value"><span data-count="142840">0</span><span class="unit">lbs</span></div>
+          <div class="delta up">▲ 8.4% vs last month</div>
         </div>
-        <p style="font-size:12px;color:var(--text-dimmer);font-family:var(--mono);">
-          Using the Epley formula: 1RM = w × (1 + reps ÷ 30)
-        </p>
+        <div class="card kpi">
+          <div class="label">Sessions</div>
+          <div class="value"><span data-count="16">0</span><span class="unit">/ 16 planned</span></div>
+          <div class="delta up">▲ 100% adherence</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Current Streak</div>
+          <div class="value"><span data-count="23">0</span><span class="unit">days</span></div>
+          <div class="delta up">▲ best this year</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Est. Big&#8209;3 Total</div>
+          <div class="value"><span data-count="945">0</span><span class="unit">lbs</span></div>
+          <div class="delta up">▲ 35 lbs in 12 wks</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PROGRESS CHART ================= -->
+    <section id="progress" class="reveal">
+      <div class="eyebrow">Strength Trend</div>
+      <h2 class="title">Estimated 1RM over time</h2>
+      <p class="sub">Twelve weeks of training, lift by lift. Toggle between the big three.</p>
+
+      <div class="card chart-card">
+        <div class="chart-head">
+          <div class="toggle" id="liftToggle">
+            <button data-lift="squat" class="active"><span class="dot" style="background:var(--squat)"></span>Squat</button>
+            <button data-lift="bench"><span class="dot" style="background:var(--bench)"></span>Bench</button>
+            <button data-lift="dead"><span class="dot" style="background:var(--dead)"></span>Deadlift</button>
+          </div>
+          <div class="legend-note" id="chartNote">Squat · +60 lbs since week 1</div>
+        </div>
+        <svg class="chart" id="chart" viewBox="0 0 920 300" preserveAspectRatio="none"></svg>
+      </div>
+    </section>
+
+    <!-- ================= 1RM CALCULATOR ================= -->
+    <section id="calc" class="reveal">
+      <div class="eyebrow">Interactive Tool</div>
+      <h2 class="title">One&#8209;rep max calculator</h2>
+      <p class="sub">Enter a set you actually did. We estimate your max and the working
+        weights for every rep range. Change a number and everything updates instantly.</p>
+
+      <div class="calc-grid" style="margin-top:40px;">
+        <div class="card">
+          <div class="field">
+            <label for="lift">Lift</label>
+            <select id="lift">
+              <option value="Squat">Squat</option>
+              <option value="Bench Press">Bench Press</option>
+              <option value="Deadlift">Deadlift</option>
+              <option value="Overhead Press">Overhead Press</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="weight">Weight lifted (lbs)</label>
+            <input id="weight" type="number" value="225" min="1" step="5">
+          </div>
+          <div class="field">
+            <label for="reps">Reps performed</label>
+            <input id="reps" type="number" value="5" min="1" max="12">
+          </div>
+          <p style="font-size:12px;color:var(--text-dimmer);font-family:var(--mono);">
+            Using the Epley formula: 1RM = w × (1 + reps ÷ 30)
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="result-big">
+            <div class="cap">Estimated 1&#8209;rep max</div>
+            <div class="num"><span id="orm">263</span><small>lbs</small></div>
+          </div>
+          <table class="pct">
+            <thead><tr><th>Intensity</th><th>% of 1RM</th><th>Working weight</th><th>Typical use</th></tr></thead>
+            <tbody id="pctBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TRAINING LOG ================= -->
+    <section id="log" class="reveal">
+      <div class="eyebrow">Recent Activity</div>
+      <h2 class="title">Training log</h2>
+      <p class="sub">The raw record. Every working set, with volume auto&#8209;calculated.</p>
+
+      <!-- Add session form -->
+      <div class="card" style="margin-top:28px;padding:24px 22px 20px;">
+        <p class="controls-label">Log a new session</p>
+        <div class="add-session-grid">
+          <div class="field">
+            <label for="logDate">Date</label>
+            <input id="logDate" type="date">
+          </div>
+          <div class="field">
+            <label for="logLift">Lift</label>
+            <select id="logLift">
+              <option value="Squat|squat">Squat</option>
+              <option value="Bench|bench">Bench</option>
+              <option value="Deadlift|dead">Deadlift</option>
+              <option value="Overhead Press|press">Overhead Press</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="logSets">Sets</label>
+            <input id="logSets" type="number" min="1" max="20" placeholder="3">
+          </div>
+          <div class="field">
+            <label for="logReps">Reps</label>
+            <input id="logReps" type="number" min="1" max="50" placeholder="5">
+          </div>
+          <div class="field">
+            <label for="logWeight">Weight (lbs)</label>
+            <input id="logWeight" type="number" min="1" step="5" placeholder="225">
+          </div>
+          <div class="field">
+            <label for="logNote">Note (optional)</label>
+            <input id="logNote" type="text" placeholder="PR, felt good…">
+          </div>
+        </div>
+        <button id="addSession" class="btn btn-primary" style="margin-top:4px;">Add session</button>
       </div>
 
-      <div class="card">
-        <div class="result-big">
-          <div class="cap">Estimated 1&#8209;rep max</div>
-          <div class="num"><span id="orm">263</span><small>lbs</small></div>
-        </div>
-        <table class="pct">
-          <thead><tr><th>Intensity</th><th>% of 1RM</th><th>Working weight</th><th>Typical use</th></tr></thead>
-          <tbody id="pctBody"></tbody>
+      <!-- Log table -->
+      <div class="card" style="margin-top:18px;padding:8px 8px 4px;">
+        <table class="log-table">
+          <thead>
+            <tr><th>Date</th><th>Lift</th><th>Sets × Reps</th><th>Weight</th><th>Volume</th><th>Note</th><th></th></tr>
+          </thead>
+          <tbody id="logBody"></tbody>
         </table>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ================= TRAINING LOG ================= -->
-  <section id="log" class="reveal">
-    <div class="eyebrow">Recent Activity</div>
-    <h2 class="title">Training log</h2>
-    <p class="sub">The raw record. Every working set, with volume auto&#8209;calculated.</p>
+    <!-- ================= STANDARDS ================= -->
+    <section id="standards" class="reveal">
+      <div class="eyebrow">Benchmarking</div>
+      <h2 class="title">Where you stand</h2>
+      <p class="sub">Enter your current maxes and bodyweight — the bars and tier labels update instantly.</p>
 
-    <!-- Add session form -->
-    <div class="card" style="margin-top:28px;padding:24px 22px 20px;">
-      <p class="controls-label">Log a new session</p>
-      <div class="add-session-grid">
-        <div class="field">
-          <label for="logDate">Date</label>
-          <input id="logDate" type="date">
+      <div class="card" style="margin-top:24px;padding:24px 22px 20px;">
+        <p class="controls-label">Update your numbers</p>
+        <div class="controls-grid">
+          <div class="field">
+            <label for="bodyweightSel">Bodyweight</label>
+            <select id="bodyweightSel">
+              <option value="148">Up to 148 lbs</option>
+              <option value="165">149 – 165 lbs</option>
+              <option value="181" selected>166 – 181 lbs</option>
+              <option value="198">182 – 198 lbs</option>
+              <option value="220">199 – 220 lbs</option>
+              <option value="242">221 – 242 lbs</option>
+              <option value="275">243 + lbs</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="squatInput">Squat max (lbs)</label>
+            <input id="squatInput" type="number" placeholder="315" min="45" step="5">
+          </div>
+          <div class="field">
+            <label for="benchInput">Bench max (lbs)</label>
+            <input id="benchInput" type="number" placeholder="225" min="45" step="5">
+          </div>
+          <div class="field">
+            <label for="deadInput">Deadlift max (lbs)</label>
+            <input id="deadInput" type="number" placeholder="405" min="45" step="5">
+          </div>
         </div>
-        <div class="field">
-          <label for="logLift">Lift</label>
-          <select id="logLift">
-            <option value="Squat|squat">Squat</option>
-            <option value="Bench|bench">Bench</option>
-            <option value="Deadlift|dead">Deadlift</option>
-            <option value="Overhead Press|press">Overhead Press</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="logSets">Sets</label>
-          <input id="logSets" type="number" min="1" max="20" placeholder="3">
-        </div>
-        <div class="field">
-          <label for="logReps">Reps</label>
-          <input id="logReps" type="number" min="1" max="50" placeholder="5">
-        </div>
-        <div class="field">
-          <label for="logWeight">Weight (lbs)</label>
-          <input id="logWeight" type="number" min="1" step="5" placeholder="225">
-        </div>
-        <div class="field">
-          <label for="logNote">Note (optional)</label>
-          <input id="logNote" type="text" placeholder="PR, felt good…">
-        </div>
+        <button id="updateStandards" class="btn btn-primary" style="margin-top:4px;">Save &amp; update bars</button>
       </div>
-      <button id="addSession" class="btn btn-primary" style="margin-top:4px;">Add session</button>
-    </div>
 
-    <!-- Log table -->
-    <div class="card" style="margin-top:18px;padding:8px 8px 4px;">
-      <table class="log-table">
-        <thead>
-          <tr><th>Date</th><th>Lift</th><th>Sets × Reps</th><th>Weight</th><th>Volume</th><th>Note</th><th></th></tr>
-        </thead>
-        <tbody id="logBody"></tbody>
-      </table>
-    </div>
-  </section>
+      <div id="standards-list" style="margin-top:18px;"></div>
+    </section>
 
-  <!-- ================= STANDARDS ================= -->
-  <section id="standards" class="reveal">
-    <div class="eyebrow">Benchmarking</div>
-    <h2 class="title">Where you stand</h2>
-    <p class="sub">Enter your current maxes and bodyweight — the bars and tier labels update instantly.</p>
-
-    <!-- Controls: update maxes + bodyweight -->
-    <div class="card" style="margin-top:24px;padding:24px 22px 20px;">
-      <p class="controls-label">Update your numbers</p>
-      <div class="controls-grid">
-        <div class="field">
-          <label for="bodyweightSel">Bodyweight</label>
-          <select id="bodyweightSel">
-            <option value="148">Up to 148 lbs</option>
-            <option value="165">149 – 165 lbs</option>
-            <option value="181" selected>166 – 181 lbs</option>
-            <option value="198">182 – 198 lbs</option>
-            <option value="220">199 – 220 lbs</option>
-            <option value="242">221 – 242 lbs</option>
-            <option value="275">243 + lbs</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="squatInput">Squat max (lbs)</label>
-          <input id="squatInput" type="number" placeholder="315" min="45" step="5">
-        </div>
-        <div class="field">
-          <label for="benchInput">Bench max (lbs)</label>
-          <input id="benchInput" type="number" placeholder="225" min="45" step="5">
-        </div>
-        <div class="field">
-          <label for="deadInput">Deadlift max (lbs)</label>
-          <input id="deadInput" type="number" placeholder="405" min="45" step="5">
-        </div>
+    <!-- ================= FOOTER ================= -->
+    <footer>
+      <div class="foot-inner">
+        <div class="brand" style="font-size:18px;"><span class="mark" style="width:24px;height:24px;font-size:14px;">IL</span> IRONLEDGER</div>
+        <div>Built as an internship demo · Data saved privately per account</div>
       </div>
-      <button id="updateStandards" class="btn btn-primary" style="margin-top:4px;">Save &amp; update bars</button>
-    </div>
+    </footer>
 
-    <div id="standards-list" style="margin-top:18px;"></div>
-  </section>
-
-  <!-- ================= FOOTER ================= -->
-  <footer>
-    <div class="foot-inner">
-      <div class="brand" style="font-size:18px;"><span class="mark" style="width:24px;height:24px;font-size:14px;">IL</span> IRONLEDGER</div>
-      <div>Built as an internship demo · Sample data for illustration</div>
-    </div>
-  </footer>
-
-</div>
+  </div><!-- .wrap -->
+  </div><!-- #main-content -->
 
 <!-- Firebase SDK (compat version — works without any build tools) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<!-- Your Firebase project credentials (paste them into firebase-config.js) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<!-- Your Firebase project credentials -->
 <script src="firebase-config.js"></script>
 <!-- App data and logic -->
 <script src="data.js"></script>
