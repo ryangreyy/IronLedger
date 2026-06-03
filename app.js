@@ -241,49 +241,94 @@ function initApp(uid) {
     });
   }, 50);
 
-  /* ---- 2) PROGRESS CHART (hand-drawn SVG, no chart library) -------- */
-  const chartEl = document.getElementById('chart');
-  const noteEl  = document.getElementById('chartNote');
-  const W = 920, H = 300, padL = 46, padR = 20, padT = 24, padB = 34;
+  /* ---- 2) LIFT BREAKDOWN DONUT CHART ---------------------------------
+   Shows what % of sets were spent on each lift for a selected day.
+   Data comes from the user's logged sessions in Firebase. */
 
-  function drawChart(key) {
-    const { data, color, label } = lifts[key];
-    const min = Math.min(...data) - 15, max = Math.max(...data) + 15;
-    const x = i => padL + i * (W - padL - padR) / (data.length - 1);
-    const y = v => padT + (1 - (v - min) / (max - min)) * (H - padT - padB);
+  const DONUT_COLORS = {
+    squat: '#D6FF3D', bench: '#5BD6E6', dead: '#FF8A4C',
+    press: '#B78BFF', other: '#9AA0AC'
+  };
 
-    let grid = '';
-    for (let g = 0; g <= 4; g++) {
-      const val = Math.round(min + (max - min) * g / 4);
-      const gy = padT + (1 - g / 4) * (H - padT - padB);
-      grid += `<line x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}" stroke="rgba(255,255,255,0.06)"/>`;
-      grid += `<text class="axis-label" x="${padL-10}" y="${gy+4}" text-anchor="end">${val}</text>`;
-    }
-    let xlab = '';
-    data.forEach((d, i) => {
-      if (i % 2 === 0) xlab += `<text class="axis-label" x="${x(i)}" y="${H-12}" text-anchor="middle">W${i+1}</text>`;
-    });
-    const line = data.map((d,i) => `${i?'L':'M'}${x(i).toFixed(1)} ${y(d).toFixed(1)}`).join(' ');
-    const area = `M${x(0)} ${H-padB} ` + data.map((d,i) => `L${x(i).toFixed(1)} ${y(d).toFixed(1)}`).join(' ') + ` L${x(data.length-1)} ${H-padB} Z`;
-    const dots = data.map((d,i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(d).toFixed(1)}" r="${i===data.length-1?5:3}" fill="${color}"/>`).join('');
-    chartEl.innerHTML = `
-      <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${color}" stop-opacity="0.28"/>
-        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
-      </linearGradient></defs>
-      ${grid}${xlab}
-      <path d="${area}" fill="url(#ag)"/>
-      <path d="${line}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-      ${dots}`;
-    noteEl.textContent = `${label} · +${data[data.length-1] - data[0]} lbs since week 1`;
+  function ptOnCircle(cx, cy, r, deg) {
+    const rad = (deg - 90) * Math.PI / 180;
+    return { x: +(cx + r * Math.cos(rad)).toFixed(2), y: +(cy + r * Math.sin(rad)).toFixed(2) };
   }
-  document.getElementById('liftToggle').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    document.querySelectorAll('#liftToggle button').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    drawChart(b.dataset.lift);
-  });
-  drawChart('squat');
+
+  function segmentPath(cx, cy, ro, ri, a1, a2) {
+    const large = (a2 - a1) > 180 ? 1 : 0;
+    const os = ptOnCircle(cx, cy, ro, a1), oe = ptOnCircle(cx, cy, ro, a2);
+    const is = ptOnCircle(cx, cy, ri, a1), ie = ptOnCircle(cx, cy, ri, a2);
+    return `M${os.x} ${os.y} A${ro} ${ro} 0 ${large} 1 ${oe.x} ${oe.y} L${ie.x} ${ie.y} A${ri} ${ri} 0 ${large} 0 ${is.x} ${is.y}Z`;
+  }
+
+  function fmtDateDisplay(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}, ${y}`;
+  }
+
+  function renderDonut(sessions) {
+    const sel    = document.getElementById('breakdownDate');
+    const svg    = document.getElementById('donutChart');
+    const legend = document.getElementById('donutLegend');
+    const empty  = document.getElementById('donutEmpty');
+    const note   = document.getElementById('breakdownNote');
+    if (!sel || !svg) return;
+
+    const dates = [...new Set(sessions.filter(s => s.dateRaw).map(s => s.dateRaw))].sort().reverse();
+    sel.innerHTML = dates.length
+      ? dates.map(d => `<option value="${d}">${fmtDateDisplay(d)}</option>`).join('')
+      : '<option value="">Log a session to see your breakdown</option>';
+
+    function draw(dateStr) {
+      const day = sessions.filter(s => s.dateRaw === dateStr);
+      if (!day.length) {
+        if (svg) svg.innerHTML = '';
+        if (legend) legend.innerHTML = '';
+        if (empty) empty.style.display = '';
+        return;
+      }
+      if (empty) empty.style.display = 'none';
+
+      /* Group sessions by lift name, summing sets */
+      const groups = {};
+      day.forEach(s => {
+        const key = s.lift || 'Other';
+        const cls = s.cls  || 'other';
+        if (!groups[key]) groups[key] = { lift: key, cls, sets: 0 };
+        groups[key].sets += (s.sets || 1);
+      });
+      const items = Object.values(groups);
+      const total = items.reduce((sum, g) => sum + g.sets, 0);
+
+      const cx = 150, cy = 150, ro = 118, ri = 68;
+      let angle = 0, paths = '', legendHTML = '';
+
+      items.forEach(g => {
+        const pct   = g.sets / total;
+        const sweep = pct * 360;
+        const color = DONUT_COLORS[g.cls] || DONUT_COLORS.other;
+        const gap   = items.length > 1 ? 2 : 0;
+        paths += `<path fill="${color}" d="${segmentPath(cx, cy, ro, ri, angle + gap/2, angle + sweep - gap/2)}"/>`;
+        legendHTML += `
+          <div class="donut-legend-row">
+            <span class="donut-dot" style="background:${color}"></span>
+            <span class="donut-lift">${g.lift}</span>
+            <span class="donut-pct">${Math.round(pct * 100)}%</span>
+          </div>`;
+        angle += sweep;
+      });
+
+      svg.innerHTML = paths +
+        `<text x="150" y="142" text-anchor="middle" class="donut-center-n">${total}</text>
+         <text x="150" y="163" text-anchor="middle" class="donut-center-l">total sets</text>`;
+      if (legend) legend.innerHTML = legendHTML;
+      if (note) note.textContent = `${items.length} lift${items.length !== 1 ? 's' : ''} · ${total} sets`;
+    }
+
+    sel.addEventListener('change', () => draw(sel.value));
+    if (dates.length) draw(dates[0]);
+  }
 
   /* ---- 3) ONE-REP-MAX CALCULATOR ----------------------------------- */
   const ormEl   = document.getElementById('orm');
@@ -444,6 +489,7 @@ function initApp(uid) {
     .onSnapshot(snap => {
       currentSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       renderLog(currentSessions);
+      renderDonut(currentSessions);
       updateKPIs();
     }, err => {
       console.error('Sessions error:', err.code, err.message);

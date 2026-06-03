@@ -319,6 +319,31 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .btn-save-edit:hover{ opacity:0.85; }
 
+/* ---------- DONUT CHART ---------- */
+.breakdown-date-sel{
+  background:var(--bg-2); border:1px solid var(--border-strong);
+  color:var(--text); font-family:var(--mono); font-size:14px; font-weight:700;
+  padding:9px 14px; border-radius:10px; outline:none; cursor:pointer;
+}
+.breakdown-date-sel:focus{ border-color:var(--accent); }
+.donut-wrap{
+  display:flex; align-items:center; justify-content:center;
+  gap:48px; flex-wrap:wrap; padding:28px 16px 20px;
+}
+.donut-legend{ display:flex; flex-direction:column; gap:16px; min-width:180px; }
+.donut-legend-row{ display:flex; align-items:center; gap:12px; }
+.donut-dot{ width:13px; height:13px; border-radius:50%; flex-shrink:0; }
+.donut-lift{ flex:1; font-weight:600; font-size:15px; }
+.donut-pct{ font-family:var(--mono); font-weight:700; font-size:16px; color:var(--text); }
+.donut-center-n{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-weight:700; font-size:38px; fill:var(--text);
+}
+.donut-center-l{
+  font-family:'Manrope',system-ui,sans-serif; font-size:12px;
+  fill:var(--text-dimmer); text-transform:uppercase; letter-spacing:0.1em;
+}
+
 /* ---------- SETTINGS PAGE ---------- */
 .settings-group{ margin-top:40px; }
 .settings-group-label{

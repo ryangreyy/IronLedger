@@ -22,9 +22,9 @@
       <div class="brand"><span class="mark">IL</span> IRONLEDGER</div>
       <div class="nav-links" id="nav-links">
         <a href="#dashboard">Dashboard</a>
-        <a href="#progress">Progress</a>
-        <a href="#calc">1RM Calculator</a>
         <a href="#log">Training Log</a>
+        <a href="#breakdown">Breakdown</a>
+        <a href="#calc">1RM Calculator</a>
         <a href="#standards">Standards</a>
         <a href="settings.html">Settings</a>
       </div>
@@ -123,69 +123,6 @@
       </div>
     </section>
 
-    <!-- ================= PROGRESS CHART ================= -->
-    <section id="progress" class="reveal">
-      <div class="eyebrow">Strength Trend</div>
-      <h2 class="title">Estimated 1RM over time</h2>
-      <p class="sub">Twelve weeks of training, lift by lift. Toggle between the big three.</p>
-
-      <div class="card chart-card">
-        <div class="chart-head">
-          <div class="toggle" id="liftToggle">
-            <button data-lift="squat" class="active"><span class="dot" style="background:var(--squat)"></span>Squat</button>
-            <button data-lift="bench"><span class="dot" style="background:var(--bench)"></span>Bench</button>
-            <button data-lift="dead"><span class="dot" style="background:var(--dead)"></span>Deadlift</button>
-          </div>
-          <div class="legend-note" id="chartNote">Squat · +60 lbs since week 1</div>
-        </div>
-        <svg class="chart" id="chart" viewBox="0 0 920 300" preserveAspectRatio="none"></svg>
-      </div>
-    </section>
-
-    <!-- ================= 1RM CALCULATOR ================= -->
-    <section id="calc" class="reveal">
-      <div class="eyebrow">Interactive Tool</div>
-      <h2 class="title">One&#8209;rep max calculator</h2>
-      <p class="sub">Enter a set you actually did. We estimate your max and the working
-        weights for every rep range. Change a number and everything updates instantly.</p>
-
-      <div class="calc-grid" style="margin-top:40px;">
-        <div class="card">
-          <div class="field">
-            <label for="lift">Lift</label>
-            <select id="lift">
-              <option value="Squat">Squat</option>
-              <option value="Bench Press">Bench Press</option>
-              <option value="Deadlift">Deadlift</option>
-              <option value="Overhead Press">Overhead Press</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="weight">Weight lifted (<span class="unit-label">lbs</span>)</label>
-            <input id="weight" type="number" value="225" min="1" step="5">
-          </div>
-          <div class="field">
-            <label for="reps">Reps performed</label>
-            <input id="reps" type="number" value="5" min="1" max="12">
-          </div>
-          <p style="font-size:12px;color:var(--text-dimmer);font-family:var(--mono);">
-            Using the Epley formula: 1RM = w × (1 + reps ÷ 30)
-          </p>
-        </div>
-
-        <div class="card">
-          <div class="result-big">
-            <div class="cap">Estimated 1&#8209;rep max</div>
-            <div class="num"><span id="orm">263</span><small>lbs</small></div>
-          </div>
-          <table class="pct">
-            <thead><tr><th>Intensity</th><th>% of 1RM</th><th>Working weight</th><th>Typical use</th></tr></thead>
-            <tbody id="pctBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
     <!-- ================= TRAINING LOG ================= -->
     <section id="log" class="reveal">
       <div class="eyebrow">Recent Activity</div>
@@ -205,7 +142,6 @@
             <input id="logLift" list="lift-options" placeholder="Type or pick a lift…" autocomplete="off">
           </div>
 
-          <!-- Shared datalist — used by both the add form and inline edit rows -->
           <datalist id="lift-options">
             <option value="Squat">
             <option value="Bench">
@@ -254,6 +190,74 @@
           </thead>
           <tbody id="logBody"></tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- ================= LIFT BREAKDOWN ================= -->
+    <section id="breakdown" class="reveal">
+      <div class="eyebrow">Daily Breakdown</div>
+      <h2 class="title">What you lifted</h2>
+      <p class="sub">Pick a training day to see how your session was split across lifts.</p>
+
+      <div class="card chart-card" style="margin-top:32px;">
+        <div class="chart-head">
+          <select id="breakdownDate" class="breakdown-date-sel">
+            <option>Log a session to see your breakdown</option>
+          </select>
+          <div class="legend-note" id="breakdownNote"></div>
+        </div>
+        <div class="donut-wrap" id="donutWrap">
+          <svg id="donutChart" viewBox="0 0 300 300" width="220" height="220" style="flex-shrink:0;"></svg>
+          <div id="donutLegend" class="donut-legend"></div>
+        </div>
+        <p id="donutEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+           padding:40px 0;font-family:var(--mono);font-size:14px;">
+          No sessions logged for this date yet.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= 1RM CALCULATOR ================= -->
+    <section id="calc" class="reveal">
+      <div class="eyebrow">Interactive Tool</div>
+      <h2 class="title">One&#8209;rep max calculator</h2>
+      <p class="sub">Enter a set you actually did. We estimate your max and the working
+        weights for every rep range. Change a number and everything updates instantly.</p>
+
+      <div class="calc-grid" style="margin-top:40px;">
+        <div class="card">
+          <div class="field">
+            <label for="lift">Lift</label>
+            <select id="lift">
+              <option value="Squat">Squat</option>
+              <option value="Bench Press">Bench Press</option>
+              <option value="Deadlift">Deadlift</option>
+              <option value="Overhead Press">Overhead Press</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="weight">Weight lifted (<span class="unit-label">lbs</span>)</label>
+            <input id="weight" type="number" value="225" min="1" step="5">
+          </div>
+          <div class="field">
+            <label for="reps">Reps performed</label>
+            <input id="reps" type="number" value="5" min="1" max="12">
+          </div>
+          <p style="font-size:12px;color:var(--text-dimmer);font-family:var(--mono);">
+            Using the Epley formula: 1RM = w × (1 + reps ÷ 30)
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="result-big">
+            <div class="cap">Estimated 1&#8209;rep max</div>
+            <div class="num"><span id="orm">263</span><small>lbs</small></div>
+          </div>
+          <table class="pct">
+            <thead><tr><th>Intensity</th><th>% of 1RM</th><th>Working weight</th><th>Typical use</th></tr></thead>
+            <tbody id="pctBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
