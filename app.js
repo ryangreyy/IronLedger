@@ -466,12 +466,12 @@ function initApp(uid) {
   /* Maps a lift name to a pill colour class. Unknown lifts → 'other' (neutral). */
   function liftToCls(name) {
     const n = (name || '').toLowerCase().trim();
-    if (['squat','split squat','hack squat'].includes(n))             return 'squat';
+    if (['squat','split squat','hack squat','bw squat','smith squat','leg press','lunges','rdl'].includes(n)) return 'squat';
     if (['bench','bench press','incline press'].includes(n))           return 'bench';
     if (['deadlift'].includes(n))                                      return 'dead';
     if (['overhead press','ohp','dips','push-up','lateral raise'].includes(n)) return 'press';
-    if (['row','pulldown','pull-up','bicep curl'].includes(n))         return 'dead';
-    if (['tricep pushdown'].includes(n))                               return 'press';
+    if (['row','pulldown','pull-up','bicep curl','hammer curl','preacher curl'].includes(n)) return 'dead';
+    if (['tricep pushdown','overhead tricep'].includes(n))             return 'press';
     if (['leg extension','leg curl','calf raise'].includes(n))         return 'squat';
     return 'other';
   }
