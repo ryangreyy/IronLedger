@@ -675,75 +675,158 @@ function initApp(uid) {
     }
   });
 
-  /* ---- 5) STRENGTH STANDARDS + BODYWEIGHT SELECTOR ----------------- */
-  const liftColors = { squat:'var(--squat)', bench:'var(--bench)', dead:'var(--dead)' };
+  /* ---- 5) ATHLETE PROFILE (WHERE YOU STAND) ------------------------ */
 
-  function renderStandards(squatMax, benchMax, deadMax, bodyweight) {
-    const tiers = bodyweightStandards[+bodyweight] || bodyweightStandards[181];
-    const liftDefs = [
-      { lift:'Squat',    cls:'squat', current:+squatMax, tiers:tiers.squat },
-      { lift:'Bench',    cls:'bench', current:+benchMax, tiers:tiers.bench },
-      { lift:'Deadlift', cls:'dead',  current:+deadMax,  tiers:tiers.dead  },
-    ];
-    document.getElementById('standards-list').innerHTML = liftDefs.map(s => {
-      const maxScale = s.tiers[s.tiers.length - 1];
-      const pct = Math.min(s.current / maxScale * 100, 100);
-      let tierIdx = 0;
-      s.tiers.forEach((t, i) => { if (s.current >= t) tierIdx = i; });
-      return `
-      <div class="std-row card" style="padding:20px 22px;">
-        <div class="head">
-          <span class="lift">${s.lift}</span>
-          <span class="val">${s.current} lbs · <b style="color:${liftColors[s.cls]}">${tierNames[tierIdx]}</b></span>
+  function parseHeightToInches(str) {
+    if (!str) return null;
+    const s = str.toString().trim();
+    const m = s.match(/^(\d+)\D+(\d+)/);
+    if (m) return +m[1] * 12 + +m[2];
+    const n = parseFloat(s);
+    return (!isNaN(n) && n > 24) ? n : null;
+  }
+
+  function formatHeight(inches) {
+    if (!inches) return '';
+    return `${Math.floor(inches / 12)}'${inches % 12}"`;
+  }
+
+  function getIpfClass(weightLbs) {
+    const kg = weightLbs / 2.2046;
+    for (const c of [59, 66, 74, 83, 93, 105, 120]) { if (kg <= c) return c; }
+    return '120+';
+  }
+
+  function getDnaType(sR, bR, dR) {
+    const mx = Math.max(sR, bR, dR), mn = Math.min(sR, bR, dR);
+    if (mx - mn < 0.25) return 'Well Balanced';
+    if (dR === mx) return 'Posterior Chain Dominant';
+    if (sR === mx) return 'Lower Body Dominant';
+    return 'Upper Body Dominant';
+  }
+
+  function renderProfile(squatMax, benchMax, deadMax, bodyweight, height) {
+    const sq = +squatMax || 0, bn = +benchMax || 0, dl = +deadMax || 0;
+    const bw = +bodyweight || 185;
+    const hIn = parseHeightToInches(height);
+
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+    if (sq) setVal('squatInput', sq);
+    if (bn) setVal('benchInput', bn);
+    if (dl) setVal('deadInput',  dl);
+    setVal('weightInput', bw);
+    if (hIn) setVal('heightInput', formatHeight(hIn));
+
+    const statGrid = document.getElementById('statGrid');
+    const dnaCard  = document.getElementById('dnaCard');
+    if (!statGrid || !dnaCard) return;
+
+    if (!sq && !bn && !dl) { statGrid.innerHTML = ''; dnaCard.style.display = 'none'; return; }
+
+    const sR = bw ? sq / bw : 0, bR = bw ? bn / bw : 0, dR = bw ? dl / bw : 0;
+    const big3 = sq + bn + dl;
+    const totalR = bw ? (big3 / bw).toFixed(1) : '—';
+    const bmi    = hIn ? ((bw / (hIn * hIn)) * 703).toFixed(1) : null;
+    const bmiDesc = !bmi ? '' : +bmi < 18.5 ? 'Underweight' : +bmi < 25 ? 'Normal range' : +bmi < 30 ? 'Overweight' : 'Obese';
+    const ipfCls  = getIpfClass(bw);
+    const totalDesc = +totalR < 4 ? 'Beginner range' : +totalR < 5 ? 'Intermediate range' : +totalR < 6 ? 'Advanced range' : 'Elite range';
+
+    statGrid.innerHTML =
+      (hIn ? `<div class="stat-tile"><div class="st-label">Height</div>
+        <div class="st-value">${Math.floor(hIn/12)}'${hIn%12}<span>in</span></div>
+        <div class="st-sub">${Math.round(hIn*2.54)} cm</div></div>` : '') +
+      `<div class="stat-tile"><div class="st-label">Bodyweight</div>
+        <div class="st-value">${bw}<span>lbs</span></div>
+        <div class="st-sub">${(bw/2.2046).toFixed(1)} kg</div></div>` +
+      (bmi ? `<div class="stat-tile"><div class="st-label">BMI</div>
+        <div class="st-value">${bmi}</div>
+        <div class="st-sub">${bmiDesc}</div></div>` : '') +
+      `<div class="stat-tile highlight"><div class="st-label">Big-3 Total</div>
+        <div class="st-value">${big3.toLocaleString()}<span>lbs</span></div>
+        <div class="st-sub">${(big3/2.2046).toFixed(0)} kg</div></div>
+      <div class="stat-tile"><div class="st-label">Total / Bodyweight</div>
+        <div class="st-value">${totalR}<span>×</span></div>
+        <div class="st-sub">${totalDesc}</div></div>
+      <div class="stat-tile"><div class="st-label">IPF Weight Class</div>
+        <div class="st-value" style="font-size:24px;">${ipfCls}<span>kg</span></div>
+        <div class="st-sub">You'd compete at ${ipfCls} kg</div></div>`;
+
+    const ranked = [{n:'squat',v:sq,r:sR},{n:'bench',v:bn,r:bR},{n:'deadlift',v:dl,r:dR}]
+      .sort((a,b) => b.r - a.r);
+    const best = ranked[0], worst = ranked[2];
+    const dnaType = getDnaType(sR, bR, dR);
+    const dnaDesc = `Your ${best.n} is your standout lift at <strong style="color:var(--text);">${best.v} lbs (${best.r.toFixed(1)}× bodyweight)</strong>.
+      Your ${worst.n} has the most room to grow at <strong style="color:var(--text);">${worst.v} lbs (${worst.r.toFixed(1)}×)</strong>.
+      ${ranked[0].r - ranked[2].r < 0.3 ? 'Overall your three lifts are well balanced.' : `Focus on bringing your ${worst.n} up to match your ${best.n}.`}`;
+
+    dnaCard.style.display = '';
+    dnaCard.innerHTML = `
+      <div class="dna-header">
+        <div>
+          <p class="controls-label" style="margin-bottom:8px;">Strength DNA</p>
+          <div class="dna-type-badge">${dnaType}</div>
         </div>
-        <div class="track">
-          <div class="fill" data-w="${pct.toFixed(1)}"
-               style="width:0;background:linear-gradient(90deg,${liftColors[s.cls]}88,${liftColors[s.cls]})">
-          </div>
+      </div>
+      <p class="dna-desc">${dnaDesc}</p>
+      <div class="profile-divider"></div>
+      <div class="dna-bars">
+        <div class="dna-bar-row">
+          <div class="dna-bar-label">Squat</div>
+          <div class="dna-bar-track"><div class="dna-bar-fill squat" style="width:0" data-w="${(sR/3*100).toFixed(1)}">${sq} lbs</div></div>
+          <div class="dna-bar-ratio squat">${sR.toFixed(1)}×</div>
         </div>
-        <div class="ticks">
-          ${tierNames.map((n,i) => `<span class="${i===tierIdx?'here':''}">${n}</span>`).join('')}
+        <div class="dna-bar-row">
+          <div class="dna-bar-label">Bench</div>
+          <div class="dna-bar-track"><div class="dna-bar-fill bench" style="width:0" data-w="${(bR/3*100).toFixed(1)}">${bn} lbs</div></div>
+          <div class="dna-bar-ratio bench">${bR.toFixed(1)}×</div>
         </div>
+        <div class="dna-bar-row">
+          <div class="dna-bar-label">Deadlift</div>
+          <div class="dna-bar-track"><div class="dna-bar-fill dead" style="width:0" data-w="${(dR/3*100).toFixed(1)}">${dl} lbs</div></div>
+          <div class="dna-bar-ratio dead">${dR.toFixed(1)}×</div>
+        </div>
+      </div>
+      <div class="dna-ticks">
+        <span class="dna-tick">0×</span><span class="dna-tick">1×</span>
+        <span class="dna-tick">1.5×</span><span class="dna-tick">2×</span>
+        <span class="dna-tick">2.5×</span><span class="dna-tick">3×</span>
       </div>`;
-    }).join('');
+
     setTimeout(() => {
-      document.querySelectorAll('#standards-list .fill').forEach(f => { f.style.width = f.dataset.w + '%'; });
+      dnaCard.querySelectorAll('.dna-bar-fill').forEach(f => { f.style.width = f.dataset.w + '%'; });
     }, 60);
-    document.getElementById('squatInput').value    = squatMax;
-    document.getElementById('benchInput').value    = benchMax;
-    document.getElementById('deadInput').value     = deadMax;
-    document.getElementById('bodyweightSel').value = +bodyweight;
   }
 
   /* Live listener for this user's settings */
   unsubscribeSettings = settingsRef().onSnapshot(doc => {
     if (doc.exists) {
       currentSettings = doc.data();
-      const { squatMax, benchMax, deadMax, bodyweight, unit, defaultLift } = currentSettings;
-      renderStandards(squatMax || 315, benchMax || 225, deadMax || 405, bodyweight || 181);
+      const { squatMax, benchMax, deadMax, bodyweight, height, unit, defaultLift } = currentSettings;
+      renderProfile(squatMax, benchMax, deadMax, bodyweight || 185, height || '');
       if (unit)        applyUnit(unit);
       if (defaultLift !== undefined) applyDefaultLift(defaultLift);
     } else {
       currentSettings = null;
-      renderStandards(315, 225, 405, 181);
+      renderProfile(0, 0, 0, 185, '');
     }
     updateKPIs();
   }, err => {
     console.error('Settings error:', err.code, err.message);
-    renderStandards(315, 225, 405, 181);
+    renderProfile(0, 0, 0, 185, '');
     updateKPIs();
   });
 
-  /* Save & update bars */
+  /* Save & update profile */
   document.getElementById('updateStandards').addEventListener('click', () => {
     const squatMax   = +document.getElementById('squatInput').value;
     const benchMax   = +document.getElementById('benchInput').value;
     const deadMax    = +document.getElementById('deadInput').value;
-    const bodyweight = +document.getElementById('bodyweightSel').value;
-    if (!squatMax || !benchMax || !deadMax) {
-      alert('Please enter a current max for all three lifts.'); return;
+    const bodyweight = +document.getElementById('weightInput').value;
+    const height     = document.getElementById('heightInput').value.trim();
+    if (!squatMax || !benchMax || !deadMax || !bodyweight) {
+      alert('Please enter your bodyweight and all three lift maxes.'); return;
     }
-    settingsRef().set({ squatMax, benchMax, deadMax, bodyweight })
+    settingsRef().set({ squatMax, benchMax, deadMax, bodyweight, height }, { merge: true })
       .catch(err => alert('Could not save: ' + err.message));
   });
 

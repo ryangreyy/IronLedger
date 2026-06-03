@@ -285,26 +285,22 @@
       </div>
     </section>
 
-    <!-- ================= STANDARDS ================= -->
+    <!-- ================= STANDARDS (Athlete Profile) ================= -->
     <section id="standards" class="reveal">
       <div class="eyebrow">Benchmarking</div>
       <h2 class="title">Where you stand</h2>
-      <p class="sub">Enter your current maxes and bodyweight — the bars and tier labels update instantly.</p>
+      <p class="sub">Enter your stats and maxes — we'll build your full athlete profile and strength fingerprint.</p>
 
-      <div class="card" style="margin-top:24px;padding:24px 22px 20px;">
-        <p class="controls-label">Update your numbers</p>
-        <div class="controls-grid">
+      <div class="card" style="margin-top:32px;padding:24px 22px 20px;">
+        <p class="controls-label">Your stats</p>
+        <div class="profile-inputs">
           <div class="field">
-            <label for="bodyweightSel">Bodyweight</label>
-            <select id="bodyweightSel">
-              <option value="148">Up to 148 lbs</option>
-              <option value="165">149 – 165 lbs</option>
-              <option value="181" selected>166 – 181 lbs</option>
-              <option value="198">182 – 198 lbs</option>
-              <option value="220">199 – 220 lbs</option>
-              <option value="242">221 – 242 lbs</option>
-              <option value="275">243 + lbs</option>
-            </select>
+            <label for="heightInput">Height</label>
+            <input id="heightInput" type="text" placeholder="5'11&quot;">
+          </div>
+          <div class="field">
+            <label for="weightInput">Bodyweight (lbs)</label>
+            <input id="weightInput" type="number" placeholder="185" min="80" step="1">
           </div>
           <div class="field">
             <label for="squatInput">Squat max (lbs)</label>
@@ -319,10 +315,11 @@
             <input id="deadInput" type="number" placeholder="405" min="45" step="5">
           </div>
         </div>
-        <button id="updateStandards" class="btn btn-primary" style="margin-top:4px;">Save &amp; update bars</button>
+        <button id="updateStandards" class="btn btn-primary" style="margin-top:4px;">Update profile</button>
       </div>
 
-      <div id="standards-list" style="margin-top:18px;"></div>
+      <div class="stat-grid" id="statGrid" style="margin-top:18px;"></div>
+      <div class="card dna-card" id="dnaCard" style="margin-top:18px;display:none;"></div>
     </section>
 
     <!-- ================= FOOTER ================= -->

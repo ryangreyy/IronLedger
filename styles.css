@@ -233,18 +233,79 @@ table.pct td.w{color:var(--accent); font-weight:700;}
 .pill.dead{background:rgba(255,138,76,0.14); color:var(--dead);}
 .pr-flag{color:var(--accent); font-family:var(--body); font-weight:700; font-size:12px;}
 
-/* ---------- STANDARDS ---------- */
-.std-row{margin-top:26px;}
-.std-row .head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
-.std-row .head .lift{font-weight:700; font-size:16px;}
-.std-row .head .val{font-family:var(--mono); color:var(--text-dim); font-size:14px;}
-.track{position:relative; height:42px; background:var(--bg-2);
-  border:1px solid var(--border); border-radius:10px; overflow:hidden;}
-.track .fill{position:absolute; top:0; bottom:0; left:0; border-radius:10px 0 0 10px;
-  transition:width 1.2s cubic-bezier(.2,.7,.2,1);}
-.ticks{display:flex; justify-content:space-between; margin-top:7px; font-size:11px;
-  color:var(--text-dimmer); font-family:var(--mono); text-transform:uppercase; letter-spacing:0.05em;}
-.ticks span.here{color:var(--accent); font-weight:700;}
+/* ---------- ATHLETE PROFILE (WHERE YOU STAND) ---------- */
+.profile-inputs{
+  display:grid; grid-template-columns:repeat(5,1fr); gap:14px;
+}
+@media(max-width:860px){ .profile-inputs{ grid-template-columns:repeat(3,1fr); } }
+@media(max-width:480px){ .profile-inputs{ grid-template-columns:repeat(2,1fr); } }
+
+.stat-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+}
+@media(max-width:680px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+
+.stat-tile{
+  background:var(--bg-2); border:1px solid var(--border);
+  border-radius:14px; padding:18px 20px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.stat-tile .st-label{
+  font-family:var(--mono); font-size:11px; text-transform:uppercase;
+  letter-spacing:0.14em; color:var(--text-dimmer);
+}
+.stat-tile .st-value{
+  font-family:var(--display); font-size:32px; color:var(--text); line-height:1;
+}
+.stat-tile .st-value span{
+  font-family:var(--mono); font-size:14px; color:var(--text-dimmer); margin-left:3px;
+}
+.stat-tile.highlight .st-value{ color:var(--accent); }
+.stat-tile .st-sub{ font-size:12px; color:var(--text-dimmer); margin-top:2px; }
+
+.dna-card{ padding:28px 26px; }
+.dna-header{
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:14px; margin-bottom:24px;
+}
+.dna-type-badge{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.2em;
+  color:#0B0C0E; background:var(--accent);
+  padding:6px 14px; border-radius:999px;
+}
+.dna-desc{
+  font-size:15px; color:var(--text-dim); line-height:1.7; max-width:640px;
+}
+.profile-divider{ height:1px; background:var(--border); margin:24px 0; }
+.dna-bars{ display:flex; flex-direction:column; gap:18px; }
+.dna-bar-row{ display:flex; align-items:center; gap:16px; }
+.dna-bar-label{
+  font-family:var(--mono); font-size:13px; font-weight:700;
+  width:88px; flex-shrink:0; color:var(--text-dim);
+}
+.dna-bar-track{
+  flex:1; height:36px; background:var(--bg-2);
+  border:1px solid var(--border); border-radius:8px; overflow:hidden;
+}
+.dna-bar-fill{
+  height:100%; border-radius:8px 0 0 8px;
+  display:flex; align-items:center; padding-left:14px;
+  font-family:var(--mono); font-size:13px; font-weight:700; color:#0B0C0E;
+  transition:width 1.4s cubic-bezier(.2,.8,.2,1); white-space:nowrap;
+}
+.dna-bar-fill.squat{ background:linear-gradient(90deg,#b8db00,var(--accent)); }
+.dna-bar-fill.bench{ background:linear-gradient(90deg,#3bbfcf,#5BD6E6); }
+.dna-bar-fill.dead { background:linear-gradient(90deg,#e06c30,#FF8A4C); }
+.dna-bar-ratio{ font-family:var(--mono); font-size:14px; font-weight:700; width:48px; flex-shrink:0; text-align:right; }
+.dna-bar-ratio.squat{ color:var(--accent); }
+.dna-bar-ratio.bench{ color:#5BD6E6; }
+.dna-bar-ratio.dead { color:#FF8A4C; }
+.dna-ticks{
+  display:flex; justify-content:space-between;
+  padding-left:104px; padding-right:64px; margin-top:6px;
+}
+.dna-tick{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); opacity:0.6; }
 
 footer{border-top:1px solid var(--border); margin-top:40px;}
 .foot-inner{max-width:1140px; margin:0 auto; padding:30px 28px; display:flex;
