@@ -373,9 +373,9 @@ function initApp(uid) {
     set('kpi-big3',     big3 ? big3.toLocaleString() : '—');
 
     set('kpi-volume-delta',   count ? `across ${count} session${count !== 1 ? 's' : ''}` : 'No sessions this month yet');
-    set('kpi-sessions-delta', count ? 'logged this month' : 'Log your first session below');
-    set('kpi-streak-delta',   streak ? `day${streak !== 1 ? 's' : ''} in a row` : 'No active streak');
-    set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Update your maxes in Standards');
+    set('kpi-sessions-delta', count ? 'logged this month' : 'Add your first session below');
+    set('kpi-streak-delta',   streak ? `day${streak !== 1 ? 's' : ''} in a row` : 'Log a session to start a streak');
+    set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
   }
 
   function renderLog(sessions) {
@@ -434,7 +434,11 @@ function initApp(uid) {
       currentSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       renderLog(currentSessions);
       updateKPIs();
-    }, err => console.error('Sessions:', err));
+    }, err => {
+      console.error('Sessions error:', err.code, err.message);
+      renderLog([]);
+      updateKPIs();
+    });
 
   /* Add session — also saves dateRaw so the edit form can pre-fill it */
   document.getElementById('addSession').addEventListener('click', () => {
@@ -555,7 +559,11 @@ function initApp(uid) {
       renderStandards(315, 225, 405, 181);
     }
     updateKPIs();
-  }, err => console.error('Settings:', err));
+  }, err => {
+    console.error('Settings error:', err.code, err.message);
+    renderStandards(315, 225, 405, 181);
+    updateKPIs();
+  });
 
   /* Save & update bars */
   document.getElementById('updateStandards').addEventListener('click', () => {
