@@ -252,7 +252,13 @@ function initApp(uid) {
       </tr>`;
   }
 
-  document.getElementById('logDate').valueAsDate = new Date();
+  /* Flatpickr — white calendar picker on the add-session form */
+  flatpickr('#logDate', {
+    defaultDate : 'today',
+    maxDate     : 'today',
+    dateFormat  : 'Y-m-d',
+    disableMobile: true        // always use the custom calendar, not the phone keyboard
+  });
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
@@ -289,7 +295,16 @@ function initApp(uid) {
     if (editBtn) {
       const s = currentSessions.find(x => x.id === editBtn.dataset.id);
       const row = document.querySelector(`tr[data-id="${editBtn.dataset.id}"]`);
-      if (s && row) row.outerHTML = buildEditRow(s);
+      if (s && row) {
+        row.outerHTML = buildEditRow(s);
+        /* Attach Flatpickr to the edit row's date input after it renders */
+        setTimeout(() => flatpickr('#ed-date', {
+          defaultDate  : s.dateRaw || 'today',
+          maxDate      : 'today',
+          dateFormat   : 'Y-m-d',
+          disableMobile: true
+        }), 30);
+      }
       return;
     }
 
