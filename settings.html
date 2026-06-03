@@ -56,52 +56,6 @@
         </div>
       </div>
 
-      <!-- ===== ACCOUNT MANAGEMENT ===== -->
-      <div class="settings-group">
-        <p class="settings-group-label">Account Management</p>
-
-        <!-- Change password (email/password users only) -->
-        <div class="card" style="padding:28px;margin-bottom:16px;" id="passwordCard">
-          <p class="settings-card-title">Change password</p>
-          <p class="settings-card-desc" id="passwordDesc">Enter a new password for your account.</p>
-          <div id="passwordForm">
-            <div class="field">
-              <label for="newPassword">New password</label>
-              <input id="newPassword" type="password" placeholder="At least 6 characters" autocomplete="new-password">
-            </div>
-            <div class="field">
-              <label for="confirmPassword">Confirm new password</label>
-              <input id="confirmPassword" type="password" placeholder="Repeat new password" autocomplete="new-password">
-            </div>
-            <button id="savePassword" class="btn btn-primary">Update password</button>
-            <p id="passwordMsg" class="settings-msg"></p>
-          </div>
-        </div>
-
-        <!-- Delete account -->
-        <div class="card settings-danger-card" style="padding:28px;">
-          <p class="settings-card-title" style="color:var(--down);">Delete account</p>
-          <p class="settings-card-desc">Permanently removes your account and all logged sessions. This cannot be undone.</p>
-          <div id="deleteStep1">
-            <button id="deleteBtn" class="btn-danger">Delete my account</button>
-          </div>
-          <div id="deleteStep2" style="display:none;">
-            <p style="font-size:13px;color:var(--down);margin-bottom:12px;font-family:var(--mono);">
-              Type DELETE to confirm:
-            </p>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <input id="deleteConfirmInput" type="text" placeholder="DELETE"
-                     style="background:var(--bg-2);border:1px solid var(--down);color:var(--text);
-                            font-family:var(--mono);font-size:16px;font-weight:700;
-                            padding:11px 14px;border-radius:10px;outline:none;width:160px;">
-              <button id="deleteConfirmBtn" class="btn-danger">Confirm deletion</button>
-              <button id="deleteCancelBtn" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;">Cancel</button>
-            </div>
-            <p id="deleteMsg" class="settings-msg"></p>
-          </div>
-        </div>
-      </div>
-
       <!-- ===== APP PREFERENCES ===== -->
       <div class="settings-group">
         <p class="settings-group-label">App Preferences</p>
@@ -146,6 +100,56 @@
 
           <button id="savePrefs" class="btn btn-primary" style="margin-top:8px;">Save preferences</button>
           <p id="prefsMsg" class="settings-msg"></p>
+        </div>
+      </div>
+
+      <!-- ===== ACCOUNT MANAGEMENT ===== -->
+      <div class="settings-group">
+        <p class="settings-group-label">Account Management</p>
+
+        <!-- Change password (email/password users only) -->
+        <div class="card" style="padding:28px;margin-bottom:16px;" id="passwordCard">
+          <p class="settings-card-title">Change password</p>
+          <p class="settings-card-desc" id="passwordDesc">Enter a new password for your account.</p>
+          <div id="passwordForm">
+            <div class="field">
+              <label for="newPassword">New password</label>
+              <input id="newPassword" type="password" placeholder="At least 6 characters" autocomplete="new-password">
+            </div>
+            <div class="field">
+              <label for="confirmPassword">Confirm new password</label>
+              <input id="confirmPassword" type="password" placeholder="Repeat new password" autocomplete="new-password">
+            </div>
+            <button id="savePassword" class="btn btn-primary">Update password</button>
+            <p id="passwordMsg" class="settings-msg"></p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== DANGER ZONE ===== -->
+      <div class="settings-group">
+        <p class="settings-group-label">Danger Zone</p>
+        <div class="card settings-danger-card" style="padding:28px;">
+          <p class="settings-card-title" style="color:var(--down);">Delete account</p>
+          <p class="settings-card-desc">Permanently removes your account and all logged sessions. This cannot be undone.</p>
+          <div id="deleteStep1">
+            <button id="deleteBtn" class="btn-danger">Delete my account</button>
+          </div>
+          <div id="deleteStep2" style="display:none;">
+            <p style="font-size:13px;color:var(--down);margin-bottom:12px;font-family:var(--mono);">
+              Type DELETE to confirm:
+            </p>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <input id="deleteConfirmInput" type="text" placeholder="DELETE"
+                     style="background:var(--bg-2);border:1px solid var(--down);color:var(--text);
+                            font-family:var(--mono);font-size:16px;font-weight:700;
+                            padding:11px 14px;border-radius:10px;outline:none;width:160px;">
+              <button id="deleteConfirmBtn" class="btn-danger">Confirm deletion</button>
+              <button id="deleteCancelBtn" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;">Cancel</button>
+            </div>
+            <p id="deleteMsg" class="settings-msg"></p>
+          </div>
         </div>
       </div>
 
