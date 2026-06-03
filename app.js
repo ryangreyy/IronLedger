@@ -324,8 +324,59 @@ function initApp(uid) {
     return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
   }
 
-  /* Stored so the edit handler can look up original values without a Firestore round-trip */
+  /* Shared state so both listeners can trigger a KPI refresh */
   let currentSessions = [];
+  let currentSettings = null;
+
+  function updateKPIs() {
+    const now        = new Date();
+    const thisMonth  = now.getMonth();
+    const thisYear   = now.getFullYear();
+
+    /* Sessions that have a dateRaw and fall in the current calendar month */
+    const monthSess  = currentSessions.filter(s => {
+      if (!s.dateRaw) return false;
+      const [y, m] = s.dateRaw.split('-').map(Number);
+      return y === thisYear && m - 1 === thisMonth;
+    });
+
+    /* Volume = sets × reps × weight for each month session */
+    const volume     = monthSess.reduce((sum, s) => sum + (s.sets * s.reps * s.wt), 0);
+    const count      = monthSess.length;
+
+    /* Streak = consecutive days (going back from today) that have any session */
+    const sessionDays = new Set(currentSessions.map(s => s.dateRaw).filter(Boolean));
+    let streak = 0;
+    const cursor = new Date(); cursor.setHours(12, 0, 0, 0);
+    for (let i = 0; i < 366; i++) {
+      const iso = cursor.toISOString().split('T')[0];
+      if (sessionDays.has(iso)) {
+        streak++;
+        cursor.setDate(cursor.getDate() - 1);
+      } else if (i === 0) {
+        cursor.setDate(cursor.getDate() - 1); // no session today — check yesterday
+      } else {
+        break;
+      }
+    }
+
+    /* Big-3 = saved maxes from settings */
+    const s = currentSettings;
+    const big3 = s ? (s.squatMax || 0) + (s.benchMax || 0) + (s.deadMax || 0) : 0;
+
+    /* Update the four cards */
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    set('kpi-volume',   volume ? volume.toLocaleString() : '0');
+    set('kpi-sessions', count);
+    set('kpi-streak',   streak);
+    set('kpi-big3',     big3 ? big3.toLocaleString() : '—');
+
+    set('kpi-volume-delta',   count ? `across ${count} session${count !== 1 ? 's' : ''}` : 'No sessions this month yet');
+    set('kpi-sessions-delta', count ? 'logged this month' : 'Log your first session below');
+    set('kpi-streak-delta',   streak ? `day${streak !== 1 ? 's' : ''} in a row` : 'No active streak');
+    set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Update your maxes in Standards');
+  }
 
   function renderLog(sessions) {
     currentSessions = sessions;
@@ -379,10 +430,11 @@ function initApp(uid) {
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
     .orderBy('createdAt', 'desc')
-    .onSnapshot(
-      snap => renderLog(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))),
-      err  => console.error('Sessions:', err)
-    );
+    .onSnapshot(snap => {
+      currentSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderLog(currentSessions);
+      updateKPIs();
+    }, err => console.error('Sessions:', err));
 
   /* Add session — also saves dateRaw so the edit form can pre-fill it */
   document.getElementById('addSession').addEventListener('click', () => {
@@ -493,17 +545,17 @@ function initApp(uid) {
   }
 
   /* Live listener for this user's settings */
-  unsubscribeSettings = settingsRef().onSnapshot(
-    doc => {
-      if (doc.exists) {
-        const { squatMax, benchMax, deadMax, bodyweight } = doc.data();
-        renderStandards(squatMax, benchMax, deadMax, bodyweight);
-      } else {
-        renderStandards(315, 225, 405, 181);
-      }
-    },
-    err => console.error('Settings:', err)
-  );
+  unsubscribeSettings = settingsRef().onSnapshot(doc => {
+    if (doc.exists) {
+      currentSettings = doc.data();
+      const { squatMax, benchMax, deadMax, bodyweight } = currentSettings;
+      renderStandards(squatMax, benchMax, deadMax, bodyweight);
+    } else {
+      currentSettings = null;
+      renderStandards(315, 225, 405, 181);
+    }
+    updateKPIs();
+  }, err => console.error('Settings:', err));
 
   /* Save & update bars */
   document.getElementById('updateStandards').addEventListener('click', () => {
