@@ -305,6 +305,20 @@ function initApp(uid) {
   calc();
 
   /* ---- 4) TRAINING LOG --------------------------------------------- */
+
+  /* Maps a lift name to a pill colour class. Unknown lifts → 'other' (neutral). */
+  function liftToCls(name) {
+    const n = (name || '').toLowerCase().trim();
+    if (['squat','split squat','hack squat'].includes(n))             return 'squat';
+    if (['bench','bench press','incline press'].includes(n))           return 'bench';
+    if (['deadlift'].includes(n))                                      return 'dead';
+    if (['overhead press','ohp','dips','push-up','lateral raise'].includes(n)) return 'press';
+    if (['row','pulldown','pull-up','bicep curl'].includes(n))         return 'dead';
+    if (['tricep pushdown'].includes(n))                               return 'press';
+    if (['leg extension','leg curl','calf raise'].includes(n))         return 'squat';
+    return 'other';
+  }
+
   function formatDate(dateStr) {
     const [, m, d] = dateStr.split('-').map(Number);
     return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
@@ -342,12 +356,8 @@ function initApp(uid) {
     return `
       <tr data-id="${s.id}" class="editing-row">
         <td><input id="ed-date" type="hidden" value="${dateVal}"></td>
-        <td><select class="edit-field" id="ed-lift">
-          <option value="Squat|squat"         ${s.cls==='squat' ?'selected':''}>Squat</option>
-          <option value="Bench|bench"          ${s.cls==='bench' ?'selected':''}>Bench</option>
-          <option value="Deadlift|dead"        ${s.cls==='dead'  ?'selected':''}>Deadlift</option>
-          <option value="Overhead Press|press" ${s.cls==='press' ?'selected':''}>Overhead Press</option>
-        </select></td>
+        <td><input class="edit-field edit-wide" id="ed-lift" list="lift-options"
+                   value="${s.lift}" autocomplete="off"></td>
         <td class="sets-reps-cell">
           <input class="edit-field edit-num" id="ed-sets" type="number" value="${s.sets}" min="1">
           <span style="color:var(--text-dimmer)">×</span>
@@ -385,7 +395,8 @@ function initApp(uid) {
     if (!dateVal || !sets || !reps || !wt) {
       alert('Please fill in date, sets, reps, and weight.'); return;
     }
-    const [lift, cls] = liftVal.split('|');
+    const lift = liftVal.trim();
+    const cls  = liftToCls(lift);
     sessionsRef().add({ date: formatDate(dateVal), dateRaw: dateVal,
                         lift, cls, sets, reps, wt, note,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
@@ -419,7 +430,8 @@ function initApp(uid) {
       const wt      = +document.getElementById('ed-wt').value;
       const note    = document.getElementById('ed-note').value.trim();
       if (!dateVal || !sets || !reps || !wt) { alert('Please fill in all fields.'); return; }
-      const [lift, cls] = liftVal.split('|');
+      const lift = liftVal.trim();
+      const cls  = liftToCls(lift);
       sessionsRef().doc(id)
         .update({ date: formatDate(dateVal), dateRaw: dateVal, lift, cls, sets, reps, wt, note })
         .catch(err => alert('Could not save: ' + err.message));

@@ -205,13 +205,30 @@
           </div>
           <div class="field">
             <label for="logLift">Lift</label>
-            <select id="logLift">
-              <option value="Squat|squat">Squat</option>
-              <option value="Bench|bench">Bench</option>
-              <option value="Deadlift|dead">Deadlift</option>
-              <option value="Overhead Press|press">Overhead Press</option>
-            </select>
+            <input id="logLift" list="lift-options" placeholder="Type or pick a lift…" autocomplete="off" value="Squat">
           </div>
+
+          <!-- Shared datalist — used by both the add form and inline edit rows -->
+          <datalist id="lift-options">
+            <option value="Squat">
+            <option value="Bench">
+            <option value="Deadlift">
+            <option value="Overhead Press">
+            <option value="Incline Press">
+            <option value="Dips">
+            <option value="Push-Up">
+            <option value="Pull-Up">
+            <option value="Row">
+            <option value="Pulldown">
+            <option value="Bicep Curl">
+            <option value="Tricep Pushdown">
+            <option value="Lateral Raise">
+            <option value="Split Squat">
+            <option value="Hack Squat">
+            <option value="Leg Extension">
+            <option value="Leg Curl">
+            <option value="Calf Raise">
+          </datalist>
           <div class="field">
             <label for="logSets">Sets</label>
             <input id="logSets" type="number" min="1" max="20" placeholder="3">
