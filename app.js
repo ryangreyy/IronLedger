@@ -345,7 +345,104 @@ function initApp(uid) {
     if (dates.length) draw(dates[0]);
   }
 
-  /* ---- 3) ONE-REP-MAX CALCULATOR ----------------------------------- */
+  /* ---- 3) EXERCISE HISTORY CHART ----------------------------------- */
+  function renderHistoryChart(sessions) {
+    const sel     = document.getElementById('historyLift');
+    const svg     = document.getElementById('historyChart');
+    const details = document.getElementById('historyDetails');
+    const empty   = document.getElementById('historyEmpty');
+    const note    = document.getElementById('historyNote');
+    if (!sel || !svg) return;
+
+    const lifts = [...new Set(sessions.filter(s => s.lift).map(s => s.lift))].sort();
+    sel.innerHTML = lifts.length
+      ? lifts.map(l => `<option value="${l}"${l === historySelectedLift ? ' selected' : ''}>${l}</option>`).join('')
+      : '<option value="">Log sessions to see history</option>';
+
+    if (!historySelectedLift && lifts.length) historySelectedLift = lifts[0];
+    if (historySelectedLift && lifts.includes(historySelectedLift)) sel.value = historySelectedLift;
+
+    function draw(liftName) {
+      if (!liftName) return;
+      historySelectedLift = liftName;
+
+      const liftSessions = sessions
+        .filter(s => s.lift === liftName && s.dateRaw)
+        .sort((a, b) => a.dateRaw.localeCompare(b.dateRaw))
+        .slice(-5);
+
+      if (!liftSessions.length) {
+        svg.innerHTML = '';
+        if (details) details.innerHTML = '';
+        if (empty)   empty.style.display = '';
+        if (note)    note.textContent = '';
+        return;
+      }
+      if (empty) empty.style.display = 'none';
+      if (note)  note.textContent = `Last ${liftSessions.length} session${liftSessions.length !== 1 ? 's' : ''}`;
+
+      const W = 700, H = 240;
+      const padL = 52, padR = 24, padT = 24, padB = 52;
+      const chartW = W - padL - padR, chartH = H - padT - padB;
+
+      const weights = liftSessions.map(s => s.wt);
+      const minW = Math.min(...weights), maxW = Math.max(...weights);
+      const pad  = (maxW - minW) * 0.20 || 15;
+      const lo   = minW - pad, hi = maxW + pad, range = hi - lo;
+
+      const n    = liftSessions.length;
+      const xOf  = i => padL + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW);
+      const yOf  = w => padT + chartH - ((w - lo) / range) * chartH;
+
+      let grid = '';
+      for (let i = 0; i <= 4; i++) {
+        const y   = padT + (i / 4) * chartH;
+        const val = Math.round(hi - (i / 4) * range);
+        grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}"
+                       stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+        grid += `<text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end"
+                       class="axis-label">${val}</text>`;
+      }
+
+      const coords = liftSessions.map((s, i) => `${xOf(i).toFixed(1)},${yOf(s.wt).toFixed(1)}`);
+      const area   = `M${xOf(0).toFixed(1)},${(padT + chartH).toFixed(1)} L${coords.join(' L')} L${xOf(n-1).toFixed(1)},${(padT+chartH).toFixed(1)}Z`;
+
+      let dots = '', labels = '';
+      liftSessions.forEach((s, i) => {
+        const x = xOf(i).toFixed(1), y = yOf(s.wt).toFixed(1);
+        const [, m, d] = s.dateRaw.split('-').map(Number);
+        const lbl = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
+        dots   += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
+        labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${lbl}</text>`;
+      });
+
+      svg.innerHTML =
+        `<defs><linearGradient id="hgrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.14"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+        </linearGradient></defs>` +
+        grid +
+        `<path d="${area}" fill="url(#hgrad)"/>` +
+        `<path d="M${coords.join(' L')}" fill="none" stroke="var(--accent)"
+               stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>` +
+        dots + labels;
+
+      if (details) {
+        details.innerHTML = liftSessions.slice().reverse().map(s => `
+          <div class="history-detail-row">
+            <span class="history-date">${fmtDateDisplay(s.dateRaw)}</span>
+            <span class="history-wt">${s.wt} lbs</span>
+            <span class="history-reps">${s.sets} × ${s.reps}</span>
+            <span class="history-note${s.note ? ' has-note' : ''}">${s.note ? '★ ' + s.note : '—'}</span>
+          </div>`).join('');
+      }
+    }
+
+    sel.onchange = () => draw(sel.value);
+    if (lifts.length) draw(historySelectedLift || lifts[0]);
+  }
+
+  /* ---- 4) ONE-REP-MAX CALCULATOR ----------------------------------- */
   const ormEl   = document.getElementById('orm');
   const pctBody = document.getElementById('pctBody');
   function calc() {
@@ -387,6 +484,7 @@ function initApp(uid) {
   /* Shared state so both listeners can trigger a KPI refresh */
   let currentSessions = [];
   let currentSettings = null;
+  let historySelectedLift = '';
 
   /* Apply unit label (lbs/kg) to key elements across the dashboard */
   function applyUnit(unit) {
@@ -501,6 +599,7 @@ function initApp(uid) {
       currentSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       renderLog(currentSessions);
       renderDonut(currentSessions);
+      renderHistoryChart(currentSessions);
       updateKPIs();
     }, err => {
       console.error('Sessions error:', err.code, err.message);

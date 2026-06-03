@@ -210,6 +210,25 @@
           No sessions logged for this date yet.
         </p>
       </div>
+
+      <!-- Exercise history line chart -->
+      <div class="card chart-card" style="margin-top:18px;">
+        <div class="chart-head">
+          <div>
+            <p class="controls-label" style="margin-bottom:10px;">Exercise history</p>
+            <select id="historyLift" class="breakdown-date-sel">
+              <option value="">Log sessions to see history</option>
+            </select>
+          </div>
+          <div class="legend-note" id="historyNote"></div>
+        </div>
+        <svg id="historyChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
+        <div id="historyDetails" class="history-details"></div>
+        <p id="historyEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+           padding:40px 0;font-family:var(--mono);font-size:14px;">
+          No sessions found for this exercise.
+        </p>
+      </div>
     </section>
 
     <!-- ================= 1RM CALCULATOR ================= -->

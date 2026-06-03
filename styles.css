@@ -423,3 +423,17 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   color:var(--down); font-size:13px; text-align:center;
   margin-top:14px; min-height:18px; line-height:1.4;
 }
+
+/* ---------- EXERCISE HISTORY ---------- */
+.history-details{ margin-top:16px; border-top:1px solid var(--border); }
+.history-detail-row{
+  display:grid; grid-template-columns:1.2fr 90px 70px 1fr;
+  gap:12px; padding:11px 16px; border-bottom:1px solid var(--border);
+  font-family:var(--mono); font-size:13px; align-items:center;
+}
+.history-detail-row:hover{ background:rgba(255,255,255,0.02); }
+.history-date{ color:var(--text-dim); }
+.history-wt{ color:var(--accent); font-weight:700; }
+.history-reps{ color:var(--text); }
+.history-note{ color:var(--text-dimmer); font-family:var(--body); font-size:12px; }
+.history-note.has-note{ color:var(--accent); }
