@@ -81,6 +81,117 @@ function friendlyError(code) {
   })[code] || 'Something went wrong. Please try again.';
 }
 
+/* ===== CUSTOM DATE PICKER =========================================
+   Self-contained white calendar widget — no external libraries.
+   Hides the native <input type="date"> and replaces it with a
+   styled trigger button + dropdown calendar built from scratch. */
+function createDatePicker(inputId, initialDate) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  const todayISO = new Date().toISOString().split('T')[0];
+  const startISO = initialDate || todayISO;
+  const [sy, sm] = startISO.split('-').map(Number);
+
+  let state = { year: sy, month: sm - 1, selected: startISO };
+
+  /* Hide native input, keep it in DOM so existing code still reads its value */
+  input.type  = 'hidden';
+  input.value = startISO;
+
+  /* Build wrapper */
+  const wrap = document.createElement('div');
+  wrap.className = 'dp-wrap';
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+
+  /* Trigger button */
+  const trigger = document.createElement('button');
+  trigger.type      = 'button';
+  trigger.className = 'dp-trigger';
+  wrap.insertBefore(trigger, input);
+
+  /* Popup */
+  const popup = document.createElement('div');
+  popup.className    = 'dp-popup';
+  popup.style.display = 'none';
+  wrap.appendChild(popup);
+
+  function fmtDisplay(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return `${MONTHS[m - 1].slice(0, 3)} ${d}, ${y}`;
+  }
+
+  function renderTrigger() {
+    trigger.innerHTML = `
+      <span>${state.selected ? fmtDisplay(state.selected) : 'Select date'}</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>`;
+  }
+
+  function renderCalendar() {
+    const { year, month } = state;
+    const firstDay     = new Date(year, month, 1).getDay();
+    const daysInMonth  = new Date(year, month + 1, 0).getDate();
+
+    let cells = '';
+    for (let i = 0; i < firstDay; i++) cells += '<button class="dp-day dp-empty" disabled></button>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso  = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const sel  = iso === state.selected;
+      const tod  = iso === todayISO;
+      const fut  = iso > todayISO;
+      cells += `<button class="dp-day${sel?' dp-selected':''}${tod&&!sel?' dp-today':''}"
+                        data-date="${iso}" ${fut?'disabled':''}>${d}</button>`;
+    }
+
+    popup.innerHTML = `
+      <div class="dp-header">
+        <button class="dp-nav" data-dir="-1">&#8249;</button>
+        <span class="dp-month-year">${MONTHS[month]} ${year}</span>
+        <button class="dp-nav" data-dir="1">&#8250;</button>
+      </div>
+      <div class="dp-weekdays">${DAYS.map(d => `<span>${d}</span>`).join('')}</div>
+      <div class="dp-grid">${cells}</div>`;
+  }
+
+  trigger.addEventListener('click', e => {
+    e.stopPropagation();
+    if (popup.style.display === 'none') { renderCalendar(); popup.style.display = 'block'; }
+    else popup.style.display = 'none';
+  });
+
+  popup.addEventListener('click', e => {
+    e.stopPropagation();
+    const nav = e.target.closest('.dp-nav');
+    if (nav) {
+      state.month += +nav.dataset.dir;
+      if (state.month < 0)  { state.month = 11; state.year--; }
+      if (state.month > 11) { state.month = 0;  state.year++; }
+      renderCalendar(); return;
+    }
+    const day = e.target.closest('.dp-day');
+    if (day && !day.disabled) {
+      state.selected = day.dataset.date;
+      input.value    = state.selected;
+      renderTrigger();
+      popup.style.display = 'none';
+    }
+  });
+
+  /* Close when clicking anywhere outside */
+  document.addEventListener('click', () => { popup.style.display = 'none'; });
+
+  renderTrigger();
+}
+
 /* ===== initApp — runs once after successful sign-in ===============
    Every feature below uses uid to keep each user's data separate. */
 
@@ -230,7 +341,7 @@ function initApp(uid) {
     const dateVal = s.dateRaw || new Date().toISOString().split('T')[0];
     return `
       <tr data-id="${s.id}" class="editing-row">
-        <td><input class="edit-field" id="ed-date" type="date" value="${dateVal}"></td>
+        <td><input id="ed-date" type="hidden" value="${dateVal}"></td>
         <td><select class="edit-field" id="ed-lift">
           <option value="Squat|squat"         ${s.cls==='squat' ?'selected':''}>Squat</option>
           <option value="Bench|bench"          ${s.cls==='bench' ?'selected':''}>Bench</option>
@@ -252,13 +363,8 @@ function initApp(uid) {
       </tr>`;
   }
 
-  /* Flatpickr — white calendar picker on the add-session form */
-  flatpickr('#logDate', {
-    defaultDate : 'today',
-    maxDate     : 'today',
-    dateFormat  : 'Y-m-d',
-    disableMobile: true        // always use the custom calendar, not the phone keyboard
-  });
+  /* Custom white calendar picker — no external libraries needed */
+  createDatePicker('logDate');
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
@@ -297,13 +403,7 @@ function initApp(uid) {
       const row = document.querySelector(`tr[data-id="${editBtn.dataset.id}"]`);
       if (s && row) {
         row.outerHTML = buildEditRow(s);
-        /* Attach Flatpickr to the edit row's date input after it renders */
-        setTimeout(() => flatpickr('#ed-date', {
-          defaultDate  : s.dateRaw || 'today',
-          maxDate      : 'today',
-          dateFormat   : 'Y-m-d',
-          disableMobile: true
-        }), 30);
+        setTimeout(() => createDatePicker('ed-date', s.dateRaw), 30);
       }
       return;
     }
