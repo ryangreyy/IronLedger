@@ -201,6 +201,13 @@ nav{
 }
 .goal-step-btn:hover{ color:var(--accent); border-color:var(--accent); }
 .goal-step-count{ font-size:11px; color:var(--text-dimmer); font-family:var(--mono); min-width:14px; text-align:center; }
+
+@media(max-width:600px){
+  .goal-steps-adj{ display:none; }
+  .goal-delete{ opacity:1; }
+  .goal-step-box{ width:16px; height:16px; }
+}
+
 .btn{
   font-family:var(--body); font-weight:700; font-size:15px;
   padding:14px 26px; border-radius:10px; cursor:pointer; border:1px solid transparent;
