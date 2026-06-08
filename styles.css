@@ -235,7 +235,7 @@ nav{
 .cal-nav-btn:hover{ color:var(--accent); border-color:var(--accent); }
 .cal-grid{
   display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
-  max-width:420px;
+  max-width:420px; margin:0 auto;
 }
 .cal-dow{
   font-family:var(--mono); font-size:10px; text-transform:uppercase;
@@ -258,7 +258,7 @@ nav{
   border:2px solid var(--accent); pointer-events:none; z-index:1;
 }
 .cal-day.has-session.today::after{ border-color:rgba(0,0,0,0.35); }
-.cal-legend{ display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; }
+.cal-legend{ display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; max-width:420px; margin-left:auto; margin-right:auto; }
 .cal-legend-item{
   display:flex; align-items:center; gap:6px;
   font-family:var(--mono); font-size:11px; color:var(--text-dim);
