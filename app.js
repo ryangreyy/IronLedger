@@ -486,6 +486,8 @@ function initApp(uid) {
   let currentSessions = [];
   let currentSettings = null;
   let historySelectedLift = '';
+  let currentPage = 1;
+  const PAGE_SIZE = 12;
 
   /* Apply unit label (lbs/kg) to key elements across the dashboard */
   function applyUnit(unit) {
@@ -548,8 +550,13 @@ function initApp(uid) {
 
   function renderLog(sessions) {
     currentSessions = sessions;
+    const totalPages = Math.max(1, Math.ceil(sessions.length / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const page  = sessions.slice(start, start + PAGE_SIZE);
+
     document.getElementById('logBody').innerHTML = sessions.length
-      ? sessions.map(s => `
+      ? page.map(s => `
           <tr data-id="${s.id}">
             <td style="color:var(--text-dim)">${s.date}</td>
             <td><span class="pill ${liftToCls(s.lift)}">${s.lift}</span></td>
@@ -566,6 +573,16 @@ function initApp(uid) {
       : `<tr><td colspan="7" style="color:var(--text-dimmer);text-align:center;padding:32px 0;">
            No sessions yet — add one above.
          </td></tr>`;
+
+    const pag = document.getElementById('log-pagination');
+    if (sessions.length > PAGE_SIZE) {
+      pag.style.display = '';
+      document.getElementById('log-page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById('log-prev').disabled = currentPage <= 1;
+      document.getElementById('log-next').disabled = currentPage >= totalPages;
+    } else {
+      pag.style.display = 'none';
+    }
   }
 
   /* Builds an inline-editable version of a row */
@@ -621,6 +638,7 @@ function initApp(uid) {
     }
     const lift = liftVal.trim();
     const cls  = liftToCls(lift);
+    currentPage = 1;
     sessionsRef().add({ date: formatDate(dateVal), dateRaw: dateVal,
                         lift, cls, sets, reps, wt, note,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
@@ -674,6 +692,14 @@ function initApp(uid) {
           .catch(err => alert('Could not delete: ' + err.message));
       }
     }
+  });
+
+  document.getElementById('log-prev').addEventListener('click', () => {
+    if (currentPage > 1) { currentPage--; renderLog(currentSessions); }
+  });
+  document.getElementById('log-next').addEventListener('click', () => {
+    const totalPages = Math.ceil(currentSessions.length / PAGE_SIZE);
+    if (currentPage < totalPages) { currentPage++; renderLog(currentSessions); }
   });
 
   /* ---- 5) ATHLETE PROFILE (WHERE YOU STAND) ------------------------ */

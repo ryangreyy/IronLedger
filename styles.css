@@ -355,6 +355,20 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   margin-top:5px; letter-spacing:0.04em;
 }
 
+/* ---------- LOG PAGINATION ---------- */
+.log-pagination{
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  padding:16px 0 10px;
+}
+.btn-page{
+  background:transparent; border:1px solid var(--border-strong); color:var(--text-dim);
+  font-size:13px; font-family:var(--body); padding:6px 16px; border-radius:8px;
+  cursor:pointer; transition:color .15s, border-color .15s, background .15s;
+}
+.btn-page:hover:not(:disabled){ color:var(--accent); border-color:var(--accent); background:rgba(214,255,61,0.06); }
+.btn-page:disabled{ opacity:0.3; cursor:default; }
+.page-info{ font-size:13px; color:var(--text-dimmer); font-family:var(--mono); }
+
 /* ---------- INLINE ROW EDITING ---------- */
 .row-actions{ white-space:nowrap; }
 .btn-row-edit{
