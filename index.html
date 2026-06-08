@@ -220,13 +220,15 @@
       </div>
 
       <!-- Log table -->
-      <div class="card" style="margin-top:18px;padding:8px 8px 4px;">
-        <table class="log-table">
-          <thead>
-            <tr><th>Date</th><th>Lift</th><th>Sets × Reps</th><th>Weight</th><th>Note</th><th></th></tr>
-          </thead>
-          <tbody id="logBody"></tbody>
-        </table>
+      <div class="card log-table-card" style="margin-top:18px;padding:8px 8px 4px;">
+        <div class="log-scroll-wrap">
+          <table class="log-table">
+            <thead>
+              <tr><th>Date</th><th>Lift</th><th>Sets × Reps</th><th>Weight</th><th>Note</th><th></th></tr>
+            </thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
         <div id="log-pagination" class="log-pagination" style="display:none;">
           <button id="log-prev" class="btn-page">&#8592; Prev</button>
           <span id="log-page-info" class="page-info">Page 1 of 1</span>

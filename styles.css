@@ -331,7 +331,13 @@ table.pct td.w{color:var(--accent); font-weight:700;}
 .pct-tag{font-family:var(--mono); color:var(--text-dim);}
 
 /* ---------- LOG TABLE ---------- */
+.log-table-card{ overflow:visible !important; }
+.log-scroll-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .log-table{width:100%; border-collapse:collapse; margin-top:24px; font-size:14px;}
+@media(max-width:700px){
+  .log-table{ min-width:520px; }
+  .log-table td:nth-child(5){ white-space:normal; word-break:break-word; min-width:120px; }
+}
 .log-table th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
   color:var(--text-dimmer); font-weight:700; padding:14px 16px; border-bottom:1px solid var(--border-strong);}
 .log-table td{padding:15px 16px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:14px;}
