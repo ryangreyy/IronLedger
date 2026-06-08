@@ -829,6 +829,68 @@ function initApp(uid) {
     }, 60);
   }
 
+  function renderGoals(goalsData) {
+    if (document.activeElement && document.activeElement.classList.contains('goal-input')) return;
+    const list  = document.getElementById('goalsList');
+    const tally = document.getElementById('goalsTally');
+    if (!list) return;
+
+    const slots = Array.from({length: 3}, (_, i) =>
+      (Array.isArray(goalsData) ? goalsData[i] : null) || { text: '', done: false }
+    );
+
+    function countTally(s) {
+      const filled = s.filter(g => g.text).length;
+      const done   = s.filter(g => g.done && g.text).length;
+      if (tally) tally.textContent = filled ? `${done} / ${filled} done` : '';
+    }
+    countTally(slots);
+
+    function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+    list.innerHTML = slots.map((g, i) => `
+      <div class="goal-row">
+        <label class="goal-check-wrap">
+          <input type="checkbox" class="goal-check" data-idx="${i}"
+                 ${g.done && g.text ? 'checked' : ''} ${!g.text ? 'disabled' : ''}>
+          <span class="goal-box"></span>
+        </label>
+        <input type="text" class="goal-input${g.done && g.text ? ' goal-done' : ''}"
+               data-idx="${i}" value="${esc(g.text)}"
+               placeholder="Add a goal…" maxlength="60" autocomplete="off">
+      </div>`).join('');
+
+    function currentSlots() {
+      return Array.from(list.querySelectorAll('.goal-row')).map(row => ({
+        text: row.querySelector('.goal-input').value.trim(),
+        done: row.querySelector('.goal-check').checked,
+      }));
+    }
+    function save() {
+      settingsRef().set({ goals: currentSlots() }, { merge: true })
+        .catch(err => console.error('Goal save:', err));
+    }
+
+    list.querySelectorAll('.goal-check').forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.closest('.goal-row').querySelector('.goal-input').classList.toggle('goal-done', cb.checked);
+        countTally(currentSlots());
+        save();
+      });
+    });
+    list.querySelectorAll('.goal-input').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const cb = list.querySelectorAll('.goal-check')[+inp.dataset.idx];
+        const hasText = inp.value.trim().length > 0;
+        cb.disabled = !hasText;
+        if (!hasText) { cb.checked = false; inp.classList.remove('goal-done'); }
+        countTally(currentSlots());
+      });
+      inp.addEventListener('blur', save);
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+    });
+  }
+
   function applyColors(s) {
     const map = {
       squat: s?.colorSquat || '#D6FF3D',
@@ -855,10 +917,12 @@ function initApp(uid) {
       if (unit)        applyUnit(unit);
       if (defaultLift !== undefined) applyDefaultLift(defaultLift);
       applyColors(currentSettings);
+      renderGoals(currentSettings.goals);
     } else {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');
       applyColors(null);
+      renderGoals(null);
     }
     renderDonut(currentSessions);
     updateKPIs();
