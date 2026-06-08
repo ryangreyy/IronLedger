@@ -470,9 +470,10 @@ function initApp(uid) {
     if (['bench','bench press','incline press','db flat press','db incline press'].includes(n)) return 'bench';
     if (['deadlift'].includes(n))                                      return 'dead';
     if (['overhead press','ohp','dips','push-up','lateral raise'].includes(n)) return 'press';
-    if (['row','pulldown','pull-up','bicep curl','hammer curl','preacher curl'].includes(n)) return 'dead';
-    if (['tricep pushdown','overhead tricep'].includes(n))             return 'press';
-    if (['leg extension','leg curl','calf raise'].includes(n))         return 'squat';
+    if (['row','pulldown','pull-up','bicep curl','hammer curl','preacher curl','t-bar row'].includes(n)) return 'dead';
+    if (['tricep pushdown','overhead tricep','rear delt raise'].includes(n)) return 'press';
+    if (['leg extension','leg curl','seated hamstring curl','lying hamstring curl','calf raise','adductors','abductors'].includes(n)) return 'squat';
+    if (['chest fly','pec dec'].includes(n))                           return 'bench';
     return 'other';
   }
 
