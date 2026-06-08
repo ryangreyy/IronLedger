@@ -202,12 +202,11 @@ nav{
 .goal-step-btn:hover{ color:var(--accent); border-color:var(--accent); }
 .goal-step-count{ font-size:11px; color:var(--text-dimmer); font-family:var(--mono); min-width:14px; text-align:center; }
 
+.goals-scroll-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
 @media(max-width:600px){
-  .goal-row{ gap:8px; }
+  .goals-list{ min-width:480px; }
   .goal-steps-adj{ display:flex; opacity:1; }
-  .goal-step-btn{ width:26px; height:26px; font-size:15px; }
   .goal-delete{ opacity:1; }
-  .goal-step-box{ width:15px; height:15px; }
 }
 
 .btn{
