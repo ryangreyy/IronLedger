@@ -261,12 +261,11 @@ function initApp(uid) {
    Data comes from the user's logged sessions in Firebase. */
 
   function getDonutColor(cls) {
-    const style = getComputedStyle(document.documentElement);
     return {
-      squat: style.getPropertyValue('--squat').trim(),
-      bench: style.getPropertyValue('--bench').trim(),
-      dead:  style.getPropertyValue('--dead').trim(),
-      press: style.getPropertyValue('--press').trim(),
+      squat: currentSettings?.colorSquat || '#D6FF3D',
+      bench: currentSettings?.colorBench || '#5BD6E6',
+      dead:  currentSettings?.colorDead  || '#FF8A4C',
+      press: currentSettings?.colorPress || '#B78BFF',
       other: '#9AA0AC',
     }[cls] || '#9AA0AC';
   }
