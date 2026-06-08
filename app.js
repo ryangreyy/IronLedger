@@ -524,7 +524,7 @@ function initApp(uid) {
 
     /* Volume = sets × reps × weight for each month session */
     const volume     = monthSess.reduce((sum, s) => sum + (s.sets * s.reps * s.wt), 0);
-    const count      = monthSess.length;
+    const daysLifted = new Set(monthSess.map(s => s.dateRaw).filter(Boolean)).size;
 
     /* Streak = consecutive days (going back from today) that have any session */
     const sessionDays = new Set(currentSessions.map(s => s.dateRaw).filter(Boolean));
@@ -549,11 +549,11 @@ function initApp(uid) {
     /* Update the four cards */
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
-    set('kpi-sessions', count);
+    set('kpi-sessions', daysLifted);
     set('kpi-streak',   streak);
     set('kpi-big3',     big3 ? big3.toLocaleString() : '—');
 
-    set('kpi-sessions-delta', count ? 'logged this month' : 'Add your first session below');
+    set('kpi-sessions-delta', daysLifted ? 'days in the gym this month' : 'Add your first session below');
     set('kpi-streak-delta',   streak ? `day${streak !== 1 ? 's' : ''} in a row` : 'Log a session to start a streak');
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
   }
