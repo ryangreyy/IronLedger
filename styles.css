@@ -235,7 +235,7 @@ nav{
 .cal-nav-btn:hover{ color:var(--accent); border-color:var(--accent); }
 .cal-grid{
   display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
-  max-width:420px; margin:0 auto;
+  max-width:420px;
 }
 .cal-dow{
   font-family:var(--mono); font-size:10px; text-transform:uppercase;
@@ -284,7 +284,7 @@ nav{
   background:transparent !important; color:var(--text-dim) !important;
   border:1px solid var(--border-strong); margin-top:3px;
 }
-.cal-legend{ display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; max-width:420px; margin-left:auto; margin-right:auto; }
+.cal-legend{ display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; max-width:420px; }
 .cal-legend-item{
   display:flex; align-items:center; gap:6px;
   font-family:var(--mono); font-size:11px; color:var(--text-dim);
