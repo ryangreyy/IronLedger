@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 
@@ -37,6 +37,13 @@
         <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
         <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
       </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+        <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+          <rect width="22" height="2" rx="1" fill="currentColor"/>
+          <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+          <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
     </div>
   </nav>
 
@@ -371,6 +378,6 @@
 <script src="firebase-config.js"></script>
 <!-- App data and logic -->
 <script src="data.js"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

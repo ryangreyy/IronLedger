@@ -14,6 +14,18 @@ const navSignedOut = document.getElementById('nav-signed-out');
 const navUserName  = document.getElementById('nav-user-name');
 const authError    = document.getElementById('authError');
 
+/* ===== HAMBURGER MENU ============================================= */
+const navHamburger = document.getElementById('nav-hamburger');
+const navLinksEl   = document.getElementById('nav-links');
+navHamburger.addEventListener('click', e => {
+  e.stopPropagation();
+  navLinksEl.classList.toggle('open');
+});
+navLinksEl.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => navLinksEl.classList.remove('open'));
+});
+document.addEventListener('click', () => navLinksEl.classList.remove('open'));
+
 /* ===== AUTH — SIGN IN / SIGN UP / SIGN OUT ========================
    Firebase watches auth state automatically — we just react to it. */
 
