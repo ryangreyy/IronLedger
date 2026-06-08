@@ -526,20 +526,31 @@ function initApp(uid) {
     const volume     = monthSess.reduce((sum, s) => sum + (s.sets * s.reps * s.wt), 0);
     const daysLifted = new Set(monthSess.map(s => s.dateRaw).filter(Boolean)).size;
 
-    /* Streak = consecutive days (going back from today) that have any session */
+    /* Streak = consecutive days with a session OR a logged rest day */
     const sessionDays = new Set(currentSessions.map(s => s.dateRaw).filter(Boolean));
+    const restDays    = new Set(Array.isArray(currentSettings?.restDays) ? currentSettings.restDays : []);
+    const activeDays  = new Set([...sessionDays, ...restDays]);
     let streak = 0;
     const cursor = new Date(); cursor.setHours(12, 0, 0, 0);
     for (let i = 0; i < 366; i++) {
       const iso = cursor.toISOString().split('T')[0];
-      if (sessionDays.has(iso)) {
+      if (activeDays.has(iso)) {
         streak++;
         cursor.setDate(cursor.getDate() - 1);
       } else if (i === 0) {
-        cursor.setDate(cursor.getDate() - 1); // no session today — check yesterday
+        cursor.setDate(cursor.getDate() - 1); // nothing logged today yet — check yesterday
       } else {
         break;
       }
+    }
+
+    /* Rest day button state */
+    const todayISO   = new Date().toISOString().split('T')[0];
+    const isRestDay  = restDays.has(todayISO);
+    const restBtn    = document.getElementById('restDayBtn');
+    if (restBtn) {
+      restBtn.textContent = isRestDay ? '✓ Rest Day Logged' : 'Log Rest Day';
+      restBtn.classList.toggle('rest-day-active', isRestDay);
     }
 
     /* Big-3 = saved maxes from settings */
@@ -1039,6 +1050,17 @@ function initApp(uid) {
     console.error('Settings error:', err.code, err.message);
     renderProfile(0, 0, 0, 185, '');
     updateKPIs();
+  });
+
+  /* Rest day toggle */
+  document.getElementById('restDayBtn').addEventListener('click', () => {
+    const today    = new Date().toISOString().split('T')[0];
+    const existing = Array.isArray(currentSettings?.restDays) ? currentSettings.restDays : [];
+    const updated  = existing.includes(today)
+      ? existing.filter(d => d !== today)
+      : [...existing, today];
+    settingsRef().set({ restDays: updated }, { merge: true })
+      .catch(err => console.error('Rest day save:', err));
   });
 
   /* Save & update profile */

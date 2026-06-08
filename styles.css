@@ -215,6 +215,14 @@ nav{
 .kpi .delta{margin-top:10px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px;}
 .kpi .delta.up{color:var(--up);} .kpi .delta.down{color:var(--down);}
 .kpi .spark{position:absolute; right:-6px; bottom:-6px; opacity:0.5;}
+.btn-rest-day{
+  margin-top:14px; background:transparent; border:1px solid var(--border-strong);
+  color:var(--text-dim); font-family:var(--body); font-size:12px; font-weight:600;
+  padding:6px 12px; border-radius:8px; cursor:pointer; letter-spacing:0.03em;
+  transition:color .15s, border-color .15s, background .15s;
+}
+.btn-rest-day:hover{ color:var(--accent); border-color:var(--accent); background:rgba(214,255,61,0.06); }
+.btn-rest-day.rest-day-active{ color:var(--accent); border-color:var(--accent); background:rgba(214,255,61,0.08); }
 
 /* ---------- CHART ---------- */
 .chart-card{margin-top:32px; padding:28px;}
