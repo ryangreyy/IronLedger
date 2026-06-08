@@ -222,6 +222,10 @@ function initApp(uid) {
   const sessionsRef = () => db.collection('users').doc(uid).collection('sessions');
   const settingsRef = () => db.collection('users').doc(uid).collection('settings').doc('main');
 
+  let goalsDonePage = 1;
+  const GOALS_DONE_SHOW = 2;
+  const GOALS_DONE_PAGE = 5;
+
   renderGoals(null);
 
   /* ---- 1) ANIMATED COUNT-UP ----------------------------------------
@@ -495,9 +499,6 @@ function initApp(uid) {
   let historySelectedLift = '';
   let currentPage = 1;
   const PAGE_SIZE = 12;
-  let goalsDonePage = 1;
-  const GOALS_DONE_SHOW = 2;
-  const GOALS_DONE_PAGE = 5;
 
   /* Apply unit label (lbs/kg) to key elements across the dashboard */
   function applyUnit(unit) {
