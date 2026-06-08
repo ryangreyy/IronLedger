@@ -495,6 +495,9 @@ function initApp(uid) {
   let historySelectedLift = '';
   let currentPage = 1;
   const PAGE_SIZE = 12;
+  let goalsDonePage = 1;
+  const GOALS_DONE_SHOW = 2;
+  const GOALS_DONE_PAGE = 5;
 
   /* Apply unit label (lbs/kg) to key elements across the dashboard */
   function applyUnit(unit) {
@@ -709,6 +712,13 @@ function initApp(uid) {
     if (currentPage < totalPages) { currentPage++; renderLog(currentSessions); }
   });
 
+  document.getElementById('goals-prev').addEventListener('click', () => {
+    if (goalsDonePage > 1) { goalsDonePage--; renderGoals(currentSettings && currentSettings.goals); }
+  });
+  document.getElementById('goals-next').addEventListener('click', () => {
+    goalsDonePage++; renderGoals(currentSettings && currentSettings.goals);
+  });
+
   /* ---- 5) ATHLETE PROFILE (WHERE YOU STAND) ------------------------ */
 
   function parseHeightToInches(str) {
@@ -835,62 +845,105 @@ function initApp(uid) {
     if (document.activeElement && document.activeElement.classList.contains('goal-input')) return;
     const list  = document.getElementById('goalsList');
     const tally = document.getElementById('goalsTally');
+    const pag   = document.getElementById('goals-done-pagination');
     if (!list) return;
-
-    const slots = Array.from({length: 3}, (_, i) =>
-      (Array.isArray(goalsData) ? goalsData[i] : null) || { text: '', done: false }
-    );
-
-    function countTally(s) {
-      const filled = s.filter(g => g.text).length;
-      const done   = s.filter(g => g.done && g.text).length;
-      if (tally) tally.textContent = filled ? `${done} / ${filled} done` : '';
-    }
-    countTally(slots);
 
     function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
-    list.innerHTML = slots.map((g, i) => `
-      <div class="goal-row">
+    const allGoals = (Array.isArray(goalsData) ? goalsData : []).filter(g => g && g.text);
+    const active   = allGoals.map((g, i) => ({ ...g, _i: i })).filter(g => !g.done);
+    const done     = allGoals.map((g, i) => ({ ...g, _i: i })).filter(g => g.done)
+                             .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+
+    if (tally) {
+      const total = allGoals.length;
+      tally.textContent = total ? `${done.length} / ${total} done` : '';
+    }
+
+    function goalRow(g, isDone) {
+      return `
+        <div class="goal-row${isDone ? ' goal-row-done' : ''}">
+          <label class="goal-check-wrap">
+            <input type="checkbox" class="goal-check" data-idx="${g._i}" ${isDone ? 'checked' : ''}>
+            <span class="goal-box"></span>
+          </label>
+          <input type="text" class="goal-input${isDone ? ' goal-done' : ''}"
+                 data-idx="${g._i}" value="${esc(g.text)}"
+                 placeholder="" maxlength="60" autocomplete="off">
+        </div>`;
+    }
+
+    const newRow = `
+      <div class="goal-row goal-row-new">
         <label class="goal-check-wrap">
-          <input type="checkbox" class="goal-check" data-idx="${i}"
-                 ${g.done && g.text ? 'checked' : ''} ${!g.text ? 'disabled' : ''}>
+          <input type="checkbox" class="goal-check" disabled>
           <span class="goal-box"></span>
         </label>
-        <input type="text" class="goal-input${g.done && g.text ? ' goal-done' : ''}"
-               data-idx="${i}" value="${esc(g.text)}"
-               placeholder="Add a goal…" maxlength="60" autocomplete="off">
-      </div>`).join('');
+        <input type="text" class="goal-input goal-input-new"
+               data-idx="-1" value="" placeholder="Add a goal…" maxlength="60" autocomplete="off">
+      </div>`;
 
-    function currentSlots() {
-      return Array.from(list.querySelectorAll('.goal-row')).map(row => ({
-        text: row.querySelector('.goal-input').value.trim(),
-        done: row.querySelector('.goal-check').checked,
-      }));
+    const alwaysDone = done.slice(0, GOALS_DONE_SHOW);
+    const pagDone    = done.slice(GOALS_DONE_SHOW);
+    const totalPages = Math.max(1, Math.ceil(pagDone.length / GOALS_DONE_PAGE));
+    if (goalsDonePage > totalPages) goalsDonePage = totalPages;
+    const pagSlice   = pagDone.slice((goalsDonePage - 1) * GOALS_DONE_PAGE, goalsDonePage * GOALS_DONE_PAGE);
+
+    const divider = done.length ? '<div class="goals-divider"></div>' : '';
+
+    list.innerHTML =
+      active.map(g => goalRow(g, false)).join('') +
+      newRow +
+      divider +
+      alwaysDone.map(g => goalRow(g, true)).join('') +
+      pagSlice.map(g => goalRow(g, true)).join('');
+
+    if (pag) {
+      if (pagDone.length > 0) {
+        pag.style.display = '';
+        document.getElementById('goals-page-info').textContent = `Page ${goalsDonePage} of ${totalPages}`;
+        document.getElementById('goals-prev').disabled = goalsDonePage <= 1;
+        document.getElementById('goals-next').disabled = goalsDonePage >= totalPages;
+      } else {
+        pag.style.display = 'none';
+      }
     }
-    function save() {
-      settingsRef().set({ goals: currentSlots() }, { merge: true })
+
+    function saveGoals(updated) {
+      settingsRef().set({ goals: updated }, { merge: true })
         .catch(err => console.error('Goal save:', err));
     }
 
-    list.querySelectorAll('.goal-check').forEach(cb => {
+    list.querySelectorAll('.goal-check:not([disabled])').forEach(cb => {
       cb.addEventListener('change', () => {
-        cb.closest('.goal-row').querySelector('.goal-input').classList.toggle('goal-done', cb.checked);
-        countTally(currentSlots());
-        save();
+        const idx = +cb.dataset.idx;
+        const updated = allGoals.map((g, i) => i === idx
+          ? { ...g, done: cb.checked, completedAt: cb.checked ? Date.now() : null }
+          : g);
+        saveGoals(updated);
       });
     });
-    list.querySelectorAll('.goal-input').forEach(inp => {
-      inp.addEventListener('input', () => {
-        const cb = list.querySelectorAll('.goal-check')[+inp.dataset.idx];
-        const hasText = inp.value.trim().length > 0;
-        cb.disabled = !hasText;
-        if (!hasText) { cb.checked = false; inp.classList.remove('goal-done'); }
-        countTally(currentSlots());
+
+    list.querySelectorAll('.goal-input:not(.goal-input-new)').forEach(inp => {
+      inp.addEventListener('blur', () => {
+        const idx = +inp.dataset.idx;
+        const text = inp.value.trim();
+        const updated = text
+          ? allGoals.map((g, i) => i === idx ? { ...g, text } : g)
+          : allGoals.filter((_, i) => i !== idx);
+        saveGoals(updated);
       });
-      inp.addEventListener('blur', save);
       inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
     });
+
+    const newInp = list.querySelector('.goal-input-new');
+    if (newInp) {
+      newInp.addEventListener('blur', () => {
+        const text = newInp.value.trim();
+        if (text) saveGoals([...allGoals, { text, done: false, completedAt: null }]);
+      });
+      newInp.addEventListener('keydown', e => { if (e.key === 'Enter') newInp.blur(); });
+    }
   }
 
   function applyColors(s) {
