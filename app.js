@@ -861,25 +861,34 @@ function initApp(uid) {
     }
 
     function goalRow(g, isDone) {
+      const steps        = g.steps || 1;
+      const stepsChecked = isDone ? steps : (g.stepsChecked || 0);
+      const boxes = Array.from({length: steps}, (_, i) =>
+        `<span class="goal-step-box${i < stepsChecked ? ' checked' : ''}" data-idx="${g._i}" data-step="${i}"></span>`
+      ).join('');
+      const resetBtn = !isDone && steps > 1 && stepsChecked > 0
+        ? `<button class="goal-reset-btn" data-idx="${g._i}" title="Reset progress">↺</button>`
+        : '';
+      const adjuster = !isDone ? `
+        <div class="goal-steps-adj">
+          <button class="goal-step-btn goal-step-minus" data-idx="${g._i}">−</button>
+          <span class="goal-step-count">${steps}</span>
+          <button class="goal-step-btn goal-step-plus" data-idx="${g._i}">+</button>
+        </div>` : '';
       return `
         <div class="goal-row${isDone ? ' goal-row-done' : ''}">
-          <label class="goal-check-wrap">
-            <input type="checkbox" class="goal-check" data-idx="${g._i}" ${isDone ? 'checked' : ''}>
-            <span class="goal-box"></span>
-          </label>
+          <div class="goal-steps">${boxes}${resetBtn}</div>
           <input type="text" class="goal-input${isDone ? ' goal-done' : ''}"
                  data-idx="${g._i}" value="${esc(g.text)}"
                  placeholder="" maxlength="60" autocomplete="off">
+          ${adjuster}
           <button class="btn-delete goal-delete" data-idx="${g._i}" title="Delete goal">✕</button>
         </div>`;
     }
 
     const newRow = `
       <div class="goal-row goal-row-new">
-        <label class="goal-check-wrap">
-          <input type="checkbox" class="goal-check" disabled>
-          <span class="goal-box"></span>
-        </label>
+        <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
         <input type="text" class="goal-input goal-input-new"
                data-idx="-1" value="" placeholder="Add a goal…" maxlength="60" autocomplete="off">
       </div>`;
@@ -912,6 +921,56 @@ function initApp(uid) {
         .catch(err => console.error('Goal save:', err));
     }
 
+    list.querySelectorAll('.goal-step-box').forEach(box => {
+      box.addEventListener('click', () => {
+        const idx  = +box.dataset.idx;
+        const step = +box.dataset.step;
+        if (isNaN(idx) || idx < 0) return;
+        const g     = allGoals[idx];
+        const steps = g.steps || 1;
+        const cur   = g.stepsChecked || 0;
+        const newChecked = box.classList.contains('checked') ? step : step + 1;
+        const isDone     = newChecked >= steps;
+        const updated    = allGoals.map((g, i) => i !== idx ? g : {
+          ...g,
+          stepsChecked: newChecked,
+          done:         isDone,
+          completedAt:  isDone ? Date.now() : null,
+        });
+        saveGoals(updated);
+      });
+    });
+
+    list.querySelectorAll('.goal-reset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx     = +btn.dataset.idx;
+        const updated = allGoals.map((g, i) => i !== idx ? g : { ...g, stepsChecked: 0 });
+        saveGoals(updated);
+      });
+    });
+
+    list.querySelectorAll('.goal-step-minus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx   = +btn.dataset.idx;
+        const g     = allGoals[idx];
+        const steps = Math.max(1, (g.steps || 1) - 1);
+        const updated = allGoals.map((g, i) => i !== idx ? g : {
+          ...g, steps, stepsChecked: Math.min(g.stepsChecked || 0, steps),
+        });
+        saveGoals(updated);
+      });
+    });
+
+    list.querySelectorAll('.goal-step-plus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx   = +btn.dataset.idx;
+        const g     = allGoals[idx];
+        const steps = Math.min(10, (g.steps || 1) + 1);
+        const updated = allGoals.map((g, i) => i !== idx ? g : { ...g, steps });
+        saveGoals(updated);
+      });
+    });
+
     list.querySelectorAll('.goal-delete').forEach(btn => {
       btn.addEventListener('click', () => {
         const idx = +btn.dataset.idx;
@@ -919,19 +978,9 @@ function initApp(uid) {
       });
     });
 
-    list.querySelectorAll('.goal-check:not([disabled])').forEach(cb => {
-      cb.addEventListener('change', () => {
-        const idx = +cb.dataset.idx;
-        const updated = allGoals.map((g, i) => i === idx
-          ? { ...g, done: cb.checked, completedAt: cb.checked ? Date.now() : null }
-          : g);
-        saveGoals(updated);
-      });
-    });
-
     list.querySelectorAll('.goal-input:not(.goal-input-new)').forEach(inp => {
       inp.addEventListener('blur', () => {
-        const idx = +inp.dataset.idx;
+        const idx  = +inp.dataset.idx;
         const text = inp.value.trim();
         const updated = text
           ? allGoals.map((g, i) => i === idx ? { ...g, text } : g)
@@ -945,7 +994,7 @@ function initApp(uid) {
     if (newInp) {
       newInp.addEventListener('blur', () => {
         const text = newInp.value.trim();
-        if (text) saveGoals([...allGoals, { text, done: false, completedAt: null }]);
+        if (text) saveGoals([...allGoals, { text, done: false, steps: 1, stepsChecked: 0, completedAt: null }]);
       });
       newInp.addEventListener('keydown', e => { if (e.key === 'Enter') newInp.blur(); });
     }
