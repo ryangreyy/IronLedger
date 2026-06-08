@@ -143,7 +143,7 @@ nav{
   font-family:var(--body); font-size:14px; font-weight:600; color:var(--text);
   padding:0; line-height:1.4;
 }
-.goal-input::placeholder{ color:var(--text-dimmer); font-weight:500; }
+.goal-input::placeholder{ color:var(--text-dim); font-weight:500; }
 .goal-input.goal-done{ color:var(--text-dimmer); text-decoration:line-through; }
 .btn{
   font-family:var(--body); font-weight:700; font-size:15px;

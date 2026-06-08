@@ -222,6 +222,8 @@ function initApp(uid) {
   const sessionsRef = () => db.collection('users').doc(uid).collection('sessions');
   const settingsRef = () => db.collection('users').doc(uid).collection('settings').doc('main');
 
+  renderGoals(null);
+
   /* ---- 1) ANIMATED COUNT-UP ----------------------------------------
      When a section scrolls into view, numbers count up from 0. */
   function animateCount(el) {
