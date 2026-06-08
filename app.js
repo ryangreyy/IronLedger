@@ -603,6 +603,36 @@ function initApp(uid) {
     set('kpi-sessions-delta', daysLifted ? 'days in the gym this month' : 'Add your first session below');
     set('kpi-streak-delta',   streak ? `day${streak !== 1 ? 's' : ''} in a row` : 'Log a session to start a streak');
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
+
+    renderFreq(monthSess);
+  }
+
+  function renderFreq(monthSess) {
+    const container = document.getElementById('freqBars');
+    if (!container) return;
+
+    const dayGroups = { squat: new Set(), bench: new Set(), dead: new Set(), arm: new Set() };
+    (monthSess || []).forEach(s => {
+      const cls = liftToCls(s.lift);
+      if (cls in dayGroups) dayGroups[cls].add(s.dateRaw);
+    });
+
+    const counts = {
+      squat: dayGroups.squat.size,
+      bench: dayGroups.bench.size,
+      dead:  dayGroups.dead.size,
+      arm:   dayGroups.arm.size,
+    };
+    const maxCount = Math.max(1, ...Object.values(counts));
+    const labels = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms' };
+
+    container.innerHTML = Object.entries(counts).map(([cls, count]) => `
+      <div class="freq-row">
+        <div class="freq-label">${labels[cls]}</div>
+        <div class="freq-track"><div class="freq-fill ${cls}" style="width:${Math.round(count / maxCount * 100)}%"></div></div>
+        <div class="freq-count ${cls}">${count || '—'}</div>
+      </div>
+    `).join('');
   }
 
   function renderLog(sessions) {
