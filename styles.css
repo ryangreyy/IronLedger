@@ -213,9 +213,10 @@ nav{
 .cal-card{
   background:var(--surface); border:1px solid var(--border-strong);
   border-radius:20px; padding:20px 22px;
+  max-width:464px;
 }
 .cal-header{
-  display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;
+  display:flex; justify-content:flex-start; align-items:center; gap:16px; margin-bottom:14px;
 }
 .cal-eyebrow{
   font-family:var(--mono); font-size:11px; text-transform:uppercase;
