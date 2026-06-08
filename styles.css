@@ -212,10 +212,10 @@ nav{
 /* ---------- CALENDAR CARD ---------- */
 .cal-card{
   background:var(--surface); border:1px solid var(--border-strong);
-  border-radius:20px; padding:26px 24px;
+  border-radius:20px; padding:20px 22px;
 }
 .cal-header{
-  display:flex; justify-content:space-between; align-items:center; margin-bottom:22px;
+  display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;
 }
 .cal-eyebrow{
   font-family:var(--mono); font-size:11px; text-transform:uppercase;
@@ -234,11 +234,12 @@ nav{
 }
 .cal-nav-btn:hover{ color:var(--accent); border-color:var(--accent); }
 .cal-grid{
-  display:grid; grid-template-columns:repeat(7,1fr); gap:5px;
+  display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
+  max-width:420px;
 }
 .cal-dow{
   font-family:var(--mono); font-size:10px; text-transform:uppercase;
-  letter-spacing:0.1em; color:var(--text-dimmer); text-align:center; padding-bottom:8px;
+  letter-spacing:0.1em; color:var(--text-dimmer); text-align:center; padding-bottom:6px;
 }
 .cal-day{
   aspect-ratio:1; border-radius:8px;
