@@ -148,6 +148,8 @@ nav{
 .goal-row-new .goal-box{ opacity:0.35; }
 .goals-divider{ border:none; border-top:1px solid var(--border-strong); margin:4px 0; }
 .goal-row-done .goal-input{ font-weight:500; }
+.goal-delete{ opacity:0; transition:opacity .15s; }
+.goal-row:hover .goal-delete{ opacity:1; }
 .btn{
   font-family:var(--body); font-weight:700; font-size:15px;
   padding:14px 26px; border-radius:10px; cursor:pointer; border:1px solid transparent;
