@@ -223,7 +223,6 @@ function initApp(uid) {
   const settingsRef = () => db.collection('users').doc(uid).collection('settings').doc('main');
 
   let goalsDonePage = 1;
-  const GOALS_DONE_SHOW = 2;
   const GOALS_DONE_PAGE = 5;
 
   renderGoals(null);
@@ -871,6 +870,7 @@ function initApp(uid) {
           <input type="text" class="goal-input${isDone ? ' goal-done' : ''}"
                  data-idx="${g._i}" value="${esc(g.text)}"
                  placeholder="" maxlength="60" autocomplete="off">
+          <button class="btn-delete goal-delete" data-idx="${g._i}" title="Delete goal">✕</button>
         </div>`;
     }
 
@@ -884,11 +884,9 @@ function initApp(uid) {
                data-idx="-1" value="" placeholder="Add a goal…" maxlength="60" autocomplete="off">
       </div>`;
 
-    const alwaysDone = done.slice(0, GOALS_DONE_SHOW);
-    const pagDone    = done.slice(GOALS_DONE_SHOW);
-    const totalPages = Math.max(1, Math.ceil(pagDone.length / GOALS_DONE_PAGE));
+    const totalPages = Math.max(1, Math.ceil(done.length / GOALS_DONE_PAGE));
     if (goalsDonePage > totalPages) goalsDonePage = totalPages;
-    const pagSlice   = pagDone.slice((goalsDonePage - 1) * GOALS_DONE_PAGE, goalsDonePage * GOALS_DONE_PAGE);
+    const pagSlice   = done.slice((goalsDonePage - 1) * GOALS_DONE_PAGE, goalsDonePage * GOALS_DONE_PAGE);
 
     const divider = done.length ? '<div class="goals-divider"></div>' : '';
 
@@ -896,11 +894,10 @@ function initApp(uid) {
       active.map(g => goalRow(g, false)).join('') +
       newRow +
       divider +
-      alwaysDone.map(g => goalRow(g, true)).join('') +
       pagSlice.map(g => goalRow(g, true)).join('');
 
     if (pag) {
-      if (pagDone.length > 0) {
+      if (done.length > GOALS_DONE_PAGE) {
         pag.style.display = '';
         document.getElementById('goals-page-info').textContent = `Page ${goalsDonePage} of ${totalPages}`;
         document.getElementById('goals-prev').disabled = goalsDonePage <= 1;
@@ -914,6 +911,13 @@ function initApp(uid) {
       settingsRef().set({ goals: updated }, { merge: true })
         .catch(err => console.error('Goal save:', err));
     }
+
+    list.querySelectorAll('.goal-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = +btn.dataset.idx;
+        saveGoals(allGoals.filter((_, i) => i !== idx));
+      });
+    });
 
     list.querySelectorAll('.goal-check:not([disabled])').forEach(cb => {
       cb.addEventListener('change', () => {
