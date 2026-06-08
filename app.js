@@ -508,6 +508,10 @@ function initApp(uid) {
   /* Maps a lift name to a pill colour class. Unknown lifts → 'other' (neutral). */
   function liftToCls(name) {
     const n = (name || '').toLowerCase().trim();
+    const custom = (currentSettings?.customLifts || []).find(l =>
+      (typeof l === 'string' ? l : l.name).toLowerCase() === n
+    );
+    if (custom && typeof custom !== 'string' && custom.cls) return custom.cls;
     if (['squat','split squat','hack squat','bw squat','smith squat','leg press','lunges','rdl'].includes(n)) return 'squat';
     if (['bench','bench press','incline press','db flat press','db incline press','dips','push-up','chest fly','pec dec'].includes(n)) return 'bench';
     if (['deadlift'].includes(n))                                      return 'dead';
@@ -1215,7 +1219,9 @@ function initApp(uid) {
     const datalist = document.getElementById('lift-options');
     if (!datalist) return;
     datalist.querySelectorAll('option[data-custom]').forEach(o => o.remove());
-    (lifts || []).forEach(name => {
+    (lifts || []).forEach(l => {
+      const name = typeof l === 'string' ? l : l.name;
+      if (!name) return;
       const opt = document.createElement('option');
       opt.value = name;
       opt.dataset.custom = '1';
