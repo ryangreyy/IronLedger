@@ -203,9 +203,11 @@ nav{
 .goal-step-count{ font-size:11px; color:var(--text-dimmer); font-family:var(--mono); min-width:14px; text-align:center; }
 
 @media(max-width:600px){
-  .goal-steps-adj{ display:none; }
+  .goal-row{ gap:8px; }
+  .goal-steps-adj{ display:flex; opacity:1; }
+  .goal-step-btn{ width:26px; height:26px; font-size:15px; }
   .goal-delete{ opacity:1; }
-  .goal-step-box{ width:16px; height:16px; }
+  .goal-step-box{ width:15px; height:15px; }
 }
 
 .btn{
