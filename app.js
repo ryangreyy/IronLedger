@@ -260,10 +260,16 @@ function initApp(uid) {
    Shows what % of sets were spent on each lift for a selected day.
    Data comes from the user's logged sessions in Firebase. */
 
-  const DONUT_COLORS = {
-    squat: '#D6FF3D', bench: '#5BD6E6', dead: '#FF8A4C',
-    press: '#B78BFF', other: '#9AA0AC'
-  };
+  function getDonutColor(cls) {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      squat: style.getPropertyValue('--squat').trim(),
+      bench: style.getPropertyValue('--bench').trim(),
+      dead:  style.getPropertyValue('--dead').trim(),
+      press: style.getPropertyValue('--press').trim(),
+      other: '#9AA0AC',
+    }[cls] || '#9AA0AC';
+  }
 
   function ptOnCircle(cx, cy, r, deg) {
     const rad = (deg - 90) * Math.PI / 180;
@@ -322,7 +328,7 @@ function initApp(uid) {
       items.forEach(g => {
         const pct   = g.sets / total;
         const sweep = pct * 360;
-        const color = DONUT_COLORS[g.cls] || DONUT_COLORS.other;
+        const color = getDonutColor(g.cls);
         const gap   = items.length > 1 ? 2 : 0;
         paths += `<path fill="${color}" d="${segmentPath(cx, cy, ro, ri, angle + gap/2, angle + sweep - gap/2)}"/>`;
         legendHTML += `
@@ -855,6 +861,7 @@ function initApp(uid) {
       renderProfile(0, 0, 0, 185, '');
       applyColors(null);
     }
+    renderDonut(currentSessions);
     updateKPIs();
   }, err => {
     console.error('Settings error:', err.code, err.message);
