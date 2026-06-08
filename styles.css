@@ -215,6 +215,13 @@ nav{
   border-radius:20px; padding:20px 22px;
   max-width:464px;
 }
+@media(max-width:600px){
+  .cal-card{ max-width:100%; padding:16px 14px; }
+  .cal-grid{ max-width:100%; gap:3px; }
+  .cal-day{ font-size:11px; border-radius:6px; }
+  .cal-legend{ max-width:100%; }
+  .cal-popover{ left:14px !important; right:14px; min-width:0; width:calc(100vw - 28px); box-sizing:border-box; }
+}
 .cal-header{
   display:flex; justify-content:flex-start; align-items:center; gap:16px; margin-bottom:14px;
 }
