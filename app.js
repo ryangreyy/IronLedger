@@ -241,7 +241,6 @@ function initApp(uid) {
   let calViewMonth = new Date().getMonth();
 
   renderGoals(null);
-  renderCalendar();
 
   document.getElementById('calPrev').addEventListener('click', () => {
     calViewMonth--;
