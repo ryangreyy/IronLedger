@@ -237,7 +237,22 @@ function initApp(uid) {
   let goalsDonePage = 1;
   const GOALS_DONE_PAGE = 5;
 
+  let calViewYear = new Date().getFullYear();
+  let calViewMonth = new Date().getMonth();
+
   renderGoals(null);
+  renderCalendar();
+
+  document.getElementById('calPrev').addEventListener('click', () => {
+    calViewMonth--;
+    if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+    renderCalendar();
+  });
+  document.getElementById('calNext').addEventListener('click', () => {
+    calViewMonth++;
+    if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+    renderCalendar();
+  });
 
   /* ---- 1) ANIMATED COUNT-UP ----------------------------------------
      When a section scrolls into view, numbers count up from 0. */
@@ -663,10 +678,12 @@ function initApp(uid) {
       renderDonut(liftSessions);
       renderHistoryChart(liftSessions);
       updateKPIs();
+      renderCalendar();
     }, err => {
       console.error('Sessions error:', err.code, err.message);
       renderLog([]);
       updateKPIs();
+      renderCalendar();
     });
 
   /* Add session — also saves dateRaw so the edit form can pre-fill it */
@@ -1034,6 +1051,91 @@ function initApp(uid) {
     }
   }
 
+  function renderCalendar() {
+    const grid  = document.getElementById('calGrid');
+    const label = document.getElementById('calMonthLabel');
+    const legend = document.getElementById('calLegend');
+    if (!grid || !label) return;
+
+    const now   = new Date();
+    const year  = calViewYear;
+    const month = calViewMonth;
+
+    const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    label.textContent = `${MONTHS[month]} ${year}`;
+
+    const colors = {
+      squat: currentSettings?.colorSquat || '#D6FF3D',
+      bench: currentSettings?.colorBench || '#5BD6E6',
+      dead:  currentSettings?.colorDead  || '#FF8A4C',
+      press: currentSettings?.colorPress || '#B78BFF',
+      other: '#9AA0AC',
+    };
+
+    // Build day→cls map for this month (first session wins per day)
+    const sessionMap = {};
+    (currentSessions || []).forEach(s => {
+      if (!s.dateRaw) return;
+      const parts = s.dateRaw.split('-').map(Number);
+      if (parts[0] === year && parts[1] - 1 === month) {
+        const day = parts[2];
+        if (!sessionMap[day]) sessionMap[day] = s.isRestDay ? 'rest' : (s.cls || 'other');
+      }
+    });
+
+    const firstDow   = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const isThisMonth = year === now.getFullYear() && month === now.getMonth();
+    const isFutureMonth = year > now.getFullYear() || (year === now.getFullYear() && month > now.getMonth());
+    const todayDate  = now.getDate();
+
+    grid.innerHTML = '';
+
+    ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-dow';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    for (let i = 0; i < firstDow; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el  = document.createElement('div');
+      const cls = sessionMap[d];
+      const isToday  = isThisMonth && d === todayDate;
+      const isFuture = isFutureMonth || (isThisMonth && d > todayDate);
+
+      let classes = 'cal-day';
+      if (isFuture)   classes += ' future';
+      if (isToday)    classes += ' today';
+
+      if (cls === 'rest') {
+        classes += ' rest-day';
+        el.style.background   = 'rgba(107,114,128,0.25)';
+        el.style.borderColor  = 'transparent';
+      } else if (cls) {
+        classes += ' has-session';
+        el.style.background  = colors[cls] || colors.other;
+      }
+
+      el.className = classes;
+      el.innerHTML = `<span>${d}</span>`;
+      grid.appendChild(el);
+    }
+
+    const used = [...new Set(Object.values(sessionMap))];
+    const lbls = { squat:'Squat', bench:'Bench', dead:'Deadlift', press:'Press', other:'Other', rest:'Rest Day' };
+    legend.innerHTML = used.map(c => {
+      const bg = c === 'rest' ? 'rgba(107,114,128,0.4)' : (colors[c] || colors.other);
+      return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${bg}"></div>${lbls[c] || c}</div>`;
+    }).join('');
+  }
+
   function applyColors(s) {
     const map = {
       squat: s?.colorSquat || '#D6FF3D',
@@ -1069,10 +1171,12 @@ function initApp(uid) {
     }
     renderDonut(currentSessions);
     updateKPIs();
+    renderCalendar();
   }, err => {
     console.error('Settings error:', err.code, err.message);
     renderProfile(0, 0, 0, 185, '');
     updateKPIs();
+    renderCalendar();
   });
 
   /* Rest day toggle */

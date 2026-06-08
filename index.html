@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
 
@@ -139,6 +139,20 @@
           <div class="value"><span id="kpi-big3">—</span><span class="unit">lbs</span></div>
           <div class="delta" id="kpi-big3-delta">Loading…</div>
         </div>
+      </div>
+
+      <!-- Calendar card -->
+      <div class="cal-card" style="margin-top:18px;">
+        <div class="cal-header">
+          <span class="cal-eyebrow">Calendar</span>
+          <div class="cal-month-nav">
+            <button class="cal-nav-btn" id="calPrev">&#8592;</button>
+            <span class="cal-month-label" id="calMonthLabel"></span>
+            <button class="cal-nav-btn" id="calNext">&#8594;</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend" id="calLegend"></div>
       </div>
     </section>
 
@@ -380,6 +394,6 @@
 <script src="firebase-config.js"></script>
 <!-- App data and logic -->
 <script src="data.js"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
