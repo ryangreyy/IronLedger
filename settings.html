@@ -100,6 +100,19 @@
 
           <button id="savePrefs" class="btn btn-primary" style="margin-top:8px;">Save preferences</button>
           <p id="prefsMsg" class="settings-msg"></p>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
+
+          <p class="settings-card-title">Custom exercises</p>
+          <p class="settings-card-desc">Add any exercise to your lift dropdown in the Training Log. Only the name is saved — it won't affect group colors.</p>
+          <div style="display:flex;gap:10px;max-width:360px;margin-bottom:14px;">
+            <div class="field" style="flex:1;margin:0;">
+              <input id="customLiftInput" type="text" placeholder="e.g. Bulgarian Split Squat" maxlength="50" autocomplete="off">
+            </div>
+            <button id="addCustomLift" class="btn btn-ghost" style="padding:10px 18px;white-space:nowrap;">Add</button>
+          </div>
+          <div id="customLiftList"></div>
+          <p id="customLiftMsg" class="settings-msg" style="margin-top:8px;"></p>
         </div>
       </div>
 
@@ -249,8 +262,52 @@
         if (d.unit) setUnitToggle(d.unit);
         if (d.defaultLift !== undefined) document.getElementById('defaultLiftSel').value = d.defaultLift;
         loadColors(d);
+        if (Array.isArray(d.customLifts)) { customLifts = d.customLifts; renderCustomLiftList(); }
       }
     } catch (e) { /* preferences not saved yet — use defaults */ }
+  });
+
+  /* ── CUSTOM EXERCISES ── */
+  let customLifts = [];
+
+  function renderCustomLiftList() {
+    const list = document.getElementById('customLiftList');
+    if (!customLifts.length) {
+      list.innerHTML = '<p style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">No custom exercises added yet.</p>';
+      return;
+    }
+    list.innerHTML = customLifts.map((lift, i) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;margin-bottom:6px;">
+        <span style="font-size:14px;font-weight:600;">${lift}</span>
+        <button class="btn-delete" data-i="${i}" style="opacity:1;font-size:16px;background:none;border:none;color:var(--text-dimmer);cursor:pointer;">✕</button>
+      </div>`).join('');
+    list.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        customLifts.splice(+btn.dataset.i, 1);
+        await settingsRef().set({ customLifts }, { merge: true });
+        renderCustomLiftList();
+      });
+    });
+  }
+
+  document.getElementById('addCustomLift').addEventListener('click', async () => {
+    const input = document.getElementById('customLiftInput');
+    const msg   = document.getElementById('customLiftMsg');
+    const name  = input.value.trim();
+    if (!name) return;
+    if (customLifts.map(l => l.toLowerCase()).includes(name.toLowerCase())) {
+      msg.style.color = 'var(--down)'; msg.textContent = 'Already in your list.'; return;
+    }
+    customLifts = [...customLifts, name];
+    await settingsRef().set({ customLifts }, { merge: true });
+    input.value = '';
+    msg.style.color = 'var(--accent)'; msg.textContent = `"${name}" added.`;
+    setTimeout(() => { msg.textContent = ''; }, 2500);
+    renderCustomLiftList();
+  });
+
+  document.getElementById('customLiftInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('addCustomLift').click();
   });
 
   /* ── SIGN OUT ── */

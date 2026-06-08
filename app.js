@@ -1211,6 +1211,18 @@ function initApp(uid) {
     });
   }
 
+  function applyCustomLifts(lifts) {
+    const datalist = document.getElementById('lift-options');
+    if (!datalist) return;
+    datalist.querySelectorAll('option[data-custom]').forEach(o => o.remove());
+    (lifts || []).forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.dataset.custom = '1';
+      datalist.appendChild(opt);
+    });
+  }
+
   function applyColors(s) {
     const map = {
       squat: s?.colorSquat || '#D6FF3D',
@@ -1238,11 +1250,13 @@ function initApp(uid) {
       if (defaultLift !== undefined) applyDefaultLift(defaultLift);
       applyColors(currentSettings);
       renderGoals(currentSettings.goals);
+      applyCustomLifts(currentSettings.customLifts);
     } else {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');
       applyColors(null);
       renderGoals(null);
+      applyCustomLifts([]);
     }
     renderDonut(currentSessions);
     updateKPIs();
