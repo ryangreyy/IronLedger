@@ -515,9 +515,9 @@ function initApp(uid) {
     const thisMonth  = now.getMonth();
     const thisYear   = now.getFullYear();
 
-    /* Sessions that have a dateRaw and fall in the current calendar month */
+    /* Sessions that have a dateRaw, fall in the current calendar month, and aren't rest days */
     const monthSess  = currentSessions.filter(s => {
-      if (!s.dateRaw) return false;
+      if (!s.dateRaw || s.isRestDay) return false;
       const [y, m] = s.dateRaw.split('-').map(Number);
       return y === thisYear && m - 1 === thisMonth;
     });
@@ -577,7 +577,17 @@ function initApp(uid) {
     const page  = sessions.slice(start, start + PAGE_SIZE);
 
     document.getElementById('logBody').innerHTML = sessions.length
-      ? page.map(s => `
+      ? page.map(s => s.isRestDay ? `
+          <tr data-id="${s.id}" class="rest-day-row">
+            <td style="color:var(--text-dim)">${s.date}</td>
+            <td><span class="pill rest">Rest Day</span></td>
+            <td style="color:var(--text-dimmer)">—</td>
+            <td style="color:var(--text-dimmer)">—</td>
+            <td style="color:var(--text-dimmer)">—</td>
+            <td class="row-actions">
+              <button class="btn-delete" data-id="${s.id}" title="Remove">✕</button>
+            </td>
+          </tr>` : `
           <tr data-id="${s.id}">
             <td style="color:var(--text-dim)">${s.date}</td>
             <td><span class="pill ${liftToCls(s.lift)}">${s.lift}</span></td>
@@ -636,9 +646,10 @@ function initApp(uid) {
     .orderBy('createdAt', 'desc')
     .onSnapshot(snap => {
       currentSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const liftSessions = currentSessions.filter(s => !s.isRestDay);
       renderLog(currentSessions);
-      renderDonut(currentSessions);
-      renderHistoryChart(currentSessions);
+      renderDonut(liftSessions);
+      renderHistoryChart(liftSessions);
       updateKPIs();
     }, err => {
       console.error('Sessions error:', err.code, err.message);
@@ -1056,11 +1067,21 @@ function initApp(uid) {
   document.getElementById('restDayBtn').addEventListener('click', () => {
     const today    = new Date().toISOString().split('T')[0];
     const existing = Array.isArray(currentSettings?.restDays) ? currentSettings.restDays : [];
-    const updated  = existing.includes(today)
-      ? existing.filter(d => d !== today)
-      : [...existing, today];
+    const isOn     = existing.includes(today);
+    const updated  = isOn ? existing.filter(d => d !== today) : [...existing, today];
     settingsRef().set({ restDays: updated }, { merge: true })
       .catch(err => console.error('Rest day save:', err));
+    if (isOn) {
+      const sess = currentSessions.find(s => s.isRestDay && s.dateRaw === today);
+      if (sess) sessionsRef().doc(sess.id).delete().catch(console.error);
+    } else {
+      sessionsRef().add({
+        date: formatDate(today), dateRaw: today,
+        lift: 'Rest Day', cls: 'rest', sets: 0, reps: 0, wt: 0, note: '',
+        isRestDay: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }).catch(console.error);
+    }
   });
 
   /* Save & update profile */
