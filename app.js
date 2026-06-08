@@ -866,12 +866,12 @@ function initApp(uid) {
       <div class="profile-divider"></div>
       <div class="dna-bars">
         <div class="dna-bar-row">
-          <div class="dna-bar-label">Squat</div>
+          <div class="dna-bar-label">Legs</div>
           <div class="dna-bar-track"><div class="dna-bar-fill squat" style="width:0" data-w="${(sR/3*100).toFixed(1)}">${sq} lbs</div></div>
           <div class="dna-bar-ratio squat">${sR.toFixed(1)}×</div>
         </div>
         <div class="dna-bar-row">
-          <div class="dna-bar-label">Bench</div>
+          <div class="dna-bar-label">Chest</div>
           <div class="dna-bar-track"><div class="dna-bar-fill bench" style="width:0" data-w="${(bR/3*100).toFixed(1)}">${bn} lbs</div></div>
           <div class="dna-bar-ratio bench">${bR.toFixed(1)}×</div>
         </div>
@@ -1130,7 +1130,7 @@ function initApp(uid) {
     }
 
     const used = [...new Set(Object.values(sessionMap))];
-    const lbls = { squat:'Squat', bench:'Push / Chest', dead:'Deadlift', arm:'Arm', press:'Arm', other:'Other', rest:'Rest Day' };
+    const lbls = { squat:'Legs', bench:'Chest', dead:'Back', arm:'Arms', press:'Arms', other:'Other', rest:'Rest Day' };
     legend.innerHTML = used.map(c => {
       const bg = c === 'rest' ? 'rgba(107,114,128,0.4)' : (colors[c] || colors.other);
       return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${bg}"></div>${lbls[c] || c}</div>`;
