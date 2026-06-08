@@ -346,7 +346,7 @@ function initApp(uid) {
       const groups = {};
       day.forEach(s => {
         const key = s.lift || 'Other';
-        const cls = s.cls  || 'other';
+        const cls = liftToCls(s.lift) || 'other';
         if (!groups[key]) groups[key] = { lift: key, cls, sets: 0 };
         groups[key].sets += (s.sets || 1);
       });
@@ -1080,7 +1080,7 @@ function initApp(uid) {
       const parts = s.dateRaw.split('-').map(Number);
       if (parts[0] === year && parts[1] - 1 === month) {
         const day = parts[2];
-        if (!sessionMap[day]) sessionMap[day] = s.isRestDay ? 'rest' : (s.cls || 'other');
+        if (!sessionMap[day]) sessionMap[day] = s.isRestDay ? 'rest' : (liftToCls(s.lift) || 'other');
       }
     });
 
