@@ -301,7 +301,7 @@ nav{
 
 /* ---------- KPI LOWER ROW (calendar + freq side by side) ---------- */
 .kpi-lower-row{
-  display:flex; gap:18px; margin-top:18px; align-items:flex-start; flex-wrap:wrap;
+  display:flex; gap:18px; margin-top:18px; align-items:stretch; flex-wrap:wrap;
 }
 .kpi-lower-row .cal-card{ flex:0 0 auto; margin-top:0; }
 
