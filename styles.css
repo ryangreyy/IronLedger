@@ -335,6 +335,7 @@ nav{
 .freq-count.arm  { color:var(--press); }
 @media(max-width:600px){
   .kpi-lower-row{ flex-direction:column; }
+  .kpi-lower-row .cal-card{ flex:1 1 auto; width:100%; max-width:100%; }
   .freq-card{ width:100%; box-sizing:border-box; }
 }
 
