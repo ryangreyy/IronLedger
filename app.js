@@ -253,6 +253,11 @@ function initApp(uid) {
     renderCalendar();
   });
 
+  document.addEventListener('click', () => {
+    const pop = document.getElementById('calPopover');
+    if (pop) pop.style.display = 'none';
+  });
+
   /* ---- 1) ANIMATED COUNT-UP ----------------------------------------
      When a section scrolls into view, numbers count up from 0. */
   function animateCount(el) {
@@ -1073,7 +1078,10 @@ function initApp(uid) {
       other: '#9AA0AC',
     };
 
-    // Build day→cls map for this month (first session wins per day)
+    // Manual overrides stored in settings take priority over session-derived colors
+    const calColors = currentSettings?.calendarColors || {};
+
+    // Build day→cls map from sessions
     const sessionMap = {};
     (currentSessions || []).forEach(s => {
       if (!s.dateRaw) return;
@@ -1084,11 +1092,12 @@ function initApp(uid) {
       }
     });
 
-    const firstDow   = new Date(year, month, 1).getDay();
+    const firstDow    = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const isThisMonth = year === now.getFullYear() && month === now.getMonth();
+    const isThisMonth  = year === now.getFullYear() && month === now.getMonth();
     const isFutureMonth = year > now.getFullYear() || (year === now.getFullYear() && month > now.getMonth());
-    const todayDate  = now.getDate();
+    const todayDate   = now.getDate();
+    const monthPad    = String(month + 1).padStart(2, '0');
 
     grid.innerHTML = '';
 
@@ -1105,36 +1114,101 @@ function initApp(uid) {
       grid.appendChild(el);
     }
 
+    const usedCls = [];
+
     for (let d = 1; d <= daysInMonth; d++) {
-      const el  = document.createElement('div');
-      const cls = sessionMap[d];
+      const dateStr  = `${year}-${monthPad}-${String(d).padStart(2,'0')}`;
+      const el       = document.createElement('div');
+      const cls      = calColors[dateStr] || sessionMap[d];
       const isToday  = isThisMonth && d === todayDate;
       const isFuture = isFutureMonth || (isThisMonth && d > todayDate);
 
       let classes = 'cal-day';
-      if (isFuture)   classes += ' future';
-      if (isToday)    classes += ' today';
+      if (isFuture)  classes += ' future';
+      else           classes += ' clickable';
+      if (isToday)   classes += ' today';
 
       if (cls === 'rest') {
         classes += ' rest-day';
-        el.style.background   = 'rgba(107,114,128,0.25)';
-        el.style.borderColor  = 'transparent';
+        el.style.background  = 'rgba(107,114,128,0.25)';
+        el.style.borderColor = 'transparent';
+        usedCls.push('rest');
       } else if (cls) {
         classes += ' has-session';
-        el.style.background  = colors[cls] || colors.other;
+        el.style.background = colors[cls] || colors.other;
+        usedCls.push(cls);
       }
 
       el.className = classes;
+      el.dataset.date = dateStr;
       el.innerHTML = `<span>${d}</span>`;
+
+      if (!isFuture) {
+        el.addEventListener('click', e => {
+          e.stopPropagation();
+          showCalPopover(el, dateStr);
+        });
+      }
+
       grid.appendChild(el);
     }
 
-    const used = [...new Set(Object.values(sessionMap))];
     const lbls = { squat:'Legs', bench:'Chest', dead:'Back', arm:'Arms', press:'Arms', other:'Other', rest:'Rest Day' };
+    const used = [...new Set(usedCls)];
     legend.innerHTML = used.map(c => {
       const bg = c === 'rest' ? 'rgba(107,114,128,0.4)' : (colors[c] || colors.other);
       return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${bg}"></div>${lbls[c] || c}</div>`;
     }).join('');
+  }
+
+  function showCalPopover(anchor, dateStr) {
+    let pop = document.getElementById('calPopover');
+    if (!pop) {
+      pop = document.createElement('div');
+      pop.id = 'calPopover';
+      pop.className = 'cal-popover';
+      document.body.appendChild(pop);
+    }
+
+    const cols = {
+      squat: currentSettings?.colorSquat || '#D6FF3D',
+      bench: currentSettings?.colorBench || '#5BD6E6',
+      dead:  currentSettings?.colorDead  || '#FF8A4C',
+      arm:   currentSettings?.colorPress || '#B78BFF',
+    };
+    const groups = [
+      { cls:'squat', label:'Legs',  color: cols.squat },
+      { cls:'bench', label:'Chest', color: cols.bench },
+      { cls:'dead',  label:'Back',  color: cols.dead  },
+      { cls:'arm',   label:'Arms',  color: cols.arm   },
+    ];
+
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    pop.innerHTML = `
+      <div class="cal-pop-date">${MO[m-1]} ${d}, ${y}</div>
+      <div class="cal-pop-btns">
+        ${groups.map(g => `<button class="cal-pop-btn" data-cls="${g.cls}" style="background:${g.color}">${g.label}</button>`).join('')}
+        <button class="cal-pop-btn cal-pop-rest" data-cls="rest">Rest Day</button>
+        <button class="cal-pop-btn cal-pop-clear" data-cls="clear">Clear</button>
+      </div>`;
+
+    const rect = anchor.getBoundingClientRect();
+    pop.style.display = 'block';
+    pop.style.top  = `${rect.bottom + (window.scrollY || document.documentElement.scrollTop) + 6}px`;
+    pop.style.left = `${Math.min(rect.left + window.scrollX, window.innerWidth - 180)}px`;
+
+    pop.querySelectorAll('.cal-pop-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const cls = btn.dataset.cls;
+        const update = cls === 'clear'
+          ? { [`calendarColors.${dateStr}`]: firebase.firestore.FieldValue.delete() }
+          : { [`calendarColors.${dateStr}`]: cls };
+        settingsRef().update(update).catch(console.error);
+        pop.style.display = 'none';
+      });
+    });
   }
 
   function applyColors(s) {
