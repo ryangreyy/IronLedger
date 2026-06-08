@@ -16,9 +16,10 @@
   --text-dim:#9AA0AC;
   --text-dimmer:#6B7280;
   --accent:#D6FF3D;          /* volt lime — the energy color */
-  --squat:#D6FF3D;
-  --bench:#5BD6E6;
-  --dead:#FF8A4C;
+  --squat:#D6FF3D;   --squat-rgb:214,255,61;
+  --bench:#5BD6E6;   --bench-rgb:91,214,230;
+  --dead:#FF8A4C;    --dead-rgb:255,138,76;
+  --press:#B78BFF;   --press-rgb:183,139,255;
   --up:#7CE38B;
   --down:#FF6B6B;
   --shadow:0 24px 60px -20px rgba(0,0,0,0.7);
@@ -228,9 +229,9 @@ table.pct td.w{color:var(--accent); font-weight:700;}
 .log-table tr:hover td{background:rgba(255,255,255,0.02);}
 .pill{display:inline-block; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:700;
   font-family:var(--body);}
-.pill.squat{background:rgba(214,255,61,0.12); color:var(--squat);}
-.pill.bench{background:rgba(91,214,230,0.12); color:var(--bench);}
-.pill.dead{background:rgba(255,138,76,0.14); color:var(--dead);}
+.pill.squat{background:rgba(var(--squat-rgb),0.12); color:var(--squat);}
+.pill.bench{background:rgba(var(--bench-rgb),0.12); color:var(--bench);}
+.pill.dead{background:rgba(var(--dead-rgb),0.12); color:var(--dead);}
 .pr-flag{color:var(--accent); font-family:var(--body); font-weight:700; font-size:12px;}
 
 /* ---------- ATHLETE PROFILE (WHERE YOU STAND) ---------- */
@@ -294,13 +295,13 @@ table.pct td.w{color:var(--accent); font-weight:700;}
   font-family:var(--mono); font-size:13px; font-weight:700; color:#0B0C0E;
   transition:width 1.4s cubic-bezier(.2,.8,.2,1); white-space:nowrap;
 }
-.dna-bar-fill.squat{ background:linear-gradient(90deg,#b8db00,var(--accent)); }
-.dna-bar-fill.bench{ background:linear-gradient(90deg,#3bbfcf,#5BD6E6); }
-.dna-bar-fill.dead { background:linear-gradient(90deg,#e06c30,#FF8A4C); }
+.dna-bar-fill.squat{ background:linear-gradient(90deg,rgba(var(--squat-rgb),0.55),var(--squat)); }
+.dna-bar-fill.bench{ background:linear-gradient(90deg,rgba(var(--bench-rgb),0.55),var(--bench)); }
+.dna-bar-fill.dead { background:linear-gradient(90deg,rgba(var(--dead-rgb),0.55),var(--dead)); }
 .dna-bar-ratio{ font-family:var(--mono); font-size:14px; font-weight:700; width:48px; flex-shrink:0; text-align:right; }
-.dna-bar-ratio.squat{ color:var(--accent); }
-.dna-bar-ratio.bench{ color:#5BD6E6; }
-.dna-bar-ratio.dead { color:#FF8A4C; }
+.dna-bar-ratio.squat{ color:var(--squat); }
+.dna-bar-ratio.bench{ color:var(--bench); }
+.dna-bar-ratio.dead { color:var(--dead); }
 .dna-ticks{
   display:flex; justify-content:space-between;
   padding-left:104px; padding-right:64px; margin-top:6px;
@@ -346,8 +347,20 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .btn-delete:hover{ color:var(--down); background:rgba(255,107,107,0.10); }
 
 /* ---------- OVERHEAD PRESS PILL ---------- */
-.pill.press{ background:rgba(183,139,255,0.12); color:#B78BFF; }
+.pill.press{ background:rgba(var(--press-rgb),0.12); color:var(--press); }
 .pill.other{ background:rgba(154,160,172,0.12); color:var(--text-dim); }
+
+/* ---------- PERSONALIZATION COLOR GROUPS ---------- */
+.color-group-list{ display:flex; flex-direction:column; gap:22px; margin-top:20px; }
+.color-group-row{ display:flex; align-items:flex-start; gap:14px; }
+.color-dot{ width:16px; height:16px; border-radius:50%; flex-shrink:0; margin-top:2px; transition:background .2s; }
+.color-group-info{ flex:1; }
+.color-group-name{ font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.color-group-exercises{ font-size:12px; color:var(--text-dimmer); line-height:1.6; }
+.color-sel{ background:var(--bg-2); border:1px solid var(--border-strong); color:var(--text);
+  font-family:var(--body); font-size:13px; padding:7px 10px; border-radius:8px;
+  cursor:pointer; min-width:120px; flex-shrink:0; }
+.color-sel:focus{ outline:none; border-color:var(--accent); }
 
 /* ---------- FIELD HINT ---------- */
 .field-hint{

@@ -824,6 +824,23 @@ function initApp(uid) {
     }, 60);
   }
 
+  function applyColors(s) {
+    const map = {
+      squat: s?.colorSquat || '#D6FF3D',
+      bench: s?.colorBench || '#5BD6E6',
+      dead:  s?.colorDead  || '#FF8A4C',
+      press: s?.colorPress || '#B78BFF',
+    };
+    const root = document.documentElement;
+    Object.entries(map).forEach(([key, hex]) => {
+      const r = parseInt(hex.slice(1,3),16);
+      const g = parseInt(hex.slice(3,5),16);
+      const b = parseInt(hex.slice(5,7),16);
+      root.style.setProperty(`--${key}`, hex);
+      root.style.setProperty(`--${key}-rgb`, `${r},${g},${b}`);
+    });
+  }
+
   /* Live listener for this user's settings */
   unsubscribeSettings = settingsRef().onSnapshot(doc => {
     if (doc.exists) {
@@ -832,9 +849,11 @@ function initApp(uid) {
       renderProfile(squatMax, benchMax, deadMax, bodyweight || 185, height || '');
       if (unit)        applyUnit(unit);
       if (defaultLift !== undefined) applyDefaultLift(defaultLift);
+      applyColors(currentSettings);
     } else {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');
+      applyColors(null);
     }
     updateKPIs();
   }, err => {

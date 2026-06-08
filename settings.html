@@ -103,6 +103,56 @@
         </div>
       </div>
 
+      <!-- ===== PERSONALIZATION ===== -->
+      <div class="settings-group">
+        <p class="settings-group-label">Personalization</p>
+        <div class="card" style="padding:28px;">
+          <p class="settings-card-title">Lift group colors</p>
+          <p class="settings-card-desc">Each exercise is color-coded by movement type in your Training Log. Pick a color for each group — changes apply to the dashboard instantly.</p>
+
+          <div class="color-group-list">
+
+            <div class="color-group-row">
+              <span class="color-dot" id="dot-squat"></span>
+              <div class="color-group-info">
+                <p class="color-group-name">Legs</p>
+                <p class="color-group-exercises">Squat, Leg Press, RDL, Hack Squat, Split Squat, BW Squat, Smith Squat, Lunges, Leg Extension, Leg Curl, Seated Hamstring Curl, Lying Hamstring Curl, Calf Raise, Adductors, Abductors</p>
+              </div>
+              <select id="color-squat" class="color-sel"></select>
+            </div>
+
+            <div class="color-group-row">
+              <span class="color-dot" id="dot-bench"></span>
+              <div class="color-group-info">
+                <p class="color-group-name">Chest</p>
+                <p class="color-group-exercises">Bench Press, Incline Press, DB Flat Press, DB Incline Press, Chest Fly, Pec Dec</p>
+              </div>
+              <select id="color-bench" class="color-sel"></select>
+            </div>
+
+            <div class="color-group-row">
+              <span class="color-dot" id="dot-dead"></span>
+              <div class="color-group-info">
+                <p class="color-group-name">Pull / Back</p>
+                <p class="color-group-exercises">Deadlift, Row, T-Bar Row, Pulldown, Pull-Up, Bicep Curl, Hammer Curl, Preacher Curl</p>
+              </div>
+              <select id="color-dead" class="color-sel"></select>
+            </div>
+
+            <div class="color-group-row">
+              <span class="color-dot" id="dot-press"></span>
+              <div class="color-group-info">
+                <p class="color-group-name">Push / Shoulders</p>
+                <p class="color-group-exercises">Overhead Press, Dips, Push-Up, Lateral Raise, Rear Delt Raise, Tricep Pushdown, Overhead Tricep</p>
+              </div>
+              <select id="color-press" class="color-sel"></select>
+            </div>
+
+          </div>
+          <p id="colorMsg" class="settings-msg" style="margin-top:16px;"></p>
+        </div>
+      </div>
+
       <!-- ===== ACCOUNT MANAGEMENT ===== -->
       <div class="settings-group">
         <p class="settings-group-label">Account Management</p>
@@ -191,12 +241,14 @@
     }
 
     /* Load saved preferences */
+    loadColors(null); /* apply defaults immediately while Firestore loads */
     try {
       const doc = await settingsRef().get();
       if (doc.exists) {
         const d = doc.data();
         if (d.unit) setUnitToggle(d.unit);
         if (d.defaultLift !== undefined) document.getElementById('defaultLiftSel').value = d.defaultLift;
+        loadColors(d);
       }
     } catch (e) { /* preferences not saved yet — use defaults */ }
   });
@@ -283,6 +335,65 @@
       }
       btn.textContent = 'Confirm deletion'; btn.disabled = false;
     }
+  });
+
+  /* ── COLOR PERSONALIZATION ── */
+  const COLOR_OPTIONS = [
+    { label: 'Lime',   value: '#D6FF3D' },
+    { label: 'Teal',   value: '#5BD6E6' },
+    { label: 'Orange', value: '#FF8A4C' },
+    { label: 'Purple', value: '#B78BFF' },
+    { label: 'Red',    value: '#FF5C5C' },
+    { label: 'Pink',   value: '#FF7EB3' },
+    { label: 'Blue',   value: '#4A9EFF' },
+    { label: 'Green',  value: '#4ADE80' },
+    { label: 'Gold',   value: '#FFD700' },
+    { label: 'Silver', value: '#C0C0C0' },
+  ];
+  const COLOR_GROUPS = [
+    { key: 'squat', field: 'colorSquat', def: '#D6FF3D' },
+    { key: 'bench', field: 'colorBench', def: '#5BD6E6' },
+    { key: 'dead',  field: 'colorDead',  def: '#FF8A4C' },
+    { key: 'press', field: 'colorPress', def: '#B78BFF' },
+  ];
+
+  COLOR_GROUPS.forEach(({ key }) => {
+    document.getElementById(`color-${key}`).innerHTML =
+      COLOR_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+  });
+
+  function applyColorToPage(key, hex) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    document.documentElement.style.setProperty(`--${key}`, hex);
+    document.documentElement.style.setProperty(`--${key}-rgb`, `${r},${g},${b}`);
+    const dot = document.getElementById(`dot-${key}`);
+    if (dot) dot.style.background = hex;
+    const sel = document.getElementById(`color-${key}`);
+    if (sel) sel.value = hex;
+  }
+
+  function loadColors(d) {
+    COLOR_GROUPS.forEach(({ key, field, def }) => applyColorToPage(key, d?.[field] || def));
+  }
+
+  let colorSaveTimer;
+  COLOR_GROUPS.forEach(({ key, field }) => {
+    document.getElementById(`color-${key}`).addEventListener('change', async e => {
+      applyColorToPage(key, e.target.value);
+      clearTimeout(colorSaveTimer);
+      colorSaveTimer = setTimeout(async () => {
+        const msg = document.getElementById('colorMsg');
+        try {
+          await settingsRef().set({ [field]: e.target.value }, { merge: true });
+          msg.style.color = 'var(--up)'; msg.textContent = '✓ Color saved.';
+          setTimeout(() => { msg.textContent = ''; }, 2000);
+        } catch (err) {
+          msg.style.color = 'var(--down)'; msg.textContent = 'Could not save color.';
+        }
+      }, 400);
+    });
   });
 
   /* ── UNIT TOGGLE ── */
