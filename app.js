@@ -604,27 +604,40 @@ function initApp(uid) {
     set('kpi-streak-delta',   streak ? `day${streak !== 1 ? 's' : ''} in a row` : 'Log a session to start a streak');
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
 
-    renderFreq(monthSess);
+    renderFreq();
   }
 
-  function renderFreq(monthSess) {
+  function renderFreq() {
     const container = document.getElementById('freqBars');
     if (!container) return;
 
-    const dayGroups = { squat: new Set(), bench: new Set(), dead: new Set(), arm: new Set() };
-    (monthSess || []).forEach(s => {
-      const cls = liftToCls(s.lift);
-      if (cls in dayGroups) dayGroups[cls].add(s.dateRaw);
+    const now       = new Date();
+    const thisYear  = now.getFullYear();
+    const thisMonth = now.getMonth();
+    const monthPad  = String(thisMonth + 1).padStart(2, '0');
+
+    // Build session-derived day→cls map (same logic as renderCalendar)
+    const sessionMap = {};
+    (currentSessions || []).forEach(s => {
+      if (!s.dateRaw || s.isRestDay) return;
+      const [y, m, dayNum] = s.dateRaw.split('-').map(Number);
+      if (y !== thisYear || m - 1 !== thisMonth) return;
+      if (!sessionMap[dayNum]) sessionMap[dayNum] = liftToCls(s.lift) || 'other';
     });
 
-    const counts = {
-      squat: dayGroups.squat.size,
-      bench: dayGroups.bench.size,
-      dead:  dayGroups.dead.size,
-      arm:   dayGroups.arm.size,
-    };
+    // Merge with manual calendar overrides — same priority as renderCalendar
+    const calColors   = currentSettings?.calendarColors || {};
+    const daysInMonth = new Date(thisYear, thisMonth + 1, 0).getDate();
+    const counts      = { squat: 0, bench: 0, dead: 0, arm: 0 };
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${thisYear}-${monthPad}-${String(d).padStart(2, '0')}`;
+      const cls     = calColors[dateStr] || sessionMap[d];
+      if (cls && cls !== 'rest' && cls !== 'other' && cls in counts) counts[cls]++;
+    }
+
     const maxCount = Math.max(1, ...Object.values(counts));
-    const labels = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms' };
+    const labels   = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms' };
 
     container.innerHTML = Object.entries(counts).map(([cls, count]) => `
       <div class="freq-row">
