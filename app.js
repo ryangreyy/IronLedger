@@ -1394,67 +1394,85 @@ function initApp(uid) {
     renderCalendar();
   });
 
-  /* ---- PERSONAL TRACKER ---- */
-  const trackerLabelInput = document.getElementById('trackerLabel');
-  const trackerCheckBtn   = document.getElementById('trackerCheckBtn');
+  /* ---- PERSONAL TRACKERS ---- */
+  document.getElementById('trackerAddBtn')?.addEventListener('click', () => {
+    const trackers = [...(currentSettings?.personalTrackers || [])];
+    trackers.push({ id: 't' + Date.now(), label: '', completedDates: [] });
+    settingsRef().update({ personalTrackers: trackers }).catch(console.error);
+  });
 
-  if (trackerLabelInput) {
-    trackerLabelInput.addEventListener('blur', () => {
-      settingsRef().update({ 'personalTracker.label': trackerLabelInput.value.trim() }).catch(console.error);
-    });
-    trackerLabelInput.addEventListener('keydown', e => { if (e.key === 'Enter') trackerLabelInput.blur(); });
-  }
-
-  if (trackerCheckBtn) {
-    trackerCheckBtn.addEventListener('click', () => {
-      const todayISO  = new Date().toISOString().split('T')[0];
-      const completed = [...((currentSettings?.personalTracker?.completedDates) || [])];
-      const idx = completed.indexOf(todayISO);
-      if (idx >= 0) completed.splice(idx, 1); else completed.push(todayISO);
-      settingsRef().update({ 'personalTracker.completedDates': completed }).catch(console.error);
-    });
+  function trackerStreak(completedDates) {
+    const today = new Date(); today.setHours(12, 0, 0, 0);
+    const set = new Set(completedDates || []);
+    let n = 0;
+    const cur = new Date(today);
+    for (let i = 0; i < 366; i++) {
+      const iso = cur.toISOString().split('T')[0];
+      if (set.has(iso)) { n++; cur.setDate(cur.getDate() - 1); }
+      else if (i === 0)  { cur.setDate(cur.getDate() - 1); }
+      else               { break; }
+    }
+    return n;
   }
 
   function renderTracker() {
-    const checkBtn    = document.getElementById('trackerCheckBtn');
-    const labelInput  = document.getElementById('trackerLabel');
-    const streakEl    = document.getElementById('trackerStreak');
-    const checkLabel  = document.getElementById('trackerCheckLabel');
-    const checkCircle = document.getElementById('trackerCheckCircle');
-    if (!checkBtn) return;
+    const list = document.getElementById('trackerList');
+    if (!list) return;
 
-    const tracker   = currentSettings?.personalTracker || {};
-    const todayISO  = new Date().toISOString().split('T')[0];
-    const completed = tracker.completedDates || [];
-    const isDone    = completed.includes(todayISO);
+    const trackers = currentSettings?.personalTrackers || [];
+    const todayISO = new Date().toISOString().split('T')[0];
 
-    // Only update label input if it isn't focused (don't interrupt typing)
-    if (labelInput && document.activeElement !== labelInput) {
-      labelInput.value = tracker.label || '';
+    if (!trackers.length) {
+      list.innerHTML = `<div class="tracker-empty">No trackers yet — hit + Add to create one.</div>`;
+      return;
     }
 
-    // Check button state
-    checkBtn.classList.toggle('done', isDone);
-    if (checkLabel) checkLabel.textContent = isDone ? 'Done today!' : 'Mark done for today';
-    if (checkCircle) checkCircle.textContent = isDone ? '✓' : '';
+    list.innerHTML = trackers.map(t => {
+      const isDone  = (t.completedDates || []).includes(todayISO);
+      const streak  = trackerStreak(t.completedDates);
+      const safeVal = (t.label || '').replace(/"/g, '&quot;');
+      return `
+        <div class="tracker-row" data-id="${t.id}">
+          <input class="tracker-row-input" type="text" value="${safeVal}"
+            placeholder="What are you tracking?" maxlength="60" data-id="${t.id}">
+          <button class="tracker-row-check${isDone ? ' done' : ''}" data-id="${t.id}">${isDone ? '✓' : ''}</button>
+          <span class="tracker-row-streak">${streak ? '🔥 ' + streak + 'd' : ''}</span>
+          <button class="tracker-row-delete" data-id="${t.id}">✕</button>
+        </div>`;
+    }).join('');
 
-    // Streak: consecutive days ending today (or yesterday if not yet done today)
-    const today = new Date(); today.setHours(12, 0, 0, 0);
-    const datesSet = new Set(completed);
-    let streak = 0;
-    const cursor = new Date(today);
-    for (let i = 0; i < 366; i++) {
-      const iso = cursor.toISOString().split('T')[0];
-      if (datesSet.has(iso)) {
-        streak++;
-        cursor.setDate(cursor.getDate() - 1);
-      } else if (i === 0) {
-        cursor.setDate(cursor.getDate() - 1); // nothing logged yet today — check yesterday
-      } else {
-        break;
-      }
-    }
-    if (streakEl) streakEl.textContent = streak ? `🔥 ${streak} day${streak !== 1 ? 's' : ''} in a row` : '';
+    // Label save on blur / Enter
+    list.querySelectorAll('.tracker-row-input').forEach(inp => {
+      inp.addEventListener('blur', () => {
+        const updated = (currentSettings?.personalTrackers || []).map(t =>
+          t.id === inp.dataset.id ? { ...t, label: inp.value.trim() } : t
+        );
+        settingsRef().update({ personalTrackers: updated }).catch(console.error);
+      });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+    });
+
+    // Toggle done for today
+    list.querySelectorAll('.tracker-row-check').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const updated = (currentSettings?.personalTrackers || []).map(t => {
+          if (t.id !== btn.dataset.id) return t;
+          const dates = [...(t.completedDates || [])];
+          const i = dates.indexOf(todayISO);
+          if (i >= 0) dates.splice(i, 1); else dates.push(todayISO);
+          return { ...t, completedDates: dates };
+        });
+        settingsRef().update({ personalTrackers: updated }).catch(console.error);
+      });
+    });
+
+    // Delete tracker
+    list.querySelectorAll('.tracker-row-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const updated = (currentSettings?.personalTrackers || []).filter(t => t.id !== btn.dataset.id);
+        settingsRef().update({ personalTrackers: updated }).catch(console.error);
+      });
+    });
   }
 
   /* Rest day toggle */
