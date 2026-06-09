@@ -65,6 +65,7 @@ const mainContent  = document.getElementById('main-content');
 const navSignedIn  = document.getElementById('nav-signed-in');
 const navSignedOut = document.getElementById('nav-signed-out');
 const navUserName  = document.getElementById('nav-user-name');
+const navAvatar    = document.getElementById('nav-avatar');
 const authError    = document.getElementById('authError');
 
 /* ===== HAMBURGER MENU ============================================= */
@@ -93,7 +94,13 @@ auth.onAuthStateChanged(user => {
     mainContent.style.display  = '';
     navSignedIn.style.display  = 'flex';
     navSignedOut.style.display = 'none';
-    navUserName.textContent    = user.displayName || user.email.split('@')[0];
+    const displayName = user.displayName || user.email.split('@')[0];
+    navUserName.textContent = displayName;
+    if (user.photoURL) {
+      navAvatar.innerHTML = `<img src="${user.photoURL}" alt="">`;
+    } else {
+      navAvatar.textContent = displayName.charAt(0).toUpperCase();
+    }
     initApp(user.uid);
   } else {
     /* ---- Signed out — show landing page, render empty cards ---- */

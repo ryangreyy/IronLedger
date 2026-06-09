@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=30">
+<link rel="stylesheet" href="styles.css?v=31">
 </head>
 <body>
 
@@ -34,7 +34,8 @@
         <button id="navSignIn" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</button>
       </div>
       <!-- Shown when signed in -->
-      <div id="nav-signed-in" style="display:none;align-items:center;gap:14px;">
+      <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+        <div id="nav-avatar" class="nav-avatar"></div>
         <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
         <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
       </div>
@@ -437,6 +438,6 @@
 <script src="firebase-config.js"></script>
 <!-- App data and logic -->
 <script src="data.js"></script>
-<script src="app.js?v=35"></script>
+<script src="app.js?v=36"></script>
 </body>
 </html>
