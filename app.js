@@ -69,29 +69,41 @@ const navAvatar    = document.getElementById('nav-avatar');
 const authError    = document.getElementById('authError');
 
 /* ===== AVATAR ===================================================== */
-const AVATAR_EMOJIS = {
-  bear:'🐻', fox:'🦊', tiger:'🐯', panda:'🐼', lion:'🦁',
-  wolf:'🐺', frog:'🐸', penguin:'🐧', raccoon:'🦝', koala:'🐨',
-  otter:'🦦', cat:'🐱', dog:'🐶', rabbit:'🐰', hedgehog:'🦔',
-  octopus:'🐙', dragon:'🐲', owl:'🦉', parrot:'🦜', shark:'🦈',
+const _CDN = 'https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets';
+const AVATAR_URLS = {
+  bunny:    `${_CDN}/Rabbit%20face/3D/rabbit_face_3d.png`,
+  cat:      `${_CDN}/Cat%20face/3D/cat_face_3d.png`,
+  unicorn:  `${_CDN}/Unicorn/3D/unicorn_3d.png`,
+  flamingo: `${_CDN}/Flamingo/3D/flamingo_3d.png`,
+  panda:    `${_CDN}/Panda/3D/panda_3d.png`,
+  fox:      `${_CDN}/Fox/3D/fox_3d.png`,
+  koala:    `${_CDN}/Koala/3D/koala_3d.png`,
+  otter:    `${_CDN}/Otter/3D/otter_3d.png`,
+  wolf:     `${_CDN}/Wolf/3D/wolf_3d.png`,
+  lion:     `${_CDN}/Lion/3D/lion_3d.png`,
+  tiger:    `${_CDN}/Tiger%20face/3D/tiger_face_3d.png`,
+  bear:     `${_CDN}/Bear/3D/bear_3d.png`,
+  shark:    `${_CDN}/Shark/3D/shark_3d.png`,
+  gorilla:  `${_CDN}/Gorilla/3D/gorilla_3d.png`,
+  trex:     `${_CDN}/T-rex/3D/t-rex_3d.png`,
+  dragon:   `${_CDN}/Dragon/3D/dragon_3d.png`,
 };
 
 let currentUser = null;
 
-function applyNavAvatar(user, avatarId) {
+function applyNavAvatar(user, avatarId, avatarBg) {
   if (!navAvatar) return;
-  const emoji = avatarId && AVATAR_EMOJIS[avatarId];
-  if (emoji) {
-    navAvatar.innerHTML = '';
-    navAvatar.textContent = emoji;
-    navAvatar.style.cssText = 'background:var(--bg-2);font-size:18px;';
+  const url = avatarId && AVATAR_URLS[avatarId];
+  if (url) {
+    navAvatar.style.cssText = `background:${avatarBg || '#1a1c1e'};`;
+    navAvatar.innerHTML = `<img src="${url}" alt="" style="width:26px;height:26px;object-fit:contain;">`;
   } else if (user && user.photoURL) {
-    navAvatar.innerHTML = `<img src="${user.photoURL}" alt="">`;
     navAvatar.style.cssText = '';
+    navAvatar.innerHTML = `<img src="${user.photoURL}" alt="">`;
   } else if (user) {
+    navAvatar.style.cssText = '';
     navAvatar.innerHTML = '';
     navAvatar.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
-    navAvatar.style.cssText = '';
   }
 }
 
@@ -128,7 +140,7 @@ auth.onAuthStateChanged(user => {
     navSignedIn.style.display  = 'flex';
     navSignedOut.style.display = 'none';
     navUserName.textContent = user.displayName || user.email.split('@')[0];
-    applyNavAvatar(user, null); // placeholder; overridden by onSnapshot once settings load
+    applyNavAvatar(user, null, null); // placeholder; overridden by onSnapshot once settings load
     initApp(user.uid);
   } else {
     /* ---- Signed out — show landing page, render empty cards ---- */
@@ -1546,7 +1558,7 @@ function initApp(uid) {
       applyColors(currentSettings);
       renderGoals(currentSettings.goals);
       applyCustomLifts(currentSettings.customLifts);
-      applyNavAvatar(currentUser, currentSettings.avatarId || null);
+      applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarBg || null);
     } else {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');
