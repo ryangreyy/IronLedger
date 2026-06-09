@@ -94,8 +94,7 @@ const AVATAR_BG_COLORS = [
   '#8B0000','#8B3A00','#8B7000','#005520','#001A8B','#1A0066','#440055','#000000',
 ];
 
-let currentUser      = null;
-let pendingOnboarding = false;
+let currentUser = null;
 
 function applyNavAvatar(user, avatarId, avatarBg) {
   if (!navAvatar) return;
@@ -117,6 +116,8 @@ function showOnboardingModal(user) {
   let obName = user.displayName || '';
   let obId   = null;
   let obBg   = null;
+
+  authScreen.style.display = 'none';
 
   const overlay = document.createElement('div');
   overlay.className = 'onboarding-overlay';
@@ -267,7 +268,6 @@ auth.onAuthStateChanged(user => {
     navUserName.textContent = user.displayName || user.email.split('@')[0];
     applyNavAvatar(user, null, null); // placeholder; overridden by onSnapshot once settings load
     initApp(user.uid);
-    if (pendingOnboarding) { pendingOnboarding = false; showOnboardingModal(user); }
   } else {
     /* ---- Signed out — show landing page, render empty cards ---- */
     isSignedIn = false;
@@ -373,7 +373,7 @@ document.getElementById('googleSignIn').addEventListener('click', () => {
   authError.textContent = '';
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider)
-    .then(r => { if (r.additionalUserInfo?.isNewUser) pendingOnboarding = true; })
+    .then(r => { if (r.additionalUserInfo?.isNewUser) showOnboardingModal(r.user); })
     .catch(err => { authError.textContent = friendlyError(err.code); });
 });
 
@@ -395,7 +395,7 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
   if (!email || !password) { authError.textContent = 'Please enter an email and password.'; return; }
   if (password.length < 6)  { authError.textContent = 'Password must be at least 6 characters.'; return; }
   auth.createUserWithEmailAndPassword(email, password)
-    .then(() => { pendingOnboarding = true; })
+    .then(r => { showOnboardingModal(r.user); })
     .catch(err => { authError.textContent = friendlyError(err.code); });
 });
 
