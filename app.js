@@ -1,6 +1,10 @@
 /* IRONLEDGER — Interactive logic, Firebase auth, and per-user data sync.
    Load order: firebase SDKs → firebase-config.js → data.js → this file. */
 
+/* Always start at the very top — prevents browser scrolling to a URL hash */
+if (location.hash) history.replaceState(null, null, location.pathname + location.search);
+window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
 /* Arm the reveal animation before the first paint.
    Without this, .reveal elements are fully visible (no JS = no hidden state).
    With this, they start at opacity:0 and are revealed by the IO or rAF below. */
@@ -39,9 +43,13 @@ document.addEventListener('click', () => navLinksEl.classList.remove('open'));
 /* ===== AUTH — SIGN IN / SIGN UP / SIGN OUT ========================
    Firebase watches auth state automatically — we just react to it. */
 
+let isSignedIn      = false;  // used by scroll-trigger below
+let authPromptShown = false;  // only auto-prompt once per page load
+
 auth.onAuthStateChanged(user => {
   if (user) {
     /* ---- Signed in ---- */
+    isSignedIn = true;
     authScreen.style.display   = 'none';
     mainContent.style.display  = '';
     navSignedIn.style.display  = 'flex';
@@ -50,6 +58,7 @@ auth.onAuthStateChanged(user => {
     initApp(user.uid);
   } else {
     /* ---- Signed out — show landing page, keep modal closed ---- */
+    isSignedIn = false;
     authScreen.style.display   = 'none';
     mainContent.style.display  = '';
     navSignedIn.style.display  = 'none';
@@ -59,7 +68,7 @@ auth.onAuthStateChanged(user => {
 
 /* ---- Auth modal open / close ---- */
 function openAuthModal()  { authScreen.style.display = ''; }
-function closeAuthModal() { authScreen.style.display = 'none'; }
+function closeAuthModal() { authScreen.style.display = 'none'; authPromptShown = true; }
 
 document.getElementById('navSignIn').addEventListener('click', openAuthModal);
 document.getElementById('navSignUp').addEventListener('click', () => {
@@ -68,6 +77,26 @@ document.getElementById('navSignUp').addEventListener('click', () => {
 });
 document.getElementById('authClose').addEventListener('click', closeAuthModal);
 authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAuthModal(); });
+
+/* ===== SCROLL-TRIGGERED AUTH PROMPT ================================
+   After a signed-out visitor scrolls past "This Month at a Glance",
+   automatically open the sign-in modal once. Dismissed = never again
+   until next page load. */
+(function setupScrollPrompt() {
+  const trigger = document.getElementById('dashboard');
+  if (!trigger) return;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      // Element has scrolled fully above the viewport
+      if (!e.isIntersecting && e.boundingClientRect.bottom < 0 && !isSignedIn && !authPromptShown) {
+        authPromptShown = true;
+        openAuthModal();
+        io.disconnect();
+      }
+    });
+  }, { threshold: 0 });
+  io.observe(trigger);
+})();
 
 /* ===== PAGE REVEAL (runs for ALL visitors, signed in or out) ========= */
 function animateCount(el) {
