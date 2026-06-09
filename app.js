@@ -15,6 +15,14 @@ requestAnimationFrame(() => {
   });
 });
 
+/* ===== LOCAL DATE HELPER ==========================================
+   Always use the device's local calendar date, never UTC.
+   Accepts an optional Date object; defaults to now. */
+function localDateISO(d) {
+  const t = d instanceof Date ? d : new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+
 /* ===== FIREBASE INIT ============================================== */
 firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
@@ -214,7 +222,7 @@ function createDatePicker(inputId, initialDate) {
                   'July','August','September','October','November','December'];
   const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
-  const todayISO = new Date().toISOString().split('T')[0];
+  const todayISO = localDateISO();
   const startISO = initialDate || todayISO;
   const [sy, sm] = startISO.split('-').map(Number);
 
@@ -673,7 +681,7 @@ function initApp(uid) {
     let streak = 0;
     const cursor = new Date(); cursor.setHours(12, 0, 0, 0);
     for (let i = 0; i < 366; i++) {
-      const iso = cursor.toISOString().split('T')[0];
+      const iso = localDateISO(cursor);
       if (activeDays.has(iso)) {
         streak++;
         cursor.setDate(cursor.getDate() - 1);
@@ -685,7 +693,7 @@ function initApp(uid) {
     }
 
     /* Rest day button state */
-    const todayISO   = new Date().toISOString().split('T')[0];
+    const todayISO   = localDateISO();
     const isRestDay  = restDays.has(todayISO);
     const restBtn    = document.getElementById('restDayBtn');
     if (restBtn) {
@@ -728,7 +736,7 @@ function initApp(uid) {
     // Only consider lifts touched in the last 60 days
     const cutoff = new Date(today);
     cutoff.setDate(cutoff.getDate() - 60);
-    const cutoffISO = cutoff.toISOString().split('T')[0];
+    const cutoffISO = localDateISO(cutoff);
 
     // For each group, pick the single most neglected lift
     const groups = ['squat', 'bench', 'dead', 'arm'];
@@ -858,7 +866,7 @@ function initApp(uid) {
 
   /* Builds an inline-editable version of a row */
   function buildEditRow(s) {
-    const dateVal = s.dateRaw || new Date().toISOString().split('T')[0];
+    const dateVal = s.dateRaw || localDateISO();
     return `
       <tr data-id="${s.id}" class="editing-row">
         <td><input id="ed-date" type="hidden" value="${dateVal}"></td>
@@ -1501,7 +1509,7 @@ function initApp(uid) {
     let n = 0;
     const cur = new Date(today);
     for (let i = 0; i < 366; i++) {
-      const iso = cur.toISOString().split('T')[0];
+      const iso = localDateISO(cur);
       if (set.has(iso)) { n++; cur.setDate(cur.getDate() - 1); }
       else if (i === 0)  { cur.setDate(cur.getDate() - 1); }
       else               { break; }
@@ -1514,7 +1522,7 @@ function initApp(uid) {
     if (!list) return;
 
     const trackers = currentSettings?.personalTrackers || [];
-    const todayISO = new Date().toISOString().split('T')[0];
+    const todayISO = localDateISO();
 
     if (!trackers.length) {
       list.innerHTML = `<div class="tracker-empty">No trackers yet — hit + Add to create one.</div>`;
@@ -1573,7 +1581,7 @@ function initApp(uid) {
 
   /* Rest day toggle */
   document.getElementById('restDayBtn').addEventListener('click', () => {
-    const today    = new Date().toISOString().split('T')[0];
+    const today    = localDateISO();
     const existing = Array.isArray(currentSettings?.restDays) ? currentSettings.restDays : [];
     const isOn     = existing.includes(today);
     const updated  = isOn ? existing.filter(d => d !== today) : [...existing, today];
