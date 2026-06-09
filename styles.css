@@ -108,7 +108,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .avatar-option img{ width:46px; height:46px; object-fit:contain; display:block; }
 .avatar-option:hover{ border-color:var(--accent); transform:scale(1.1); }
 .avatar-option.av-selected{ border-color:var(--accent); border-width:3px; background:var(--bg-3,#1a1c1e); }
-.avatar-bg-grid{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+.avatar-bg-grid{ display:grid; grid-template-columns:repeat(7,30px); gap:8px; margin-bottom:8px; }
 .avatar-bg-swatch{
   width:30px; height:30px; border-radius:50%; cursor:pointer; flex-shrink:0;
   border:2px solid var(--border); transition:transform .15s, border-color .15s;
