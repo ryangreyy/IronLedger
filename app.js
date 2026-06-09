@@ -57,12 +57,13 @@ auth.onAuthStateChanged(user => {
     navUserName.textContent    = user.displayName || user.email.split('@')[0];
     initApp(user.uid);
   } else {
-    /* ---- Signed out — show landing page, keep modal closed ---- */
+    /* ---- Signed out — show landing page, render empty cards ---- */
     isSignedIn = false;
     authScreen.style.display   = 'none';
     mainContent.style.display  = '';
     navSignedIn.style.display  = 'none';
     navSignedOut.style.display = '';
+    initApp(null);   // renders all cards with empty data, returns before Firestore
   }
 });
 
@@ -605,6 +606,21 @@ function initApp(uid) {
   let historySelectedLift = '';
   let currentPage = 1;
   const PAGE_SIZE = 12;
+
+  /* ---- Guest mode: render empty card shells for signed-out visitors ----
+     All render functions below are function declarations so they're
+     hoisted and safe to call here before their definition sites.    */
+  if (!uid) {
+    currentSettings = {};
+    applyUnit('lbs');
+    updateKPIs();
+    renderCalendar();
+    renderFreq();
+    renderNeglect();
+    renderTracker();
+    renderLog([]);
+    return;
+  }
 
   /* Apply unit label (lbs/kg) to key elements across the dashboard */
   function applyUnit(unit) {
