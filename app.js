@@ -1386,12 +1386,76 @@ function initApp(uid) {
     renderDonut(currentSessions);
     updateKPIs();
     renderCalendar();
+    renderTracker();
   }, err => {
     console.error('Settings error:', err.code, err.message);
     renderProfile(0, 0, 0, 185, '');
     updateKPIs();
     renderCalendar();
   });
+
+  /* ---- PERSONAL TRACKER ---- */
+  const trackerLabelInput = document.getElementById('trackerLabel');
+  const trackerCheckBtn   = document.getElementById('trackerCheckBtn');
+
+  if (trackerLabelInput) {
+    trackerLabelInput.addEventListener('blur', () => {
+      settingsRef().update({ 'personalTracker.label': trackerLabelInput.value.trim() }).catch(console.error);
+    });
+    trackerLabelInput.addEventListener('keydown', e => { if (e.key === 'Enter') trackerLabelInput.blur(); });
+  }
+
+  if (trackerCheckBtn) {
+    trackerCheckBtn.addEventListener('click', () => {
+      const todayISO  = new Date().toISOString().split('T')[0];
+      const completed = [...((currentSettings?.personalTracker?.completedDates) || [])];
+      const idx = completed.indexOf(todayISO);
+      if (idx >= 0) completed.splice(idx, 1); else completed.push(todayISO);
+      settingsRef().update({ 'personalTracker.completedDates': completed }).catch(console.error);
+    });
+  }
+
+  function renderTracker() {
+    const checkBtn    = document.getElementById('trackerCheckBtn');
+    const labelInput  = document.getElementById('trackerLabel');
+    const streakEl    = document.getElementById('trackerStreak');
+    const checkLabel  = document.getElementById('trackerCheckLabel');
+    const checkCircle = document.getElementById('trackerCheckCircle');
+    if (!checkBtn) return;
+
+    const tracker   = currentSettings?.personalTracker || {};
+    const todayISO  = new Date().toISOString().split('T')[0];
+    const completed = tracker.completedDates || [];
+    const isDone    = completed.includes(todayISO);
+
+    // Only update label input if it isn't focused (don't interrupt typing)
+    if (labelInput && document.activeElement !== labelInput) {
+      labelInput.value = tracker.label || '';
+    }
+
+    // Check button state
+    checkBtn.classList.toggle('done', isDone);
+    if (checkLabel) checkLabel.textContent = isDone ? 'Done today!' : 'Mark done for today';
+    if (checkCircle) checkCircle.textContent = isDone ? '✓' : '';
+
+    // Streak: consecutive days ending today (or yesterday if not yet done today)
+    const today = new Date(); today.setHours(12, 0, 0, 0);
+    const datesSet = new Set(completed);
+    let streak = 0;
+    const cursor = new Date(today);
+    for (let i = 0; i < 366; i++) {
+      const iso = cursor.toISOString().split('T')[0];
+      if (datesSet.has(iso)) {
+        streak++;
+        cursor.setDate(cursor.getDate() - 1);
+      } else if (i === 0) {
+        cursor.setDate(cursor.getDate() - 1); // nothing logged yet today — check yesterday
+      } else {
+        break;
+      }
+    }
+    if (streakEl) streakEl.textContent = streak ? `🔥 ${streak} day${streak !== 1 ? 's' : ''} in a row` : '';
+  }
 
   /* Rest day toggle */
   document.getElementById('restDayBtn').addEventListener('click', () => {
