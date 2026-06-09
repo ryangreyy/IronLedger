@@ -613,6 +613,48 @@ function initApp(uid) {
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
 
     renderFreq();
+    renderNeglect();
+  }
+
+  function renderNeglect() {
+    const container = document.getElementById('neglectList');
+    if (!container) return;
+
+    const today = new Date(); today.setHours(12, 0, 0, 0);
+
+    // Last logged date per lift (skip rest days)
+    const lastSeen = {};
+    (currentSessions || []).forEach(s => {
+      if (!s.dateRaw || s.isRestDay) return;
+      if (!lastSeen[s.lift] || s.dateRaw > lastSeen[s.lift]) lastSeen[s.lift] = s.dateRaw;
+    });
+
+    // Only consider lifts touched in the last 60 days
+    const cutoff = new Date(today);
+    cutoff.setDate(cutoff.getDate() - 60);
+    const cutoffISO = cutoff.toISOString().split('T')[0];
+
+    const candidates = Object.entries(lastSeen)
+      .filter(([, date]) => date >= cutoffISO)
+      .map(([lift, date]) => {
+        const days = Math.round((today - new Date(date + 'T12:00:00')) / 86400000);
+        return { lift, days, cls: liftToCls(lift) };
+      })
+      .filter(x => x.days >= 3)
+      .sort((a, b) => b.days - a.days)
+      .slice(0, 3);
+
+    if (!candidates.length) {
+      container.innerHTML = `<div class="neglect-good">Nothing falling behind — you're staying balanced!</div>`;
+      return;
+    }
+
+    container.innerHTML = candidates.map(x => `
+      <div class="neglect-row">
+        <span class="pill ${x.cls}">${x.lift}</span>
+        <span class="neglect-days">${x.days}d ago</span>
+      </div>
+    `).join('');
   }
 
   function renderFreq() {
