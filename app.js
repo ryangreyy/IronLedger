@@ -79,6 +79,21 @@ document.getElementById('navSignUp').addEventListener('click', () => {
 document.getElementById('authClose').addEventListener('click', closeAuthModal);
 authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAuthModal(); });
 
+/* ===== HIDE NAV ON SCROLL DOWN, REVEAL ON SCROLL UP =============== */
+(function () {
+  const nav = document.querySelector('nav');
+  let lastY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y > lastY && y > 80) {
+      nav.classList.add('nav-hidden');       // scrolling down → hide
+    } else {
+      nav.classList.remove('nav-hidden');    // scrolling up → reveal
+    }
+    lastY = y;
+  }, { passive: true });
+})();
+
 /* ===== SIGNED-OUT INPUT INTERCEPT ==================================
    Clicking any input, select, textarea, or button inside the page
    (not the nav or the auth modal) opens the sign-in modal when
