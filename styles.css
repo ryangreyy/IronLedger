@@ -132,8 +132,14 @@ nav.nav-hidden{ transform:translateY(-100%); }
   .nav-links a{ padding:15px 28px; font-size:15px; border-bottom:1px solid var(--border); }
   .nav-links a:last-child{ border-bottom:none; }
   .nav-hamburger{ display:flex; }
-  #nav-signed-out button{ padding:8px 11px; font-size:13px; }
+  #nav-signed-out{ display:none !important; }
+  #nav-mobile-auth{
+    display:flex; flex-direction:column; gap:10px;
+    padding:16px 20px; border-top:1px solid var(--border);
+  }
+  #nav-mobile-auth .btn{ width:100%; justify-content:center; text-align:center; }
 }
+#nav-mobile-auth{ display:none; }
 
 /* ---------- HERO ---------- */
 .hero{padding-top:90px; padding-bottom:40px;}
