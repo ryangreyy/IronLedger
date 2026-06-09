@@ -634,27 +634,42 @@ function initApp(uid) {
     cutoff.setDate(cutoff.getDate() - 60);
     const cutoffISO = cutoff.toISOString().split('T')[0];
 
-    const candidates = Object.entries(lastSeen)
-      .filter(([, date]) => date >= cutoffISO)
-      .map(([lift, date]) => {
-        const days = Math.round((today - new Date(date + 'T12:00:00')) / 86400000);
-        return { lift, days, cls: liftToCls(lift) };
-      })
-      .filter(x => x.days >= 3)
-      .sort((a, b) => b.days - a.days)
-      .slice(0, 3);
+    // For each group, pick the single most neglected lift
+    const groups = ['squat', 'bench', 'dead', 'arm'];
+    const groupLabels = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms' };
+    const picks = [];
 
-    if (!candidates.length) {
+    groups.forEach(cls => {
+      const best = Object.entries(lastSeen)
+        .filter(([lift, date]) => liftToCls(lift) === cls && date >= cutoffISO)
+        .map(([lift, date]) => ({
+          lift, cls,
+          days: Math.round((today - new Date(date + 'T12:00:00')) / 86400000)
+        }))
+        .filter(x => x.days >= 1)
+        .sort((a, b) => b.days - a.days)[0];
+      if (best) picks.push(best);
+    });
+
+    if (!picks.length) {
       container.innerHTML = `<div class="neglect-good">Nothing falling behind — you're staying balanced!</div>`;
       return;
     }
 
-    container.innerHTML = candidates.map(x => `
+    const rows = picks.map(x => `
       <div class="neglect-row">
         <span class="pill ${x.cls}">${x.lift}</span>
         <span class="neglect-days">${x.days}d ago</span>
       </div>
     `).join('');
+
+    const legend = picks.map(x => `
+      <div class="cal-legend-item">
+        <div class="cal-legend-dot ${x.cls}"></div>${groupLabels[x.cls]}
+      </div>
+    `).join('');
+
+    container.innerHTML = rows + `<div class="neglect-legend">${legend}</div>`;
   }
 
   function renderFreq() {

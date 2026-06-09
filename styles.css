@@ -362,6 +362,11 @@ nav{
 .neglect-days{ font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-dimmer); white-space:nowrap; }
 .neglect-good{ font-size:12px; color:var(--text-dim); margin-top:14px; line-height:1.5; }
 .neglect-loading{ font-size:12px; color:var(--text-dimmer); margin-top:14px; display:block; }
+.neglect-legend{ display:flex; gap:14px; flex-wrap:wrap; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+.cal-legend-dot.squat{ background:var(--squat); }
+.cal-legend-dot.bench{ background:var(--bench); }
+.cal-legend-dot.dead { background:var(--dead); }
+.cal-legend-dot.arm  { background:var(--press); }
 @media(max-width:860px){ .grid-kpi{grid-template-columns:repeat(2,1fr);} }
 @media(max-width:480px){ .grid-kpi{grid-template-columns:1fr;} }
 .card{
