@@ -1237,10 +1237,13 @@ function initApp(uid) {
       const isToday  = isThisMonth && d === todayDate;
       const isFuture = isFutureMonth || (isThisMonth && d > todayDate);
 
-      let classes = 'cal-day';
-      if (isFuture)  classes += ' future';
-      else           classes += ' clickable';
-      if (isToday)   classes += ' today';
+      const hasSession = !!sessionMap[d];
+      const isPlanned  = !!calColors[dateStr] && !hasSession;
+      const rgbVarMap  = { squat:'--squat-rgb', bench:'--bench-rgb', dead:'--dead-rgb', arm:'--press-rgb', press:'--press-rgb' };
+
+      let classes = 'cal-day clickable';
+      if (isFuture) classes += ' future';
+      if (isToday)  classes += ' today';
 
       if (cls === 'rest') {
         classes += ' rest-day';
@@ -1248,8 +1251,15 @@ function initApp(uid) {
         el.style.borderColor = 'transparent';
         usedCls.push('rest');
       } else if (cls) {
-        classes += ' has-session';
-        el.style.background = colors[cls] || colors.other;
+        if (isPlanned) {
+          classes += ' planned-day';
+          const rv = rgbVarMap[cls];
+          el.style.background  = rv ? `rgba(var(${rv}),0.15)` : 'rgba(154,160,172,0.15)';
+          el.style.borderColor = rv ? `rgba(var(${rv}),0.5)`  : 'rgba(154,160,172,0.5)';
+        } else {
+          classes += ' has-session';
+          el.style.background = colors[cls] || colors.other;
+        }
         usedCls.push(cls);
       }
 
@@ -1257,12 +1267,10 @@ function initApp(uid) {
       el.dataset.date = dateStr;
       el.innerHTML = `<span>${d}</span>`;
 
-      if (!isFuture) {
-        el.addEventListener('click', e => {
-          e.stopPropagation();
-          showCalPopover(el, dateStr);
-        });
-      }
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        showCalPopover(el, dateStr, isFuture);
+      });
 
       grid.appendChild(el);
     }
@@ -1275,7 +1283,7 @@ function initApp(uid) {
     }).join('');
   }
 
-  function showCalPopover(anchor, dateStr) {
+  function showCalPopover(anchor, dateStr, isFuture) {
     let pop = document.getElementById('calPopover');
     if (!pop) {
       pop = document.createElement('div');
@@ -1300,10 +1308,10 @@ function initApp(uid) {
     const [y, m, d] = dateStr.split('-').map(Number);
     const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     pop.innerHTML = `
-      <div class="cal-pop-date">${MO[m-1]} ${d}, ${y}</div>
+      <div class="cal-pop-date">${MO[m-1]} ${d}, ${y}${isFuture ? ' <span class="cal-pop-plan-tag">Plan</span>' : ''}</div>
       <div class="cal-pop-btns">
         ${groups.map(g => `<button class="cal-pop-btn" data-cls="${g.cls}" style="background:${g.color}">${g.label}</button>`).join('')}
-        <button class="cal-pop-btn cal-pop-rest" data-cls="rest">Rest Day</button>
+        ${isFuture ? '' : '<button class="cal-pop-btn cal-pop-rest" data-cls="rest">Rest Day</button>'}
         <button class="cal-pop-btn cal-pop-clear" data-cls="clear">Clear</button>
       </div>`;
 
