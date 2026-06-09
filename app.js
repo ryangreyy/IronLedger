@@ -32,20 +32,32 @@ document.addEventListener('click', () => navLinksEl.classList.remove('open'));
 auth.onAuthStateChanged(user => {
   if (user) {
     /* ---- Signed in ---- */
-    authScreen.style.display  = 'none';
-    mainContent.style.display = '';
-    navSignedIn.style.display = 'flex';
+    authScreen.style.display   = 'none';
+    mainContent.style.display  = '';
+    navSignedIn.style.display  = 'flex';
     navSignedOut.style.display = 'none';
-    navUserName.textContent   = user.displayName || user.email.split('@')[0];
+    navUserName.textContent    = user.displayName || user.email.split('@')[0];
     initApp(user.uid);
   } else {
-    /* ---- Signed out ---- */
-    authScreen.style.display  = '';
-    mainContent.style.display = 'none';
+    /* ---- Signed out — show landing page, keep modal closed ---- */
+    authScreen.style.display   = 'none';
+    mainContent.style.display  = '';
     navSignedIn.style.display  = 'none';
     navSignedOut.style.display = '';
   }
 });
+
+/* ---- Auth modal open / close ---- */
+function openAuthModal()  { authScreen.style.display = ''; }
+function closeAuthModal() { authScreen.style.display = 'none'; }
+
+document.getElementById('navSignIn').addEventListener('click', openAuthModal);
+document.getElementById('navSignUp').addEventListener('click', () => {
+  openAuthModal();
+  setTimeout(() => { const el = document.getElementById('authEmail'); if (el) el.focus(); }, 60);
+});
+document.getElementById('authClose').addEventListener('click', closeAuthModal);
+authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAuthModal(); });
 
 /* Google sign-in */
 document.getElementById('googleSignIn').addEventListener('click', () => {

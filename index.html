@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=29">
+<link rel="stylesheet" href="styles.css?v=30">
 </head>
 <body>
 
@@ -29,8 +29,9 @@
         <a href="settings.html">Settings</a>
       </div>
       <!-- Shown when signed out -->
-      <div id="nav-signed-out">
-        <a href="#auth-screen" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+      <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;">
+        <button id="navSignUp" class="btn btn-ghost nav-signup-btn" style="padding:9px 16px;font-size:14px;">Create account</button>
+        <button id="navSignIn" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</button>
       </div>
       <!-- Shown when signed in -->
       <div id="nav-signed-in" style="display:none;align-items:center;gap:14px;">
@@ -47,10 +48,11 @@
     </div>
   </nav>
 
-  <!-- ================= AUTH SCREEN (shown when signed out) ================= -->
-  <div id="auth-screen">
+  <!-- ================= AUTH MODAL (opened from nav) ================= -->
+  <div id="auth-screen" style="display:none;">
     <div class="auth-wrap">
       <div class="card auth-card">
+        <button id="authClose" class="auth-close" aria-label="Close">&#x2715;</button>
         <div class="brand auth-brand"><span class="mark">IL</span> IRONLEDGER</div>
         <p class="auth-sub">Sign in to access your personal training dashboard.</p>
 
@@ -83,8 +85,8 @@
     </div>
   </div>
 
-  <!-- ================= MAIN DASHBOARD (shown when signed in) ================= -->
-  <div id="main-content" style="display:none;">
+  <!-- ================= MAIN CONTENT ================= -->
+  <div id="main-content">
   <div class="wrap">
 
     <!-- ================= HERO ================= -->
@@ -435,6 +437,6 @@
 <script src="firebase-config.js"></script>
 <!-- App data and logic -->
 <script src="data.js"></script>
-<script src="app.js?v=28"></script>
+<script src="app.js?v=29"></script>
 </body>
 </html>

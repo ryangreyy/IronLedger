@@ -104,6 +104,7 @@ nav{
   .nav-links a{ padding:15px 28px; font-size:15px; border-bottom:1px solid var(--border); }
   .nav-links a:last-child{ border-bottom:none; }
   .nav-hamburger{ display:flex; }
+  .nav-signup-btn{ display:none; }
 }
 
 /* ---------- HERO ---------- */
@@ -785,23 +786,23 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .btn-danger:hover{ background:rgba(255,107,107,0.10); border-color:var(--down); }
 
-/* ---------- AUTH SCREEN ---------- */
+/* ---------- AUTH MODAL ---------- */
 #auth-screen{
-  min-height:calc(100vh - 64px); display:flex;
-  align-items:center; justify-content:center; padding:40px 24px;
-  position:relative; z-index:1;
-}
-/* same grid texture as the rest of the page */
-#auth-screen::before{
-  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image:
-    radial-gradient(900px 500px at 20% 40%, rgba(214,255,61,0.07), transparent 60%),
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size:100% 100%, 46px 46px, 46px 46px;
+  position:fixed; inset:0; z-index:1000;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+  background:rgba(8,8,10,0.82);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
 }
 .auth-wrap{ position:relative; z-index:1; width:100%; max-width:420px; }
-.auth-card{ padding:36px 32px 32px; }
+.auth-card{ padding:36px 32px 32px; position:relative; }
+.auth-close{
+  position:absolute; top:12px; right:14px;
+  background:none; border:none; color:var(--text-dim);
+  font-size:22px; line-height:1; cursor:pointer;
+  padding:4px 8px; border-radius:6px;
+  transition:color .15s, background .15s;
+}
+.auth-close:hover{ color:var(--text); background:rgba(255,255,255,0.07); }
 .auth-brand{
   font-family:var(--display); font-size:22px; letter-spacing:1px;
   justify-content:center; margin-bottom:10px;
