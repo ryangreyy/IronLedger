@@ -70,33 +70,39 @@ const authError    = document.getElementById('authError');
 
 /* ===== AVATAR ===================================================== */
 const _CDN = 'https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets';
-const AVATAR_URLS = {
-  bunny:    `${_CDN}/Rabbit%20face/3D/rabbit_face_3d.png`,
-  cat:      `${_CDN}/Cat%20face/3D/cat_face_3d.png`,
-  unicorn:  `${_CDN}/Unicorn/3D/unicorn_3d.png`,
-  flamingo: `${_CDN}/Flamingo/3D/flamingo_3d.png`,
-  panda:    `${_CDN}/Panda/3D/panda_3d.png`,
-  fox:      `${_CDN}/Fox/3D/fox_3d.png`,
-  koala:    `${_CDN}/Koala/3D/koala_3d.png`,
-  otter:    `${_CDN}/Otter/3D/otter_3d.png`,
-  wolf:     `${_CDN}/Wolf/3D/wolf_3d.png`,
-  lion:     `${_CDN}/Lion/3D/lion_3d.png`,
-  tiger:    `${_CDN}/Tiger%20face/3D/tiger_face_3d.png`,
-  bear:     `${_CDN}/Bear/3D/bear_3d.png`,
-  shark:    `${_CDN}/Shark/3D/shark_3d.png`,
-  gorilla:  `${_CDN}/Gorilla/3D/gorilla_3d.png`,
-  trex:     `${_CDN}/T-rex/3D/t-rex_3d.png`,
-  dragon:   `${_CDN}/Dragon/3D/dragon_3d.png`,
-};
+const AVATARS = [
+  { id:'bunny',    url:`${_CDN}/Rabbit%20face/3D/rabbit_face_3d.png`,  emoji:'🐰', label:'Bunny',    group:'cute' },
+  { id:'cat',      url:`${_CDN}/Cat%20face/3D/cat_face_3d.png`,        emoji:'🐱', label:'Cat',      group:'cute' },
+  { id:'unicorn',  url:`${_CDN}/Unicorn/3D/unicorn_3d.png`,            emoji:'🦄', label:'Unicorn',  group:'cute' },
+  { id:'flamingo', url:`${_CDN}/Flamingo/3D/flamingo_3d.png`,          emoji:'🦩', label:'Flamingo', group:'cute' },
+  { id:'panda',    url:`${_CDN}/Panda/3D/panda_3d.png`,                emoji:'🐼', label:'Panda',    group:'cute' },
+  { id:'fox',      url:`${_CDN}/Fox/3D/fox_3d.png`,                    emoji:'🦊', label:'Fox',      group:'cute' },
+  { id:'koala',    url:`${_CDN}/Koala/3D/koala_3d.png`,                emoji:'🐨', label:'Koala',    group:'cute' },
+  { id:'otter',    url:`${_CDN}/Otter/3D/otter_3d.png`,                emoji:'🦦', label:'Otter',    group:'cute' },
+  { id:'wolf',     url:`${_CDN}/Wolf/3D/wolf_3d.png`,                  emoji:'🐺', label:'Wolf',     group:'bold' },
+  { id:'lion',     url:`${_CDN}/Lion/3D/lion_3d.png`,                  emoji:'🦁', label:'Lion',     group:'bold' },
+  { id:'tiger',    url:`${_CDN}/Tiger%20face/3D/tiger_face_3d.png`,    emoji:'🐯', label:'Tiger',    group:'bold' },
+  { id:'bear',     url:`${_CDN}/Bear/3D/bear_3d.png`,                  emoji:'🐻', label:'Bear',     group:'bold' },
+  { id:'shark',    url:`${_CDN}/Shark/3D/shark_3d.png`,                emoji:'🦈', label:'Shark',    group:'bold' },
+  { id:'gorilla',  url:`${_CDN}/Gorilla/3D/gorilla_3d.png`,            emoji:'🦍', label:'Gorilla',  group:'bold' },
+  { id:'trex',     url:`${_CDN}/T-rex/3D/t-rex_3d.png`,                emoji:'🦖', label:'T-Rex',    group:'bold' },
+  { id:'dragon',   url:`${_CDN}/Dragon/3D/dragon_3d.png`,              emoji:'🐉', label:'Dragon',   group:'bold' },
+];
+const AVATAR_BG_COLORS = [
+  '#FFB3B3','#FFD0A0','#FFFAAA','#AAFFBB','#AACCFF','#BBAAFF','#FFAAFF','#FFFFFF',
+  '#FF2D2D','#FF7700','#FFD700','#22CC44','#1A66FF','#4422CC','#9900CC','#808080',
+  '#8B0000','#8B3A00','#8B7000','#005520','#001A8B','#1A0066','#440055','#000000',
+];
 
-let currentUser = null;
+let currentUser      = null;
+let pendingOnboarding = false;
 
 function applyNavAvatar(user, avatarId, avatarBg) {
   if (!navAvatar) return;
-  const url = avatarId && AVATAR_URLS[avatarId];
-  if (url) {
+  const av = avatarId && AVATARS.find(a => a.id === avatarId);
+  if (av) {
     navAvatar.style.cssText = `background:${avatarBg || '#1a1c1e'};`;
-    navAvatar.innerHTML = `<img src="${url}" alt="" style="width:26px;height:26px;object-fit:contain;">`;
+    navAvatar.innerHTML = `<img src="${av.url}" alt="" style="width:26px;height:26px;object-fit:contain;">`;
   } else if (user && user.photoURL) {
     navAvatar.style.cssText = '';
     navAvatar.innerHTML = `<img src="${user.photoURL}" alt="">`;
@@ -105,6 +111,88 @@ function applyNavAvatar(user, avatarId, avatarBg) {
     navAvatar.innerHTML = '';
     navAvatar.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
   }
+}
+
+function showOnboardingModal(user) {
+  let obId = null;
+  let obBg = null;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'onboarding-overlay';
+  const card = document.createElement('div');
+  card.className = 'onboarding-card';
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  function renderStep1() {
+    card.innerHTML = `
+      <div class="eyebrow">Welcome to IronLedger</div>
+      <h2 class="title" style="margin:6px 0 6px;">Pick your avatar</h2>
+      <p class="sub" style="margin-bottom:22px;">Choose a character — you can always change it in Settings.</p>
+      <p class="ob-group-label">Cute &amp; soft</p>
+      <div id="ob-cute" class="avatar-grid" style="margin-bottom:16px;"></div>
+      <p class="ob-group-label">Cool &amp; bold</p>
+      <div id="ob-bold" class="avatar-grid" style="margin-bottom:24px;"></div>
+      <button id="ob-skip1" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;">Skip for now</button>
+    `;
+    ['cute','bold'].forEach(group => {
+      document.getElementById(`ob-${group}`).innerHTML = AVATARS.filter(a => a.group === group).map(a =>
+        `<button class="avatar-option${obId === a.id ? ' av-selected' : ''}" data-id="${a.id}" title="${a.label}">
+          <img src="${a.url}" alt="${a.label}" style="width:46px;height:46px;object-fit:contain;" onerror="this.style.display='none'">
+        </button>`
+      ).join('');
+    });
+    card.querySelectorAll('.avatar-option').forEach(btn => {
+      btn.addEventListener('click', () => { obId = btn.dataset.id; renderStep2(); });
+    });
+    document.getElementById('ob-skip1').addEventListener('click', () => finishOnboarding(false));
+  }
+
+  function renderStep2() {
+    const av  = AVATARS.find(a => a.id === obId);
+    const bg  = obBg || '#1a1c1e';
+    card.innerHTML = `
+      <div class="eyebrow">Almost there</div>
+      <h2 class="title" style="margin:6px 0 6px;">Pick a circle color</h2>
+      <p class="sub" style="margin-bottom:18px;">Choose a background for your avatar.</p>
+      <div style="display:flex;justify-content:center;margin-bottom:20px;">
+        <div id="ob-ring" style="width:72px;height:72px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.12);transition:background .15s;">
+          <img src="${av?.url || ''}" alt="" style="width:60px;height:60px;object-fit:contain;">
+        </div>
+      </div>
+      <div id="ob-colors" class="avatar-bg-grid" style="margin-bottom:24px;"></div>
+      <button id="ob-done" class="btn btn-primary" style="width:100%;margin-bottom:10px;">Done</button>
+      <button id="ob-back" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;">← Back</button>
+    `;
+    const picker = document.getElementById('ob-colors');
+    picker.innerHTML = AVATAR_BG_COLORS.map(c =>
+      `<div class="avatar-bg-swatch${obBg === c ? ' bg-selected' : ''}" data-color="${c}" style="background:${c};"></div>`
+    ).join('');
+    picker.querySelectorAll('.avatar-bg-swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        obBg = sw.dataset.color;
+        document.getElementById('ob-ring').style.background = obBg;
+        picker.querySelectorAll('.avatar-bg-swatch').forEach(s => s.classList.remove('bg-selected'));
+        sw.classList.add('bg-selected');
+      });
+    });
+    document.getElementById('ob-done').addEventListener('click', () => finishOnboarding(true));
+    document.getElementById('ob-back').addEventListener('click', renderStep1);
+  }
+
+  async function finishOnboarding(save) {
+    overlay.remove();
+    if (save && obId) {
+      const update = { avatarId: obId };
+      if (obBg) update.avatarBg = obBg;
+      try {
+        await db.collection('users').doc(user.uid).collection('settings').doc('main').set(update, { merge: true });
+      } catch(e) {}
+      applyNavAvatar(user, obId, obBg);
+    }
+  }
+
+  renderStep1();
 }
 
 /* ===== HAMBURGER MENU ============================================= */
@@ -142,6 +230,7 @@ auth.onAuthStateChanged(user => {
     navUserName.textContent = user.displayName || user.email.split('@')[0];
     applyNavAvatar(user, null, null); // placeholder; overridden by onSnapshot once settings load
     initApp(user.uid);
+    if (pendingOnboarding) { pendingOnboarding = false; showOnboardingModal(user); }
   } else {
     /* ---- Signed out — show landing page, render empty cards ---- */
     isSignedIn = false;
@@ -247,6 +336,7 @@ document.getElementById('googleSignIn').addEventListener('click', () => {
   authError.textContent = '';
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider)
+    .then(r => { if (r.additionalUserInfo?.isNewUser) pendingOnboarding = true; })
     .catch(err => { authError.textContent = friendlyError(err.code); });
 });
 
@@ -268,6 +358,7 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
   if (!email || !password) { authError.textContent = 'Please enter an email and password.'; return; }
   if (password.length < 6)  { authError.textContent = 'Password must be at least 6 characters.'; return; }
   auth.createUserWithEmailAndPassword(email, password)
+    .then(() => { pendingOnboarding = true; })
     .catch(err => { authError.textContent = friendlyError(err.code); });
 });
 

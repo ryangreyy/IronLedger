@@ -873,4 +873,24 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .history-wt{ color:var(--accent); font-weight:700; }
 .history-reps{ color:var(--text); }
 .history-note{ color:var(--text-dimmer); font-family:var(--body); font-size:12px; }
+
+/* ---------- ONBOARDING MODAL ---------- */
+.onboarding-overlay{
+  position:fixed; inset:0; z-index:1100;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  background:rgba(8,8,10,0.88);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+}
+.onboarding-card{
+  background:var(--bg-1,#111214); border:1px solid var(--border);
+  border-radius:20px; padding:32px 28px;
+  max-width:560px; width:100%; max-height:90vh; overflow-y:auto;
+}
+.onboarding-card .eyebrow{ font-size:11px; display:flex; align-items:center; gap:10px; }
+.onboarding-card h2{ font-size:24px; font-weight:800; color:var(--text); }
+.onboarding-card .sub{ font-size:14px; margin-top:0; }
+.ob-group-label{
+  font-size:11px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--text-dim); margin:0 0 8px;
+}
 .history-note.has-note{ color:var(--accent); }
