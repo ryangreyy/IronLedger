@@ -1,6 +1,16 @@
 /* IRONLEDGER — Interactive logic, Firebase auth, and per-user data sync.
    Load order: firebase SDKs → firebase-config.js → data.js → this file. */
 
+/* Arm the reveal animation before the first paint.
+   Without this, .reveal elements are fully visible (no JS = no hidden state).
+   With this, they start at opacity:0 and are revealed by the IO or rAF below. */
+document.body.classList.add('js-loaded');
+requestAnimationFrame(() => {
+  document.querySelectorAll('.reveal').forEach(s => {
+    if (s.getBoundingClientRect().top < window.innerHeight * 0.95) s.classList.add('in');
+  });
+});
+
 /* ===== FIREBASE INIT ============================================== */
 firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
@@ -83,12 +93,7 @@ const revealIO = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.15 });
 document.querySelectorAll('.reveal').forEach(s => revealIO.observe(s));
-/* Trigger immediately for anything already in view on load */
-setTimeout(() => {
-  document.querySelectorAll('.reveal').forEach(s => {
-    if (s.getBoundingClientRect().top < window.innerHeight * 0.9) s.classList.add('in');
-  });
-}, 50);
+/* Above-fold reveals handled by the requestAnimationFrame at the top of this file */
 
 /* Google sign-in */
 document.getElementById('googleSignIn').addEventListener('click', () => {

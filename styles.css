@@ -631,9 +631,10 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
   color:var(--text-dimmer); font-size:13px;}
 
-/* page-load reveal */
-.reveal{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease;}
-.reveal.in{opacity:1; transform:none;}
+/* page-load reveal — content is visible by default; JS opts in to the animation */
+.reveal{ transition:opacity .7s ease, transform .7s ease;}
+.js-loaded .reveal:not(.in){ opacity:0; transform:translateY(22px);}
+.reveal.in{ opacity:1; transform:none;}
 
 /* ---------- INTERACTIVE FORMS (log + standards controls) ---------- */
 .controls-label{
