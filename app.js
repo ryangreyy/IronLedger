@@ -62,9 +62,8 @@ const auth = firebase.auth();
 /* ===== DOM HANDLES ================================================ */
 const authScreen   = document.getElementById('auth-screen');
 const mainContent  = document.getElementById('main-content');
-const navSignedIn   = document.getElementById('nav-signed-in');
-const navSignedOut  = document.getElementById('nav-signed-out');
-const navMobileAuth = document.getElementById('nav-mobile-auth');
+const navSignedIn  = document.getElementById('nav-signed-in');
+const navSignedOut = document.getElementById('nav-signed-out');
 const navUserName  = document.getElementById('nav-user-name');
 const navAvatar    = document.getElementById('nav-avatar');
 const authError    = document.getElementById('authError');
@@ -266,7 +265,6 @@ auth.onAuthStateChanged(user => {
     mainContent.style.display  = '';
     navSignedIn.style.display  = 'flex';
     navSignedOut.style.display = 'none';
-    if (navMobileAuth) navMobileAuth.style.display = 'none';
     navUserName.textContent = user.displayName || user.email.split('@')[0];
     applyNavAvatar(user, null, null); // placeholder; overridden by onSnapshot once settings load
     initApp(user.uid);
@@ -277,7 +275,6 @@ auth.onAuthStateChanged(user => {
     mainContent.style.display  = '';
     navSignedIn.style.display  = 'none';
     navSignedOut.style.display = '';
-    if (navMobileAuth) navMobileAuth.style.display = '';
     initApp(null);   // renders all cards with empty data, returns before Firestore
   }
 });
@@ -288,15 +285,6 @@ function closeAuthModal() { authScreen.style.display = 'none'; authPromptShown =
 
 document.getElementById('navSignIn').addEventListener('click', openAuthModal);
 document.getElementById('navSignUp').addEventListener('click', () => {
-  openAuthModal();
-  setTimeout(() => { const el = document.getElementById('authEmail'); if (el) el.focus(); }, 60);
-});
-document.getElementById('navSignInMobile')?.addEventListener('click', () => {
-  navLinksEl.classList.remove('open');
-  openAuthModal();
-});
-document.getElementById('navSignUpMobile')?.addEventListener('click', () => {
-  navLinksEl.classList.remove('open');
   openAuthModal();
   setTimeout(() => { const el = document.getElementById('authEmail'); if (el) el.focus(); }, 60);
 });
