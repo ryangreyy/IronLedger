@@ -88,7 +88,9 @@ authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAu
 document.addEventListener('mousedown', e => {
   if (isSignedIn) return;
   if (!e.target.closest('input, select, textarea, button')) return;
-  if (e.target.closest('#auth-screen, nav')) return; // allow modal + nav buttons
+  if (e.target.closest('#auth-screen, nav')) return;  // modal + nav always work
+  if (e.target.closest('#calc')) return;              // 1RM calc works without account
+  if (e.target.closest('.add-session-grid')) return;  // log inputs: type freely, gate only on submit
   e.preventDefault();
   openAuthModal();
 }, true);
