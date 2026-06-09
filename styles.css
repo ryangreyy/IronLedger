@@ -317,13 +317,14 @@ nav{
   flex:1 1 220px; min-width:0;
   background:var(--surface); border:1px solid var(--border-strong);
   border-radius:20px; padding:20px 22px;
+  display:flex; flex-direction:column;
 }
 .freq-eyebrow{
   font-family:var(--mono); font-size:11px; text-transform:uppercase;
   letter-spacing:0.2em; color:var(--accent); font-weight:700; margin-bottom:6px;
 }
-.freq-sub{ font-size:12px; color:var(--text-dim); margin-bottom:20px; }
-.freq-bars{ display:flex; flex-direction:column; gap:14px; }
+.freq-sub{ font-size:12px; color:var(--text-dim); margin-bottom:0; }
+.freq-bars{ display:flex; flex-direction:column; flex:1; justify-content:space-evenly; }
 .freq-row{ display:flex; align-items:center; gap:12px; }
 .freq-label{
   font-family:var(--mono); font-size:11px; font-weight:700;
