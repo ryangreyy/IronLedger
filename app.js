@@ -1276,7 +1276,8 @@ function initApp(uid) {
     }
 
     const lbls = { squat:'Legs', bench:'Chest', dead:'Back', arm:'Arms', press:'Arms', other:'Other', rest:'Rest Day' };
-    const used = [...new Set(usedCls)];
+    const order = ['squat','bench','dead','arm','press','other','rest'];
+    const used = [...new Set(usedCls)].sort((a, b) => (order.indexOf(a) ?? 99) - (order.indexOf(b) ?? 99));
     legend.innerHTML = used.map(c => {
       const bg = c === 'rest' ? 'rgba(107,114,128,0.4)' : (colors[c] || colors.other);
       return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${bg}"></div>${lbls[c] || c}</div>`;
