@@ -487,6 +487,11 @@ function initApp(uid) {
   /* ---- 4) ONE-REP-MAX CALCULATOR ----------------------------------- */
   const ormEl   = document.getElementById('orm');
   const pctBody = document.getElementById('pctBody');
+  // Restore last-used values
+  ['lift','weight','reps'].forEach(id => {
+    const saved = localStorage.getItem('il_calc_' + id);
+    if (saved) document.getElementById(id).value = saved;
+  });
   function calc() {
     const w = +document.getElementById('weight').value || 0;
     const r = +document.getElementById('reps').value   || 1;
@@ -500,7 +505,10 @@ function initApp(uid) {
         <td style="color:var(--text-dim)">${row.use}</td>
       </tr>`).join('');
   }
-  ['lift','weight','reps'].forEach(id => document.getElementById(id).addEventListener('input', calc));
+  ['lift','weight','reps'].forEach(id => document.getElementById(id).addEventListener('input', e => {
+    localStorage.setItem('il_calc_' + id, e.target.value);
+    calc();
+  }));
   calc();
 
   /* ---- 4) TRAINING LOG --------------------------------------------- */
