@@ -349,6 +349,7 @@ nav{
 
 /* ---------- PERSONAL TRACKERS ---------- */
 .tracker-card{ padding:20px 22px; }
+.tracker-card .label{ color:var(--accent); }
 .tracker-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
 .tracker-add-btn{
   background:transparent; border:1px solid var(--border-strong);
@@ -429,7 +430,7 @@ nav{
   border:1px solid var(--border); border-radius:16px; padding:22px;
   box-shadow:var(--shadow); position:relative; overflow:hidden;
 }
-.kpi .label{font-size:13px; color:var(--text-dim); text-transform:uppercase;
+.kpi .label{font-size:13px; color:var(--accent); text-transform:uppercase;
   letter-spacing:0.1em; font-weight:600;}
 .kpi .value{font-family:var(--mono); font-weight:700; font-size:32px; margin-top:14px;}
 .kpi .value .unit{font-size:15px; color:var(--text-dimmer); margin-left:4px;}
