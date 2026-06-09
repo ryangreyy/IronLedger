@@ -520,10 +520,10 @@ function initApp(uid) {
       (typeof l === 'string' ? l : l.name).toLowerCase() === n
     );
     if (custom && typeof custom !== 'string' && custom.cls) return custom.cls;
-    if (['squat','split squat','bulgarian split squats','hack squat','bw squat','smith squat','leg press','lunges','hip thrust','rdl'].includes(n)) return 'squat';
-    if (['bench','bench press','incline press','decline chest press','db flat press','db incline press','machine chest press','dips','push-up','chest fly','pec dec'].includes(n)) return 'bench';
+    if (['squat','split squat','bulgarian split squats','hack squat','pendulum squat','bw squat','smith squat','leg press','lunges','hip thrust','rdl'].includes(n)) return 'squat';
+    if (['bench','bench press','incline press','decline chest press','db flat press','db incline press','machine chest press','dips','push-up','chest fly','low chest fly','mid chest fly','high chest fly','pec dec'].includes(n)) return 'bench';
     if (['deadlift','rack pull'].includes(n))                                                        return 'dead';
-    if (['row','barbell row','cable row','chest supported row','machine row','pulldown','lat pulldown','pull-up','t-bar row','lat pullover','shrugs'].includes(n)) return 'dead';
+    if (['row','barbell row','cable row','chest supported row','machine row','pulldown','lat pulldown','machine lat pulldown','cable lat pulldown','pull-up','t-bar row','lat pullover','shrugs'].includes(n)) return 'dead';
     if (['overhead press','ohp','arnold press','lateral raise','db lateral raise','cable lateral raise','machine lateral raise',
          'rear delt raise','front raise','face pull',
          'tricep pushdown','single arm tricep pushdown','db tricep extension','cable tricep extension','machine tricep extension',
