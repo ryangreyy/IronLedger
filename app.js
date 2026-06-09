@@ -78,6 +78,20 @@ document.getElementById('navSignUp').addEventListener('click', () => {
 document.getElementById('authClose').addEventListener('click', closeAuthModal);
 authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAuthModal(); });
 
+/* ===== SIGNED-OUT INPUT INTERCEPT ==================================
+   Clicking any input, select, textarea, or button inside the page
+   (not the nav or the auth modal) opens the sign-in modal when
+   the visitor is not signed in. Uses capture phase so it fires
+   before focus/change handlers. preventDefault() stops the input
+   from gaining focus. */
+document.addEventListener('mousedown', e => {
+  if (isSignedIn) return;
+  if (!e.target.closest('input, select, textarea, button')) return;
+  if (e.target.closest('#auth-screen, nav')) return; // allow modal + nav buttons
+  e.preventDefault();
+  openAuthModal();
+}, true);
+
 /* ===== SCROLL-TRIGGERED AUTH PROMPT ================================
    After a signed-out visitor scrolls past "This Month at a Glance",
    automatically open the sign-in modal once. Dismissed = never again
