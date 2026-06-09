@@ -389,6 +389,10 @@ nav{
   font-size:13px; color:var(--text-dimmer); padding:8px 0;
   font-family:var(--mono);
 }
+@media(max-width:600px){
+  .tracker-row{ flex-wrap:wrap; }
+  .tracker-row-input{ flex:1 1 100%; }
+}
 
 .btn{
   font-family:var(--body); font-weight:700; font-size:15px;
