@@ -114,8 +114,9 @@ function applyNavAvatar(user, avatarId, avatarBg) {
 }
 
 function showOnboardingModal(user) {
-  let obId = null;
-  let obBg = null;
+  let obName = user.displayName || '';
+  let obId   = null;
+  let obBg   = null;
 
   const overlay = document.createElement('div');
   overlay.className = 'onboarding-overlay';
@@ -124,16 +125,49 @@ function showOnboardingModal(user) {
   overlay.appendChild(card);
   document.body.appendChild(overlay);
 
-  function renderStep1() {
+  /* ---- Step 1: Display name ---- */
+  function renderStepName() {
     card.innerHTML = `
       <div class="eyebrow">Welcome to IronLedger</div>
-      <h2 class="title" style="margin:6px 0 6px;">Pick your avatar</h2>
-      <p class="sub" style="margin-bottom:22px;">Choose a character — you can always change it in Settings.</p>
+      <h2 class="title" style="margin:6px 0 6px;">What should we call you?</h2>
+      <p class="sub" style="margin-bottom:22px;">This is your display name — shown next to your avatar in the nav.</p>
+      <input id="ob-name" type="text" class="auth-input" placeholder="Display name"
+             value="${obName.replace(/"/g,'&quot;')}" maxlength="30"
+             style="width:100%;margin-bottom:16px;">
+      <button id="ob-name-continue" class="btn btn-primary" style="width:100%;margin-bottom:10px;">Continue</button>
+      <button id="ob-skip-name" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;">Skip for now</button>
+    `;
+    const input = document.getElementById('ob-name');
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+
+    async function advanceName() {
+      const name = input.value.trim();
+      if (name) {
+        obName = name;
+        try { await user.updateProfile({ displayName: name }); } catch(e) {}
+        navUserName.textContent = name;
+      }
+      renderStepAvatar();
+    }
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') advanceName(); });
+    document.getElementById('ob-name-continue').addEventListener('click', advanceName);
+    document.getElementById('ob-skip-name').addEventListener('click', renderStepAvatar);
+  }
+
+  /* ---- Step 2: Avatar picker ---- */
+  function renderStepAvatar() {
+    card.innerHTML = `
+      <div class="eyebrow">Pick your character</div>
+      <h2 class="title" style="margin:6px 0 6px;">Choose your avatar</h2>
+      <p class="sub" style="margin-bottom:22px;">You can always change it in Settings.</p>
       <p class="ob-group-label">Cute &amp; soft</p>
       <div id="ob-cute" class="avatar-grid" style="margin-bottom:16px;"></div>
       <p class="ob-group-label">Cool &amp; bold</p>
       <div id="ob-bold" class="avatar-grid" style="margin-bottom:24px;"></div>
-      <button id="ob-skip1" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;">Skip for now</button>
+      <button id="ob-skip-av" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
+      <button id="ob-back-av" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
     `;
     ['cute','bold'].forEach(group => {
       document.getElementById(`ob-${group}`).innerHTML = AVATARS.filter(a => a.group === group).map(a =>
@@ -143,14 +177,16 @@ function showOnboardingModal(user) {
       ).join('');
     });
     card.querySelectorAll('.avatar-option').forEach(btn => {
-      btn.addEventListener('click', () => { obId = btn.dataset.id; renderStep2(); });
+      btn.addEventListener('click', () => { obId = btn.dataset.id; renderStepColor(); });
     });
-    document.getElementById('ob-skip1').addEventListener('click', () => finishOnboarding(false));
+    document.getElementById('ob-skip-av').addEventListener('click', () => finishOnboarding(false));
+    document.getElementById('ob-back-av').addEventListener('click', renderStepName);
   }
 
-  function renderStep2() {
-    const av  = AVATARS.find(a => a.id === obId);
-    const bg  = obBg || '#1a1c1e';
+  /* ---- Step 3: Circle color ---- */
+  function renderStepColor() {
+    const av = AVATARS.find(a => a.id === obId);
+    const bg = obBg || '#1a1c1e';
     card.innerHTML = `
       <div class="eyebrow">Almost there</div>
       <h2 class="title" style="margin:6px 0 6px;">Pick a circle color</h2>
@@ -162,7 +198,7 @@ function showOnboardingModal(user) {
       </div>
       <div id="ob-colors" class="avatar-bg-grid" style="margin-bottom:24px;"></div>
       <button id="ob-done" class="btn btn-primary" style="width:100%;margin-bottom:10px;">Done</button>
-      <button id="ob-back" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;">← Back</button>
+      <button id="ob-back-color" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;">← Back</button>
     `;
     const picker = document.getElementById('ob-colors');
     picker.innerHTML = AVATAR_BG_COLORS.map(c =>
@@ -177,9 +213,10 @@ function showOnboardingModal(user) {
       });
     });
     document.getElementById('ob-done').addEventListener('click', () => finishOnboarding(true));
-    document.getElementById('ob-back').addEventListener('click', renderStep1);
+    document.getElementById('ob-back-color').addEventListener('click', renderStepAvatar);
   }
 
+  /* ---- Finish ---- */
   async function finishOnboarding(save) {
     overlay.remove();
     if (save && obId) {
@@ -192,7 +229,7 @@ function showOnboardingModal(user) {
     }
   }
 
-  renderStep1();
+  renderStepName();
 }
 
 /* ===== HAMBURGER MENU ============================================= */
