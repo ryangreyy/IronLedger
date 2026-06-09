@@ -68,6 +68,33 @@ const navUserName  = document.getElementById('nav-user-name');
 const navAvatar    = document.getElementById('nav-avatar');
 const authError    = document.getElementById('authError');
 
+/* ===== AVATAR ===================================================== */
+const AVATAR_EMOJIS = {
+  bear:'🐻', fox:'🦊', tiger:'🐯', panda:'🐼', lion:'🦁',
+  wolf:'🐺', frog:'🐸', penguin:'🐧', raccoon:'🦝', koala:'🐨',
+  otter:'🦦', cat:'🐱', dog:'🐶', rabbit:'🐰', hedgehog:'🦔',
+  octopus:'🐙', dragon:'🐲', owl:'🦉', parrot:'🦜', shark:'🦈',
+};
+
+let currentUser = null;
+
+function applyNavAvatar(user, avatarId) {
+  if (!navAvatar) return;
+  const emoji = avatarId && AVATAR_EMOJIS[avatarId];
+  if (emoji) {
+    navAvatar.innerHTML = '';
+    navAvatar.textContent = emoji;
+    navAvatar.style.cssText = 'background:var(--bg-2);font-size:18px;';
+  } else if (user && user.photoURL) {
+    navAvatar.innerHTML = `<img src="${user.photoURL}" alt="">`;
+    navAvatar.style.cssText = '';
+  } else if (user) {
+    navAvatar.innerHTML = '';
+    navAvatar.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+    navAvatar.style.cssText = '';
+  }
+}
+
 /* ===== HAMBURGER MENU ============================================= */
 const navHamburger = document.getElementById('nav-hamburger');
 const navLinksEl   = document.getElementById('nav-links');
@@ -90,17 +117,13 @@ auth.onAuthStateChanged(user => {
   if (user) {
     /* ---- Signed in ---- */
     isSignedIn = true;
+    currentUser = user;
     authScreen.style.display   = 'none';
     mainContent.style.display  = '';
     navSignedIn.style.display  = 'flex';
     navSignedOut.style.display = 'none';
-    const displayName = user.displayName || user.email.split('@')[0];
-    navUserName.textContent = displayName;
-    if (user.photoURL) {
-      navAvatar.innerHTML = `<img src="${user.photoURL}" alt="">`;
-    } else {
-      navAvatar.textContent = displayName.charAt(0).toUpperCase();
-    }
+    navUserName.textContent = user.displayName || user.email.split('@')[0];
+    applyNavAvatar(user, null); // placeholder; overridden by onSnapshot once settings load
     initApp(user.uid);
   } else {
     /* ---- Signed out — show landing page, render empty cards ---- */
@@ -1518,6 +1541,7 @@ function initApp(uid) {
       applyColors(currentSettings);
       renderGoals(currentSettings.goals);
       applyCustomLifts(currentSettings.customLifts);
+      applyNavAvatar(currentUser, currentSettings.avatarId || null);
     } else {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');
