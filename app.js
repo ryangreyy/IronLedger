@@ -83,12 +83,12 @@ authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAu
    automatically open the sign-in modal once. Dismissed = never again
    until next page load. */
 (function setupScrollPrompt() {
-  const trigger = document.getElementById('dashboard');
+  const trigger = document.getElementById('glance-title');
   if (!trigger) return;
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => {
-      // Element has scrolled fully above the viewport
-      if (!e.isIntersecting && e.boundingClientRect.bottom < 0 && !isSignedIn && !authPromptShown) {
+      // Fires the moment the title's top edge scrolls above the viewport
+      if (!e.isIntersecting && e.boundingClientRect.top < 0 && !isSignedIn && !authPromptShown) {
         authPromptShown = true;
         openAuthModal();
         io.disconnect();
