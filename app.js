@@ -107,6 +107,11 @@ navLinksEl.querySelectorAll('a').forEach(a => {
 });
 document.addEventListener('click', () => navLinksEl.classList.remove('open'));
 
+document.querySelector('nav .brand')?.addEventListener('click', e => {
+  e.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 /* ===== AUTH — SIGN IN / SIGN UP / SIGN OUT ========================
    Firebase watches auth state automatically — we just react to it. */
 

@@ -79,7 +79,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   display:flex; align-items:center; justify-content:space-between;
 }
 .brand{display:flex; align-items:center; gap:11px; font-family:var(--display);
-  font-size:22px; letter-spacing:1px;}
+  font-size:22px; letter-spacing:1px; text-decoration:none; color:inherit;}
 .brand .mark{
   width:30px; height:30px; border-radius:7px; display:grid; place-items:center;
   background:var(--accent); color:#0B0C0E; font-size:18px; font-weight:900;
