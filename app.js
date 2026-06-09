@@ -59,6 +59,37 @@ document.getElementById('navSignUp').addEventListener('click', () => {
 document.getElementById('authClose').addEventListener('click', closeAuthModal);
 authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAuthModal(); });
 
+/* ===== PAGE REVEAL (runs for ALL visitors, signed in or out) ========= */
+function animateCount(el) {
+  const target = +el.dataset.count;
+  const dur = 1100, start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * eased).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+const counted = new WeakSet();
+const revealIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('[data-count]').forEach(n => {
+        if (!counted.has(n)) { counted.add(n); animateCount(n); }
+      });
+      e.target.classList.add('in');
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(s => revealIO.observe(s));
+/* Trigger immediately for anything already in view on load */
+setTimeout(() => {
+  document.querySelectorAll('.reveal').forEach(s => {
+    if (s.getBoundingClientRect().top < window.innerHeight * 0.9) s.classList.add('in');
+  });
+}, 50);
+
 /* Google sign-in */
 document.getElementById('googleSignIn').addEventListener('click', () => {
   authError.textContent = '';
@@ -272,37 +303,7 @@ function initApp(uid) {
 
   /* ---- 1) ANIMATED COUNT-UP ----------------------------------------
      When a section scrolls into view, numbers count up from 0. */
-  function animateCount(el) {
-    const target = +el.dataset.count;
-    const dur = 1100, start = performance.now();
-    function tick(now) {
-      const p = Math.min((now - start) / dur, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(target * eased).toLocaleString();
-      if (p < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-  const counted = new WeakSet();
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.querySelectorAll('[data-count]').forEach(n => {
-          if (!counted.has(n)) { counted.add(n); animateCount(n); }
-        });
-        e.target.classList.add('in');
-      }
-    });
-  }, { threshold: 0.15 });
-  document.querySelectorAll('.reveal').forEach(s => io.observe(s));
-  /* Trigger immediately for anything already visible on load */
-  setTimeout(() => {
-    document.querySelectorAll('.reveal').forEach(s => {
-      if (s.getBoundingClientRect().top < window.innerHeight * 0.9) {
-        s.classList.add('in');
-      }
-    });
-  }, 50);
+  /* reveal observer now runs at top level — see initReveal() below */
 
   /* ---- 2) LIFT BREAKDOWN DONUT CHART ---------------------------------
    Shows what % of sets were spent on each lift for a selected day.
