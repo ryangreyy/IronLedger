@@ -1428,28 +1428,30 @@ function initApp(uid) {
     }
 
     list.innerHTML = trackers.map(t => {
-      const isDone  = (t.completedDates || []).includes(todayISO);
-      const streak  = trackerStreak(t.completedDates);
-      const safeVal = (t.label || '').replace(/"/g, '&quot;');
+      const isDone    = (t.completedDates || []).includes(todayISO);
+      const streak    = trackerStreak(t.completedDates);
+      const safeLabel = (t.label || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       return `
         <div class="tracker-row" data-id="${t.id}">
-          <input class="tracker-row-input" type="text" value="${safeVal}"
-            placeholder="What are you tracking?" maxlength="60" data-id="${t.id}">
+          <textarea class="tracker-row-input" placeholder="What are you tracking?" maxlength="60" rows="1" data-id="${t.id}">${safeLabel}</textarea>
           <button class="tracker-row-check${isDone ? ' done' : ''}" data-id="${t.id}">${isDone ? '✓' : ''}</button>
           <span class="tracker-row-streak">${streak ? '🔥 ' + streak + 'd' : ''}</span>
           <button class="tracker-row-delete" data-id="${t.id}">✕</button>
         </div>`;
     }).join('');
 
-    // Label save on blur / Enter
+    // Label save on blur / Enter + auto-resize textarea
     list.querySelectorAll('.tracker-row-input').forEach(inp => {
+      const resize = () => { inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; };
+      resize(); // size to content on render
+      inp.addEventListener('input', resize);
       inp.addEventListener('blur', () => {
         const updated = (currentSettings?.personalTrackers || []).map(t =>
           t.id === inp.dataset.id ? { ...t, label: inp.value.trim() } : t
         );
         settingsRef().update({ personalTrackers: updated }).catch(console.error);
       });
-      inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); inp.blur(); } });
     });
 
     // Toggle done for today
