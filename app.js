@@ -526,8 +526,9 @@ function initApp(uid) {
     if (['row','barbell row','cable row','chest supported row','machine row','pulldown','lat pulldown','pull-up','t-bar row','lat pullover','shrugs'].includes(n)) return 'dead';
     if (['overhead press','ohp','arnold press','lateral raise','db lateral raise','cable lateral raise','machine lateral raise',
          'rear delt raise','front raise','face pull',
-         'tricep pushdown','single arm tricep pushdown','overhead tricep','skull crusher','close grip bench',
-         'bicep curl','hammer curl','preacher curl','concentration curl'].includes(n)) return 'arm';
+         'tricep pushdown','single arm tricep pushdown','db tricep extension','cable tricep extension','machine tricep extension',
+         'overhead tricep','skull crusher','close grip bench',
+         'bicep curl','db bicep curl','cable bicep curl','machine bicep curl','hammer curl','preacher curl','concentration curl'].includes(n)) return 'arm';
     if (['leg extension','leg curl','seated hamstring curl','lying hamstring curl','calf raise','adductors','abductors'].includes(n)) return 'squat';
     return 'other';
   }
