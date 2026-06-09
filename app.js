@@ -15,6 +15,37 @@ requestAnimationFrame(() => {
   });
 });
 
+/* ===== CONFETTI BURST =============================================
+   Spawns small particles that fly outward from the center of anchorEl. */
+function spawnConfetti(anchorEl) {
+  const rect   = anchorEl.getBoundingClientRect();
+  const cx     = rect.left + rect.width  / 2;
+  const cy     = rect.top  + rect.height / 2;
+  const colors = ['#D6FF3D','#5BD6E6','#FF8A4C','#B78BFF','#FF6B6B','#ffffff'];
+  const count  = 16;
+  for (let i = 0; i < count; i++) {
+    const dot   = document.createElement('div');
+    const size  = 5 + Math.random() * 5;
+    const angle = (i / count) * 360 + (Math.random() - 0.5) * 22;
+    const dist  = 28 + Math.random() * 32;
+    const tx    = Math.cos(angle * Math.PI / 180) * dist;
+    const ty    = Math.sin(angle * Math.PI / 180) * dist;
+    Object.assign(dot.style, {
+      position: 'fixed', left: cx + 'px', top: cy + 'px',
+      width: size + 'px', height: size + 'px',
+      background: colors[i % colors.length],
+      borderRadius: Math.random() > 0.35 ? '50%' : '2px',
+      pointerEvents: 'none', zIndex: '9999',
+    });
+    document.body.appendChild(dot);
+    const anim = dot.animate([
+      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(0.2)`, opacity: 0 },
+    ], { duration: 480 + Math.random() * 240, easing: 'ease-out', fill: 'forwards' });
+    anim.addEventListener('finish', () => dot.remove());
+  }
+}
+
 /* ===== LOCAL DATE HELPER ==========================================
    Always use the device's local calendar date, never UTC.
    Accepts an optional Date object; defaults to now. */
@@ -1201,8 +1232,10 @@ function initApp(uid) {
         const g     = allGoals[idx];
         const steps = g.steps || 1;
         const cur   = g.stepsChecked || 0;
-        const newChecked = box.classList.contains('checked') ? step : step + 1;
+        const checking   = !box.classList.contains('checked');
+        const newChecked = checking ? step + 1 : step;
         const isDone     = newChecked >= steps;
+        if (checking) spawnConfetti(box);
         const updated    = allGoals.map((g, i) => i !== idx ? g : {
           ...g,
           stepsChecked: newChecked,
@@ -1563,7 +1596,7 @@ function initApp(uid) {
           if (t.id !== btn.dataset.id) return t;
           const dates = [...(t.completedDates || [])];
           const i = dates.indexOf(todayISO);
-          if (i >= 0) dates.splice(i, 1); else dates.push(todayISO);
+          if (i >= 0) dates.splice(i, 1); else { dates.push(todayISO); spawnConfetti(btn); }
           return { ...t, completedDates: dates };
         });
         settingsRef().update({ personalTrackers: updated }).catch(console.error);
