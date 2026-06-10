@@ -403,12 +403,15 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
 /* Sign out */
 document.getElementById('signOut').addEventListener('click', () => auth.signOut());
 
-/* Open lift datalist on mobile tap (desktop does this natively) */
-document.getElementById('logLift')?.addEventListener('focus', function() {
-  const saved = this.value;
-  this.value = '';
-  this.dispatchEvent(new Event('input', { bubbles: true }));
-  this.value = saved;
+/* Lift dropdown button — opens datalist on click */
+document.getElementById('liftDropdownBtn')?.addEventListener('click', () => {
+  const input = document.getElementById('logLift');
+  if (!input) return;
+  input.focus();
+  const saved = input.value;
+  input.value = '';
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  input.value = saved;
 });
 
 /* ===== BODYWEIGHT: month nav + log submit ========================= */
