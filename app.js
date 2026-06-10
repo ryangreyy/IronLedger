@@ -402,6 +402,14 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
 /* Sign out */
 document.getElementById('signOut').addEventListener('click', () => auth.signOut());
 
+/* Open lift datalist on mobile tap (desktop does this natively) */
+document.getElementById('logLift')?.addEventListener('focus', function() {
+  const saved = this.value;
+  this.value = '';
+  this.dispatchEvent(new Event('input', { bubbles: true }));
+  this.value = saved;
+});
+
 /* ===== BODYWEIGHT: month nav + log submit ========================= */
 document.getElementById('bwPrev')?.addEventListener('click', () => {
   const [yr, mo] = bwCurrentMonth.split('-').map(Number);
