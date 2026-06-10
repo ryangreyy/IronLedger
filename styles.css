@@ -517,6 +517,19 @@ svg.chart{width:100%; height:300px; display:block;}
   border-radius:4px; transition:color .15s; line-height:1;
 }
 .lift-dropdown-btn:hover{ color:var(--text); }
+.lift-dropdown-list{
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:500;
+  background:var(--bg-2); border:1px solid var(--border-strong);
+  border-radius:10px; max-height:220px; overflow-y:auto;
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+}
+.lift-opt{
+  padding:12px 15px; font-family:var(--mono); font-size:14px;
+  cursor:pointer; border-bottom:1px solid var(--border); user-select:none;
+}
+.lift-opt:last-child{ border-bottom:none; }
+.lift-opt:active{ background:rgba(255,255,255,0.07); }
+.lift-opt-empty{ color:var(--text-dim); cursor:default; }
 
 /* ---------- CUSTOM DATE PICKER ---------- */
 .dp-wrap{ position:relative; }

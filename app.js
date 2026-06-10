@@ -404,16 +404,48 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
 /* Sign out */
 document.getElementById('signOut').addEventListener('click', () => auth.signOut());
 
-/* Lift dropdown button — pointerdown so it fires before the browser
-   reassigns focus; preventDefault stops the button itself taking focus */
-document.getElementById('liftDropdownBtn')?.addEventListener('pointerdown', e => {
-  e.preventDefault();
-  const input = document.getElementById('logLift');
-  if (!input) return;
-  input.focus();
-  input.value = '';
-  input.dispatchEvent(new Event('input', { bubbles: true }));
-});
+/* Custom lift dropdown — bypasses unreliable native datalist on mobile */
+(function() {
+  const input  = document.getElementById('logLift');
+  const btn    = document.getElementById('liftDropdownBtn');
+  const list   = document.getElementById('liftDropdownList');
+  if (!input || !btn || !list) return;
+
+  function allLifts() {
+    return Array.from(document.querySelectorAll('#lift-options option')).map(o => o.value);
+  }
+
+  function render(filter) {
+    const q    = (filter || '').toLowerCase();
+    const opts = allLifts().filter(o => !q || o.toLowerCase().includes(q));
+    list.innerHTML = opts.length
+      ? opts.map(o => `<div class="lift-opt">${o}</div>`).join('')
+      : '<div class="lift-opt lift-opt-empty">No matches</div>';
+    list.querySelectorAll('.lift-opt:not(.lift-opt-empty)').forEach(el => {
+      el.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        input.value = el.textContent;
+        close();
+      });
+    });
+  }
+
+  function open() { render(input.value); list.style.display = ''; }
+  function close() { list.style.display = 'none'; }
+  function isOpen() { return list.style.display !== 'none'; }
+
+  btn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    isOpen() ? close() : open();
+  });
+
+  input.addEventListener('input', () => { if (isOpen()) render(input.value); });
+  input.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+  document.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.lift-wrap')) close();
+  });
+})();
 
 /* ===== BODYWEIGHT: month nav + log submit ========================= */
 document.getElementById('bwPrev')?.addEventListener('click', () => {
