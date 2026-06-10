@@ -2031,3 +2031,235 @@ function initApp(uid) {
 } /* end initApp */
 
 renderBodyweight(); // init month label + empty state on page load
+
+/* ── Goal Guide ─────────────────────────────────────── */
+(function goalGuide() {
+  const container = document.getElementById('goalGuide');
+  if (!container) return;
+
+  const GG_GOALS = [
+    { id:'fat',      name:'Lose body fat',    tag:'Burn fat, keep muscle',    icon:'🔥' },
+    { id:'muscle',   name:'Gain muscle',      tag:'Build size and strength',  icon:'💪' },
+    { id:'strength', name:'Build strength',   tag:'Move more weight',         icon:'🏆' },
+    { id:'endurance',name:'Build endurance',  tag:'Go harder, longer',        icon:'⚡' },
+    { id:'general',  name:'General fitness',  tag:'Healthy and well-rounded', icon:'❤️' },
+  ];
+  const GG_EXP = [
+    { id:'beg', l:'Just starting out' },
+    { id:'int', l:'1–3 years lifting' },
+    { id:'adv', l:'3+ years consistent' },
+  ];
+  const GG_PRATE = { fat:1.0, muscle:0.9, strength:0.85, endurance:0.7, general:0.8 };
+  const GG_NOTE = {
+    fat:      'Rest 60–90 sec. Aim for the upper end of each rep range.',
+    muscle:   'Rest 90–120 sec. Push to 1–2 reps from failure on your last set.',
+    strength: 'Rest 3–5 min between heavy sets. Add weight when all reps are clean.',
+    endurance:'Rest 30–60 sec. Keep form tight even at high reps.',
+    general:  'Rest 60–90 sec. Prioritise form over heavier weight.',
+  };
+  const GG_SLABEL = { fullbody:'Full Body', upper:'Upper Body', lower:'Lower Body', push:'Push', pull:'Pull', legs:'Legs' };
+
+  const GG_EX = {
+    fullbody:{
+      beg:[['Goblet Squat',3,'10-12','Or barbell'],['Bench Press',3,'10-12',''],['Dumbbell Row',3,'10-12','Each arm'],['Romanian Deadlift',3,'10-12',''],['Overhead Press',3,'10-12','']],
+      int:[['Barbell Squat',4,'6-8',''],['Bench Press',4,'6-8',''],['Barbell Row',4,'6-8',''],['Romanian Deadlift',3,'8-10',''],['Pull-ups',3,'6-10','']],
+      adv:[['Barbell Squat',4,'4-6',''],['Bench Press',4,'4-6',''],['Deadlift',4,'3-5',''],['Barbell Row',3,'6-8',''],['Pull-ups',3,'8-10',''],['Overhead Press',2,'6-8','']],
+    },
+    upper:{
+      beg:[['Bench Press',3,'10-12',''],['Dumbbell Row',3,'10-12','Each arm'],['Overhead Press',3,'10-12',''],['Lat Pulldown',3,'10-12',''],['Bicep Curl',2,'12',''],['Tricep Pushdown',2,'12','']],
+      int:[['Bench Press',4,'6-8',''],['Barbell Row',4,'6-8',''],['Overhead Press',3,'8-10',''],['Pull-ups',3,'6-10',''],['Incline DB Press',3,'10-12',''],['Bicep Curl',2,'12','']],
+      adv:[['Bench Press',4,'4-6',''],['Barbell Row',4,'4-6',''],['Overhead Press',3,'6-8',''],['Pull-ups',3,'8-10',''],['Incline DB Press',3,'8-10',''],['Skull Crusher',2,'10-12','']],
+    },
+    lower:{
+      beg:[['Goblet Squat',3,'10-12','Or barbell'],['Romanian Deadlift',3,'10-12',''],['Leg Press',3,'12-15',''],['Leg Curl',3,'12-15',''],['Calf Raise',3,'15','']],
+      int:[['Barbell Squat',4,'6-8',''],['Romanian Deadlift',3,'8-10',''],['Leg Press',3,'10-12',''],['Leg Curl',3,'10-12',''],['Hip Thrust',3,'10-12',''],['Calf Raise',3,'15','']],
+      adv:[['Barbell Squat',4,'4-6',''],['Deadlift',4,'3-5',''],['Romanian Deadlift',3,'8-10',''],['Leg Press',3,'10-12',''],['Leg Curl',3,'10-12',''],['Calf Raise',3,'15','']],
+    },
+    push:{
+      beg:[['Bench Press',3,'8-10',''],['Overhead Press',3,'8-10',''],['Incline DB Press',3,'10-12',''],['Lateral Raise',3,'15',''],['Tricep Pushdown',3,'12','']],
+      int:[['Bench Press',4,'6-8',''],['Overhead Press',3,'6-8',''],['Incline DB Press',3,'8-10',''],['Lateral Raise',3,'15',''],['Tricep Pushdown',3,'10-12',''],['Cable Fly',2,'12-15','']],
+      adv:[['Bench Press',4,'4-6',''],['Overhead Press',4,'5-7',''],['Incline DB Press',3,'8-10',''],['Lateral Raise',3,'15-20',''],['Tricep Pushdown',3,'10-12',''],['Cable Fly',2,'12-15','']],
+    },
+    pull:{
+      beg:[['Lat Pulldown',4,'10-12',''],['Seated Cable Row',3,'10-12',''],['Face Pull',3,'15',''],['Bicep Curl',3,'12',''],['Rear Delt Fly',2,'15','']],
+      int:[['Deadlift',3,'4-5','Warm up well'],['Barbell Row',4,'6-8',''],['Pull-ups',3,'6-10',''],['Face Pull',3,'15',''],['Bicep Curl',3,'10-12',''],['Hammer Curl',2,'12','']],
+      adv:[['Deadlift',4,'3-5','Warm up well'],['Barbell Row',4,'5-6',''],['Pull-ups',3,'8-10',''],['Cable Row',3,'10-12',''],['Face Pull',3,'15',''],['Bicep Curl',2,'10-12','']],
+    },
+    legs:{
+      beg:[['Barbell Squat',3,'8-10',''],['Romanian Deadlift',3,'10-12',''],['Leg Press',3,'12-15',''],['Leg Curl',3,'12-15',''],['Calf Raise',3,'15','']],
+      int:[['Barbell Squat',4,'6-8',''],['Romanian Deadlift',3,'8-10',''],['Leg Press',3,'10-12',''],['Leg Curl',3,'10-12',''],['Hip Thrust',3,'10-12',''],['Calf Raise',3,'15','']],
+      adv:[['Barbell Squat',4,'4-6',''],['Romanian Deadlift',4,'8-10',''],['Leg Press',3,'10-12',''],['Leg Curl',3,'10-12',''],['Hip Thrust',3,'10-12',''],['Calf Raise',3,'15','']],
+    },
+  };
+
+  function ggSplitTypes(d) {
+    if (d <= 3) return Array(d).fill('fullbody');
+    if (d === 4) return ['upper','lower','upper','lower'];
+    if (d === 5) return ['push','pull','legs','push','pull'];
+    return ['push','pull','legs','push','pull','legs'];
+  }
+  function ggTrainDays(n) {
+    return ({ 1:[0], 2:[0,3], 3:[0,2,4], 4:[0,1,3,4], 5:[0,1,2,4,5], 6:[0,1,2,3,4,5] })[n] || [];
+  }
+  const GG_D7 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  function ggAdjR(r, goal) {
+    if (r.includes(' ')) return r;
+    const p = r.split('-'); if (p.length < 2) return r;
+    const lo = +p[0], hi = +p[1];
+    if (goal === 'fat')      return `${lo+4}-${hi+4}`;
+    if (goal === 'endurance') return `${Math.max(lo+6,15)}-${Math.max(hi+6,20)}`;
+    if (goal === 'strength' && hi <= 8) return '3-5';
+    return r;
+  }
+  function ggProt(w, g) { return Math.round((parseInt(w)||180) * (GG_PRATE[g]||0.8)); }
+  function ggCals(g, w) {
+    const b = Math.round((parseInt(w)||180) * 14);
+    if (g === 'fat')      return `${b-450}–${b-150} cal/day`;
+    if (g === 'muscle')   return `${b+150}–${b+350} cal/day`;
+    if (g === 'endurance') return `${b+100}–${b+400} cal/day`;
+    return `${b-50}–${b+150} cal/day`;
+  }
+  function ggSplitName(d) {
+    if (d <= 3) return 'Full Body';
+    if (d === 4) return 'Upper / Lower';
+    return 'Push / Pull / Legs';
+  }
+
+  const chevD = `<svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const chevU = `<svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="M13 8L7 2L1 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  let ggSt = { step:1, goal:null, exp:null, days:null, weight:'', open:0 };
+
+  function ggRender() {
+    const prog = n => [1,2,3].map(i =>
+      `<div class="guide-pd${i < n ? ' done' : i === n ? ' act' : ''}"></div>`
+    ).join('');
+
+    if (ggSt.step === 1) {
+      container.innerHTML = `
+        <div class="guide-eyebrow">Goal Guide</div>
+        <div class="guide-pg">${prog(1)}</div>
+        <p class="guide-title">What are you training for?</p>
+        <p class="guide-sub">Pick your primary goal to get started.</p>
+        <div class="guide-goals">${GG_GOALS.map(g => `
+          <div class="guide-gc${ggSt.goal === g.id ? ' on' : ''}" onclick="ggPick('${g.id}')">
+            <div class="guide-gi">${g.icon}</div>
+            <p class="guide-gn">${g.name}</p><p class="guide-gt">${g.tag}</p>
+          </div>`).join('')}</div>
+        <div class="guide-btns">
+          <button class="guide-btn guide-btn-p" onclick="ggNx()" ${!ggSt.goal ? 'disabled' : ''}>Next →</button>
+        </div>`;
+
+    } else if (ggSt.step === 2) {
+      const ok = ggSt.exp && ggSt.days && ggSt.weight;
+      container.innerHTML = `
+        <div class="guide-eyebrow">Goal Guide</div>
+        <div class="guide-pg">${prog(2)}</div>
+        <p class="guide-title">Tell me about yourself</p>
+        <p class="guide-sub">Three quick answers — we'll build a plan around them.</p>
+        <div class="guide-qlabel">Experience level</div>
+        <div class="guide-pills">${GG_EXP.map(e => `
+          <span class="guide-pill${ggSt.exp === e.id ? ' on' : ''}" onclick="ggExp('${e.id}')">${e.l}</span>`).join('')}
+        </div>
+        <div class="guide-qlabel">Days per week you can train</div>
+        <div class="guide-pills">${[1,2,3,4,5,6].map(d => `
+          <span class="guide-pill${ggSt.days === d ? ' on' : ''}" onclick="ggDays(${d})">${d} day${d > 1 ? 's' : ''}</span>`).join('')}
+        </div>
+        <div class="guide-qlabel">Your bodyweight</div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px">
+          <input id="ggWtInput" class="guide-winput" type="number" placeholder="185" min="80" max="500"
+            value="${ggSt.weight}" oninput="ggWtChange(this.value)">
+          <span style="font-size:13px;color:var(--text-dimmer)">lbs</span>
+        </div>
+        <p class="guide-hint">Used to calculate your protein and calorie targets.</p>
+        <div class="guide-btns">
+          <button class="guide-btn guide-btn-s" onclick="ggBk()">Back</button>
+          <button class="guide-btn guide-btn-p" id="ggNxBtn" onclick="ggNx()" ${!ok ? 'disabled' : ''}>Build my plan →</button>
+        </div>`;
+
+    } else {
+      const g      = GG_GOALS.find(x => x.id === ggSt.goal);
+      const ek     = ggSt.exp || 'beg';
+      const w      = parseInt(ggSt.weight) || 180;
+      const tDays  = ggTrainDays(ggSt.days);
+      const types  = ggSplitTypes(ggSt.days);
+      const expL   = GG_EXP.find(e => e.id === ggSt.exp)?.l || '';
+
+      const week = GG_D7.map((d, i) => {
+        const ti = tDays.indexOf(i); const on = ti >= 0;
+        let lbl = on ? (GG_SLABEL[types[ti]] || 'Train') : 'Rest';
+        if (!on && ggSt.goal === 'endurance') lbl = 'Zone 2';
+        return `<div class="guide-wd ${on ? 'guide-wd-on' : 'guide-wd-off'}">
+          <span class="guide-wd-name">${d}</span>${lbl}
+        </div>`;
+      }).join('');
+
+      const cards = tDays.map((di, i) => {
+        const type   = types[i];
+        const exList = (GG_EX[type] || GG_EX.fullbody)[ek] || (GG_EX[type] || GG_EX.fullbody).beg;
+        const isOpen = ggSt.open === i;
+        const body   = isOpen ? `<div class="guide-dc-body">
+          <div class="guide-wk-note">${GG_NOTE[ggSt.goal]}</div>
+          ${exList.map(([nm, s, r, n]) => `
+            <div class="guide-ex-row">
+              <span class="guide-ex-name">${nm}${n ? `<span class="guide-ex-note">(${n})</span>` : ''}</span>
+              <span class="guide-ex-sets">${s} × ${ggAdjR(r, ggSt.goal)}</span>
+            </div>`).join('')}
+        </div>` : '';
+        return `<div class="guide-dc">
+          <div class="guide-dc-head" onclick="ggTog(${i})">
+            <div>
+              <span class="guide-dc-day">${GG_D7[di]}</span>
+              <span class="guide-dc-type">${GG_SLABEL[type]}</span>
+            </div>
+            <span style="color:var(--text-dimmer)">${isOpen ? chevU : chevD}</span>
+          </div>${body}
+        </div>`;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="guide-eyebrow">Goal Guide</div>
+        <div class="guide-pg">${prog(4)}</div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">
+          <span style="font-size:22px">${g.icon}</span>
+          <p class="guide-title" style="margin:0">${g.name}</p>
+        </div>
+        <span class="guide-badge">${expL} · ${ggSt.days} day${ggSt.days > 1 ? 's' : ''}/week · ${w} lbs</span>
+        <div class="guide-plan">
+          <div class="guide-pcard">
+            <div class="guide-pc-label">Daily protein</div>
+            <div class="guide-pc-val">${ggProt(w, ggSt.goal)}<span class="guide-pc-unit"> g</span></div>
+          </div>
+          <div class="guide-pcard">
+            <div class="guide-pc-label">Split</div>
+            <div class="guide-pc-val" style="font-size:13px;margin-top:2px">${ggSplitName(ggSt.days)}</div>
+          </div>
+          <div class="guide-pcard">
+            <div class="guide-pc-label">Calories</div>
+            <div class="guide-pc-val" style="font-size:13px;margin-top:2px">${ggCals(ggSt.goal, ggSt.weight)}</div>
+          </div>
+        </div>
+        <div class="guide-sec">Weekly schedule</div>
+        <div class="guide-week">${week}</div>
+        <div class="guide-sec" style="margin-top:16px">Your workouts — click to expand</div>
+        ${cards}
+        <button class="guide-restart" onclick="ggRst()">Start over</button>`;
+    }
+  }
+
+  window.ggPick     = id => { ggSt.goal = id; ggRender(); };
+  window.ggExp      = id => { ggSt.exp  = id; ggRender(); };
+  window.ggDays     = d  => { ggSt.days = d;  ggRender(); };
+  window.ggWtChange = v  => {
+    ggSt.weight = v;
+    const btn = document.getElementById('ggNxBtn');
+    if (btn) btn.disabled = !(ggSt.exp && ggSt.days && v);
+  };
+  window.ggNx  = () => { if (ggSt.step < 3) ggSt.step++; ggRender(); };
+  window.ggBk  = () => { if (ggSt.step > 1) ggSt.step--; ggRender(); };
+  window.ggTog = i  => { ggSt.open = ggSt.open === i ? -1 : i; ggRender(); };
+  window.ggRst = () => { ggSt = { step:1, goal:null, exp:null, days:null, weight:'', open:0 }; ggRender(); };
+
+  ggRender();
+})();
