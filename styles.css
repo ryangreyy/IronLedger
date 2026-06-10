@@ -880,6 +880,47 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .history-reps{ color:var(--text); }
 .history-note{ color:var(--text-dimmer); font-family:var(--body); font-size:12px; }
 
+/* ---------- BODYWEIGHT TRACKER ---------- */
+.bw-form{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:20px;
+}
+.bw-input{
+  width:90px; background:var(--bg-2); border:1px solid var(--border-strong);
+  color:var(--text); font-family:var(--mono); font-size:16px; font-weight:700;
+  padding:10px 12px; border-radius:10px; outline:none; transition:border .2s;
+}
+.bw-input:focus{ border-color:var(--accent); }
+.bw-date-input{
+  background:var(--bg-2); border:1px solid var(--border-strong);
+  color:var(--text); font-family:var(--mono); font-size:14px;
+  padding:10px 12px; border-radius:10px; outline:none; transition:border .2s;
+}
+.bw-date-input:focus{ border-color:var(--accent); }
+.bw-month-nav{
+  display:flex; align-items:center; gap:14px; margin-bottom:4px;
+}
+.bw-month-label{
+  font-family:var(--mono); font-size:14px; font-weight:700;
+  color:var(--text); min-width:130px; text-align:center;
+}
+.bw-list{ margin-top:16px; border-top:1px solid var(--border); }
+.bw-entry{
+  display:flex; align-items:center; gap:12px;
+  padding:11px 0; border-bottom:1px solid var(--border); font-family:var(--mono);
+}
+.bw-entry-date{ color:var(--text-dim); font-size:13px; flex:1; }
+.bw-entry-weight{ font-size:15px; font-weight:700; color:var(--accent); }
+.bw-delete{
+  background:none; border:none; color:var(--text-dimmer); cursor:pointer;
+  font-size:14px; padding:4px 6px; border-radius:6px; line-height:1;
+  transition:color .15s, background .15s;
+}
+.bw-delete:hover{ color:var(--down); background:rgba(255,60,60,0.08); }
+.chart-empty{
+  text-align:center; color:var(--text-dim); font-size:14px;
+  padding:32px 0; margin:0;
+}
+
 /* ---------- ONBOARDING MODAL ---------- */
 .onboarding-overlay{
   position:fixed; inset:0; z-index:1100;

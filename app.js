@@ -402,6 +402,37 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
 /* Sign out */
 document.getElementById('signOut').addEventListener('click', () => auth.signOut());
 
+/* ===== BODYWEIGHT: month nav + log submit ========================= */
+document.getElementById('bwPrev')?.addEventListener('click', () => {
+  const [yr, mo] = bwCurrentMonth.split('-').map(Number);
+  const d = new Date(yr, mo - 2, 1);
+  bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  renderBodyweight();
+});
+document.getElementById('bwNext')?.addEventListener('click', () => {
+  const [yr, mo] = bwCurrentMonth.split('-').map(Number);
+  const d = new Date(yr, mo, 1);
+  bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  renderBodyweight();
+});
+(function(){ const d = document.getElementById('bwDate'); if (d) d.value = new Date().toISOString().slice(0,10); })();
+
+document.getElementById('bwSubmit')?.addEventListener('click', async () => {
+  if (!currentUser) return;
+  const weightVal = parseFloat(document.getElementById('bwInput').value);
+  const dateVal   = document.getElementById('bwDate').value;
+  if (!weightVal || weightVal <= 0 || !dateVal) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).collection('bodyweight').add({
+      weight: weightVal,
+      date:   dateVal,
+      ts:     firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    document.getElementById('bwInput').value = '';
+    bwCurrentMonth = dateVal.slice(0, 7);
+  } catch(err) { console.error(err); }
+});
+
 /* Plain-English versions of Firebase auth error codes */
 function friendlyError(code) {
   return ({
@@ -545,13 +576,109 @@ function createDatePicker(inputId, initialDate) {
 /* ===== initApp — runs once after successful sign-in ===============
    Every feature below uses uid to keep each user's data separate. */
 
-let unsubscribeSessions = null;   // track live listeners so we can
-let unsubscribeSettings = null;   // clean them up on sign-out
+let unsubscribeSessions   = null;   // track live listeners so we can
+let unsubscribeSettings   = null;   // clean them up on sign-out
+let unsubscribeBodyweight = null;
+
+let bwCurrentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+let bwAllEntries   = [];
+
+const BW_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function renderBodyweight() {
+  const svg   = document.getElementById('bwChart');
+  const empty = document.getElementById('bwEmpty');
+  const list  = document.getElementById('bwList');
+  const label = document.getElementById('bwMonthLabel');
+  if (!svg) return;
+
+  const [yr, mo] = bwCurrentMonth.split('-').map(Number);
+  if (label) label.textContent = `${BW_MONTHS[mo - 1]} ${yr}`;
+
+  const entries = bwAllEntries
+    .filter(e => e.date && e.date.startsWith(bwCurrentMonth))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  /* Entry list (newest first) */
+  if (list) {
+    if (entries.length) {
+      list.innerHTML = entries.slice().reverse().map(e => {
+        const [, m, d] = e.date.split('-').map(Number);
+        return `<div class="bw-entry">
+          <span class="bw-entry-date">${BW_MONTHS[m-1]} ${d}</span>
+          <span class="bw-entry-weight">${e.weight} lbs</span>
+          <button class="bw-delete btn-icon" data-id="${e.id}" aria-label="Delete">&#x2715;</button>
+        </div>`;
+      }).join('');
+      list.querySelectorAll('.bw-delete').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!currentUser) return;
+          try { await db.collection('users').doc(currentUser.uid).collection('bodyweight').doc(btn.dataset.id).delete(); }
+          catch(err) { console.error(err); }
+        });
+      });
+    } else {
+      list.innerHTML = '';
+    }
+  }
+
+  /* Chart */
+  if (!entries.length) {
+    svg.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  const W = 700, H = 240;
+  const padL = 52, padR = 24, padT = 24, padB = 52;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+
+  const weights = entries.map(e => e.weight);
+  const minW = Math.min(...weights), maxW = Math.max(...weights);
+  const padY = (maxW - minW) * 0.25 || 5;
+  const lo = minW - padY, hi = maxW + padY, range = hi - lo;
+
+  const n   = entries.length;
+  const xOf = i => padL + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW);
+  const yOf = w => padT + chartH - ((w - lo) / range) * chartH;
+
+  let grid = '';
+  for (let i = 0; i <= 4; i++) {
+    const y   = padT + (i / 4) * chartH;
+    const val = (hi - (i / 4) * range).toFixed(1);
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+    grid += `<text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" class="axis-label">${val}</text>`;
+  }
+
+  const coords = entries.map((e, i) => `${xOf(i).toFixed(1)},${yOf(e.weight).toFixed(1)}`);
+  const area   = `M${xOf(0).toFixed(1)},${(padT + chartH).toFixed(1)} L${coords.join(' L')} L${xOf(n-1).toFixed(1)},${(padT+chartH).toFixed(1)}Z`;
+
+  let dots = '', labels = '';
+  entries.forEach((e, i) => {
+    const x = xOf(i).toFixed(1), y = yOf(e.weight).toFixed(1);
+    const [,, d] = e.date.split('-').map(Number);
+    dots   += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
+    labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${d}</text>`;
+  });
+
+  svg.innerHTML =
+    `<defs><linearGradient id="bwgrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+    </linearGradient></defs>` +
+    grid +
+    `<path d="${area}" fill="url(#bwgrad)"/>` +
+    `<path d="M${coords.join(' L')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>` +
+    dots + labels;
+}
 
 function initApp(uid) {
   /* Tear down any listeners left from a previous session */
-  if (unsubscribeSessions) { unsubscribeSessions(); unsubscribeSessions = null; }
-  if (unsubscribeSettings) { unsubscribeSettings(); unsubscribeSettings = null; }
+  if (unsubscribeSessions)   { unsubscribeSessions();   unsubscribeSessions   = null; }
+  if (unsubscribeSettings)   { unsubscribeSettings();   unsubscribeSettings   = null; }
+  if (unsubscribeBodyweight) { unsubscribeBodyweight(); unsubscribeBodyweight = null; }
+  bwAllEntries = [];
 
   /* Shorthand helpers for this user's Firestore sub-collections */
   const sessionsRef = () => db.collection('users').doc(uid).collection('sessions');
@@ -1112,6 +1239,16 @@ function initApp(uid) {
       updateKPIs();
       renderCalendar();
     });
+
+  /* Bodyweight listener */
+  if (uid) {
+    unsubscribeBodyweight = db.collection('users').doc(uid).collection('bodyweight')
+      .orderBy('date', 'asc')
+      .onSnapshot(snap => {
+        bwAllEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderBodyweight();
+      }, err => console.error('BW error:', err));
+  }
 
   /* Add session — also saves dateRaw so the edit form can pre-fill it */
   document.getElementById('addSession').addEventListener('click', () => {
@@ -1826,3 +1963,5 @@ function initApp(uid) {
   /* Settings live on settings.html — nothing to init here */
 
 } /* end initApp */
+
+renderBodyweight(); // init month label + empty state on page load
