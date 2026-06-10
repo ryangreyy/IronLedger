@@ -2265,3 +2265,112 @@ renderBodyweight(); // init month label + empty state on page load
 
   ggRender();
 })();
+
+/* ── Plate Calculator ─────────────────────────────────── */
+(function plateCalc() {
+  const $ = id => document.getElementById(id);
+  if (!$('pcTarget')) return;
+
+  const PLATES = {
+    lbs: [45, 35, 25, 10, 5, 2.5],
+    kg:  [25, 20, 15, 10, 5, 2.5, 1.25],
+  };
+  const COLORS = {
+    45: '#c0392b', 35: '#2980b9', 25: '#e67e22', 20: '#2980b9',
+    15: '#e67e22', 10: '#27ae60', 5: '#636e72', 2.5: '#95a5a6', 1.25: '#4a5568',
+  };
+  const BAR = {
+    lbs: { standard: 45, womens: 35 },
+    kg:  { standard: 20, womens: 15 },
+  };
+
+  let unit = 'lbs', bar = 'standard';
+
+  function barWt() {
+    if (bar === 'custom') return parseFloat($('pcBarCustom').value) || 0;
+    return BAR[unit][bar];
+  }
+
+  function calcSide(perSide) {
+    const result = [], plates = PLATES[unit];
+    let rem = perSide;
+    for (const p of plates) {
+      while (rem >= p - 0.001) { result.push(p); rem -= p; }
+    }
+    return { plates: result, leftover: Math.round(rem * 1000) / 1000 };
+  }
+
+  function render() {
+    const target = parseFloat($('pcTarget').value);
+    const bw = barWt();
+
+    $('pcConvert').textContent = target
+      ? (unit === 'lbs' ? `= ${(target / 2.20462).toFixed(1)} kg` : `= ${(target * 2.20462).toFixed(1)} lbs`)
+      : '';
+
+    const res = $('pcResult');
+    if (!target || target <= 0) { res.innerHTML = ''; return; }
+
+    const barDisplay = `${bw} ${unit}`;
+    if (target < bw) {
+      res.innerHTML = `<p class="pc-msg pc-err">Target is less than bar weight (${barDisplay}).</p>`;
+      return;
+    }
+
+    const perSide = (target - bw) / 2;
+    if (perSide < 0.001) {
+      res.innerHTML = `<div class="pc-result-box"><p class="pc-msg">Just the bar (${barDisplay}) — no plates needed.</p></div>`;
+      return;
+    }
+
+    const { plates, leftover } = calcSide(perSide);
+    const chips = plates.map(p =>
+      `<span class="pc-chip" style="background:${COLORS[p] || '#4a5568'}">${p}</span>`
+    ).join('');
+    const totalBoth = plates.reduce((a, b) => a + b, 0) * 2;
+    const achievable = bw + totalBoth;
+    const warn = leftover > 0.001
+      ? `<span class="pc-warn">Can't hit exactly — closest: ${achievable} ${unit}</span>`
+      : '';
+
+    res.innerHTML = `
+      <div class="pc-result-box">
+        <div class="pc-side-head">Each side of the bar</div>
+        <div class="pc-chips">${chips || '<span class="pc-msg">No plates</span>'}</div>
+        <div class="pc-summary">
+          Bar ${barDisplay} + ${totalBoth} ${unit} in plates = <strong style="color:var(--accent)">${achievable} ${unit}</strong>${warn}
+        </div>
+      </div>`;
+  }
+
+  $('pcUnitToggle').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-val]');
+    if (!btn) return;
+    const prev = unit;
+    unit = btn.dataset.val;
+    $('pcUnitToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.val === unit));
+    $('pcTargetUnit').textContent = unit;
+    $('pcBarUnit').textContent    = unit;
+    const cur = parseFloat($('pcTarget').value);
+    if (cur) {
+      $('pcTarget').value = unit === 'kg'
+        ? Math.round(cur / 2.20462 * 4) / 4
+        : Math.round(cur * 2.20462 / 2.5) * 2.5;
+    }
+    render();
+  });
+
+  $('pcBarToggle').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-val]');
+    if (!btn) return;
+    bar = btn.dataset.val;
+    $('pcBarToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.val === bar));
+    $('pcCustomWrap').style.display = bar === 'custom' ? '' : 'none';
+    render();
+  });
+
+  $('pcBarCustom').addEventListener('input', render);
+  $('pcTarget').addEventListener('input', render);
+
+  render();
+})();

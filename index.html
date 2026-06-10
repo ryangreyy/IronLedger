@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=54">
+<link rel="stylesheet" href="styles.css?v=55">
 </head>
 <body>
 
@@ -422,6 +422,50 @@
       </div>
     </section>
 
+    <!-- ================= PLATE CALCULATOR ================= -->
+    <section id="plates" class="reveal">
+      <div class="eyebrow">Interactive Tool</div>
+      <h2 class="title">Plate calculator</h2>
+      <p class="sub">Enter your target weight and see exactly what plates to load on each side. Toggle between lbs and kg.</p>
+
+      <div class="card" style="margin-top:40px; padding:28px 24px;">
+        <!-- Unit + bar row -->
+        <div class="pc-top">
+          <div>
+            <div class="pc-label">Unit</div>
+            <div class="pc-toggle" id="pcUnitToggle">
+              <button class="active" data-val="lbs">lbs</button>
+              <button data-val="kg">kg</button>
+            </div>
+          </div>
+          <div>
+            <div class="pc-label">Bar</div>
+            <div class="pc-toggle" id="pcBarToggle">
+              <button class="active" data-val="standard">Standard</button>
+              <button data-val="womens">Women's</button>
+              <button data-val="custom">Custom</button>
+            </div>
+          </div>
+          <div id="pcCustomWrap" style="display:none;">
+            <div class="pc-label">Bar weight (<span id="pcBarUnit">lbs</span>)</div>
+            <input id="pcBarCustom" type="number" value="45" min="1" step="0.5">
+          </div>
+        </div>
+
+        <!-- Target input -->
+        <div class="pc-input-row">
+          <div>
+            <div class="pc-label">Target weight (<span id="pcTargetUnit">lbs</span>)</div>
+            <input id="pcTarget" type="number" value="225" min="1" step="2.5" class="pc-big-input">
+          </div>
+          <div class="pc-convert" id="pcConvert"></div>
+        </div>
+
+        <!-- Result -->
+        <div id="pcResult"></div>
+      </div>
+    </section>
+
     <!-- ================= STANDARDS (Athlete Profile) ================= -->
     <section id="standards" class="reveal">
       <div class="eyebrow">Benchmarking</div>
@@ -478,6 +522,6 @@
 <script src="firebase-config.js"></script>
 <!-- App data and logic -->
 <script src="data.js"></script>
-<script src="app.js?v=64"></script>
+<script src="app.js?v=65"></script>
 </body>
 </html>
