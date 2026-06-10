@@ -433,7 +433,7 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
     });
   }
 
-  function open() { render(input.value); list.style.display = ''; }
+  function open() { render(input.value); list.style.display = ''; list.scrollTop = 0; }
   function close() { list.style.display = 'none'; }
   function isOpen() { return list.style.display !== 'none'; }
 
