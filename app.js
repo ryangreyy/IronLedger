@@ -684,9 +684,10 @@ function renderBodyweight() {
   }
   if (empty) empty.style.display = 'none';
 
-  const W = 700, H = 240;
+  const W = 700, H = window.innerWidth < 640 ? 320 : 240;
   const padL = 52, padR = 24, padT = 24, padB = 52;
   const chartW = W - padL - padR, chartH = H - padT - padB;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   const weights = entries.map(e => e.weight);
   const minW = Math.min(...weights), maxW = Math.max(...weights);
@@ -906,9 +907,10 @@ function initApp(uid) {
       if (empty) empty.style.display = 'none';
       if (note)  note.textContent = `Last ${liftSessions.length} session${liftSessions.length !== 1 ? 's' : ''}`;
 
-      const W = 700, H = 240;
+      const W = 700, H = window.innerWidth < 640 ? 320 : 240;
       const padL = 52, padR = 24, padT = 24, padB = 52;
       const chartW = W - padL - padR, chartH = H - padT - padB;
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
       const weights = liftSessions.map(s => s.wt);
       const minW = Math.min(...weights), maxW = Math.max(...weights);
