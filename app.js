@@ -411,6 +411,9 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
   const list   = document.getElementById('liftDropdownList');
   if (!input || !btn || !list) return;
 
+  /* Detach native datalist so only our custom dropdown shows */
+  input.removeAttribute('list');
+
   function allLifts() {
     return Array.from(document.querySelectorAll('#lift-options option')).map(o => o.value);
   }
@@ -422,10 +425,10 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
       ? opts.map(o => `<div class="lift-opt">${o}</div>`).join('')
       : '<div class="lift-opt lift-opt-empty">No matches</div>';
     list.querySelectorAll('.lift-opt:not(.lift-opt-empty)').forEach(el => {
-      el.addEventListener('pointerdown', e => {
-        e.preventDefault();
+      el.addEventListener('click', () => {
         input.value = el.textContent;
         close();
+        input.focus();
       });
     });
   }
@@ -439,6 +442,7 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
     isOpen() ? close() : open();
   });
 
+  input.addEventListener('focus', () => open());
   input.addEventListener('input', () => { if (isOpen()) render(input.value); });
   input.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 
