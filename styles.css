@@ -708,6 +708,15 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 @media(max-width:860px){ .add-session-grid{grid-template-columns:repeat(2,1fr);} }
 @media(max-width:480px){ .add-session-grid{grid-template-columns:1fr;} }
 
+/* Add-session button row + plate-calculator hint link */
+.add-session-actions{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:4px;}
+.calc-hint-link{
+  font-size:13px; color:var(--text-dim); text-decoration:none;
+  border-bottom:1px dashed var(--border-strong); padding-bottom:1px;
+  transition:color .15s, border-color .15s;
+}
+.calc-hint-link:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+
 /* Smaller text in the form inputs so they feel compact */
 .controls-grid .field input,
 .controls-grid .field select,
