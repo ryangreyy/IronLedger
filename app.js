@@ -2306,41 +2306,38 @@ renderBodyweight(); // init month label + empty state on page load
       kg:  { 25: 44, 20: 40, 15: 34, 10: 26, 5: 19, 2.5: 13, 1.25: 9 },
     };
     const PW = 13;
-    const GL = 255, GR = 545; // shoulder positions
-    const SL = 58,  SR = 742; // sleeve ends
-    const GRIP_H = 11, SLEEVE_H = 6;
-    const COLLAR_W = 11, COLLAR_H = 15;
+    const GL = 255, GR = 545;           // shoulder positions (where blockers sit)
+    const SL = 58,  SR = 742;           // sleeve ends
+    const GRIP_H = 8, SLEEVE_H = 4;     // skinnier bar
+    const COLLAR_W = 10, COLLAR_H = 17; // plate blockers, at the shoulders
 
     const el = [];
 
     // Sleeves
-    el.push(`<rect x="${SL}" y="${CY-SLEEVE_H}" width="${GL-SL}" height="${SLEEVE_H*2}" fill="#7a7a7a" rx="3"/>`);
-    el.push(`<rect x="${GR}" y="${CY-SLEEVE_H}" width="${SR-GR}" height="${SLEEVE_H*2}" fill="#7a7a7a" rx="3"/>`);
+    el.push(`<rect x="${SL}" y="${CY-SLEEVE_H}" width="${GL-SL}" height="${SLEEVE_H*2}" fill="#7a7a7a" rx="2"/>`);
+    el.push(`<rect x="${GR}" y="${CY-SLEEVE_H}" width="${SR-GR}" height="${SLEEVE_H*2}" fill="#7a7a7a" rx="2"/>`);
     // Center grip
     el.push(`<rect x="${GL}" y="${CY-GRIP_H}" width="${GR-GL}" height="${GRIP_H*2}" fill="#5a5a5a" rx="2"/>`);
     // Knurl lines
     for (let gx = GL+14; gx < GR-8; gx += 11) {
       el.push(`<line x1="${gx}" y1="${CY-GRIP_H+2}" x2="${gx}" y2="${CY+GRIP_H-2}" stroke="#484848" stroke-width="1.5"/>`);
     }
-    // Shoulder bumps
-    el.push(`<rect x="${GL-7}" y="${CY-GRIP_H-2}" width="7" height="${(GRIP_H+2)*2}" fill="#686868" rx="1"/>`);
-    el.push(`<rect x="${GR}"   y="${CY-GRIP_H-2}" width="7" height="${(GRIP_H+2)*2}" fill="#686868" rx="1"/>`);
-    // Collars
-    el.push(`<rect x="${SL}"         y="${CY-COLLAR_H}" width="${COLLAR_W}" height="${COLLAR_H*2}" fill="#9e9e9e" rx="2"/>`);
-    el.push(`<rect x="${SR-COLLAR_W}" y="${CY-COLLAR_H}" width="${COLLAR_W}" height="${COLLAR_H*2}" fill="#9e9e9e" rx="2"/>`);
     // End caps
     el.push(`<rect x="${SL-5}" y="${CY-SLEEVE_H-2}" width="5" height="${(SLEEVE_H+2)*2}" fill="#888" rx="2"/>`);
     el.push(`<rect x="${SR}"   y="${CY-SLEEVE_H-2}" width="5" height="${(SLEEVE_H+2)*2}" fill="#888" rx="2"/>`);
+    // Collars (plate blockers) — at the shoulders, plates butt against these
+    el.push(`<rect x="${GL-COLLAR_W}" y="${CY-COLLAR_H}" width="${COLLAR_W}" height="${COLLAR_H*2}" fill="#9e9e9e" rx="2"/>`);
+    el.push(`<rect x="${GR}"          y="${CY-COLLAR_H}" width="${COLLAR_W}" height="${COLLAR_H*2}" fill="#9e9e9e" rx="2"/>`);
 
-    // Plates — stacking outward from shoulders
-    let xL = GL - 7, xR = GR + 7;
+    // Plates — stacking outward from the collars
+    let xL = GL - COLLAR_W, xR = GR + COLLAR_W;
     for (const p of PLATES[unit]) {
       const c = counts[p] || 0;
       if (!c) continue;
       const h = PH[unit][p], color = COLORS[unit][p];
       for (let i = 0; i < c; i++) {
+        if (xL - PW < SL + 2) break;
         xL -= PW;
-        if (xL < SL + COLLAR_W + 1) { xL += PW; break; }
         el.push(`<rect x="${xL}" y="${CY-h}" width="${PW}" height="${h*2}" fill="${color}" rx="2" stroke="rgba(0,0,0,0.35)" stroke-width="1" data-rm="${p}"/>`);
         el.push(`<rect x="${xR}" y="${CY-h}" width="${PW}" height="${h*2}" fill="${color}" rx="2" stroke="rgba(0,0,0,0.35)" stroke-width="1" data-rm="${p}"/>`);
         xR += PW;
