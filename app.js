@@ -415,7 +415,12 @@ document.getElementById('bwNext')?.addEventListener('click', () => {
   bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   renderBodyweight();
 });
-(function(){ const d = document.getElementById('bwDate'); if (d) d.value = new Date().toISOString().slice(0,10); })();
+(function(){
+  const d = document.getElementById('bwDate');
+  if (!d) return;
+  d.value = new Date().toISOString().slice(0, 10);
+  d.addEventListener('click', () => { try { d.showPicker(); } catch(e) {} });
+})();
 
 document.getElementById('bwSubmit')?.addEventListener('click', async () => {
   if (!currentUser) return;

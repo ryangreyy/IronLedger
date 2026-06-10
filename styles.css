@@ -894,6 +894,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   background:var(--bg-2); border:1px solid var(--border-strong);
   color:var(--text); font-family:var(--mono); font-size:14px;
   padding:10px 12px; border-radius:10px; outline:none; transition:border .2s;
+  color-scheme:light;
 }
 .bw-date-input:focus{ border-color:var(--accent); }
 .bw-month-nav{
