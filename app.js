@@ -2032,7 +2032,7 @@ function initApp(uid) {
 
 renderBodyweight(); // init month label + empty state on page load
 
-/* ── Goal Guide ─────────────────────────────────────── */
+// Goal Guide is self-contained in guide.html
 (function goalGuide() {
   const container = document.getElementById('goalGuide');
   if (!container) return;
