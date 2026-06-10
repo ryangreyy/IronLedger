@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=55">
+<link rel="stylesheet" href="styles.css?v=56">
 </head>
 <body>
 
@@ -426,7 +426,7 @@
     <section id="plates" class="reveal">
       <div class="eyebrow">Interactive Tool</div>
       <h2 class="title">Plate calculator</h2>
-      <p class="sub">Enter your target weight and see exactly what plates to load on each side. Toggle between lbs and kg.</p>
+      <p class="sub">Click plates to load the bar. Each click adds one plate per side. Click a loaded plate to remove it.</p>
 
       <div class="card" style="margin-top:40px; padding:28px 24px;">
         <!-- Unit + bar row -->
@@ -452,17 +452,19 @@
           </div>
         </div>
 
-        <!-- Target input -->
-        <div class="pc-input-row">
-          <div>
-            <div class="pc-label">Target weight (<span id="pcTargetUnit">lbs</span>)</div>
-            <input id="pcTarget" type="number" value="225" min="1" step="2.5" class="pc-big-input">
-          </div>
-          <div class="pc-convert" id="pcConvert"></div>
-        </div>
+        <!-- Plate palette -->
+        <div class="pc-section-label">Add plates <span class="pc-hint">— one per side</span></div>
+        <div class="pc-palette" id="pcPalette"></div>
 
-        <!-- Result -->
-        <div id="pcResult"></div>
+        <!-- Loaded bar -->
+        <div class="pc-section-label" style="margin-top:22px;">Loaded each side</div>
+        <div class="pc-bar-chips" id="pcBarChips"></div>
+
+        <!-- Total -->
+        <div class="pc-total-row">
+          <div id="pcTotal" class="pc-total"></div>
+          <button class="pc-clear-btn" id="pcClear">Clear</button>
+        </div>
       </div>
     </section>
 
@@ -522,6 +524,6 @@
 <script src="firebase-config.js"></script>
 <!-- App data and logic -->
 <script src="data.js"></script>
-<script src="app.js?v=65"></script>
+<script src="app.js?v=66"></script>
 </body>
 </html>
