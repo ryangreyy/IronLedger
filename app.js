@@ -715,10 +715,11 @@ function renderBodyweight() {
   let dots = '', labels = '';
   entries.forEach((e, i) => {
     const x = xOf(i).toFixed(1), y = yOf(e.weight).toFixed(1);
-    const [, mm, dd] = e.date.split('-');
+    const [, m, d] = e.date.split('-').map(Number);
+    const lbl = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
     dots += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
     if (i % step === 0 || i === n - 1) {
-      labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${dd}/${mm}</text>`;
+      labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${lbl}</text>`;
     }
   });
 
