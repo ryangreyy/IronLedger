@@ -1836,6 +1836,7 @@ function initApp(uid) {
       renderGoals(null);
       applyCustomLifts([]);
     }
+    renderLog(currentSessions);
     renderDonut(currentSessions);
     updateKPIs();
     renderCalendar();
