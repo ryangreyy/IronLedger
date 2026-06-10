@@ -1215,7 +1215,7 @@ function initApp(uid) {
     document.getElementById('logBody').innerHTML = sessions.length
       ? page.map(s => s.isRestDay ? `
           <tr data-id="${s.id}" class="rest-day-row">
-            <td style="color:var(--text-dim)">${s.date}</td>
+            <td style="color:var(--text-dim);white-space:nowrap">${s.date}</td>
             <td><span class="pill rest">Rest Day</span></td>
             <td style="color:var(--text-dimmer)">—</td>
             <td style="color:var(--text-dimmer)">—</td>
@@ -1225,7 +1225,7 @@ function initApp(uid) {
             </td>
           </tr>` : `
           <tr data-id="${s.id}">
-            <td style="color:var(--text-dim)">${s.date}</td>
+            <td style="color:var(--text-dim);white-space:nowrap">${s.date}</td>
             <td><span class="pill ${liftToCls(s.lift)}">${s.lift}</span></td>
             <td>${s.sets} × ${s.reps}</td>
             <td>${s.wt} lbs</td>
