@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=54">
+<link rel="stylesheet" href="styles.css?v=56">
 </head>
 <body>
 
@@ -25,17 +25,22 @@
         <a href="guide.html">Workout Schedule Guide</a>
         <a href="settings.html" class="nav-current">Settings</a>
       </div>
-      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
-        <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
-          <rect width="22" height="2" rx="1" fill="currentColor"/>
-          <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
-          <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
-        </svg>
-      </button>
-      <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
-        <div id="nav-avatar" class="nav-avatar"></div>
-        <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
-        <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+      <div class="nav-right">
+        <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+        </div>
+        <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+          <div id="nav-avatar" class="nav-avatar"></div>
+          <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+          <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <rect width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
       </div>
     </div>
   </nav>
@@ -612,14 +617,7 @@
     } finally { btn.textContent = 'Save preferences'; btn.disabled = false; }
   });
 
-  /* Hamburger nav */
-  (function() {
-    const btn = document.getElementById('nav-hamburger');
-    const links = document.getElementById('nav-links');
-    btn.addEventListener('click', e => { e.stopPropagation(); links.classList.toggle('open'); });
-    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
-    document.addEventListener('click', () => links.classList.remove('open'));
-  })();
 </script>
+<script src="nav-auth.js"></script>
 </body>
 </html>
