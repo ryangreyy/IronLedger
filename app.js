@@ -5,6 +5,7 @@
 history.scrollRestoration = 'manual';
 if (location.hash) history.replaceState(null, null, location.pathname + location.search);
 window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+window.addEventListener('load', () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
 
 /* Arm the reveal animation before the first paint.
    Without this, .reveal elements are fully visible (no JS = no hidden state).
@@ -403,15 +404,15 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
 /* Sign out */
 document.getElementById('signOut').addEventListener('click', () => auth.signOut());
 
-/* Lift dropdown button — opens datalist on click */
-document.getElementById('liftDropdownBtn')?.addEventListener('click', () => {
+/* Lift dropdown button — pointerdown so it fires before the browser
+   reassigns focus; preventDefault stops the button itself taking focus */
+document.getElementById('liftDropdownBtn')?.addEventListener('pointerdown', e => {
+  e.preventDefault();
   const input = document.getElementById('logLift');
   if (!input) return;
   input.focus();
-  const saved = input.value;
   input.value = '';
   input.dispatchEvent(new Event('input', { bubbles: true }));
-  input.value = saved;
 });
 
 /* ===== BODYWEIGHT: month nav + log submit ========================= */
