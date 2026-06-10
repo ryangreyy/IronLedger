@@ -685,7 +685,7 @@ function renderBodyweight() {
   if (empty) empty.style.display = 'none';
 
   const W = 700, H = 240;
-  const padL = 52, padR = 24, padT = 24, padB = 60;
+  const padL = 52, padR = 24, padT = 24, padB = 52;
   const chartW = W - padL - padR, chartH = H - padT - padB;
 
   const weights = entries.map(e => e.weight);
@@ -708,13 +708,18 @@ function renderBodyweight() {
   const coords = entries.map((e, i) => `${xOf(i).toFixed(1)},${yOf(e.weight).toFixed(1)}`);
   const area   = `M${xOf(0).toFixed(1)},${(padT + chartH).toFixed(1)} L${coords.join(' L')} L${xOf(n-1).toFixed(1)},${(padT+chartH).toFixed(1)}Z`;
 
+  /* Show every Nth label so they don't overlap — 44px min spacing for a DD/MM label */
+  const spacing = n > 1 ? chartW / (n - 1) : chartW;
+  const step = spacing < 22 ? 3 : spacing < 44 ? 2 : 1;
+
   let dots = '', labels = '';
   entries.forEach((e, i) => {
     const x = xOf(i).toFixed(1), y = yOf(e.weight).toFixed(1);
     const [, mm, dd] = e.date.split('-');
-    const lx = x, ly = (H - 8).toFixed(1);
-    dots   += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
-    labels += `<text x="${lx}" y="${ly}" text-anchor="end" class="axis-label" transform="rotate(-45 ${lx} ${ly})">${dd}/${mm}</text>`;
+    dots += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
+    if (i % step === 0 || i === n - 1) {
+      labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${dd}/${mm}</text>`;
+    }
   });
 
   svg.innerHTML =
