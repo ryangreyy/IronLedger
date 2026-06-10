@@ -87,14 +87,14 @@ nav.nav-hidden{ transform:translateY(-100%); }
 }
 .nav-links{
   display:none; flex-direction:column; gap:0; font-size:14px; font-weight:600;
-  position:fixed; top:61px; left:0; right:0; z-index:99;
-  background:var(--bg-2); border-bottom:1px solid var(--border-strong);
-  padding:6px 0; box-shadow:0 8px 24px rgba(0,0,0,.4);
+  position:fixed; top:56px; right:20px; z-index:99; width:230px;
+  background:var(--bg-2); border:1px solid var(--border-strong); border-radius:12px;
+  padding:6px 0; box-shadow:0 12px 32px rgba(0,0,0,.5);
 }
 .nav-links.open{ display:flex; }
-.nav-links a{ color:var(--text-dim); transition:color .2s; padding:14px 28px; border-bottom:1px solid var(--border); display:block; }
+.nav-links a{ color:var(--text-dim); transition:color .2s; padding:12px 20px; border-bottom:1px solid var(--border); display:block; }
 .nav-links a:last-child{ border-bottom:none; }
-.nav-links a:hover{ color:var(--text); }
+.nav-links a:hover{ color:var(--text); background:rgba(255,255,255,.04); }
 .nav-links a.nav-current{ color:var(--accent); }
 .nav-avatar{
   width:30px; height:30px; border-radius:50%; overflow:hidden; flex-shrink:0;
