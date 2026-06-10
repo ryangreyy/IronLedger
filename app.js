@@ -712,11 +712,12 @@ function renderBodyweight() {
   const spacing = n > 1 ? chartW / (n - 1) : chartW;
   const step = spacing < 22 ? 3 : spacing < 44 ? 2 : 1;
 
-  let dots = '', labels = '';
+  let dots = '', labels = '', vlines = '';
   entries.forEach((e, i) => {
     const x = xOf(i).toFixed(1), y = yOf(e.weight).toFixed(1);
     const [, m, d] = e.date.split('-').map(Number);
     const lbl = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
+    vlines += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${(padT + chartH).toFixed(1)}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
     dots += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
     if (i % step === 0 || i === n - 1) {
       labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${lbl}</text>`;
@@ -725,10 +726,11 @@ function renderBodyweight() {
 
   svg.innerHTML =
     `<defs><linearGradient id="bwgrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.14"/>
+      <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.26"/>
       <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
     </linearGradient></defs>` +
-    grid +
+    `<rect x="${padL}" y="${padT}" width="${chartW}" height="${chartH}" rx="3" fill="rgba(255,255,255,0.04)"/>` +
+    grid + vlines +
     `<path d="${area}" fill="url(#bwgrad)"/>` +
     `<path d="M${coords.join(' L')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>` +
     dots + labels;
@@ -930,21 +932,23 @@ function initApp(uid) {
       const coords = liftSessions.map((s, i) => `${xOf(i).toFixed(1)},${yOf(s.wt).toFixed(1)}`);
       const area   = `M${xOf(0).toFixed(1)},${(padT + chartH).toFixed(1)} L${coords.join(' L')} L${xOf(n-1).toFixed(1)},${(padT+chartH).toFixed(1)}Z`;
 
-      let dots = '', labels = '';
+      let dots = '', labels = '', vlines = '';
       liftSessions.forEach((s, i) => {
         const x = xOf(i).toFixed(1), y = yOf(s.wt).toFixed(1);
         const [, m, d] = s.dateRaw.split('-').map(Number);
         const lbl = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
+        vlines += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${(padT + chartH).toFixed(1)}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
         dots   += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
         labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${lbl}</text>`;
       });
 
       svg.innerHTML =
         `<defs><linearGradient id="hgrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.14"/>
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.26"/>
           <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
         </linearGradient></defs>` +
-        grid +
+        `<rect x="${padL}" y="${padT}" width="${chartW}" height="${chartH}" rx="3" fill="rgba(255,255,255,0.04)"/>` +
+        grid + vlines +
         `<path d="${area}" fill="url(#hgrad)"/>` +
         `<path d="M${coords.join(' L')}" fill="none" stroke="var(--accent)"
                stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>` +
