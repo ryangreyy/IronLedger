@@ -685,7 +685,7 @@ function renderBodyweight() {
   if (empty) empty.style.display = 'none';
 
   const W = 700, H = 240;
-  const padL = 52, padR = 24, padT = 24, padB = 52;
+  const padL = 52, padR = 24, padT = 24, padB = 60;
   const chartW = W - padL - padR, chartH = H - padT - padB;
 
   const weights = entries.map(e => e.weight);
@@ -711,9 +711,10 @@ function renderBodyweight() {
   let dots = '', labels = '';
   entries.forEach((e, i) => {
     const x = xOf(i).toFixed(1), y = yOf(e.weight).toFixed(1);
-    const [,, d] = e.date.split('-').map(Number);
+    const [, mm, dd] = e.date.split('-');
+    const lx = x, ly = (H - 8).toFixed(1);
     dots   += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
-    labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${d}</text>`;
+    labels += `<text x="${lx}" y="${ly}" text-anchor="end" class="axis-label" transform="rotate(-45 ${lx} ${ly})">${dd}/${mm}</text>`;
   });
 
   svg.innerHTML =
