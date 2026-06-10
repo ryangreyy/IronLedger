@@ -122,6 +122,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 }
 .avatar-bg-swatch:hover{ transform:scale(1.15); }
 .avatar-bg-swatch.bg-selected{ border-color:var(--accent); border-width:3px; }
+.nav-right{ display:flex; align-items:center; gap:10px; }
 .nav-hamburger{
   display:flex; background:transparent; border:none; color:var(--text);
   cursor:pointer; padding:6px; border-radius:6px; transition:background .15s;
