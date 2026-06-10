@@ -2276,8 +2276,8 @@ renderBodyweight(); // init month label + empty state on page load
     kg:  [25, 20, 15, 10, 5, 2.5, 1.25],
   };
   const COLORS = {
-    45: '#c0392b', 35: '#2980b9', 25: '#e67e22', 20: '#2980b9',
-    15: '#e67e22', 10: '#27ae60', 5: '#636e72', 2.5: '#95a5a6', 1.25: '#4a5568',
+    lbs: { 45: '#BF3020', 35: '#1755A2', 25: '#CFA000', 10: '#1A7A38', 5: '#B0B0B0', 2.5: '#565656' },
+    kg:  { 25: '#BF3020', 20: '#1755A2', 15: '#CFA000', 10: '#1A7A38', 5: '#B0B0B0', 2.5: '#565656', 1.25: '#444444' },
   };
   const BAR = {
     lbs: { standard: 45, womens: 35 },
@@ -2304,7 +2304,7 @@ renderBodyweight(); // init month label + empty state on page load
 
     // Palette buttons
     $('pcPalette').innerHTML = plates.map(p =>
-      `<button class="pc-plate-btn" style="background:${COLORS[p]}" data-plate="${p}">${p}</button>`
+      `<button class="pc-plate-btn" style="background:${COLORS[unit][p]}" data-plate="${p}">${p}</button>`
     ).join('');
 
     // Loaded chips (heaviest first, one chip per plate added)
@@ -2314,7 +2314,7 @@ renderBodyweight(); // init month label + empty state on page load
     }
     $('pcBarChips').innerHTML = loaded.length
       ? loaded.map(p =>
-          `<span class="pc-chip" style="background:${COLORS[p]}" data-rm="${p}">${p}<span class="pc-chip-x">×</span></span>`
+          `<span class="pc-chip" style="background:${COLORS[unit][p]}" data-rm="${p}">${p}<span class="pc-chip-x">×</span></span>`
         ).join('')
       : '<span class="pc-bar-empty">No plates loaded</span>';
 
