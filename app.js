@@ -1,7 +1,8 @@
 /* IRONLEDGER — Interactive logic, Firebase auth, and per-user data sync.
    Load order: firebase SDKs → firebase-config.js → data.js → this file. */
 
-/* Always start at the very top — prevents browser scrolling to a URL hash */
+/* Always start at the very top — prevents browser scroll restoration on refresh */
+history.scrollRestoration = 'manual';
 if (location.hash) history.replaceState(null, null, location.pathname + location.search);
 window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
