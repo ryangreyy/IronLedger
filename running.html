@@ -1,0 +1,212 @@
+<!-- IRONLEDGER — Running: Pace Calculator · Training Plan · Run Log -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>IRONLEDGER — Running</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=64">
+</head>
+<body>
+
+  <!-- ================= NAV ================= -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><span class="mark">IL</span> <span class="brand-text">IRONLEDGER</span></a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html#dashboard">Dashboard</a>
+        <a href="index.html#log">Training Log</a>
+        <a href="index.html#bodyweight">Bodyweight</a>
+        <a href="index.html#calc">1RM Calculator</a>
+        <a href="index.html#standards">Standards</a>
+        <a href="guide.html">Workout Schedule Guide</a>
+        <a href="yoga.html">Yoga &amp; PT</a>
+        <a href="running.html" class="nav-current">Running</a>
+        <a href="settings.html">Settings</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+        </div>
+        <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+          <div id="nav-avatar" class="nav-avatar"></div>
+          <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+          <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <rect width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================= PAGE ================= -->
+  <div class="wrap" style="padding:100px 28px 80px; max-width:1140px; margin:0 auto;">
+
+    <div class="eyebrow">Performance &amp; Training</div>
+    <h1 class="title" style="margin-bottom:8px;">Running</h1>
+    <p class="sub" style="margin-bottom:40px;">Calculate your race pace, build a training plan, and log every run.</p>
+
+    <!-- Tab bar -->
+    <div class="yoga-tabs" id="runTabs">
+      <button class="yoga-tab active" data-tab="pace">Pace Calculator</button>
+      <button class="yoga-tab" data-tab="plan">Training Plan</button>
+      <button class="yoga-tab" data-tab="log">Run Log</button>
+    </div>
+
+    <!-- ── PACE CALCULATOR ── -->
+    <div class="yoga-panel active" id="tab-pace">
+
+      <div class="pace-mode-toggle">
+        <button class="pace-mode-btn active" id="paceModeGoal">Goal time → Required pace</button>
+        <button class="pace-mode-btn" id="paceModePace">My pace → Finish time</button>
+      </div>
+
+      <!-- Mode 1: goal time → pace -->
+      <div id="paceInputGoal">
+        <div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:24px;align-items:flex-end">
+          <div class="field" style="min-width:160px;flex:0 0 auto">
+            <label for="paceDistSel">Distance</label>
+            <select id="paceDistSel">
+              <option value="5k">5K</option>
+              <option value="10k">10K</option>
+              <option value="half">Half Marathon</option>
+              <option value="full" selected>Marathon</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="field" id="paceCustomRow" style="display:none;min-width:120px;flex:0 0 auto">
+            <label for="paceCustomMi">Miles</label>
+            <input id="paceCustomMi" type="number" min="0.1" step="0.1" placeholder="6.5">
+          </div>
+          <div style="flex:0 0 auto">
+            <div class="guide-qlabel" style="margin-bottom:8px">Goal time (h : mm : ss)</div>
+            <div class="pace-time-row">
+              <input class="pace-t-input" id="paceH" type="number" min="0" max="9" placeholder="h">
+              <span class="pace-t-sep">:</span>
+              <input class="pace-t-input" id="paceM" type="number" min="0" max="59" placeholder="mm">
+              <span class="pace-t-sep">:</span>
+              <input class="pace-t-input" id="paceS" type="number" min="0" max="59" placeholder="ss">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 2: pace → finish time -->
+      <div id="paceInputPace" style="display:none">
+        <div style="margin-bottom:24px">
+          <div class="guide-qlabel" style="margin-bottom:8px">Your pace per mile (mm : ss)</div>
+          <div class="pace-time-row">
+            <input class="pace-t-input" id="pacePaceM" type="number" min="0" max="30" placeholder="mm">
+            <span class="pace-t-sep">:</span>
+            <input class="pace-t-input" id="pacePaceS" type="number" min="0" max="59" placeholder="ss">
+            <span style="font-size:14px;color:var(--text-dimmer);margin-left:8px;font-family:var(--mono)">/mi</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="paceOutput"></div>
+    </div>
+
+    <!-- ── TRAINING PLAN ── -->
+    <div class="yoga-panel" id="tab-plan">
+      <div id="planContainer"></div>
+    </div>
+
+    <!-- ── RUN LOG ── -->
+    <div class="yoga-panel" id="tab-log">
+      <div id="logAuthGate" class="yoga-auth-gate" style="display:none;">
+        <p>Sign in to log your runs.</p>
+        <a href="index.html" class="btn btn-primary">Sign in</a>
+      </div>
+      <div id="logContent" style="display:none;">
+
+        <!-- Form -->
+        <div class="card" style="padding:24px 22px 20px;margin-bottom:20px;">
+          <p class="controls-label">Log a run</p>
+          <div class="yoga-form-grid">
+            <div class="field">
+              <label for="rlDate">Date</label>
+              <input id="rlDate" type="date">
+            </div>
+            <div class="field">
+              <label for="rlDist">Distance (miles)</label>
+              <input id="rlDist" type="number" min="0.1" step="0.01" placeholder="3.1">
+            </div>
+            <div>
+              <div class="guide-qlabel" style="margin-bottom:8px">Time (h : mm : ss)</div>
+              <div class="pace-time-row">
+                <input class="pace-t-input" id="rlH" type="number" min="0" max="9" placeholder="h">
+                <span class="pace-t-sep">:</span>
+                <input class="pace-t-input" id="rlM" type="number" min="0" max="59" placeholder="mm">
+                <span class="pace-t-sep">:</span>
+                <input class="pace-t-input" id="rlS" type="number" min="0" max="59" placeholder="ss">
+              </div>
+              <div id="rlPacePreview" style="font-size:12px;font-family:var(--mono);color:var(--accent);margin-top:6px;min-height:16px;"></div>
+            </div>
+            <div class="field">
+              <label>Effort (1–5)</label>
+              <div class="intensity-picker" id="rlEffortPicker">
+                <button class="intensity-btn" data-val="1">1</button>
+                <button class="intensity-btn" data-val="2">2</button>
+                <button class="intensity-btn active" data-val="3">3</button>
+                <button class="intensity-btn" data-val="4">4</button>
+                <button class="intensity-btn" data-val="5">5</button>
+              </div>
+              <input type="hidden" id="rlEffort" value="3">
+            </div>
+            <div class="field" style="grid-column:1/-1;">
+              <label for="rlNotes">Route notes (optional)</label>
+              <input id="rlNotes" type="text" placeholder="e.g. Central Park loop, hilly, felt strong">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="rlSubmit" style="margin-top:4px;">Log run</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="yoga-stats" id="runStats" style="display:none;">
+          <div class="yoga-stat"><span class="yoga-stat-num" id="statRuns">0</span><span class="yoga-stat-label">runs</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num" id="statMiles">0</span><span class="yoga-stat-label">total mi</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num" id="statPace">—</span><span class="yoga-stat-label">avg pace</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num" id="statStreak">0</span><span class="yoga-stat-label">day streak</span></div>
+        </div>
+
+        <!-- Pace chart -->
+        <div class="card" style="padding:18px 20px;margin-bottom:20px;" id="runPaceChart">
+          <p style="color:var(--text-dimmer);font-family:var(--mono);font-size:13px;text-align:center;padding:24px 0;">Log more runs to see your pace trend.</p>
+        </div>
+
+        <!-- Run table -->
+        <div class="card" style="padding:8px 8px 4px;">
+          <div style="overflow-x:auto;">
+            <table class="yoga-table" id="runTable">
+              <thead>
+                <tr><th>Date</th><th>Distance</th><th>Time</th><th>Pace</th><th>Effort</th><th>Notes</th><th></th></tr>
+              </thead>
+              <tbody id="runTableBody">
+                <tr><td colspan="7" class="yoga-table-empty">No runs logged yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="nav-auth.js"></script>
+  <script src="running.js?v=1"></script>
+</body>
+</html>
