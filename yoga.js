@@ -169,8 +169,8 @@
           const ctx = c.getContext('2d');
           ctx.drawImage(img, 0, 0, 4, 4);
           const d = ctx.getImageData(0, 0, 1, 1).data;
-          // #FFEFD6 = r:255, g:239, b:214
-          if (!(d[0] > 240 && d[1] > 220 && d[2] > 190)) {
+          // #FFEFD6 = r:255, g:239, b:214 — b<230 excludes white (transparent bg)
+          if (!(d[0] > 240 && d[1] > 220 && d[2] > 190 && d[2] < 230)) {
             img.closest('.pose-card-img-wrap').classList.add('pose-no-circle');
           }
         } catch(e) {}
