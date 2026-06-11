@@ -80,6 +80,63 @@
     btn.classList.toggle('fav-active', on);
   }
 
+  // ── Stretch & PT mappings ─────────────────────────────────────────────────
+  const BODY_PART_POSES = {
+    hamstrings:   ['Standing Forward Bend','Seated Forward Bend','Downward-Facing Dog','Triangle','Pyramid','Warrior Three'],
+    hips:         ['Pigeon','Butterfly','Low Lunge','Garland Pose','King Pigeon','Crescent Lunge'],
+    lower_back:   ["Child's Pose",'Cat','Sphinx','Bridge','Half Lord of the Fishes'],
+    shoulders:    ['Downward-Facing Dog','Upward-Facing Dog','Camel','Shoulder Stand','Eagle','Forward Bend with Shoulder Opener'],
+    quads:        ['Low Lunge','Camel','Warrior One','Chair','Crescent Lunge','Crescent Moon'],
+    calves:       ['Downward-Facing Dog','Standing Forward Bend','Extended Hand to Toe'],
+    chest:        ['Camel','Upward-Facing Dog','Bridge','Wild Thing','Wheel','Bow'],
+    glutes:       ['Pigeon','King Pigeon','Bridge','Warrior Two'],
+    inner_thighs: ['Butterfly','Warrior Two','Triangle','Garland Pose','Side Splits'],
+    it_band:      ['Half Lord of the Fishes','Pigeon','Triangle'],
+  };
+  const POST_WORKOUT_TARGETS = {
+    leg_day:    ['hamstrings','quads','glutes','calves','hips'],
+    upper_body: ['shoulders','chest'],
+    cardio_run: ['hamstrings','calves','hips','lower_back','it_band'],
+    full_body:  ['hamstrings','hips','shoulders','lower_back','chest'],
+    push_day:   ['chest','shoulders'],
+    pull_day:   ['shoulders','lower_back','hamstrings'],
+  };
+  const PT_TARGETS = {
+    lower_back_pain:    ['lower_back','hips','hamstrings'],
+    tight_hips:         ['hips','glutes','inner_thighs'],
+    shoulder_tightness: ['shoulders','chest'],
+    sciatica:           ['lower_back','hips','glutes','it_band'],
+    knee_tension:       ['quads','hamstrings','calves'],
+    neck_tension:       ['shoulders'],
+    general_recovery:   ['lower_back','hips','hamstrings','shoulders'],
+  };
+  const STRETCH_LABELS = {
+    hamstrings:'Hamstrings', hips:'Hips', lower_back:'Lower Back', shoulders:'Shoulders',
+    quads:'Quads', calves:'Calves', chest:'Chest', glutes:'Glutes',
+    inner_thighs:'Inner Thighs', it_band:'IT Band',
+    leg_day:'Leg Day', upper_body:'Upper Body', cardio_run:'Cardio / Run',
+    full_body:'Full Body', push_day:'Push Day', pull_day:'Pull Day',
+    lower_back_pain:'Lower Back Pain', tight_hips:'Tight Hips',
+    shoulder_tightness:'Shoulder Tightness', sciatica:'Sciatica',
+    knee_tension:'Knee Tension', neck_tension:'Neck Tension',
+    general_recovery:'General Recovery',
+  };
+
+  function getStretchPoses(type, key) {
+    let parts = [];
+    if (type === 'body') parts = [key];
+    else if (type === 'workout') parts = POST_WORKOUT_TARGETS[key] || [];
+    else if (type === 'pt') parts = PT_TARGETS[key] || [];
+    const seen = new Set();
+    const names = [];
+    parts.forEach(bp => (BODY_PART_POSES[bp] || []).forEach(n => {
+      if (!seen.has(n)) { seen.add(n); names.push(n); }
+    }));
+    const matched = allPoses.filter(p => seen.has(p.english_name));
+    matched.sort((a, b) => names.indexOf(a.english_name) - names.indexOf(b.english_name));
+    return matched;
+  }
+
   // ── State ─────────────────────────────────────────────────────────────────
   let allPoses = [];
   let flowPoses = []; // [{ pose, duration }]
@@ -99,6 +156,7 @@
   setupTimerControls();
   setupSessionForm();
   setupFlexForm();
+  setupStretchFinder();
   loadPoses();
 
   auth.onAuthStateChanged(user => {
@@ -422,6 +480,46 @@
   function stopFlowTimer() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     document.getElementById('flowTimer').style.display = 'none';
+  }
+
+  // ── Stretch & PT ──────────────────────────────────────────────────────────
+  function setupStretchFinder() {
+    const panel = document.getElementById('tab-stretch');
+    panel.addEventListener('click', e => {
+      const btn = e.target.closest('.stretch-btn');
+      if (btn) {
+        document.querySelectorAll('.stretch-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderStretchResults(btn.dataset.stype, btn.dataset.skey);
+        return;
+      }
+      const favBtn = e.target.closest('.pose-card-fav-btn[data-fav-id]');
+      if (favBtn) { e.stopPropagation(); toggleFavorite(+favBtn.dataset.favId); return; }
+      const card = e.target.closest('.pose-card[data-id]');
+      if (card) openPoseModal(+card.dataset.id);
+    });
+    document.getElementById('stretchLoadFlow').addEventListener('click', () => {
+      const activeBtn = document.querySelector('.stretch-btn.active');
+      if (!activeBtn) return;
+      const poses = getStretchPoses(activeBtn.dataset.stype, activeBtn.dataset.skey);
+      flowPoses = poses.map(p => ({ pose: p, duration: 30 }));
+      renderFlowSequence();
+      document.querySelector('.yoga-tab[data-tab="flow"]').click();
+    });
+  }
+
+  function renderStretchResults(type, key) {
+    const poses = getStretchPoses(type, key);
+    const label = STRETCH_LABELS[key] || key;
+    const prefix = type === 'body' ? 'Stretches for ' : type === 'workout' ? 'Cool-down: ' : 'Relief for ';
+    document.getElementById('stretchResultsTitle').textContent = prefix + label;
+    document.getElementById('stretchResultsCount').textContent = `${poses.length} pose${poses.length !== 1 ? 's' : ''}`;
+    const grid = document.getElementById('stretchPoseGrid');
+    grid.innerHTML = poses.length ? poses.map(poseCardHTML).join('') : '<p class="yoga-empty">No matching poses found.</p>';
+    if (poses.length) applyCircleDetection();
+    const results = document.getElementById('stretchResults');
+    results.style.display = '';
+    results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   // ── Session Log ───────────────────────────────────────────────────────────
