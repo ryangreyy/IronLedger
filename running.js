@@ -372,35 +372,70 @@
   }
 
   function renderPaceChart(logs) {
-    const c = document.getElementById('runPaceChart');
-    if (logs.length < 2) {
-      c.innerHTML = '<p style="color:var(--text-dimmer);font-family:var(--mono);font-size:13px;text-align:center;padding:24px 0;">Log more runs to see your pace trend.</p>';
+    const svg   = document.getElementById('runPaceChart');
+    const empty = document.getElementById('runPaceEmpty');
+    if (!svg) return;
+
+    const valid = logs.filter(l => l.paceSecsPerMile > 0);
+    if (valid.length < 2) {
+      svg.innerHTML = '';
+      if (empty) empty.style.display = '';
       return;
     }
-    const recent = logs.slice(-20);
-    const W = 480, H = 90, PAD = 14;
-    const paces = recent.map(l => l.paceSecsPerMile || 0).filter(Boolean);
+    if (empty) empty.style.display = 'none';
+
+    const recent = valid.slice(-20);
+    const W = 700, H = window.innerWidth < 640 ? 320 : 240;
+    const padL = 60, padR = 24, padT = 24, padB = 52;
+    const chartW = W - padL - padR, chartH = H - padT - padB;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    const paces = recent.map(l => l.paceSecsPerMile);
     const minP = Math.min(...paces), maxP = Math.max(...paces);
-    const range = Math.max(maxP - minP, 30);
-    const pts = recent.map((l, i) => ({
-      x: PAD + (i / (recent.length - 1)) * (W - PAD * 2),
-      y: PAD + ((l.paceSecsPerMile - minP) / range) * (H - PAD * 2),
-      p: l.paceSecsPerMile, dt: l.date,
-    }));
-    const poly = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-    const dots = pts.map(p =>
-      `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="var(--accent)" stroke="var(--bg-2)" stroke-width="1.5"><title>${fmtPace(p.p)}/mi · ${p.dt}</title></circle>`
-    ).join('');
-    c.innerHTML = `
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">
-        Pace Trend <span style="font-size:11px;color:var(--text-dimmer);font-weight:400;font-family:var(--mono);">(lower = faster)</span>
-      </div>
-      <svg viewBox="0 0 ${W} ${H}" width="100%" style="overflow:visible;">
-        <polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".65"/>
-        ${dots}
-        <text x="${PAD-3}" y="${PAD+4}" font-size="9" fill="var(--text-dimmer)" text-anchor="end">${fmtPace(minP)}</text>
-        <text x="${PAD-3}" y="${H-PAD+4}" font-size="9" fill="var(--text-dimmer)" text-anchor="end">${fmtPace(maxP)}</text>
-      </svg>`;
+    const padY = (maxP - minP) * 0.25 || 30;
+    const lo = minP - padY, hi = maxP + padY, range = hi - lo;
+
+    const n   = recent.length;
+    const xOf = i => padL + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW);
+    // Higher seconds (slower) at top; lower seconds (faster) at bottom → downward trend = improvement
+    const yOf = p => padT + chartH - ((p - lo) / range) * chartH;
+
+    let grid = '';
+    for (let i = 0; i <= 4; i++) {
+      const y   = padT + (i / 4) * chartH;
+      const val = hi - (i / 4) * range;
+      grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+      grid += `<text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" class="axis-label">${fmtPace(val)}</text>`;
+    }
+
+    const coords = recent.map((l, i) => `${xOf(i).toFixed(1)},${yOf(l.paceSecsPerMile).toFixed(1)}`);
+    const area   = `M${xOf(0).toFixed(1)},${(padT + chartH).toFixed(1)} L${coords.join(' L')} L${xOf(n-1).toFixed(1)},${(padT+chartH).toFixed(1)}Z`;
+
+    const spacing = n > 1 ? chartW / (n - 1) : chartW;
+    const step = spacing < 22 ? 3 : spacing < 44 ? 2 : 1;
+
+    let dots = '', labels = '', vlines = '';
+    recent.forEach((l, i) => {
+      const x = xOf(i).toFixed(1), y = yOf(l.paceSecsPerMile).toFixed(1);
+      const [, m, d] = l.date.split('-').map(Number);
+      const lbl = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
+      vlines += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${(padT + chartH).toFixed(1)}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+      dots   += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"><title>${fmtPace(l.paceSecsPerMile)}/mi · ${l.date}</title></circle>`;
+      if (i % step === 0 || i === n - 1) {
+        labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${lbl}</text>`;
+      }
+    });
+
+    svg.innerHTML =
+      `<defs><linearGradient id="pcgrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.26"/>
+        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+      </linearGradient></defs>` +
+      `<rect x="${padL}" y="${padT}" width="${chartW}" height="${chartH}" rx="3" fill="rgba(255,255,255,0.04)"/>` +
+      grid + vlines +
+      `<path d="${area}" fill="url(#pcgrad)"/>` +
+      `<path d="M${coords.join(' L')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>` +
+      dots + labels;
   }
 
   // ── Utilities ──────────────────────────────────────────────────────────────
