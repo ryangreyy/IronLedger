@@ -1,0 +1,266 @@
+<!-- IRONLEDGER — Yoga: Pose Library · Flow Builder · Session Log · Flexibility Tracker -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>IRONLEDGER — Yoga</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=58">
+</head>
+<body>
+
+  <!-- ================= NAV ================= -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><span class="mark">IL</span> <span class="brand-text">IRONLEDGER</span></a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html#dashboard">Dashboard</a>
+        <a href="index.html#log">Training Log</a>
+        <a href="index.html#bodyweight">Bodyweight</a>
+        <a href="index.html#calc">1RM Calculator</a>
+        <a href="index.html#standards">Standards</a>
+        <a href="guide.html">Workout Schedule Guide</a>
+        <a href="yoga.html" class="nav-current">Yoga</a>
+        <a href="settings.html">Settings</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+        </div>
+        <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+          <div id="nav-avatar" class="nav-avatar"></div>
+          <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+          <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <rect width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================= PAGE ================= -->
+  <div class="wrap" style="padding-top:100px;padding-bottom:80px;">
+
+    <div class="eyebrow">Mind &amp; Body</div>
+    <h1 class="title" style="margin-bottom:8px;">Yoga</h1>
+    <p class="sub" style="margin-bottom:40px;">Explore poses, build flows, track sessions, and measure your flexibility progress.</p>
+
+    <!-- Tab bar -->
+    <div class="yoga-tabs" id="yogaTabs">
+      <button class="yoga-tab active" data-tab="library">Pose Library</button>
+      <button class="yoga-tab" data-tab="flow">Flow Builder</button>
+      <button class="yoga-tab" data-tab="sessions">Session Log</button>
+      <button class="yoga-tab" data-tab="flexibility">Flexibility Tracker</button>
+    </div>
+
+    <!-- ── POSE LIBRARY ── -->
+    <div class="yoga-panel active" id="tab-library">
+      <div class="yoga-controls">
+        <input type="text" id="poseSearch" placeholder="Search poses…" class="yoga-search">
+        <div class="pose-filters" id="poseFilters">
+          <button class="pose-filter-btn active" data-cat="">All</button>
+        </div>
+      </div>
+      <div class="pose-grid" id="poseGrid">
+        <p class="pose-loading">Loading poses…</p>
+      </div>
+    </div>
+
+    <!-- ── FLOW BUILDER ── -->
+    <div class="yoga-panel" id="tab-flow">
+      <div class="flow-builder">
+        <div class="flow-picker">
+          <span class="yoga-section-label">Add poses to your flow</span>
+          <input type="text" id="flowSearch" placeholder="Search poses…" class="yoga-search">
+          <div class="flow-pose-list" id="flowPoseList"></div>
+        </div>
+        <div class="flow-sequence-wrap">
+          <div class="flow-sequence-header">
+            <div>
+              <span class="yoga-section-label">Your flow <span id="flowCount" class="flow-count">0 poses</span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="yoga-section-label" style="margin-bottom:0;">Default hold</span>
+              <input type="number" id="flowDefaultDuration" value="30" min="5" max="300" step="5" class="flow-duration-input">
+              <span style="font-size:12px;color:var(--text-dim);">sec</span>
+            </div>
+          </div>
+          <div class="flow-sequence" id="flowSequence">
+            <p class="flow-empty">Add poses from the left to build your flow.</p>
+          </div>
+          <div class="flow-btns">
+            <button class="btn btn-ghost" id="flowClear">Clear</button>
+            <button class="btn btn-primary" id="flowStart">Start Flow ▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SESSION LOG ── -->
+    <div class="yoga-panel" id="tab-sessions">
+      <div id="sessions-auth-gate" class="yoga-auth-gate" style="display:none;">
+        <p>Sign in to track your yoga sessions.</p>
+        <a href="index.html" class="btn btn-primary">Sign in</a>
+      </div>
+      <div id="sessions-content" style="display:none;">
+        <div class="card" style="padding:24px 22px 20px;margin-bottom:20px;">
+          <p class="controls-label">Log a new session</p>
+          <div class="yoga-form-grid">
+            <div class="field">
+              <label for="ysDate">Date</label>
+              <input id="ysDate" type="date">
+            </div>
+            <div class="field">
+              <label for="ysStyle">Style</label>
+              <select id="ysStyle">
+                <option value="vinyasa">Vinyasa</option>
+                <option value="yin">Yin</option>
+                <option value="hatha">Hatha</option>
+                <option value="restorative">Restorative</option>
+                <option value="ashtanga">Ashtanga</option>
+                <option value="power">Power Yoga</option>
+                <option value="kundalini">Kundalini</option>
+                <option value="bikram">Bikram / Hot Yoga</option>
+                <option value="flow_builder">Flow Builder Session</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ysDuration">Duration (min)</label>
+              <input id="ysDuration" type="number" min="1" max="300" placeholder="45">
+            </div>
+            <div class="field">
+              <label>Intensity (1–5)</label>
+              <div class="intensity-picker" id="ysIntensityPicker">
+                <button class="intensity-btn" data-val="1">1</button>
+                <button class="intensity-btn" data-val="2">2</button>
+                <button class="intensity-btn active" data-val="3">3</button>
+                <button class="intensity-btn" data-val="4">4</button>
+                <button class="intensity-btn" data-val="5">5</button>
+              </div>
+              <input type="hidden" id="ysIntensity" value="3">
+            </div>
+            <div class="field">
+              <label for="ysMood">Mood after</label>
+              <select id="ysMood">
+                <option value="great">Great 😌</option>
+                <option value="good">Good</option>
+                <option value="ok">Ok</option>
+                <option value="tired">Tired</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column:1/-1;">
+              <label for="ysNotes">Notes (optional)</label>
+              <input id="ysNotes" type="text" placeholder="How did it feel?">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="ysSubmit" style="margin-top:4px;">Log session</button>
+        </div>
+
+        <div class="yoga-stats" id="yogaStats" style="display:none;">
+          <div class="yoga-stat"><span class="yoga-stat-num" id="statSessions">0</span><span class="yoga-stat-label">sessions</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num" id="statMinutes">0</span><span class="yoga-stat-label">total min</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num" id="statFaveStyle">—</span><span class="yoga-stat-label">top style</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num" id="statStreak">0</span><span class="yoga-stat-label">day streak</span></div>
+        </div>
+
+        <div class="card" style="padding:8px 8px 4px;">
+          <div style="overflow-x:auto;">
+            <table class="yoga-table" id="sessionTable">
+              <thead><tr><th>Date</th><th>Style</th><th>Duration</th><th>Intensity</th><th>Mood</th><th>Notes</th><th></th></tr></thead>
+              <tbody id="sessionTableBody">
+                <tr><td colspan="7" class="yoga-table-empty">No sessions logged yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FLEXIBILITY TRACKER ── -->
+    <div class="yoga-panel" id="tab-flexibility">
+      <div id="flex-auth-gate" class="yoga-auth-gate" style="display:none;">
+        <p>Sign in to track your flexibility.</p>
+        <a href="index.html" class="btn btn-primary">Sign in</a>
+      </div>
+      <div id="flex-content" style="display:none;">
+        <div class="card" style="padding:24px 22px 20px;margin-bottom:20px;">
+          <p class="controls-label">Log a flexibility measurement</p>
+          <div class="yoga-form-grid">
+            <div class="field">
+              <label for="flDate">Date</label>
+              <input id="flDate" type="date">
+            </div>
+            <div class="field">
+              <label for="flBenchmark">Benchmark</label>
+              <select id="flBenchmark">
+                <option value="forward_fold">Forward Fold</option>
+                <option value="hip_opener">Hip Opener</option>
+                <option value="shoulder_reach">Shoulder Reach</option>
+                <option value="splits_left">Left Splits</option>
+                <option value="splits_right">Right Splits</option>
+                <option value="backbend">Backbend</option>
+                <option value="pigeon">Pigeon Pose</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="flScore">Score (1–10)</label>
+              <input id="flScore" type="number" min="1" max="10" step="0.5" placeholder="7">
+            </div>
+            <div class="field" style="grid-column:1/-1;">
+              <label for="flNotes">Notes (optional)</label>
+              <input id="flNotes" type="text" placeholder="e.g. fingers touched floor for the first time">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="flSubmit" style="margin-top:4px;">Save measurement</button>
+        </div>
+        <div id="flexCharts" class="flex-charts-grid"></div>
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+
+  <!-- ── POSE DETAIL MODAL ── -->
+  <div id="poseModal" class="pose-modal-overlay" style="display:none;">
+    <div class="pose-modal">
+      <button class="pose-modal-close" id="poseModalClose">&times;</button>
+      <div class="pose-modal-inner" id="poseModalInner"></div>
+    </div>
+  </div>
+
+  <!-- ── FLOW TIMER MODAL ── -->
+  <div id="flowTimer" class="flow-timer-overlay" style="display:none;">
+    <div class="flow-timer-inner">
+      <button class="flow-timer-close" id="flowTimerClose">&times;</button>
+      <div class="flow-timer-progress-bar"><div id="flowTimerBar" class="flow-timer-bar"></div></div>
+      <div class="flow-timer-pose-num" id="flowTimerNum"></div>
+      <img id="flowTimerImg" class="flow-timer-img" src="" alt="" style="display:none;">
+      <div class="flow-timer-emoji" id="flowTimerEmoji" style="display:none;"></div>
+      <div class="flow-timer-name" id="flowTimerName"></div>
+      <div class="flow-timer-sanskrit" id="flowTimerSanskrit"></div>
+      <div class="flow-timer-countdown" id="flowTimerCountdown">—</div>
+      <div class="flow-timer-controls">
+        <button class="flow-ctrl-btn" id="flowCtrlPrev">← Prev</button>
+        <button class="flow-ctrl-btn flow-ctrl-pause" id="flowCtrlPause">Pause</button>
+        <button class="flow-ctrl-btn" id="flowCtrlNext">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="nav-auth.js"></script>
+  <script src="yoga.js?v=1"></script>
+</body>
+</html>
