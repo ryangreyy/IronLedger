@@ -1241,3 +1241,15 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .plan-row{ display:grid; grid-template-columns:36px 1fr 80px 80px 1fr; gap:0; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.04); align-items:center; font-size:13px; }
 .plan-row:last-child{ border-bottom:none; }
 @media(max-width:600px){ .plan-row{ grid-template-columns:30px 1fr 60px 60px; } .plan-row span:last-child{ display:none; } }
+
+/* Plan phase legend */
+.plan-legend{ display:flex; gap:14px; flex-wrap:wrap; }
+.plan-leg{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-family:var(--mono); color:var(--text-dim); }
+.plan-leg-dot{ width:10px; height:10px; border-radius:3px; flex:0 0 auto; }
+
+/* Inline weekly-volume bar inside the plan table */
+.plan-vol{ display:flex; flex-direction:column; gap:4px; }
+.plan-vol-num{ line-height:1; }
+.plan-vol-bar{ display:block; height:3px; border-radius:2px; background:rgba(255,255,255,.07); overflow:hidden; }
+.plan-vol-bar > span{ display:block; height:100%; border-radius:2px; opacity:.55; }
+@media(max-width:600px){ .plan-vol-bar{ display:none; } }

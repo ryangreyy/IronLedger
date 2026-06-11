@@ -232,11 +232,38 @@
         ? ' · Race ' + new Date(planSt.date + 'T12:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'})
         : '';
 
+      // Summary figures
+      const peak       = Math.max(...weeks.map(w => w.miles));
+      const totalMiles = Math.round(weeks.reduce((s, w) => s + w.miles, 0));
+      const longest    = Math.max(...weeks.map(w => Math.round(w.miles * 0.32 * 10) / 10));
+
+      // Phase legend (only phases used in this plan, in canonical order)
+      const phaseOrder = Object.keys(PHASE_COLOR);
+      const phasesUsed = [...new Set(weeks.map(w => w.phase))]
+        .sort((a, b) => phaseOrder.indexOf(a) - phaseOrder.indexOf(b));
+      const legend = phasesUsed.map(p =>
+        `<span class="plan-leg"><span class="plan-leg-dot" style="background:${PHASE_COLOR[p] || 'var(--text-dim)'}"></span>${p}</span>`
+      ).join('');
+
       c.innerHTML = `
-        <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
-          <p class="guide-title" style="margin:0;">${race.name} Training Plan</p>
-        </div>
+        <p class="guide-title" style="margin:0 0 8px;">${race.name} Training Plan</p>
         <span class="guide-badge">${expL} · ${planSt.days} days/week${dateLabel}</span>
+
+        <div class="yoga-stats" style="margin-top:16px;">
+          <div class="yoga-stat"><span class="yoga-stat-num">${weeks.length}</span><span class="yoga-stat-label">weeks</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num">${peak}</span><span class="yoga-stat-label">peak mi/wk</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num">${totalMiles}</span><span class="yoga-stat-label">total miles</span></div>
+          <div class="yoga-stat"><span class="yoga-stat-num">${longest}</span><span class="yoga-stat-label">longest run</span></div>
+        </div>
+
+        <div class="card chart-card" style="margin:0 0 20px;">
+          <div class="chart-head">
+            <p class="controls-label" style="margin:0;">Weekly Mileage</p>
+            <div class="plan-legend">${legend}</div>
+          </div>
+          ${buildMileageChart(weeks)}
+        </div>
+
         <div class="plan-table">
           <div class="plan-row plan-header">
             <span>Wk</span><span>Phase</span><span>Total</span><span>Long Run</span><span>Key Workout</span>
@@ -245,10 +272,14 @@
             const long = Math.round(w.miles * 0.32 * 10) / 10;
             const key  = planSt.days >= 4 ? `${Math.round(w.miles * 0.20 * 10) / 10} mi tempo` : 'Easy runs';
             const col  = PHASE_COLOR[w.phase] || 'var(--text-dim)';
+            const pct  = Math.round((w.miles / peak) * 100);
             return `<div class="plan-row">
               <span style="color:var(--text-dimmer);">${i + 1}</span>
               <span style="color:${col};font-weight:600;">${w.phase}</span>
-              <span>${w.miles} mi</span>
+              <span class="plan-vol">
+                <span class="plan-vol-num">${w.miles} mi</span>
+                <span class="plan-vol-bar"><span style="width:${pct}%;background:${col};"></span></span>
+              </span>
               <span>${long} mi</span>
               <span style="color:var(--text-dim);font-size:12px;">${key}</span>
             </div>`;
@@ -256,6 +287,47 @@
         </div>
         <button class="guide-restart" onclick="planRst()">Start over</button>`;
     }
+  }
+
+  // Phase-colored bar chart of weekly mileage — matches the bodyweight/pace chart style
+  function buildMileageChart(weeks) {
+    const W = 700, H = window.innerWidth < 640 ? 240 : 210;
+    const padL = 44, padR = 18, padT = 16, padB = 38;
+    const chartW = W - padL - padR, chartH = H - padT - padB;
+    const n = weeks.length;
+
+    const maxM = Math.max(...weeks.map(w => w.miles));
+    const hi   = Math.max(Math.ceil(maxM / 10) * 10, 10);
+    const yOf  = m => padT + chartH - (m / hi) * chartH;
+
+    let grid = '';
+    for (let i = 0; i <= 4; i++) {
+      const y   = padT + (i / 4) * chartH;
+      const val = Math.round(hi - (i / 4) * hi);
+      grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+      grid += `<text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" class="axis-label">${val}</text>`;
+    }
+
+    const slot = chartW / n;
+    const bw   = Math.min(slot * 0.62, 36);
+    const lblStep = n > 14 ? 2 : 1;
+
+    let bars = '', labels = '';
+    weeks.forEach((w, i) => {
+      const x   = padL + i * slot + (slot - bw) / 2;
+      const y   = yOf(w.miles);
+      const h   = padT + chartH - y;
+      const col = PHASE_COLOR[w.phase] || 'var(--text-dim)';
+      bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h,0).toFixed(1)}" rx="3" fill="${col}" opacity="0.88"><title>Week ${i + 1} · ${w.phase} · ${w.miles} mi</title></rect>`;
+      if (i % lblStep === 0 || i === n - 1) {
+        labels += `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 12}" text-anchor="middle" class="axis-label">${i + 1}</text>`;
+      }
+    });
+
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible;">
+      <rect x="${padL}" y="${padT}" width="${chartW}" height="${chartH}" rx="3" fill="rgba(255,255,255,0.04)"/>
+      ${grid}${bars}${labels}
+    </svg>`;
   }
 
   window.planPick  = id => { planSt.race = id; planRender(); };
