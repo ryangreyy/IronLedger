@@ -513,6 +513,8 @@
 
   // ── Flexibility Tracker ───────────────────────────────────────────────────
   function setupFlexForm() {
+    const flDate = document.getElementById('flDate');
+    flDate.addEventListener('click', () => { try { flDate.showPicker(); } catch(e) {} });
     document.getElementById('flSubmit').addEventListener('click', submitFlexLog);
   }
 
