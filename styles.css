@@ -60,7 +60,7 @@ section{max-width:1140px; margin:0 auto; padding:88px 28px;}
   display:flex; align-items:center; gap:10px;
 }
 .eyebrow::before{content:""; width:26px; height:2px; background:var(--accent);}
-h2.title{
+h1.title, h2.title{
   font-family:var(--display); font-weight:400; font-size:clamp(30px,5vw,52px);
   letter-spacing:0.5px; line-height:1.02; text-transform:uppercase;
 }
