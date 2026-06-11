@@ -41,6 +41,12 @@
     'Backbends':'🌉', 'Inversions':'🙃', 'Restorative Poses':'😴', default:'🧘',
   };
 
+  const CIRCLE_COLORS = [
+    '#E8834B','#5BAEE8','#E85B8A','#5BCEA0',
+    '#9A5BE8','#E8C25B','#5BCCE8','#E85BC8',
+    '#7AE85B','#E85858','#58B4E8','#C2E858',
+  ];
+
   const STYLE_LABELS = {
     vinyasa:'Vinyasa', yin:'Yin', hatha:'Hatha', restorative:'Restorative',
     ashtanga:'Ashtanga', power:'Power Yoga', kundalini:'Kundalini',
@@ -154,9 +160,10 @@
 
   function poseCardHTML(p) {
     const img = p.url_svg || p.url_png || '';
+    const circleColor = CIRCLE_COLORS[(p.id || 0) % CIRCLE_COLORS.length];
     const imgEl = img
       ? `<img src="${img}" alt="${esc(p.english_name)}" class="pose-card-img" loading="lazy" onerror="this.style.display='none'">`
-      : `<div class="pose-card-placeholder">${CAT_EMOJI[p.category_name] || CAT_EMOJI.default}</div>`;
+      : `<div class="pose-card-placeholder" style="background:${circleColor}">${CAT_EMOJI[p.category_name] || CAT_EMOJI.default}</div>`;
     return `<div class="pose-card" data-id="${p.id}" tabindex="0" role="button">
       <div class="pose-card-img-wrap">${imgEl}</div>
       <div class="pose-card-info">
