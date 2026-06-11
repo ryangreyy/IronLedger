@@ -35,28 +35,10 @@
     { id:25, english_name:'Warrior III',            sanskrit_name_adapted:'Virabhadrasana III',        category_name:'Balancing Poses',      pose_description:'Balance on one leg, extend the other leg back parallel to the floor. Torso and back leg form a T-shape, arms reaching forward.', pose_benefits:'Strengthens ankles, legs, and core. Improves balance and posture. Builds full-body stability.', url_svg:'', url_png:'' },
   ];
 
-  const SKIN_MODS  = ['\u{1F3FF}','\u{1F3FE}','\u{1F3FD}','\u{1F3FC}','\u{1F3FB}'];
-  const BASE_EMOJI = ['\u{1F9D8}','\u{1F938}','\u{1F647}','\u{1F9CD}']; // 🧘 🤸 🙇 🧍
-
-  function poseEmoji(p) {
-    const c = (p.category_name || '').toLowerCase();
-    let base;
-    if (c) {
-      // Fallback poses carry category_name — pick a matching figure
-      if      (c.includes('stand'))                                       base = '\u{1F9CD}'; // 🧍
-      else if (c.includes('balanc') || c.includes('arm') ||
-               c.includes('inver')  || c.includes('backbend'))            base = '\u{1F938}'; // 🤸
-      else if (c.includes('forward') && !c.includes('seat'))              base = '\u{1F647}'; // 🙇
-      else                                                                 base = '\u{1F9D8}'; // 🧘
-    } else {
-      // API poses have no category — cycle all 4 figure types by pose ID
-      base = BASE_EMOJI[(p.id || 0) % 4];
-    }
-    return base + SKIN_MODS[(p.id || 0) % 5];
-  }
-
   const CAT_EMOJI = {
-    default: '\u{1F9D8}',
+    'Standing Poses':'🏋️', 'Balancing Poses':'🌳', 'Core Yoga Poses':'💪',
+    'Forward Bends':'🙇', 'Seated Forward Bends':'🧘', 'Hip-Opening Poses':'🦵',
+    'Backbends':'🌉', 'Inversions':'🙃', 'Restorative Poses':'😴', default:'🧘',
   };
 
   const STYLE_LABELS = {
@@ -171,10 +153,12 @@
   }
 
   function poseCardHTML(p) {
+    const img = p.url_svg || p.url_png || '';
+    const imgEl = img
+      ? `<img src="${img}" alt="${esc(p.english_name)}" class="pose-card-img" loading="lazy" onerror="this.style.display='none'">`
+      : `<div class="pose-card-placeholder">${CAT_EMOJI[p.category_name] || CAT_EMOJI.default}</div>`;
     return `<div class="pose-card" data-id="${p.id}" tabindex="0" role="button">
-      <div class="pose-card-img-wrap">
-        <div class="pose-card-placeholder">${poseEmoji(p)}</div>
-      </div>
+      <div class="pose-card-img-wrap">${imgEl}</div>
       <div class="pose-card-info">
         <div class="pose-card-name">${esc(p.english_name)}</div>
         <div class="pose-card-sanskrit">${esc(p.sanskrit_name_adapted||'')}</div>
@@ -249,8 +233,12 @@
       !search || (p.english_name||'').toLowerCase().includes(search) || (p.category_name||'').toLowerCase().includes(search)
     );
     document.getElementById('flowPoseList').innerHTML = filtered.map(p => {
+      const img = p.url_svg || p.url_png || '';
+      const imgEl = img
+        ? `<img src="${img}" alt="" onerror="this.style.display='none'">`
+        : `<div class="flow-pose-item-emoji">${CAT_EMOJI[p.category_name]||CAT_EMOJI.default}</div>`;
       return `<div class="flow-pose-item">
-        <div class="flow-pose-item-emoji">${poseEmoji(p)}</div>
+        ${imgEl}
         <div style="flex:1;min-width:0;">
           <div class="flow-pose-item-name">${esc(p.english_name)}</div>
           <div class="flow-pose-item-cat">${esc(p.category_name||'')}</div>
