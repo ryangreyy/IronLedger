@@ -48,6 +48,8 @@
     Peak:'var(--accent)',   Taper:'#E8C25B', 'Race Week':'#FF8A4C',
   };
 
+  const RACE_ICON = { '5k':'🏃', '10k':'🏃', 'half':'⚡', 'full':'🏆' };
+
   // ── State ──────────────────────────────────────────────────────────────────
   let currentUser = null;
   let paceMode    = 'goal';
@@ -129,7 +131,7 @@
 
       out.innerHTML = `
         <div class="pace-result-grid">
-          <div class="pace-result-card">
+          <div class="pace-result-card pace-hero">
             <div class="pace-result-label">Required pace</div>
             <div class="pace-result-val">${ppm ? fmtPace(ppm) : '—'}<span class="pace-result-unit"> /mi</span></div>
           </div>
@@ -140,9 +142,9 @@
         </div>
         <div class="pace-proj-block">
           <div class="pace-proj-title">At this pace you'd finish</div>
-          ${Object.entries(RACES).map(([,r]) => `
-            <div class="pace-proj-row">
-              <span>${r.name}</span>
+          ${Object.entries(RACES).map(([key, r]) => `
+            <div class="pace-proj-row${key === distKey ? ' on' : ''}">
+              <span class="pace-proj-name"><span class="pace-proj-ico">${RACE_ICON[key] || '🏃'}</span>${r.name}</span>
               <span class="pace-proj-time">${ppm ? fmtTime(ppm * r.miles) : '—'}</span>
             </div>`).join('')}
         </div>`;
@@ -155,9 +157,9 @@
       out.innerHTML = `
         <div class="pace-proj-block">
           <div class="pace-proj-title">Projected finish times</div>
-          ${Object.entries(RACES).map(([,r]) => `
+          ${Object.entries(RACES).map(([key, r]) => `
             <div class="pace-proj-row">
-              <span>${r.name}</span>
+              <span class="pace-proj-name"><span class="pace-proj-ico">${RACE_ICON[key] || '🏃'}</span>${r.name}</span>
               <span class="pace-proj-time">${pSecs ? fmtTime(pSecs * r.miles) : '—'}</span>
             </div>`).join('')}
         </div>`;
@@ -430,7 +432,7 @@
       <td>${(l.distanceMiles || 0).toFixed(2)} mi</td>
       <td>${fmtTime(l.timeSeconds || 0)}</td>
       <td style="font-family:var(--mono)">${l.paceSecsPerMile ? fmtPace(l.paceSecsPerMile) + '/mi' : '—'}</td>
-      <td>${'●'.repeat(l.effort || 0)}${'○'.repeat(5 - (l.effort || 0))}</td>
+      <td><span class="effort-pips">${[1,2,3,4,5].map(i => `<i class="${i <= (l.effort || 0) ? 'on' : ''}"></i>`).join('')}</span></td>
       <td style="color:var(--text-dimmer);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(l.notes || '')}</td>
       <td><button class="btn-delete" data-del-r="${l.id}" title="Delete">✕</button></td>
     </tr>`).join('');
@@ -516,9 +518,10 @@
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
   function fmtTime(secs) {
+    secs = Math.round(secs);
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
-    const s = Math.round(secs % 60);
+    const s = secs % 60;
     return h > 0
       ? `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`
       : `${m}:${s.toString().padStart(2,'0')}`;
