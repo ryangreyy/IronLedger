@@ -59,6 +59,7 @@
   setupRunForm();
   planRender();
   setDefaultDate();
+  calcPace();
 
   auth.onAuthStateChanged(user => {
     currentUser = user;
@@ -107,7 +108,7 @@
     document.getElementById('paceModePace').classList.toggle('active', m === 'pace');
     document.getElementById('paceInputGoal').style.display = m === 'goal' ? '' : 'none';
     document.getElementById('paceInputPace').style.display = m === 'pace' ? '' : 'none';
-    document.getElementById('paceOutput').innerHTML = '';
+    calcPace();
   }
 
   function calcPace() {
@@ -122,20 +123,19 @@
       const m = parseInt(document.getElementById('paceM').value) || 0;
       const s = parseInt(document.getElementById('paceS').value) || 0;
       const totalSecs = h * 3600 + m * 60 + s;
-      if (!miles || totalSecs <= 0) { out.innerHTML = ''; return; }
-
-      const ppm  = totalSecs / miles;
-      const ppkm = totalSecs / (miles * 1.60934);
+      const valid = miles && totalSecs > 0;
+      const ppm  = valid ? totalSecs / miles : null;
+      const ppkm = valid ? totalSecs / (miles * 1.60934) : null;
 
       out.innerHTML = `
         <div class="pace-result-grid">
           <div class="pace-result-card">
             <div class="pace-result-label">Required pace</div>
-            <div class="pace-result-val">${fmtPace(ppm)}<span class="pace-result-unit"> /mi</span></div>
+            <div class="pace-result-val">${ppm ? fmtPace(ppm) : '—'}<span class="pace-result-unit"> /mi</span></div>
           </div>
           <div class="pace-result-card">
             <div class="pace-result-label">Per kilometre</div>
-            <div class="pace-result-val">${fmtPace(ppkm)}<span class="pace-result-unit"> /km</span></div>
+            <div class="pace-result-val">${ppkm ? fmtPace(ppkm) : '—'}<span class="pace-result-unit"> /km</span></div>
           </div>
         </div>
         <div class="pace-proj-block">
@@ -143,7 +143,7 @@
           ${Object.entries(RACES).map(([,r]) => `
             <div class="pace-proj-row">
               <span>${r.name}</span>
-              <span class="pace-proj-time">${fmtTime(ppm * r.miles)}</span>
+              <span class="pace-proj-time">${ppm ? fmtTime(ppm * r.miles) : '—'}</span>
             </div>`).join('')}
         </div>`;
 
@@ -151,7 +151,6 @@
       const pm = parseInt(document.getElementById('pacePaceM').value) || 0;
       const ps = parseInt(document.getElementById('pacePaceS').value) || 0;
       const pSecs = pm * 60 + ps;
-      if (!pSecs) { out.innerHTML = ''; return; }
 
       out.innerHTML = `
         <div class="pace-proj-block">
@@ -159,7 +158,7 @@
           ${Object.entries(RACES).map(([,r]) => `
             <div class="pace-proj-row">
               <span>${r.name}</span>
-              <span class="pace-proj-time">${fmtTime(pSecs * r.miles)}</span>
+              <span class="pace-proj-time">${pSecs ? fmtTime(pSecs * r.miles) : '—'}</span>
             </div>`).join('')}
         </div>`;
     }
