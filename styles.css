@@ -1100,7 +1100,15 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .pose-card-img-wrap.pose-no-circle .pose-card-img{ width:80px; height:80px; padding:0; }
 .pose-card-placeholder{ font-size:48px; width:100px; height:100px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
 .pose-card-info{ padding:11px 12px 13px; }
-.pose-card-name{ font-size:13px; font-weight:700; color:var(--text); margin-bottom:3px; }
+.pose-card-name-row{ display:flex; align-items:center; justify-content:space-between; gap:4px; margin-bottom:3px; }
+.pose-card-name{ font-size:13px; font-weight:700; color:var(--text); }
+.pose-card-fav-btn{ background:none; border:none; cursor:pointer; font-size:15px; color:rgba(255,255,255,0.18); padding:0; line-height:1; flex-shrink:0; transition:color .15s; }
+.pose-card-fav-btn:hover{ color:#ff6b8a; }
+.pose-card-fav-btn.fav-active{ color:#ff4d70; }
+.pose-section-label{ grid-column:1/-1; font-family:var(--mono); font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--accent); padding:4px 0 10px; }
+.pose-modal-fav-btn{ margin-top:8px; width:100%; }
+.pose-modal-fav-btn:hover{ color:#ff6b8a !important; border-color:#ff6b8a !important; }
+.pose-modal-fav-btn.fav-active{ color:#ff4d70 !important; border-color:#ff4d70 !important; }
 .pose-card-sanskrit{ font-size:11px; color:var(--text-dimmer); font-style:italic; margin-bottom:4px; }
 .pose-card-cat{ font-size:10px; font-family:var(--mono); color:var(--accent); text-transform:uppercase; letter-spacing:.06em; }
 

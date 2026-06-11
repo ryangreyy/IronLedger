@@ -58,6 +58,28 @@
     pigeon:'Pigeon Pose', other:'Other',
   };
 
+  // ── Favorites ────────────────────────────────────────────────────────────
+  let favorites = new Set(JSON.parse(localStorage.getItem('yogaFavorites') || '[]'));
+
+  function saveFavorites() {
+    localStorage.setItem('yogaFavorites', JSON.stringify([...favorites]));
+  }
+
+  function toggleFavorite(id) {
+    if (favorites.has(id)) favorites.delete(id);
+    else favorites.add(id);
+    saveFavorites();
+    renderPoseLibrary();
+    const favBtn = document.getElementById('poseModalFavBtn');
+    if (favBtn) syncModalFavBtn(favBtn, id);
+  }
+
+  function syncModalFavBtn(btn, id) {
+    const on = favorites.has(id);
+    btn.textContent = on ? '♥ Favorited' : '+ Add to Favorites';
+    btn.classList.toggle('fav-active', on);
+  }
+
   // ── State ─────────────────────────────────────────────────────────────────
   let allPoses = [];
   let flowPoses = []; // [{ pose, duration }]
@@ -134,6 +156,8 @@
       renderPoseLibrary();
     });
     document.getElementById('poseGrid').addEventListener('click', e => {
+      const favBtn = e.target.closest('.pose-card-fav-btn[data-fav-id]');
+      if (favBtn) { e.stopPropagation(); toggleFavorite(+favBtn.dataset.favId); return; }
       const card = e.target.closest('.pose-card[data-id]');
       if (card) openPoseModal(+card.dataset.id);
     });
@@ -153,9 +177,20 @@
       (!activeCat || p.category_name === activeCat)
     );
 
-    document.getElementById('poseGrid').innerHTML = filtered.length
-      ? filtered.map(poseCardHTML).join('')
-      : '<p class="yoga-empty">No poses found.</p>';
+    const favPoses  = filtered.filter(p =>  favorites.has(p.id));
+    const restPoses = filtered.filter(p => !favorites.has(p.id));
+
+    let html = '';
+    if (!filtered.length) {
+      html = '<p class="yoga-empty">No poses found.</p>';
+    } else if (favPoses.length) {
+      html = `<div class="pose-section-label">Favorites</div>` +
+             favPoses.map(poseCardHTML).join('') +
+             (restPoses.length ? `<div class="pose-section-label">All Poses</div>` + restPoses.map(poseCardHTML).join('') : '');
+    } else {
+      html = restPoses.map(poseCardHTML).join('');
+    }
+    document.getElementById('poseGrid').innerHTML = html;
     applyCircleDetection();
   }
 
@@ -186,10 +221,14 @@
     const imgEl = img
       ? `<img src="${img}" alt="${esc(p.english_name)}" class="pose-card-img" crossorigin="anonymous" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="pose-card-placeholder" style="background:${circleColor}">${CAT_EMOJI[p.category_name] || CAT_EMOJI.default}</div>`;
+    const isFav = favorites.has(p.id);
     return `<div class="pose-card" data-id="${p.id}" tabindex="0" role="button">
       <div class="pose-card-img-wrap">${imgEl}</div>
       <div class="pose-card-info">
-        <div class="pose-card-name">${esc(p.english_name)}</div>
+        <div class="pose-card-name-row">
+          <div class="pose-card-name">${esc(p.english_name)}</div>
+          <button class="pose-card-fav-btn${isFav ? ' fav-active' : ''}" data-fav-id="${p.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">♥</button>
+        </div>
         <div class="pose-card-sanskrit">${esc(p.sanskrit_name_adapted||'')}</div>
         <div class="pose-card-cat">${esc(p.category_name||'')}</div>
       </div>
@@ -206,6 +245,7 @@
     const p = allPoses.find(x => x.id === id);
     if (!p) return;
     const img = p.url_svg || p.url_png || '';
+    const isFav = favorites.has(p.id);
     const imgEl = img
       ? `<img src="${img}" alt="${esc(p.english_name)}" class="pose-modal-img" onerror="this.style.display='none'">`
       : `<div style="font-size:80px;text-align:center;margin-bottom:16px;">${CAT_EMOJI[p.category_name]||CAT_EMOJI.default}</div>`;
@@ -218,11 +258,15 @@
       <div class="pose-modal-text">${esc(p.pose_description||'')}</div>
       ${p.pose_benefits?`<div class="pose-modal-section">Benefits</div><div class="pose-modal-text">${esc(p.pose_benefits)}</div>`:''}
       <button class="btn btn-ghost pose-modal-add-btn" id="poseModalAddBtn">+ Add to Flow</button>
+      <button class="btn btn-ghost pose-modal-fav-btn${isFav?' fav-active':''}" id="poseModalFavBtn">${isFav?'♥ Favorited':'+ Add to Favorites'}</button>
     `;
     document.getElementById('poseModalAddBtn').addEventListener('click', () => {
       addToFlow(p);
       closePoseModal();
       document.querySelector('.yoga-tab[data-tab="flow"]').click();
+    });
+    document.getElementById('poseModalFavBtn').addEventListener('click', () => {
+      toggleFavorite(p.id);
     });
     document.getElementById('poseModal').style.display = 'flex';
   }
