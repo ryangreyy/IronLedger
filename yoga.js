@@ -156,13 +156,35 @@
     document.getElementById('poseGrid').innerHTML = filtered.length
       ? filtered.map(poseCardHTML).join('')
       : '<p class="yoga-empty">No poses found.</p>';
+    applyCircleDetection();
+  }
+
+  function applyCircleDetection() {
+    document.querySelectorAll('.pose-card-img:not([data-circle-checked])').forEach(img => {
+      img.dataset.circleChecked = '1';
+      function check() {
+        try {
+          const c = document.createElement('canvas');
+          c.width = c.height = 4;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, 4, 4);
+          const d = ctx.getImageData(0, 0, 1, 1).data;
+          // #FFEFD6 = r:255, g:239, b:214
+          if (!(d[0] > 240 && d[1] > 220 && d[2] > 190)) {
+            img.closest('.pose-card-img-wrap').classList.add('pose-no-circle');
+          }
+        } catch(e) {}
+      }
+      if (img.complete && img.naturalWidth) check();
+      else img.addEventListener('load', check);
+    });
   }
 
   function poseCardHTML(p) {
     const img = p.url_svg || p.url_png || '';
     const circleColor = CIRCLE_COLORS[(p.id || 0) % CIRCLE_COLORS.length];
     const imgEl = img
-      ? `<img src="${img}" alt="${esc(p.english_name)}" class="pose-card-img" loading="lazy" onerror="this.style.display='none'">`
+      ? `<img src="${img}" alt="${esc(p.english_name)}" class="pose-card-img" crossorigin="anonymous" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="pose-card-placeholder" style="background:${circleColor}">${CAT_EMOJI[p.category_name] || CAT_EMOJI.default}</div>`;
     return `<div class="pose-card" data-id="${p.id}" tabindex="0" role="button">
       <div class="pose-card-img-wrap">${imgEl}</div>
