@@ -140,12 +140,15 @@
     return r;
   }
   function ggProt(w, g) { return Math.round((parseInt(w)||180) * (GG_PRATE[g]||0.8)); }
-  function ggCals(g, w) {
-    const b = Math.round((parseInt(w)||180) * 14);
-    if (g === 'fat')       return `${b-450}–${b-150} cal/day`;
-    if (g === 'muscle')    return `${b+150}–${b+350} cal/day`;
-    if (g === 'endurance') return `${b+100}–${b+400} cal/day`;
-    return `${b-50}–${b+150} cal/day`;
+  function ggCals(g, w, h) {
+    const kg  = (parseInt(w)||180) / 2.205;
+    const cm  = (parseInt(h)||67)  * 2.54;
+    const bmr = (10 * kg) + (6.25 * cm) - 155; // simplified unisex Mifflin-St Jeor
+    const tdee = Math.round(bmr * 1.5);         // moderate activity multiplier
+    if (g === 'fat')       return `${tdee-450}–${tdee-150} cal/day`;
+    if (g === 'muscle')    return `${tdee+150}–${tdee+350} cal/day`;
+    if (g === 'endurance') return `${tdee+100}–${tdee+400} cal/day`;
+    return `${tdee-50}–${tdee+150} cal/day`;
   }
   function ggSplitName(d) {
     if (d <= 3) return 'Full Body';
@@ -156,7 +159,7 @@
   const chevD = `<svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const chevU = `<svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="M13 8L7 2L1 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-  let ggSt = { step:1, goal:null, exp:null, days:null, weight:'', open:0 };
+  let ggSt = { step:1, goal:null, exp:null, days:null, weight:'', height:'', open:0 };
 
   function ggRender() {
     const prog = n => [1,2,3].map(i =>
@@ -179,12 +182,19 @@
         </div>`;
 
     } else if (ggSt.step === 2) {
-      const ok = ggSt.exp && ggSt.days && ggSt.weight;
+      const ok = ggSt.exp && ggSt.days && ggSt.weight && ggSt.height;
+      const wtOpts = Array.from({length:53},(_,i)=>90+i*5)
+        .map(w=>`<option value="${w}"${parseInt(ggSt.weight)===w?' selected':''}>${w}</option>`).join('');
+      const htVal = parseInt(ggSt.height);
+      const selFt = isNaN(htVal) ? null : Math.floor(htVal/12);
+      const selIn = isNaN(htVal) ? null : htVal%12;
+      const inOpts = Array.from({length:12},(_,i)=>i)
+        .map(i=>`<option value="${i}"${selIn===i?' selected':''}>${i}"</option>`).join('');
       container.innerHTML = `
         <div class="guide-eyebrow">Goal Guide</div>
         <div class="guide-pg">${prog(2)}</div>
         <p class="guide-title">Tell me about yourself</p>
-        <p class="guide-sub">Three quick answers — we'll build a plan around them.</p>
+        <p class="guide-sub">Four quick answers — we'll build a plan around them.</p>
         <div class="guide-qlabel">Experience level</div>
         <div class="guide-pills">${GG_EXP.map(e => `
           <span class="guide-pill${ggSt.exp === e.id ? ' on' : ''}" onclick="ggExp('${e.id}')">${e.l}</span>`).join('')}
@@ -195,9 +205,20 @@
         </div>
         <div class="guide-qlabel">Your bodyweight</div>
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px">
-          <input id="ggWtInput" class="guide-winput" type="number" placeholder="185" min="80" max="500"
-            value="${ggSt.weight}" oninput="ggWtChange(this.value)">
+          <select id="ggWtInput" class="guide-winput" onchange="ggWtChange(this.value)">
+            <option value="">Select…</option>${wtOpts}
+          </select>
           <span style="font-size:13px;color:var(--text-dimmer)">lbs</span>
+        </div>
+        <div class="guide-qlabel" style="margin-top:14px">Your height</div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px">
+          <select id="ggHtFt" class="guide-winput" style="width:80px" onchange="ggHtChange()">
+            <option value="">ft</option>
+            ${[4,5,6,7].map(f=>`<option value="${f}"${selFt===f?' selected':''}>${f}</option>`).join('')}
+          </select>
+          <select id="ggHtIn" class="guide-winput" style="width:80px" onchange="ggHtChange()">
+            <option value="">in</option>${inOpts}
+          </select>
         </div>
         <p class="guide-hint">Used to calculate your protein and calorie targets.</p>
         <div class="guide-btns">
@@ -209,6 +230,8 @@
       const g     = GG_GOALS.find(x => x.id === ggSt.goal);
       const ek    = ggSt.exp || 'beg';
       const w     = parseInt(ggSt.weight) || 180;
+      const hTot  = parseInt(ggSt.height) || 67;
+      const hFt   = Math.floor(hTot/12), hIn = hTot%12;
       const tDays = ggTrainDays(ggSt.days);
       const types = ggSplitTypes(ggSt.days);
       const expL  = GG_EXP.find(e => e.id === ggSt.exp)?.l || '';
@@ -252,7 +275,7 @@
           <span style="font-size:22px">${g.icon}</span>
           <p class="guide-title" style="margin:0">${g.name}</p>
         </div>
-        <span class="guide-badge">${expL} · ${ggSt.days} day${ggSt.days > 1 ? 's' : ''}/week · ${w} lbs</span>
+        <span class="guide-badge">${expL} · ${ggSt.days} day${ggSt.days > 1 ? 's' : ''}/week · ${w} lbs · ${hFt}'${hIn}"</span>
         <div class="guide-plan">
           <div class="guide-pcard">
             <div class="guide-pc-label">Daily protein</div>
@@ -264,7 +287,7 @@
           </div>
           <div class="guide-pcard">
             <div class="guide-pc-label">Calories</div>
-            <div class="guide-pc-val" style="font-size:13px;margin-top:2px">${ggCals(ggSt.goal, ggSt.weight)}</div>
+            <div class="guide-pc-val" style="font-size:13px;margin-top:2px">${ggCals(ggSt.goal, ggSt.weight, ggSt.height)}</div>
           </div>
         </div>
         <div class="guide-sec">Weekly schedule</div>
@@ -278,15 +301,26 @@
   window.ggPick     = id => { ggSt.goal = id; ggRender(); };
   window.ggExp      = id => { ggSt.exp  = id; ggRender(); };
   window.ggDays     = d  => { ggSt.days = d;  ggRender(); };
-  window.ggWtChange = v  => {
+  window.ggWtChange = v => {
     ggSt.weight = v;
     const btn = document.getElementById('ggNxBtn');
-    if (btn) btn.disabled = !(ggSt.exp && ggSt.days && v);
+    if (btn) btn.disabled = !(ggSt.exp && ggSt.days && ggSt.weight && ggSt.height);
+  };
+  window.ggHtChange = () => {
+    const ftEl = document.getElementById('ggHtFt');
+    const inEl = document.getElementById('ggHtIn');
+    if (ftEl && inEl && ftEl.value !== '' && inEl.value !== '') {
+      ggSt.height = String(parseInt(ftEl.value) * 12 + parseInt(inEl.value));
+    } else {
+      ggSt.height = '';
+    }
+    const btn = document.getElementById('ggNxBtn');
+    if (btn) btn.disabled = !(ggSt.exp && ggSt.days && ggSt.weight && ggSt.height);
   };
   window.ggNx  = () => { if (ggSt.step < 3) ggSt.step++; ggRender(); };
   window.ggBk  = () => { if (ggSt.step > 1) ggSt.step--; ggRender(); };
   window.ggTog = i  => { ggSt.open = ggSt.open === i ? -1 : i; ggRender(); };
-  window.ggRst = () => { ggSt = { step:1, goal:null, exp:null, days:null, weight:'', open:0 }; ggRender(); };
+  window.ggRst = () => { ggSt = { step:1, goal:null, exp:null, days:null, weight:'', height:'', open:0 }; ggRender(); };
 
   ggRender();
 })();
