@@ -426,7 +426,6 @@
     /* Render avatar pickers immediately (no selection yet), then load prefs */
     renderAvatarGrid(user);
     renderBgPicker(user);
-    applyNavAvatarSettings(null, null, user);
 
     document.getElementById('avatarRandomBtn').addEventListener('click', async () => {
       selectedAvatarId = AVATARS[Math.floor(Math.random() * AVATARS.length)].id;
