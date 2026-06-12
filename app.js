@@ -1038,7 +1038,7 @@ function initApp(uid) {
   function calc() {
     const w = +document.getElementById('weight').value || 0;
     const r = +document.getElementById('reps').value   || 1;
-    const orm = Math.round(w * (1 + r / 30));
+    const orm = r <= 1 ? w : Math.round(w * (1 + r / 30));
     ormEl.textContent = orm.toLocaleString();
     pctBody.innerHTML = pctRows.map(row => `
       <tr>
