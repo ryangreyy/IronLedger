@@ -1,4 +1,4 @@
-/* IRONLEDGER — Interactive logic, Firebase auth, and per-user data sync.
+/* IRONGLADIATOR — Interactive logic, Firebase auth, and per-user data sync.
    Load order: firebase SDKs → firebase-config.js → data.js → this file. */
 
 /* Always start at the very top — prevents browser scroll restoration on refresh */
@@ -171,7 +171,7 @@ function showOnboardingModal(user) {
   /* ---- Step 1: Display name ---- */
   function renderStepName() {
     card.innerHTML = `
-      <div class="eyebrow">Welcome to IronLedger</div>
+      <div class="eyebrow">Welcome to IronGladiator</div>
       <h2 class="title" style="margin:6px 0 6px;">What should we call you?</h2>
       <p class="sub" style="margin-bottom:22px;">This is your display name — shown next to your avatar in the nav.</p>
       <input id="ob-name" type="text" class="auth-input" placeholder="Display name"

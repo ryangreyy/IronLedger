@@ -1,4 +1,4 @@
-/* yoga.js — IronLedger Yoga page */
+/* yoga.js — IronGladiator Yoga page */
 (function () {
   'use strict';
 

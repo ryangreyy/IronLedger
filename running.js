@@ -1,4 +1,4 @@
-/* running.js — IronLedger Running page */
+/* running.js — IronGladiator Running page */
 (function () {
   'use strict';
 

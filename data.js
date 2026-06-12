@@ -1,4 +1,4 @@
-/* IRONLEDGER — Static reference data.
+/* IRONGLADIATOR — Static reference data.
    The chart data (lifts) lives here. Training log and standards
    are now stored in Firebase — edit them live on the site instead. */
 
