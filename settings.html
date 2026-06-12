@@ -69,7 +69,10 @@
           </div>
           <div class="field" style="margin-bottom:0;">
             <label style="margin-bottom:6px;">Profile avatar</label>
-            <p style="font-size:13px;color:var(--text-dim);margin:0 0 14px;">Pick a character, then choose a circle background color.</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+              <p style="font-size:13px;color:var(--text-dim);margin:0;">Pick a character, then choose a circle background color.</p>
+              <button id="avatarRandomBtn" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;white-space:nowrap;flex-shrink:0;margin-left:12px;">🎲 Randomize</button>
+            </div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Cute &amp; soft</p>
             <div id="avatarGrid-cute" class="avatar-grid" style="margin-bottom:16px;"></div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Cool &amp; bold</p>
@@ -414,6 +417,15 @@
     renderAvatarGrid(user);
     renderBgPicker(user);
     applyNavAvatarSettings(null, null, user);
+
+    document.getElementById('avatarRandomBtn').addEventListener('click', async () => {
+      selectedAvatarId = AVATARS[Math.floor(Math.random() * AVATARS.length)].id;
+      selectedAvatarBg = AVATAR_BG_COLORS[Math.floor(Math.random() * AVATAR_BG_COLORS.length)];
+      renderAvatarGrid(user);
+      renderBgPicker(user);
+      applyNavAvatarSettings(selectedAvatarId, selectedAvatarBg, user);
+      try { await settingsRef().set({ avatarId: selectedAvatarId, avatarBg: selectedAvatarBg }, { merge: true }); } catch(e) {}
+    });
 
     /* Load saved preferences */
     loadColors(null); /* apply defaults immediately while Firestore loads */

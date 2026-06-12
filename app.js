@@ -209,6 +209,7 @@ function showOnboardingModal(user) {
       <div id="ob-legendary" class="avatar-grid" style="margin-bottom:16px;"></div>
       <p class="ob-group-label">Gym</p>
       <div id="ob-gym" class="avatar-grid" style="margin-bottom:24px;"></div>
+      <button id="ob-random" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">🎲 Randomize for me</button>
       <button id="ob-skip-av" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
       <button id="ob-back-av" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
     `;
@@ -221,6 +222,11 @@ function showOnboardingModal(user) {
     });
     card.querySelectorAll('.avatar-option').forEach(btn => {
       btn.addEventListener('click', () => { obId = btn.dataset.id; renderStepColor(); });
+    });
+    document.getElementById('ob-random').addEventListener('click', () => {
+      obId = AVATARS[Math.floor(Math.random() * AVATARS.length)].id;
+      obBg = AVATAR_BG_COLORS[Math.floor(Math.random() * AVATAR_BG_COLORS.length)];
+      renderStepColor();
     });
     document.getElementById('ob-skip-av').addEventListener('click', () => finishOnboarding(false));
     document.getElementById('ob-back-av').addEventListener('click', renderStepName);
