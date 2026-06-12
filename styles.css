@@ -479,10 +479,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
   border:1px solid var(--border); border-radius:16px; padding:22px;
   box-shadow:var(--shadow); position:relative; overflow:hidden;
 }
-.card.kpi,
+.card,
+.goals-card,
 .cal-card,
-.freq-card,
-.card.tracker-card{
+.freq-card{
   border-color:rgba(214,255,61,.35) !important;
   box-shadow:0 0 0 1px rgba(214,255,61,.2), 0 0 40px rgba(214,255,61,.18), inset 0 0 20px rgba(214,255,61,.04) !important;
 }
