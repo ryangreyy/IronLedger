@@ -121,6 +121,14 @@ const AVATARS = [
   { id:'medal',    url:`${_CDN}/Sports%20medal/3D/sports_medal_3d.png`,     emoji:'🏅', label:'Medal',        group:'gym' },
   { id:'crown',    url:`${_CDN}/Crown/3D/crown_3d.png`,                     emoji:'👑', label:'Crown',        group:'gym' },
   { id:'shoe',     url:`${_CDN}/Running%20shoe/3D/running_shoe_3d.png`,     emoji:'👟', label:'Running Shoe', group:'gym' },
+  { id:'zany',     url:`${_CDN}/Zany%20face/3D/zany_face_3d.png`,                           emoji:'🤪', label:'Zany',         group:'silly' },
+  { id:'clown',    url:`${_CDN}/Clown%20face/3D/clown_face_3d.png`,                         emoji:'🤡', label:'Clown',        group:'silly' },
+  { id:'updown',   url:`${_CDN}/Upside-down%20face/3D/upside-down_face_3d.png`,             emoji:'🙃', label:'Upside Down',  group:'silly' },
+  { id:'cowboy',   url:`${_CDN}/Cowboy%20hat%20face/3D/cowboy_hat_face_3d.png`,             emoji:'🤠', label:'Cowboy',       group:'silly' },
+  { id:'nerd',     url:`${_CDN}/Nerd%20face/3D/nerd_face_3d.png`,                           emoji:'🤓', label:'Nerd',         group:'silly' },
+  { id:'disguise', url:`${_CDN}/Disguised%20face/3D/disguised_face_3d.png`,                 emoji:'🥸', label:'Disguised',    group:'silly' },
+  { id:'party',    url:`${_CDN}/Partying%20face/3D/partying_face_3d.png`,                   emoji:'🥳', label:'Party',        group:'silly' },
+  { id:'wink',     url:`${_CDN}/Winking%20face%20with%20tongue/3D/winking_face_with_tongue_3d.png`, emoji:'😜', label:'Wink', group:'silly' },
 ];
 const AVATAR_BG_COLORS = [
   '#FFB3B3','#FFD0A0','#FFFAAA','#AAFFBB','#AACCFF','#BBAAFF','#FFAAFF','#FFFFFF',
@@ -208,12 +216,14 @@ function showOnboardingModal(user) {
       <p class="ob-group-label">Legendary</p>
       <div id="ob-legendary" class="avatar-grid" style="margin-bottom:16px;"></div>
       <p class="ob-group-label">Gym</p>
-      <div id="ob-gym" class="avatar-grid" style="margin-bottom:24px;"></div>
+      <div id="ob-gym" class="avatar-grid" style="margin-bottom:16px;"></div>
+      <p class="ob-group-label">Silly Faces</p>
+      <div id="ob-silly" class="avatar-grid" style="margin-bottom:24px;"></div>
       <button id="ob-random" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">🎲 Randomize for me</button>
       <button id="ob-skip-av" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
       <button id="ob-back-av" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
     `;
-    ['cute','bold','aquatic','wild','legendary','gym'].forEach(group => {
+    ['cute','bold','aquatic','wild','legendary','gym','silly'].forEach(group => {
       document.getElementById(`ob-${group}`).innerHTML = AVATARS.filter(a => a.group === group).map(a =>
         `<button class="avatar-option${obId === a.id ? ' av-selected' : ''}" data-id="${a.id}" title="${a.label}">
           <img src="${a.url}" alt="${a.label}" style="width:46px;height:46px;object-fit:contain;" onerror="this.style.display='none'">
