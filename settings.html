@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=58">
+<link rel="stylesheet" href="styles.css?v=72">
 </head>
 <body>
 
@@ -73,7 +73,15 @@
             <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Cute &amp; soft</p>
             <div id="avatarGrid-cute" class="avatar-grid" style="margin-bottom:16px;"></div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Cool &amp; bold</p>
-            <div id="avatarGrid-bold" class="avatar-grid" style="margin-bottom:20px;"></div>
+            <div id="avatarGrid-bold" class="avatar-grid" style="margin-bottom:16px;"></div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Aquatic</p>
+            <div id="avatarGrid-aquatic" class="avatar-grid" style="margin-bottom:16px;"></div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Wild</p>
+            <div id="avatarGrid-wild" class="avatar-grid" style="margin-bottom:16px;"></div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Legendary</p>
+            <div id="avatarGrid-legendary" class="avatar-grid" style="margin-bottom:16px;"></div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Gym</p>
+            <div id="avatarGrid-gym" class="avatar-grid" style="margin-bottom:20px;"></div>
             <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 10px;">Circle color</p>
             <div id="avatarBgPicker" class="avatar-bg-grid"></div>
           </div>
@@ -271,22 +279,54 @@
   /* ── AVATAR PICKER ── */
   const _CDN = 'https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets';
   const AVATARS = [
-    { id:'bunny',    url:`${_CDN}/Rabbit%20face/3D/rabbit_face_3d.png`,  emoji:'🐰', label:'Bunny',    group:'cute' },
-    { id:'cat',      url:`${_CDN}/Cat%20face/3D/cat_face_3d.png`,        emoji:'🐱', label:'Cat',      group:'cute' },
-    { id:'unicorn',  url:`${_CDN}/Unicorn/3D/unicorn_3d.png`,            emoji:'🦄', label:'Unicorn',  group:'cute' },
-    { id:'flamingo', url:`${_CDN}/Flamingo/3D/flamingo_3d.png`,          emoji:'🦩', label:'Flamingo', group:'cute' },
-    { id:'panda',    url:`${_CDN}/Panda/3D/panda_3d.png`,                emoji:'🐼', label:'Panda',    group:'cute' },
-    { id:'fox',      url:`${_CDN}/Fox/3D/fox_3d.png`,                    emoji:'🦊', label:'Fox',      group:'cute' },
-    { id:'koala',    url:`${_CDN}/Koala/3D/koala_3d.png`,                emoji:'🐨', label:'Koala',    group:'cute' },
-    { id:'otter',    url:`${_CDN}/Otter/3D/otter_3d.png`,                emoji:'🦦', label:'Otter',    group:'cute' },
-    { id:'wolf',     url:`${_CDN}/Wolf/3D/wolf_3d.png`,                  emoji:'🐺', label:'Wolf',     group:'bold' },
-    { id:'lion',     url:`${_CDN}/Lion/3D/lion_3d.png`,                  emoji:'🦁', label:'Lion',     group:'bold' },
-    { id:'tiger',    url:`${_CDN}/Tiger%20face/3D/tiger_face_3d.png`,    emoji:'🐯', label:'Tiger',    group:'bold' },
-    { id:'bear',     url:`${_CDN}/Bear/3D/bear_3d.png`,                  emoji:'🐻', label:'Bear',     group:'bold' },
-    { id:'shark',    url:`${_CDN}/Shark/3D/shark_3d.png`,                emoji:'🦈', label:'Shark',    group:'bold' },
-    { id:'gorilla',  url:`${_CDN}/Gorilla/3D/gorilla_3d.png`,            emoji:'🦍', label:'Gorilla',  group:'bold' },
-    { id:'trex',     url:`${_CDN}/T-rex/3D/t-rex_3d.png`,                emoji:'🦖', label:'T-Rex',    group:'bold' },
-    { id:'dragon',   url:`${_CDN}/Dragon/3D/dragon_3d.png`,              emoji:'🐉', label:'Dragon',   group:'bold' },
+    { id:'bunny',    url:`${_CDN}/Rabbit%20face/3D/rabbit_face_3d.png`,       emoji:'🐰', label:'Bunny',        group:'cute' },
+    { id:'cat',      url:`${_CDN}/Cat%20face/3D/cat_face_3d.png`,             emoji:'🐱', label:'Cat',          group:'cute' },
+    { id:'panda',    url:`${_CDN}/Panda/3D/panda_3d.png`,                     emoji:'🐼', label:'Panda',        group:'cute' },
+    { id:'fox',      url:`${_CDN}/Fox/3D/fox_3d.png`,                         emoji:'🦊', label:'Fox',          group:'cute' },
+    { id:'koala',    url:`${_CDN}/Koala/3D/koala_3d.png`,                     emoji:'🐨', label:'Koala',        group:'cute' },
+    { id:'otter',    url:`${_CDN}/Otter/3D/otter_3d.png`,                     emoji:'🦦', label:'Otter',        group:'cute' },
+    { id:'flamingo', url:`${_CDN}/Flamingo/3D/flamingo_3d.png`,               emoji:'🦩', label:'Flamingo',     group:'cute' },
+    { id:'penguin',  url:`${_CDN}/Penguin/3D/penguin_3d.png`,                 emoji:'🐧', label:'Penguin',      group:'cute' },
+    { id:'wolf',     url:`${_CDN}/Wolf/3D/wolf_3d.png`,                       emoji:'🐺', label:'Wolf',         group:'bold' },
+    { id:'lion',     url:`${_CDN}/Lion/3D/lion_3d.png`,                       emoji:'🦁', label:'Lion',         group:'bold' },
+    { id:'tiger',    url:`${_CDN}/Tiger%20face/3D/tiger_face_3d.png`,         emoji:'🐯', label:'Tiger',        group:'bold' },
+    { id:'bear',     url:`${_CDN}/Bear/3D/bear_3d.png`,                       emoji:'🐻', label:'Bear',         group:'bold' },
+    { id:'shark',    url:`${_CDN}/Shark/3D/shark_3d.png`,                     emoji:'🦈', label:'Shark',        group:'bold' },
+    { id:'gorilla',  url:`${_CDN}/Gorilla/3D/gorilla_3d.png`,                 emoji:'🦍', label:'Gorilla',      group:'bold' },
+    { id:'trex',     url:`${_CDN}/T-rex/3D/t-rex_3d.png`,                     emoji:'🦖', label:'T-Rex',        group:'bold' },
+    { id:'leopard',  url:`${_CDN}/Leopard/3D/leopard_3d.png`,                 emoji:'🐆', label:'Leopard',      group:'bold' },
+    { id:'dolphin',  url:`${_CDN}/Dolphin/3D/dolphin_3d.png`,                 emoji:'🐬', label:'Dolphin',      group:'aquatic' },
+    { id:'octopus',  url:`${_CDN}/Octopus/3D/octopus_3d.png`,                 emoji:'🐙', label:'Octopus',      group:'aquatic' },
+    { id:'whale',    url:`${_CDN}/Spouting%20whale/3D/spouting_whale_3d.png`, emoji:'🐳', label:'Whale',         group:'aquatic' },
+    { id:'crab',     url:`${_CDN}/Crab/3D/crab_3d.png`,                       emoji:'🦀', label:'Crab',         group:'aquatic' },
+    { id:'lobster',  url:`${_CDN}/Lobster/3D/lobster_3d.png`,                 emoji:'🦞', label:'Lobster',      group:'aquatic' },
+    { id:'seal',     url:`${_CDN}/Seal/3D/seal_3d.png`,                       emoji:'🦭', label:'Seal',         group:'aquatic' },
+    { id:'blowfish', url:`${_CDN}/Blowfish/3D/blowfish_3d.png`,               emoji:'🐡', label:'Blowfish',     group:'aquatic' },
+    { id:'tropfish', url:`${_CDN}/Tropical%20fish/3D/tropical_fish_3d.png`,   emoji:'🐠', label:'Tropical Fish', group:'aquatic' },
+    { id:'eagle',    url:`${_CDN}/Eagle/3D/eagle_3d.png`,                     emoji:'🦅', label:'Eagle',        group:'wild' },
+    { id:'horse',    url:`${_CDN}/Horse%20face/3D/horse_face_3d.png`,         emoji:'🐴', label:'Horse',        group:'wild' },
+    { id:'croc',     url:`${_CDN}/Crocodile/3D/crocodile_3d.png`,             emoji:'🐊', label:'Crocodile',    group:'wild' },
+    { id:'rhino',    url:`${_CDN}/Rhinoceros/3D/rhinoceros_3d.png`,           emoji:'🦏', label:'Rhino',        group:'wild' },
+    { id:'peacock',  url:`${_CDN}/Peacock/3D/peacock_3d.png`,                 emoji:'🦚', label:'Peacock',      group:'wild' },
+    { id:'bison',    url:`${_CDN}/Bison/3D/bison_3d.png`,                     emoji:'🦬', label:'Bison',        group:'wild' },
+    { id:'boar',     url:`${_CDN}/Boar/3D/boar_3d.png`,                       emoji:'🐗', label:'Boar',         group:'wild' },
+    { id:'mammoth',  url:`${_CDN}/Mammoth/3D/mammoth_3d.png`,                 emoji:'🦣', label:'Mammoth',      group:'wild' },
+    { id:'dragon',   url:`${_CDN}/Dragon/3D/dragon_3d.png`,                   emoji:'🐉', label:'Dragon',       group:'legendary' },
+    { id:'unicorn',  url:`${_CDN}/Unicorn/3D/unicorn_3d.png`,                 emoji:'🦄', label:'Unicorn',      group:'legendary' },
+    { id:'alien',    url:`${_CDN}/Alien/3D/alien_3d.png`,                     emoji:'👽', label:'Alien',        group:'legendary' },
+    { id:'ghost',    url:`${_CDN}/Ghost/3D/ghost_3d.png`,                     emoji:'👻', label:'Ghost',        group:'legendary' },
+    { id:'robot',    url:`${_CDN}/Robot/3D/robot_3d.png`,                     emoji:'🤖', label:'Robot',        group:'legendary' },
+    { id:'drgface',  url:`${_CDN}/Dragon%20face/3D/dragon_face_3d.png`,       emoji:'🐲', label:'Dragon Face',  group:'legendary' },
+    { id:'sauro',    url:`${_CDN}/Sauropod/3D/sauropod_3d.png`,               emoji:'🦕', label:'Sauropod',     group:'legendary' },
+    { id:'jackolan', url:`${_CDN}/Jack-o-lantern/3D/jack-o-lantern_3d.png`,   emoji:'🎃', label:'Jack-o-Lantern',group:'legendary' },
+    { id:'bicep',    url:`${_CDN}/Flexed%20biceps/3D/flexed_biceps_3d.png`,   emoji:'💪', label:'Bicep',        group:'gym' },
+    { id:'trophy',   url:`${_CDN}/Trophy/3D/trophy_3d.png`,                   emoji:'🏆', label:'Trophy',       group:'gym' },
+    { id:'fire',     url:`${_CDN}/Fire/3D/fire_3d.png`,                       emoji:'🔥', label:'Fire',         group:'gym' },
+    { id:'bolt',     url:`${_CDN}/High%20voltage/3D/high_voltage_3d.png`,     emoji:'⚡', label:'Lightning',    group:'gym' },
+    { id:'dumbbell', url:`${_CDN}/Dumbbell/3D/dumbbell_3d.png`,               emoji:'🏋', label:'Dumbbell',     group:'gym' },
+    { id:'medal',    url:`${_CDN}/Sports%20medal/3D/sports_medal_3d.png`,     emoji:'🏅', label:'Medal',        group:'gym' },
+    { id:'crown',    url:`${_CDN}/Crown/3D/crown_3d.png`,                     emoji:'👑', label:'Crown',        group:'gym' },
+    { id:'shoe',     url:`${_CDN}/Running%20shoe/3D/running_shoe_3d.png`,     emoji:'👟', label:'Running Shoe', group:'gym' },
   ];
 
   const AVATAR_BG_COLORS = [
@@ -316,7 +356,7 @@
   }
 
   function renderAvatarGrid(user) {
-    ['cute','bold'].forEach(group => {
+    ['cute','bold','aquatic','wild','legendary','gym'].forEach(group => {
       const grid = document.getElementById(`avatarGrid-${group}`);
       if (!grid) return;
       grid.innerHTML = AVATARS.filter(a => a.group === group).map(a =>
