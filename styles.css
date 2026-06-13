@@ -86,6 +86,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
   background:var(--accent); color:#0B0C0E; font-size:18px; font-weight:900;
   box-shadow:0 0 24px rgba(214,255,61,0.45);
 }
+.brand img.mark{
+  width:auto; height:32px; background:none; border-radius:0; box-shadow:none;
+  filter:drop-shadow(0 0 10px rgba(214,255,61,.35));
+}
 .nav-links{
   display:none; flex-direction:column; gap:0; font-size:14px; font-weight:600;
   position:fixed; top:62px; right:20px; z-index:99; width:230px;
