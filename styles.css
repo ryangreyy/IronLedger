@@ -494,12 +494,29 @@ nav.nav-hidden{ transform:translateY(-100%); }
   border:1px solid var(--border); border-radius:16px; padding:22px;
   box-shadow:var(--shadow); position:relative; overflow:hidden;
 }
+/* Forged brushed-steel border on every card (rounded corners preserved
+   via padding-box/border-box dual background). */
 .card,
 .goals-card,
 .cal-card,
-.freq-card{
-  border-color:rgba(193,39,45,.35) !important;
-  box-shadow:0 0 0 1px rgba(193,39,45,.2), 0 0 40px rgba(193,39,45,.18), inset 0 0 20px rgba(193,39,45,.04) !important;
+.freq-card,
+.stat-tile.forged{
+  background:
+    radial-gradient(120% 120% at 30% 12%, #16191f 0%, #0c0d10 80%) padding-box,
+    linear-gradient(155deg,#eef0f4 0%,#9a9ea8 36%,#6f7178 58%,#cfd2da 100%) border-box !important;
+  border:1.5px solid transparent !important;
+  border-radius:14px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.85) !important;
+  position:relative; overflow:hidden;
+}
+.card::after,
+.goals-card::after,
+.cal-card::after,
+.freq-card::after,
+.stat-tile.forged::after{
+  content:""; position:absolute; left:18px; right:18px; bottom:0; height:2px;
+  background:linear-gradient(90deg, transparent, var(--accent) 35%, var(--accent-bright) 65%, transparent);
+  opacity:.85; pointer-events:none;
 }
 .kpi .label{font-size:13px; color:var(--accent-bright); text-transform:uppercase;
   letter-spacing:0.1em; font-weight:600;}
@@ -1327,20 +1344,10 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 @media(max-width:760px){ .bg-medallion.m2,.bg-medallion.m3{ display:none; } .bg-medallion.m1{ width:360px; margin-left:-180px; } }
 @media(prefers-reduced-motion:reduce){ .bg-medallion{ transform:none !important; } }
 
-/* ---------- (3) FORGED STAT / KPI CARDS ---------- */
-.kpi.forged, .stat-tile.forged{
-  background:radial-gradient(120% 120% at 30% 12%, #16191f 0%, #0c0d10 78%) !important;
-  border:1.5px solid transparent !important;
-  border-image:linear-gradient(155deg,#eef0f4 0%,#9a9ea8 38%,#6f7178 60%,#cfd2da 100%) 1 !important;
-  border-radius:14px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(0,0,0,.55), 0 10px 28px -16px rgba(0,0,0,.8) !important;
-  position:relative; overflow:hidden;
-}
-.kpi.forged::after, .stat-tile.forged::after{
-  content:""; position:absolute; left:18px; right:18px; bottom:13px; height:2px; border-radius:2px;
-  background:linear-gradient(90deg, transparent, var(--accent) 35%, var(--accent-bright) 65%, transparent);
-  opacity:.85;
-}
+/* ---------- (3) FORGED STAT / KPI CARDS ----------
+   The steel border + red rule now live in the shared .card block above;
+   stat tiles opt in via .stat-tile.forged. Only the steel-text highlight
+   for the Big-3 value remains here. */
 .stat-tile.forged.highlight .st-value{ background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent; }
 
 /* ---------- (1) GLADIATOR RANK BADGES ---------- */
