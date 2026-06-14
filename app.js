@@ -23,7 +23,7 @@ function spawnConfetti(anchorEl) {
   const rect   = anchorEl.getBoundingClientRect();
   const cx     = rect.left + rect.width  / 2;
   const cy     = rect.top  + rect.height / 2;
-  const colors = ['#D6FF3D','#5BD6E6','#FF8A4C','#B78BFF','#FF6B6B','#ffffff'];
+  const colors = ['#C1272D','#F0565B','#e8eaef','#9a9ea8','#5BD6E6','#ffffff'];
   const count  = 16;
   for (let i = 0; i < count; i++) {
     const dot   = document.createElement('div');
@@ -46,6 +46,23 @@ function spawnConfetti(anchorEl) {
     ], { duration: 480 + Math.random() * 240, easing: 'ease-out', fill: 'forwards' });
     anim.addEventListener('finish', () => dot.remove());
   }
+}
+
+/* ===== NEW-PR MEDALLION STAMP =====================================
+   Slams the IronGladiator medallion down as a "NEW PR" wax seal. */
+function showPrStamp(lift, wt) {
+  if (document.querySelector('.pr-stamp-overlay')) return;
+  const ov = document.createElement('div');
+  ov.className = 'pr-stamp-overlay';
+  ov.innerHTML =
+    '<div class="pr-stamp">' +
+      '<img src="favicon.svg?v=2" alt="" style="width:150px;height:150px;filter:drop-shadow(0 0 26px rgba(193,39,45,.5));">' +
+      '<div class="pr-tag">NEW PR</div>' +
+      '<span class="pr-lift">' + lift + ' · ' + wt + ' lbs</span>' +
+    '</div>';
+  document.body.appendChild(ov);
+  setTimeout(() => spawnConfetti(ov), 220);
+  setTimeout(() => ov.remove(), 2000);
 }
 
 /* ===== LOCAL DATE HELPER ==========================================
@@ -1387,10 +1404,18 @@ function initApp(uid) {
     const lift = liftVal.trim();
     const cls  = liftToCls(lift);
     currentPage = 1;
+    /* PR check: does this beat the best weight ever logged for this exact lift? */
+    const prevBest = (currentSessions || [])
+      .filter(s => (s.lift || '').toLowerCase() === lift.toLowerCase())
+      .reduce((m, s) => Math.max(m, +s.wt || 0), 0);
+    const isPR = prevBest > 0 && wt > prevBest;
     sessionsRef().add({ date: formatDate(dateVal), dateRaw: dateVal,
                         lift, cls, sets, reps, wt, note,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .then(() => { ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = ''); })
+      .then(() => {
+        ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = '');
+        if (isPR) showPrStamp(lift, wt);
+      })
       .catch(err => alert('Could not save: ' + err.message));
   });
 
@@ -1487,6 +1512,64 @@ function initApp(uid) {
     return 'Upper Body Dominant';
   }
 
+  /* ===== GLADIATOR RANK SYSTEM =====================================
+     Maps a lift vs the bodyweight strength standards to a rank. */
+  const RANK_NAMES = ['Recruit','Legionary','Centurion','Champion','Gladiator'];
+  function rankWeightClass(bw) {
+    const keys = Object.keys(bodyweightStandards).map(Number).sort((a,b) => a-b);
+    for (const k of keys) if (bw <= k) return k;
+    return keys[keys.length-1];
+  }
+  function liftTier(liftKey, max, bw) {
+    const wc = rankWeightClass(bw);
+    const th = bodyweightStandards[wc][liftKey];        // [Beginner..Elite]
+    let passed = 0; for (const t of th) if (max >= t) passed++;
+    return { passed, th };
+  }
+  function rankHex(rankIdx) {
+    const cols = [['#8a6f4a','#c8923f'],['#c8923f','#f4d9a8'],['#9a9ea8','#e8eaef'],['#e8eaef','#ffffff'],['#C1272D','#F0565B']];
+    const num  = ['I','II','III','IV','V'][rankIdx];
+    return '<svg class="rank-hex" viewBox="0 0 60 70">' +
+      '<polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="#15171c" stroke="' + cols[rankIdx][0] + '" stroke-width="2.5"/>' +
+      '<text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="' + cols[rankIdx][1] + '">' + num + '</text></svg>';
+  }
+  function renderRank(sq, bn, dl, bw) {
+    const card = document.getElementById('rankCard');
+    if (!card) return;
+    if (!sq && !bn && !dl) { card.style.display = 'none'; return; }
+    const lifts = [['squat','Squat',sq],['bench','Bench',bn],['dead','Deadlift',dl]];
+    let sumIdx = 0, n = 0, rows = '';
+    for (const [key,label,mx] of lifts) {
+      if (!mx) continue;
+      const { passed, th } = liftTier(key, mx, bw);
+      const idx = Math.max(0, Math.min(4, passed - 1));
+      sumIdx += idx; n++;
+      let pct, nextTxt;
+      if (passed >= 5) { pct = 100; nextTxt = 'Max rank reached — Elite'; }
+      else {
+        const base = passed > 0 ? th[passed-1] : 0;
+        const next = th[passed];
+        pct = Math.max(4, Math.min(100, Math.round((mx - base) / (next - base) * 100)));
+        nextTxt = '<b>+' + (next - mx) + ' lbs</b> &rarr; ' + RANK_NAMES[Math.min(4, passed)];
+      }
+      rows += '<div class="rank-lift">' + rankHex(idx) + '<div class="rank-lift-body">' +
+        '<div class="rank-lift-name">' + label + '</div>' +
+        '<div class="rank-lift-rank">' + RANK_NAMES[idx] + '</div>' +
+        '<div class="rank-prog"><span data-w="' + pct + '"></span></div>' +
+        '<div class="rank-next">' + nextTxt + '</div></div></div>';
+    }
+    const overall = n ? Math.round(sumIdx / n) : 0;
+    card.style.display = '';
+    card.innerHTML =
+      '<div class="rank-head"><div class="rank-overall">' + rankHex(overall) +
+        '<div class="rank-overall-meta"><div class="rank-eyebrow">Your Gladiator Rank</div>' +
+        '<div class="rank-name">' + RANK_NAMES[overall] + '</div>' +
+        '<div class="rank-flair">Big-3 ranked against lifters in the ' + rankWeightClass(bw) + ' lb class</div>' +
+        '</div></div></div>' +
+      '<div class="rank-grid">' + rows + '</div>';
+    setTimeout(() => card.querySelectorAll('.rank-prog > span').forEach(s => s.style.width = s.dataset.w + '%'), 80);
+  }
+
   function renderProfile(squatMax, benchMax, deadMax, bodyweight, height) {
     const sq = +squatMax || 0, bn = +benchMax || 0, dl = +deadMax || 0;
     const bw = +bodyweight || 185;
@@ -1503,7 +1586,11 @@ function initApp(uid) {
     const dnaCard  = document.getElementById('dnaCard');
     if (!statGrid || !dnaCard) return;
 
-    if (!sq && !bn && !dl) { statGrid.innerHTML = ''; dnaCard.style.display = 'none'; return; }
+    if (!sq && !bn && !dl) {
+      statGrid.innerHTML = ''; dnaCard.style.display = 'none';
+      const rc = document.getElementById('rankCard'); if (rc) rc.style.display = 'none';
+      return;
+    }
 
     const sR = bw ? sq / bw : 0, bR = bw ? bn / bw : 0, dR = bw ? dl / bw : 0;
     const big3 = sq + bn + dl;
@@ -1514,24 +1601,26 @@ function initApp(uid) {
     const totalDesc = +totalR < 4 ? 'Beginner range' : +totalR < 5 ? 'Intermediate range' : +totalR < 6 ? 'Advanced range' : 'Elite range';
 
     statGrid.innerHTML =
-      (hIn ? `<div class="stat-tile"><div class="st-label">Height</div>
+      (hIn ? `<div class="stat-tile forged"><div class="st-label">Height</div>
         <div class="st-value">${Math.floor(hIn/12)}'${hIn%12}<span>in</span></div>
         <div class="st-sub">${Math.round(hIn*2.54)} cm</div></div>` : '') +
-      `<div class="stat-tile"><div class="st-label">Bodyweight</div>
+      `<div class="stat-tile forged"><div class="st-label">Bodyweight</div>
         <div class="st-value">${bw}<span>lbs</span></div>
         <div class="st-sub">${(bw/2.2046).toFixed(1)} kg</div></div>` +
-      (bmi ? `<div class="stat-tile"><div class="st-label">BMI</div>
+      (bmi ? `<div class="stat-tile forged"><div class="st-label">BMI</div>
         <div class="st-value">${bmi}</div>
         <div class="st-sub">${bmiDesc}</div></div>` : '') +
-      `<div class="stat-tile highlight"><div class="st-label">Big-3 Total</div>
+      `<div class="stat-tile forged highlight"><div class="st-label">Big-3 Total</div>
         <div class="st-value">${big3.toLocaleString()}<span>lbs</span></div>
         <div class="st-sub">${(big3/2.2046).toFixed(0)} kg</div></div>
-      <div class="stat-tile"><div class="st-label">Total / Bodyweight</div>
+      <div class="stat-tile forged"><div class="st-label">Total / Bodyweight</div>
         <div class="st-value">${totalR}<span>×</span></div>
         <div class="st-sub">${totalDesc}</div></div>
-      <div class="stat-tile"><div class="st-label">IPF Weight Class</div>
+      <div class="stat-tile forged"><div class="st-label">IPF Weight Class</div>
         <div class="st-value" style="font-size:24px;">${ipfCls}<span>kg</span></div>
         <div class="st-sub">You'd compete at ${ipfCls} kg</div></div>`;
+
+    renderRank(sq, bn, dl, bw);
 
     const ranked = [{n:'squat',v:sq,r:sR},{n:'bench',v:bn,r:bR},{n:'deadlift',v:dl,r:dR}]
       .sort((a,b) => b.r - a.r);
@@ -2466,4 +2555,25 @@ renderBodyweight(); // init month label + empty state on page load
   $('pcClear').addEventListener('click', () => { counts = {}; render(); });
 
   render();
+})();
+
+/* ===== LIVING BACKGROUND MEDALLION (scroll parallax) ==============
+   The faint medallions drift at different speeds for depth. Disabled
+   automatically for users who prefer reduced motion. */
+(function () {
+  const meds = Array.from(document.querySelectorAll('.bg-medallion'));
+  if (!meds.length) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let ticking = false;
+  function update() {
+    const y = window.scrollY || window.pageYOffset || 0;
+    if (meds[0]) meds[0].style.transform = 'translateY(' + (-y * 0.18) + 'px) rotate(' + (y * 0.012) + 'deg)';
+    if (meds[1]) meds[1].style.transform = 'translateY(' + (y * 0.10) + 'px) rotate(' + (-y * 0.02) + 'deg)';
+    if (meds[2]) meds[2].style.transform = 'translateY(' + (y * 0.16) + 'px) rotate(' + (y * 0.025) + 'deg)';
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
 })();
