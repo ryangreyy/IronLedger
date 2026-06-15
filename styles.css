@@ -1358,7 +1358,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   /* Show 3 faint medallions on mobile, peeking from the edges so the
      backdrop has depth without feeling cluttered. Desktop keeps 3 (m1-m3);
      mobile swaps m3 out for m4 so the lower corners get coverage. */
-  .bg-medallion.m1{ width:300px; margin-left:-150px; top:3%; opacity:.05; }
+  .bg-medallion.m1{ width:300px; margin-left:-150px; top:10%; opacity:.05; }
   .bg-medallion.m2{ width:185px; top:45%; left:-85px; opacity:.04; }
   .bg-medallion.m3{ display:none; }
   .bg-medallion.m4{ width:195px; top:74%; right:-80px; opacity:.04; display:block; }
