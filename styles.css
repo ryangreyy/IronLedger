@@ -888,7 +888,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   font-weight:700; font-size:38px; fill:var(--text);
 }
 .donut-center-l{
-  font-family:'Manrope',system-ui,sans-serif; font-size:12px;
+  font-family:var(--body); font-size:12px;
   fill:var(--text-dimmer); text-transform:uppercase; letter-spacing:0.1em;
 }
 
@@ -1065,7 +1065,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .guide-pd.done{ background:var(--accent); }
 .guide-pd.act{ background:rgba(193,39,45,.45); }
 .guide-eyebrow{ font-size:10px; letter-spacing:.12em; color:var(--text-dimmer); text-transform:uppercase; font-family:var(--mono); }
-.guide-title{ font-size:20px; font-weight:500; color:var(--text); margin:0 0 4px; }
+.guide-title{ font-size:20px; font-weight:500; margin:0 0 4px; background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 0 18px rgba(193,39,45,.25)); }
 .guide-sub{ font-size:13px; color:var(--text-dim); margin:0 0 20px; }
 .guide-goals{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:18px; }
 @media(max-width:600px){ .guide-goals{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
@@ -1087,7 +1087,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .guide-hint{ font-size:11px; color:var(--text-dimmer); margin:4px 0 20px; }
 .guide-btns{ display:flex; gap:9px; margin-top:4px; }
 .guide-btn{ padding:9px 20px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; border:none; }
-.guide-btn-p{ background:var(--accent); color:#fff; }
+.guide-btn-p{ background:var(--accent); color:var(--text); }
 .guide-btn-p:hover{ opacity:.88; }
 .guide-btn-p:disabled{ opacity:.3; cursor:default; }
 .guide-btn-s{ background:rgba(255,255,255,.07); color:var(--text-dim); }
@@ -1153,7 +1153,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .yoga-search:focus{ border-color:var(--accent-bright); }
 .yoga-controls{ margin-bottom:4px; }
 .yoga-auth-gate{ text-align:center; padding:60px 0; }
-.yoga-auth-gate p{ color:var(--text-dimmer); font-family:var(--mono); font-size:14px; margin-bottom:16px; }
+.yoga-auth-gate p{ color:var(--text-dim); font-family:var(--mono); font-size:14px; margin-bottom:16px; }
 .yoga-empty{ color:var(--text-dimmer); font-size:14px; font-family:var(--mono); padding:40px 0; text-align:center; grid-column:1/-1; }
 
 /* Pose filter chips */
