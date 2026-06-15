@@ -1895,9 +1895,8 @@ function initApp(uid) {
           classes += ' has-session';
           const base = colors[cls] || colors.other;
           const rv2 = rgbVarMap[cls];
-          const glow = rv2 ? `rgba(var(${rv2}),.5)` : `${base}80`;
           el.style.background = `radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${base}`;
-          el.style.boxShadow  = `inset 0 2px 3px rgba(255,255,255,.42),inset 0 -2px 3px rgba(0,0,0,.38),0 5px 14px ${glow}`;
+          el.style.boxShadow  = `inset 0 2px 3px rgba(255,255,255,.42),inset 0 -2px 3px rgba(0,0,0,.38)`;
         }
         usedCls.push(cls);
       }
