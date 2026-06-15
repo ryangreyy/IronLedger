@@ -142,8 +142,9 @@ nav.nav-hidden{ transform:translateY(-100%); }
 }
 .nav-hamburger:hover{ background:rgba(255,255,255,0.07); }
 @media(max-width:720px){
+  .nav-inner{ padding:14px 20px; }
   .brand-text{ display:none; }
-  .brand img.mark{ height:32px; filter:none; }
+  .brand img.mark{ height:26px; filter:none; margin:0; }
   #nav-signed-out{ gap:8px; }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
 }
