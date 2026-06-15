@@ -28,7 +28,7 @@
     const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
     if (emb) {
       el.style.cssText = `background:${bgColor||'#8b1c1c'};box-shadow:inset 0 0 0 2.5px ${ringColor||'#d4af37'};display:flex;align-items:center;justify-content:center;`;
-      el.innerHTML = `<i class="ti ${emb.icon}" style="font-size:18px;color:${iconColor||'#fff'};line-height:1;" aria-hidden="true"></i>`;
+      el.innerHTML = `<i class="ti ${emb.icon}" style="font-size:15px;color:${iconColor||'#fff'};line-height:1;" aria-hidden="true"></i>`;
     } else if (user && user.photoURL) {
       el.style.cssText = '';
       el.innerHTML = `<img src="${user.photoURL}" alt="">`;

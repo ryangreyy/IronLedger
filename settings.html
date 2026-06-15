@@ -336,7 +336,7 @@
     const emb = EMBLEMS.find(e => e.id === emblemId);
     if (emb) {
       navAv.style.cssText = `background:${bgColor};box-shadow:inset 0 0 0 2.5px ${ringColor};display:flex;align-items:center;justify-content:center;`;
-      navAv.innerHTML = `<i class="ti ${emb.icon}" style="font-size:18px;color:${iconColor};line-height:1;" aria-hidden="true"></i>`;
+      navAv.innerHTML = `<i class="ti ${emb.icon}" style="font-size:15px;color:${iconColor};line-height:1;" aria-hidden="true"></i>`;
     } else if (user && user.photoURL) {
       navAv.style.cssText = '';
       navAv.innerHTML = `<img src="${user.photoURL}" alt="">`;
