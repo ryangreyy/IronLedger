@@ -2567,9 +2567,11 @@ renderBodyweight(); // init month label + empty state on page load
   let ticking = false;
   function update() {
     const y = window.scrollY || window.pageYOffset || 0;
-    if (meds[0]) meds[0].style.transform = 'translateY(' + (-y * 0.18) + 'px) rotate(' + (y * 0.012) + 'deg)';
-    if (meds[1]) meds[1].style.transform = 'translateY(' + (y * 0.10) + 'px) rotate(' + (-y * 0.02) + 'deg)';
-    if (meds[2]) meds[2].style.transform = 'translateY(' + (y * 0.16) + 'px) rotate(' + (y * 0.025) + 'deg)';
+    meds.forEach(el => {
+      const sp = parseFloat(el.dataset.speed) || 0;
+      const ro = parseFloat(el.dataset.rot) || 0;
+      el.style.transform = 'translateY(' + (y * sp) + 'px) rotate(' + (y * ro) + 'deg)';
+    });
     ticking = false;
   }
   window.addEventListener('scroll', () => {
