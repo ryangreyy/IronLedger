@@ -889,22 +889,27 @@ function initApp(uid) {
       const cx = 150, cy = 150, ro = 118, ri = 68;
       let angle = 0, paths = '', legendHTML = '';
 
-      items.forEach(g => {
+      let defs = `<defs><linearGradient id="dg-raised" x1="150" y1="32" x2="150" y2="268" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fff" stop-opacity="0.18"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></linearGradient>`;
+
+      items.forEach((g, i) => {
         const pct   = g.sets / total;
         const sweep = pct * 360;
         const color = getDonutColor(g.cls);
         const gap   = items.length > 1 ? 2 : 0;
-        paths += `<path fill="${color}" d="${segmentPath(cx, cy, ro, ri, angle + gap/2, angle + sweep - gap/2)}"/>`;
+        const d     = segmentPath(cx, cy, ro, ri, angle + gap/2, angle + sweep - gap/2);
+        defs += `<radialGradient id="drg${i}" gradientUnits="userSpaceOnUse" cx="90" cy="75" r="130"><stop offset="0%" stop-color="#fff" stop-opacity="0.48"/><stop offset="48%" stop-color="${color}" stop-opacity="1"/><stop offset="100%" stop-color="${color}" stop-opacity="1"/></radialGradient><filter id="dgf${i}" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="${color}" flood-opacity="0.55"/></filter>`;
+        paths += `<path fill="url(#drg${i})" filter="url(#dgf${i})" d="${d}"/><path fill="url(#dg-raised)" d="${d}" pointer-events="none"/>`;
         legendHTML += `
           <div class="donut-legend-row">
-            <span class="donut-dot" style="background:${color}"></span>
+            <span class="donut-dot" style="background:radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${color};box-shadow:0 2px 8px ${color}80"></span>
             <span class="donut-lift">${g.lift}</span>
             <span class="donut-pct">${Math.round(pct * 100)}%</span>
           </div>`;
         angle += sweep;
       });
 
-      svg.innerHTML = paths +
+      defs += '</defs>';
+      svg.innerHTML = defs + paths +
         `<text x="150" y="142" text-anchor="middle" class="donut-center-n">${total}</text>
          <text x="150" y="163" text-anchor="middle" class="donut-center-l">total sets</text>`;
       if (legend) legend.innerHTML = legendHTML;
