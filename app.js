@@ -1888,7 +1888,11 @@ function initApp(uid) {
           el.style.borderColor = rv ? `rgba(var(${rv}),0.5)`  : 'rgba(154,160,172,0.5)';
         } else {
           classes += ' has-session';
-          el.style.background = colors[cls] || colors.other;
+          const base = colors[cls] || colors.other;
+          const rv2 = rgbVarMap[cls];
+          const glow = rv2 ? `rgba(var(${rv2}),.5)` : `${base}80`;
+          el.style.background = `radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${base}`;
+          el.style.boxShadow  = `inset 0 2px 3px rgba(255,255,255,.42),inset 0 -2px 3px rgba(0,0,0,.38),0 5px 14px ${glow}`;
         }
         usedCls.push(cls);
       }
@@ -1909,8 +1913,14 @@ function initApp(uid) {
     const order = ['squat','bench','dead','arm','press','other','rest'];
     const used = [...new Set(usedCls)].sort((a, b) => (order.indexOf(a) ?? 99) - (order.indexOf(b) ?? 99));
     legend.innerHTML = used.map(c => {
-      const bg = c === 'rest' ? 'rgba(107,114,128,0.4)' : (colors[c] || colors.other);
-      return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${bg}"></div>${lbls[c] || c}</div>`;
+      if (c === 'rest') {
+        return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(107,114,128,0.4)"></div>${lbls[c] || c}</div>`;
+      }
+      const base = colors[c] || colors.other;
+      const rv3 = rgbVarMap[c];
+      const dotGlow = rv3 ? `0 2px 8px rgba(var(${rv3}),.55)` : '';
+      const dotBg = `radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${base}`;
+      return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${dotBg};box-shadow:${dotGlow}"></div>${lbls[c] || c}</div>`;
     }).join('');
   }
 
