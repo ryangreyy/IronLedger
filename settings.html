@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=90">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
 <body>
@@ -69,27 +70,22 @@
             <input id="settingsEmail" type="text" disabled style="opacity:0.45;cursor:not-allowed;">
           </div>
           <div class="field" style="margin-bottom:0;">
-            <label style="margin-bottom:6px;">Profile avatar</label>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-              <p style="font-size:13px;color:var(--text-dim);margin:0;">Pick a character, then choose a circle background color.</p>
-              <button id="avatarRandomBtn" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;white-space:nowrap;flex-shrink:0;margin-left:12px;">🎲 Randomize</button>
+            <label style="margin-bottom:10px;display:block;">Profile emblem</label>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <p style="font-size:13px;color:var(--text-dim);margin:0;">Pick your emblem and customize the colors.</p>
+              <button id="avatarRandomBtn" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;white-space:nowrap;flex-shrink:0;margin-left:12px;">Randomize</button>
             </div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Cute &amp; soft</p>
-            <div id="avatarGrid-cute" class="avatar-grid" style="margin-bottom:16px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Cool &amp; bold</p>
-            <div id="avatarGrid-bold" class="avatar-grid" style="margin-bottom:16px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Aquatic</p>
-            <div id="avatarGrid-aquatic" class="avatar-grid" style="margin-bottom:16px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Wild</p>
-            <div id="avatarGrid-wild" class="avatar-grid" style="margin-bottom:16px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Legendary</p>
-            <div id="avatarGrid-legendary" class="avatar-grid" style="margin-bottom:16px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Gym</p>
-            <div id="avatarGrid-gym" class="avatar-grid" style="margin-bottom:16px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Silly Faces</p>
-            <div id="avatarGrid-silly" class="avatar-grid" style="margin-bottom:20px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 10px;">Circle color</p>
-            <div id="avatarBgPicker" class="avatar-bg-grid"></div>
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+              <div id="emblemPreview" style="width:64px;height:64px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
+              <p style="font-size:12px;color:var(--text-dimmer);font-family:var(--mono);margin:0;line-height:1.5;">Live preview — changes save automatically.</p>
+            </div>
+            <div id="emblemGrid" class="avatar-grid" style="margin-bottom:20px;"></div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Ring color</p>
+            <div id="ringColorPicker" class="avatar-bg-grid" style="margin-bottom:16px;"></div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Background color</p>
+            <div id="bgColorPicker" class="avatar-bg-grid" style="margin-bottom:16px;"></div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Icon color</p>
+            <div id="iconColorPicker" class="avatar-bg-grid" style="margin-bottom:0;"></div>
           </div>
           <button id="saveProfile" class="btn btn-primary">Save name</button>
           <p id="profileMsg" class="settings-msg"></p>
@@ -282,126 +278,129 @@
   let currentUid = null;
   const settingsRef = () => db.collection('users').doc(currentUid).collection('settings').doc('main');
 
-  /* ── AVATAR PICKER ── */
-  const _CDN = 'https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets';
-  const AVATARS = [
-    { id:'bunny',    url:`${_CDN}/Rabbit%20face/3D/rabbit_face_3d.png`,       emoji:'🐰', label:'Bunny',        group:'cute' },
-    { id:'cat',      url:`${_CDN}/Cat%20face/3D/cat_face_3d.png`,             emoji:'🐱', label:'Cat',          group:'cute' },
-    { id:'panda',    url:`${_CDN}/Panda/3D/panda_3d.png`,                     emoji:'🐼', label:'Panda',        group:'cute' },
-    { id:'fox',      url:`${_CDN}/Fox/3D/fox_3d.png`,                         emoji:'🦊', label:'Fox',          group:'cute' },
-    { id:'koala',    url:`${_CDN}/Koala/3D/koala_3d.png`,                     emoji:'🐨', label:'Koala',        group:'cute' },
-    { id:'otter',    url:`${_CDN}/Otter/3D/otter_3d.png`,                     emoji:'🦦', label:'Otter',        group:'cute' },
-    { id:'flamingo', url:`${_CDN}/Flamingo/3D/flamingo_3d.png`,               emoji:'🦩', label:'Flamingo',     group:'cute' },
-    { id:'penguin',  url:`${_CDN}/Penguin/3D/penguin_3d.png`,                 emoji:'🐧', label:'Penguin',      group:'cute' },
-    { id:'wolf',     url:`${_CDN}/Wolf/3D/wolf_3d.png`,                       emoji:'🐺', label:'Wolf',         group:'bold' },
-    { id:'lion',     url:`${_CDN}/Lion/3D/lion_3d.png`,                       emoji:'🦁', label:'Lion',         group:'bold' },
-    { id:'tiger',    url:`${_CDN}/Tiger%20face/3D/tiger_face_3d.png`,         emoji:'🐯', label:'Tiger',        group:'bold' },
-    { id:'bear',     url:`${_CDN}/Bear/3D/bear_3d.png`,                       emoji:'🐻', label:'Bear',         group:'bold' },
-    { id:'shark',    url:`${_CDN}/Shark/3D/shark_3d.png`,                     emoji:'🦈', label:'Shark',        group:'bold' },
-    { id:'gorilla',  url:`${_CDN}/Gorilla/3D/gorilla_3d.png`,                 emoji:'🦍', label:'Gorilla',      group:'bold' },
-    { id:'trex',     url:`${_CDN}/T-rex/3D/t-rex_3d.png`,                     emoji:'🦖', label:'T-Rex',        group:'bold' },
-    { id:'leopard',  url:`${_CDN}/Leopard/3D/leopard_3d.png`,                 emoji:'🐆', label:'Leopard',      group:'bold' },
-    { id:'dolphin',  url:`${_CDN}/Dolphin/3D/dolphin_3d.png`,                 emoji:'🐬', label:'Dolphin',      group:'aquatic' },
-    { id:'octopus',  url:`${_CDN}/Octopus/3D/octopus_3d.png`,                 emoji:'🐙', label:'Octopus',      group:'aquatic' },
-    { id:'whale',    url:`${_CDN}/Spouting%20whale/3D/spouting_whale_3d.png`, emoji:'🐳', label:'Whale',         group:'aquatic' },
-    { id:'crab',     url:`${_CDN}/Crab/3D/crab_3d.png`,                       emoji:'🦀', label:'Crab',         group:'aquatic' },
-    { id:'lobster',  url:`${_CDN}/Lobster/3D/lobster_3d.png`,                 emoji:'🦞', label:'Lobster',      group:'aquatic' },
-    { id:'seal',     url:`${_CDN}/Seal/3D/seal_3d.png`,                       emoji:'🦭', label:'Seal',         group:'aquatic' },
-    { id:'blowfish', url:`${_CDN}/Blowfish/3D/blowfish_3d.png`,               emoji:'🐡', label:'Blowfish',     group:'aquatic' },
-    { id:'tropfish', url:`${_CDN}/Tropical%20fish/3D/tropical_fish_3d.png`,   emoji:'🐠', label:'Tropical Fish', group:'aquatic' },
-    { id:'eagle',    url:`${_CDN}/Eagle/3D/eagle_3d.png`,                     emoji:'🦅', label:'Eagle',        group:'wild' },
-    { id:'horse',    url:`${_CDN}/Horse%20face/3D/horse_face_3d.png`,         emoji:'🐴', label:'Horse',        group:'wild' },
-    { id:'croc',     url:`${_CDN}/Crocodile/3D/crocodile_3d.png`,             emoji:'🐊', label:'Crocodile',    group:'wild' },
-    { id:'rhino',    url:`${_CDN}/Rhinoceros/3D/rhinoceros_3d.png`,           emoji:'🦏', label:'Rhino',        group:'wild' },
-    { id:'peacock',  url:`${_CDN}/Peacock/3D/peacock_3d.png`,                 emoji:'🦚', label:'Peacock',      group:'wild' },
-    { id:'bison',    url:`${_CDN}/Bison/3D/bison_3d.png`,                     emoji:'🦬', label:'Bison',        group:'wild' },
-    { id:'boar',     url:`${_CDN}/Boar/3D/boar_3d.png`,                       emoji:'🐗', label:'Boar',         group:'wild' },
-    { id:'mammoth',  url:`${_CDN}/Mammoth/3D/mammoth_3d.png`,                 emoji:'🦣', label:'Mammoth',      group:'wild' },
-    { id:'dragon',   url:`${_CDN}/Dragon/3D/dragon_3d.png`,                   emoji:'🐉', label:'Dragon',       group:'legendary' },
-    { id:'unicorn',  url:`${_CDN}/Unicorn/3D/unicorn_3d.png`,                 emoji:'🦄', label:'Unicorn',      group:'legendary' },
-    { id:'alien',    url:`${_CDN}/Alien/3D/alien_3d.png`,                     emoji:'👽', label:'Alien',        group:'legendary' },
-    { id:'ghost',    url:`${_CDN}/Ghost/3D/ghost_3d.png`,                     emoji:'👻', label:'Ghost',        group:'legendary' },
-    { id:'robot',    url:`${_CDN}/Robot/3D/robot_3d.png`,                     emoji:'🤖', label:'Robot',        group:'legendary' },
-    { id:'drgface',  url:`${_CDN}/Dragon%20face/3D/dragon_face_3d.png`,       emoji:'🐲', label:'Dragon Face',  group:'legendary' },
-    { id:'sauro',    url:`${_CDN}/Sauropod/3D/sauropod_3d.png`,               emoji:'🦕', label:'Sauropod',     group:'legendary' },
-    { id:'jackolan', url:`${_CDN}/Jack-o-lantern/3D/jack-o-lantern_3d.png`,   emoji:'🎃', label:'Jack-o-Lantern',group:'legendary' },
-    { id:'bicep',    url:`${_CDN}/Mechanical%20arm/3D/mechanical_arm_3d.png`,  emoji:'🦾', label:'Mech Arm',     group:'gym' },
-    { id:'trophy',   url:`${_CDN}/Trophy/3D/trophy_3d.png`,                   emoji:'🏆', label:'Trophy',       group:'gym' },
-    { id:'fire',     url:`${_CDN}/Fire/3D/fire_3d.png`,                       emoji:'🔥', label:'Fire',         group:'gym' },
-    { id:'bolt',     url:`${_CDN}/High%20voltage/3D/high_voltage_3d.png`,     emoji:'⚡', label:'Lightning',    group:'gym' },
-    { id:'dumbbell', url:`${_CDN}/Skull/3D/skull_3d.png`,                                       emoji:'💀', label:'Skull',  group:'gym' },
-    { id:'medal',    url:`${_CDN}/Sports%20medal/3D/sports_medal_3d.png`,     emoji:'🏅', label:'Medal',        group:'gym' },
-    { id:'crown',    url:`${_CDN}/Crown/3D/crown_3d.png`,                     emoji:'👑', label:'Crown',        group:'gym' },
-    { id:'shoe',     url:`${_CDN}/Running%20shoe/3D/running_shoe_3d.png`,     emoji:'👟', label:'Running Shoe', group:'gym' },
-    { id:'zany',     url:`${_CDN}/Zany%20face/3D/zany_face_3d.png`,                           emoji:'🤪', label:'Zany',         group:'silly' },
-    { id:'clown',    url:`${_CDN}/Clown%20face/3D/clown_face_3d.png`,                         emoji:'🤡', label:'Clown',        group:'silly' },
-    { id:'updown',   url:`${_CDN}/Upside-down%20face/3D/upside-down_face_3d.png`,             emoji:'🙃', label:'Upside Down',  group:'silly' },
-    { id:'cowboy',   url:`${_CDN}/Cowboy%20hat%20face/3D/cowboy_hat_face_3d.png`,             emoji:'🤠', label:'Cowboy',       group:'silly' },
-    { id:'nerd',     url:`${_CDN}/Nerd%20face/3D/nerd_face_3d.png`,                           emoji:'🤓', label:'Nerd',         group:'silly' },
-    { id:'disguise', url:`${_CDN}/Disguised%20face/3D/disguised_face_3d.png`,                 emoji:'🥸', label:'Disguised',    group:'silly' },
-    { id:'party',    url:`${_CDN}/Partying%20face/3D/partying_face_3d.png`,                   emoji:'🥳', label:'Party',        group:'silly' },
-    { id:'wink',     url:`${_CDN}/Winking%20face%20with%20tongue/3D/winking_face_with_tongue_3d.png`, emoji:'😜', label:'Wink', group:'silly' },
+  /* ── IRON EMBLEMS PICKER ── */
+  const EMBLEMS = [
+    { id:'gladius',  icon:'ti-sword',     label:'Gladius'  },
+    { id:'scutum',   icon:'ti-shield',    label:'Scutum'   },
+    { id:'summit',   icon:'ti-mountain',  label:'Summit'   },
+    { id:'inferno',  icon:'ti-flame',     label:'Inferno'  },
+    { id:'surge',    icon:'ti-bolt',      label:'Surge'    },
+    { id:'iron',     icon:'ti-barbell',   label:'Iron'     },
+    { id:'duellum',  icon:'ti-swords',    label:'Duellum'  },
+    { id:'target',   icon:'ti-target',    label:'Target'   },
+    { id:'anchor',   icon:'ti-anchor',    label:'Anchor'   },
+    { id:'skull',    icon:'ti-skull',     label:'Skull'    },
+    { id:'securis',  icon:'ti-axe',       label:'Securis'  },
+    { id:'tridens',  icon:'ti-spade',     label:'Tridens'  },
+    { id:'serpens',  icon:'ti-dna-2',     label:'Serpens'  },
+    { id:'taurus',   icon:'ti-chess-rook',label:'Taurus'   },
+    { id:'corona',   icon:'ti-crown',     label:'Corona'   },
+    { id:'dagger',   icon:'ti-tools',     label:'Dagger'   },
+    { id:'storm',    icon:'ti-tornado',   label:'Storm'    },
+    { id:'rex',      icon:'ti-chess-king',label:'Rex'      },
+  ];
+  const RING_COLORS = [
+    '#d4af37','#c0c0c0','#cd7f32','#e63946','#ffffff',
+    '#4a9eff','#4ade80','#ff7eb3','#b78bff','#ff8a4c',
+    '#5bd6e6','#c9a84c',
+  ];
+  const BG_COLORS = [
+    '#1a1a26','#12161f','#0d1320','#1e2d42','#7a0e0e',
+    '#1e3a24','#3a0e1e','#4a2010','#0d2640','#1a3020',
+    '#2a3442','#222730',
+  ];
+  const ICON_COLORS = [
+    '#ffffff','#f0f4f8','#d4af37','#ff5a5a','#ff8a4c',
+    '#ffd700','#4ade80','#5bd6e6','#4a9eff','#b78bff',
+    '#ff7eb3','#c9a84c',
   ];
 
-  const AVATAR_BG_COLORS = [
-    '#FFB3B3','#FFD0A0','#FFFAAA','#AAFFBB','#AACCFF','#BBAAFF','#FFAAFF','#FFFFFF',
-    '#FF2D2D','#FF7700','#FFD700','#22CC44','#1A66FF','#4422CC','#9900CC','#808080',
-    '#8B0000','#8B3A00','#8B7000','#005520','#001A8B','#1A0066','#440055','#000000',
-  ];
+  let selectedEmblemId  = 'gladius';
+  let selectedRingColor = '#d4af37';
+  let selectedBgColor   = '#8b1c1c';
+  let selectedIconColor = '#ffffff';
 
-  let selectedAvatarId = null;
-  let selectedAvatarBg = null;
-
-  function applyNavAvatarSettings(avatarId, avatarBg, user) {
-    const navAv = document.getElementById('nav-avatar');
-    if (!navAv) return;
-    const av = AVATARS.find(a => a.id === avatarId);
-    if (av) {
-      navAv.style.cssText = `background:${avatarBg || '#1a1c1e'};`;
-      navAv.innerHTML = `<img src="${av.url}" alt="" style="width:26px;height:26px;object-fit:contain;" onerror="this.style.display='none'">`;
-    } else if (user && user.photoURL) {
-      navAv.innerHTML = `<img src="${user.photoURL}" alt="">`;
-      navAv.style.cssText = '';
-    } else {
-      const name = user?.displayName || user?.email || '?';
-      navAv.textContent = name.charAt(0).toUpperCase();
-      navAv.style.cssText = '';
+  function updatePreview() {
+    const preview = document.getElementById('emblemPreview');
+    if (!preview) return;
+    const emb = EMBLEMS.find(e => e.id === selectedEmblemId);
+    if (emb) {
+      preview.style.cssText = `width:64px;height:64px;border-radius:50%;background:${selectedBgColor};box-shadow:inset 0 0 0 4px ${selectedRingColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;`;
+      preview.innerHTML = `<i class="ti ${emb.icon}" style="font-size:28px;color:${selectedIconColor};line-height:1;" aria-hidden="true"></i>`;
     }
   }
 
-  function renderAvatarGrid(user) {
-    ['cute','bold','aquatic','wild','legendary','gym','silly'].forEach(group => {
-      const grid = document.getElementById(`avatarGrid-${group}`);
-      if (!grid) return;
-      grid.innerHTML = AVATARS.filter(a => a.group === group).map(a =>
-        `<button class="avatar-option${selectedAvatarId === a.id ? ' av-selected' : ''}" data-id="${a.id}" title="${a.label}" aria-label="${a.label}">
-          <img src="${a.url}" alt="${a.label}" onerror="this.style.display='none';this.insertAdjacentText('afterend','${a.emoji}')">
-        </button>`
-      ).join('');
-      grid.querySelectorAll('.avatar-option').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          selectedAvatarId = btn.dataset.id;
-          renderAvatarGrid(user);
-          applyNavAvatarSettings(selectedAvatarId, selectedAvatarBg, user);
-          try { await settingsRef().set({ avatarId: selectedAvatarId }, { merge: true }); } catch (e) {}
-        });
+  function applyNavAvatarSettings(emblemId, ringColor, bgColor, iconColor, user) {
+    const navAv = document.getElementById('nav-avatar');
+    if (!navAv) return;
+    const emb = EMBLEMS.find(e => e.id === emblemId);
+    if (emb) {
+      navAv.style.cssText = `background:${bgColor};box-shadow:inset 0 0 0 2.5px ${ringColor};display:flex;align-items:center;justify-content:center;`;
+      navAv.innerHTML = `<i class="ti ${emb.icon}" style="font-size:18px;color:${iconColor};line-height:1;" aria-hidden="true"></i>`;
+    } else if (user && user.photoURL) {
+      navAv.style.cssText = '';
+      navAv.innerHTML = `<img src="${user.photoURL}" alt="">`;
+    } else if (user) {
+      navAv.style.cssText = '';
+      navAv.innerHTML = '';
+      navAv.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+    }
+  }
+
+  function renderEmblemGrid(user) {
+    const grid = document.getElementById('emblemGrid');
+    if (!grid) return;
+    grid.innerHTML = EMBLEMS.map(e =>
+      `<button class="avatar-option${selectedEmblemId === e.id ? ' av-selected' : ''}" data-id="${e.id}" title="${e.label}" aria-label="${e.label}" style="background:${selectedBgColor};box-shadow:inset 0 0 0 2.5px ${selectedRingColor};">
+        <i class="ti ${e.icon}" style="font-size:22px;color:${selectedIconColor};line-height:1;" aria-hidden="true"></i>
+      </button>`
+    ).join('');
+    grid.querySelectorAll('.avatar-option').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        selectedEmblemId = btn.dataset.id;
+        renderEmblemGrid(user);
+        updatePreview();
+        applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
+        try { await settingsRef().set({ avatarId: selectedEmblemId }, { merge: true }); } catch(e) {}
       });
     });
   }
 
-  function renderBgPicker(user) {
-    const picker = document.getElementById('avatarBgPicker');
+  function renderColorPicker(containerId, colors, selectedColor, onSelect) {
+    const picker = document.getElementById(containerId);
     if (!picker) return;
-    picker.innerHTML = AVATAR_BG_COLORS.map(color =>
-      `<div class="avatar-bg-swatch${selectedAvatarBg === color ? ' bg-selected' : ''}" data-color="${color}" style="background:${color};" title="${color}"></div>`
+    picker.innerHTML = colors.map(color =>
+      `<div class="avatar-bg-swatch${selectedColor === color ? ' bg-selected' : ''}" data-color="${color}" style="background:${color};" title="${color}"></div>`
     ).join('');
     picker.querySelectorAll('.avatar-bg-swatch').forEach(sw => {
-      sw.addEventListener('click', async () => {
-        selectedAvatarBg = sw.dataset.color;
-        renderBgPicker(user);
-        applyNavAvatarSettings(selectedAvatarId, selectedAvatarBg, user);
-        try { await settingsRef().set({ avatarBg: selectedAvatarBg }, { merge: true }); } catch (e) {}
-      });
+      sw.addEventListener('click', () => onSelect(sw.dataset.color));
+    });
+  }
+
+  function renderRingPicker(user) {
+    renderColorPicker('ringColorPicker', RING_COLORS, selectedRingColor, async color => {
+      selectedRingColor = color;
+      renderRingPicker(user); renderEmblemGrid(user); updatePreview();
+      applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
+      try { await settingsRef().set({ avatarRingColor: color }, { merge: true }); } catch(e) {}
+    });
+  }
+
+  function renderBgPicker(user) {
+    renderColorPicker('bgColorPicker', BG_COLORS, selectedBgColor, async color => {
+      selectedBgColor = color;
+      renderBgPicker(user); renderEmblemGrid(user); updatePreview();
+      applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
+      try { await settingsRef().set({ avatarBgColor: color }, { merge: true }); } catch(e) {}
+    });
+  }
+
+  function renderIconPicker(user) {
+    renderColorPicker('iconColorPicker', ICON_COLORS, selectedIconColor, async color => {
+      selectedIconColor = color;
+      renderIconPicker(user); renderEmblemGrid(user); updatePreview();
+      applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
+      try { await settingsRef().set({ avatarIconColor: color }, { merge: true }); } catch(e) {}
     });
   }
 
@@ -424,17 +423,22 @@
         'Your password is managed through your Google account.';
     }
 
-    /* Render avatar pickers immediately (no selection yet), then load prefs */
-    renderAvatarGrid(user);
+    /* Render emblem pickers immediately with defaults, then load prefs */
+    renderEmblemGrid(user);
+    renderRingPicker(user);
     renderBgPicker(user);
+    renderIconPicker(user);
+    updatePreview();
 
     document.getElementById('avatarRandomBtn').addEventListener('click', async () => {
-      selectedAvatarId = AVATARS[Math.floor(Math.random() * AVATARS.length)].id;
-      selectedAvatarBg = AVATAR_BG_COLORS[Math.floor(Math.random() * AVATAR_BG_COLORS.length)];
-      renderAvatarGrid(user);
-      renderBgPicker(user);
-      applyNavAvatarSettings(selectedAvatarId, selectedAvatarBg, user);
-      try { await settingsRef().set({ avatarId: selectedAvatarId, avatarBg: selectedAvatarBg }, { merge: true }); } catch(e) {}
+      selectedEmblemId  = EMBLEMS[Math.floor(Math.random() * EMBLEMS.length)].id;
+      selectedRingColor = RING_COLORS[Math.floor(Math.random() * RING_COLORS.length)];
+      selectedBgColor   = BG_COLORS[Math.floor(Math.random() * BG_COLORS.length)];
+      selectedIconColor = ICON_COLORS[Math.floor(Math.random() * ICON_COLORS.length)];
+      renderEmblemGrid(user); renderRingPicker(user); renderBgPicker(user); renderIconPicker(user);
+      updatePreview();
+      applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
+      try { await settingsRef().set({ avatarId: selectedEmblemId, avatarRingColor: selectedRingColor, avatarBgColor: selectedBgColor, avatarIconColor: selectedIconColor }, { merge: true }); } catch(e) {}
     });
 
     /* Load saved preferences */
@@ -447,13 +451,13 @@
         if (d.defaultLift !== undefined) document.getElementById('defaultLiftSel').value = d.defaultLift;
         loadColors(d);
         if (Array.isArray(d.customLifts)) { customLifts = d.customLifts; renderCustomLiftList(); }
-        if (d.avatarId) selectedAvatarId = d.avatarId;
-        if (d.avatarBg) selectedAvatarBg = d.avatarBg;
-        if (d.avatarId || d.avatarBg) {
-          renderAvatarGrid(user);
-          renderBgPicker(user);
-          applyNavAvatarSettings(selectedAvatarId, selectedAvatarBg, user);
-        }
+        if (d.avatarId)        selectedEmblemId  = d.avatarId;
+        if (d.avatarRingColor) selectedRingColor = d.avatarRingColor;
+        if (d.avatarBgColor)   selectedBgColor   = d.avatarBgColor;
+        if (d.avatarIconColor) selectedIconColor = d.avatarIconColor;
+        renderEmblemGrid(user); renderRingPicker(user); renderBgPicker(user); renderIconPicker(user);
+        updatePreview();
+        applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
       }
     } catch (e) { /* preferences not saved yet — use defaults */ }
   });
