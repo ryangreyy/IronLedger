@@ -109,13 +109,7 @@ const EMBLEMS = [
   { id:'rex',      icon:'ti-chess-king', label:'Rex'       },
 ];
 const RING_COLORS  = ['#d4af37','#c0c0c0','#cd7f32','#e63946','#ffffff','#4a9eff','#4ade80','#ff7eb3','#b78bff','#ff8a4c','#5bd6e6','#c9a84c'];
-const BG_COLORS    = [
-  '#1a1a26','#12161f','#0d1320','#1e2d42','#7a0e0e',
-  '#1e3a24','#3a0e1e','#4a2010','#0d2640','#1a3020',
-  '#2a3442','#222730','#2d1b4e','#001418','#3d2200',
-  '#1a0a1e','#2a1a00','#2a0028','#001a14','#3a1a2a',
-  '#0a2030','#1e1428','#2a1010','#141414',
-];
+const BG_COLORS    = ['#1a1a26','#12161f','#0d1320','#1e2d42','#7a0e0e','#1e3a24','#3a0e1e','#4a2010','#0d2640','#1a3020','#2a3442','#222730'];
 const ICON_COLORS  = ['#ffffff','#f0f4f8','#d4af37','#ff5a5a','#ff8a4c','#ffd700','#4ade80','#5bd6e6','#4a9eff','#b78bff','#ff7eb3','#c9a84c'];
 
 let currentUser = null;
