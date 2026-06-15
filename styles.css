@@ -334,7 +334,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .cal-day.clickable:hover{ filter:brightness(1.2); }
 .cal-day.today::after{
   content:''; position:absolute; inset:-1px; border-radius:8px;
-  border:2px solid var(--accent); pointer-events:none; z-index:1;
+  border:2px solid rgba(255,255,255,0.7); pointer-events:none; z-index:1;
 }
 .cal-day.has-session.today::after{ border-color:rgba(0,0,0,0.35); }
 
