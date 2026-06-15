@@ -192,16 +192,28 @@
 
   // ── Load Poses ────────────────────────────────────────────────────────────
   async function loadPoses() {
-    try {
-      const res = await fetch('https://yoga-api-nzy4.onrender.com/v1/poses');
-      if (!res.ok) throw new Error('api fail');
-      const data = await res.json();
-      allPoses = Array.isArray(data) ? data : (data.poses || data.data || FALLBACK_POSES);
-    } catch {
+    const cached = localStorage.getItem('yogaPosesCache');
+    if (cached) {
+      try { allPoses = JSON.parse(cached); } catch { allPoses = FALLBACK_POSES; }
+    } else {
       allPoses = FALLBACK_POSES;
     }
     renderPoseLibrary();
     renderFlowPicker();
+
+    // Refresh from API in the background; update cache if successful
+    try {
+      const res = await fetch('https://yoga-api-nzy4.onrender.com/v1/poses');
+      if (!res.ok) throw new Error('api fail');
+      const data = await res.json();
+      const poses = Array.isArray(data) ? data : (data.poses || data.data || null);
+      if (poses && poses.length) {
+        allPoses = poses;
+        localStorage.setItem('yogaPosesCache', JSON.stringify(poses));
+        renderPoseLibrary();
+        renderFlowPicker();
+      }
+    } catch { /* keep current poses */ }
   }
 
   // ── Pose Library ──────────────────────────────────────────────────────────
