@@ -197,14 +197,22 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .goals-tally{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); }
 .goal-row{
   display:flex; align-items:center; gap:14px;
-  padding:15px 0; border-bottom:1px solid var(--border);
+  position:relative;
+  padding:15px 10px 15px 12px; border-bottom:1px solid var(--border);
   cursor:pointer; user-select:none;
-  transition:background .15s,box-shadow .15s;
+  transition:background .15s;
 }
 .goal-row:hover{
   background:rgba(193,39,45,.04);
-  box-shadow:inset 3px 0 0 var(--accent);
   border-radius:6px;
+}
+.goal-row:hover::before{
+  content:'';
+  position:absolute;
+  left:0; top:9px; bottom:9px;
+  width:3px;
+  background:var(--accent);
+  border-radius:0 2px 2px 0;
 }
 .goal-row:last-child{ border-bottom:none; }
 .goal-check{ display:none; }
