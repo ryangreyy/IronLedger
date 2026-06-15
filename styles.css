@@ -1341,14 +1341,15 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .bg-medallion.m1{ width:540px; top:6%;  left:50%; margin-left:-270px; }
 .bg-medallion.m2{ width:230px; top:42%; left:-70px; }
 .bg-medallion.m3{ width:200px; top:14%; right:-60px; opacity:.04; }
-.bg-medallion.m4{ width:260px; top:68%; right:-95px; opacity:.045; }
+.bg-medallion.m4{ width:260px; top:68%; right:-95px; opacity:.045; display:none; }
 @media(max-width:760px){
   /* Show 3 faint medallions on mobile, peeking from the edges so the
-     backdrop has depth without feeling cluttered. */
+     backdrop has depth without feeling cluttered. Desktop keeps 3 (m1-m3);
+     mobile swaps m3 out for m4 so the lower corners get coverage. */
   .bg-medallion.m1{ width:300px; margin-left:-150px; top:3%; opacity:.05; }
   .bg-medallion.m2{ width:185px; top:45%; left:-85px; opacity:.04; }
   .bg-medallion.m3{ display:none; }
-  .bg-medallion.m4{ width:195px; top:74%; right:-80px; opacity:.04; }
+  .bg-medallion.m4{ width:195px; top:74%; right:-80px; opacity:.04; display:block; }
 }
 @media(prefers-reduced-motion:reduce){ .bg-medallion{ transform:none !important; } }
 
