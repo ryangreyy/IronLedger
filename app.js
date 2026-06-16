@@ -2226,7 +2226,7 @@ function initApp(uid) {
   document.getElementById('trackerAddBtn')?.addEventListener('click', () => {
     const trackers = [...(currentSettings?.personalTrackers || [])];
     trackers.push({ id: 't' + Date.now(), label: '', completedDates: [] });
-    settingsRef().update({ personalTrackers: trackers }).catch(trackerWriteErr);
+    settingsRef().set({ personalTrackers: trackers }, { merge: true }).catch(trackerWriteErr);
   });
 
   function trackerStreak(completedDates) {
@@ -2277,7 +2277,7 @@ function initApp(uid) {
         const updated = (currentSettings?.personalTrackers || []).map(t =>
           t.id === inp.dataset.id ? { ...t, label: inp.value.trim() } : t
         );
-        settingsRef().update({ personalTrackers: updated }).catch(trackerWriteErr);
+        settingsRef().set({ personalTrackers: updated }, { merge: true }).catch(trackerWriteErr);
       });
       inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); inp.blur(); } });
     });
@@ -2292,7 +2292,7 @@ function initApp(uid) {
           if (i >= 0) dates.splice(i, 1); else { dates.push(todayISO); spawnConfetti(btn); }
           return { ...t, completedDates: dates };
         });
-        settingsRef().update({ personalTrackers: updated }).catch(trackerWriteErr);
+        settingsRef().set({ personalTrackers: updated }, { merge: true }).catch(trackerWriteErr);
       });
     });
 
@@ -2300,7 +2300,7 @@ function initApp(uid) {
     list.querySelectorAll('.tracker-row-delete').forEach(btn => {
       btn.addEventListener('click', () => {
         const updated = (currentSettings?.personalTrackers || []).filter(t => t.id !== btn.dataset.id);
-        settingsRef().update({ personalTrackers: updated }).catch(trackerWriteErr);
+        settingsRef().set({ personalTrackers: updated }, { merge: true }).catch(trackerWriteErr);
       });
     });
   }
