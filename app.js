@@ -1751,7 +1751,11 @@ function initApp(uid) {
         <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
         <div class="goal-main">
           <input type="text" class="goal-input goal-add-input" maxlength="60" autocomplete="off" placeholder="Type your goal…">
-          <div class="goal-dates"><label class="goal-date-label">Due <input type="date" class="goal-finish-input goal-add-due" title="Optional due date"></label></div>
+          <div class="goal-dates">
+            <button class="goal-due-pill" type="button">+ Due date</button>
+            <button class="goal-due-clear" type="button" style="display:none">✕</button>
+            <input type="date" class="goal-add-due" style="position:absolute;visibility:hidden;width:0;height:0;pointer-events:none;">
+          </div>
           <div class="goal-edit-actions">
             <button class="goal-add-done btn-goal-act">Done</button>
             <button class="goal-add-cancel btn-goal-cancel">Cancel</button>
@@ -1896,6 +1900,34 @@ function initApp(uid) {
         goalsAddOpen = false;
         renderGoals(currentSettings && currentSettings.goals);
       });
+    }
+
+    const duePill = list.querySelector('.goal-due-pill');
+    const dueClear = list.querySelector('.goal-due-clear');
+    const dueHidden = list.querySelector('.goal-add-due');
+    if (duePill && dueHidden) {
+      duePill.addEventListener('click', () => {
+        try { dueHidden.showPicker(); } catch(e) { dueHidden.click(); }
+      });
+      dueHidden.addEventListener('change', () => {
+        if (dueHidden.value) {
+          duePill.textContent = fmtDs(dueHidden.value);
+          duePill.classList.add('has-date');
+          if (dueClear) dueClear.style.display = '';
+        } else {
+          duePill.textContent = '+ Due date';
+          duePill.classList.remove('has-date');
+          if (dueClear) dueClear.style.display = 'none';
+        }
+      });
+      if (dueClear) {
+        dueClear.addEventListener('click', () => {
+          dueHidden.value = '';
+          duePill.textContent = '+ Due date';
+          duePill.classList.remove('has-date');
+          dueClear.style.display = 'none';
+        });
+      }
     }
 
     list.querySelectorAll('.goal-edit-btn').forEach(btn => {
