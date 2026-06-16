@@ -2066,8 +2066,8 @@ function initApp(uid) {
           classes += ' has-session';
           const base = colors[cls] || colors.other;
           const rv2 = rgbVarMap[cls];
-          el.style.background = `radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${base}`;
-          el.style.boxShadow  = `inset 0 2px 3px rgba(255,255,255,.42),inset 0 -2px 3px rgba(0,0,0,.38)`;
+          el.style.background = `linear-gradient(180deg,rgba(0,0,0,.35),rgba(255,255,255,.02)),${base}`;
+          el.style.boxShadow  = `inset 0 4px 9px rgba(0,0,0,.58)`;
         }
         usedCls.push(cls);
       }
@@ -2094,7 +2094,7 @@ function initApp(uid) {
       }
       const base = colors[c] || colors.other;
       const rv3 = rgbVarMap[c];
-      const dotBg = `radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${base}`;
+      const dotBg = `linear-gradient(180deg,rgba(0,0,0,.35),rgba(255,255,255,.02)),${base}`;
       return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${dotBg}"></div>${lbls[c] || c}</div>`;
     }).join('');
   }
