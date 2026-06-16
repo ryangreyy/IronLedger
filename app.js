@@ -808,6 +808,7 @@ function initApp(uid) {
   const settingsRef = () => db.collection('users').doc(uid).collection('settings').doc('main');
 
   let goalsDonePage = 1;
+  let goalsDoneFilter = 'all';
   const GOALS_DONE_PAGE = 5;
 
   let calViewYear = new Date().getFullYear();
@@ -1682,14 +1683,15 @@ function initApp(uid) {
     if (tally) {
       const total = allGoals.length;
       const completedCount = allGoals.filter(g => g.done).length;
-      tally.textContent = total ? `${completedCount} / ${total} done` : '';
+      const missedCount = allGoals.filter(g => isMissedGoal(g)).length;
+      tally.textContent = total ? `${completedCount + missedCount} / ${total} done` : '';
     }
 
     function goalRow(g, isDone, isMissed) {
       const steps        = g.steps || 1;
       const stepsChecked = isDone ? steps : (g.stepsChecked || 0);
       const boxes = Array.from({length: steps}, (_, i) => {
-        const cls = isMissed ? ' missed' : (i < stepsChecked ? ' checked' : '');
+        const cls = i < stepsChecked ? ' checked' : (isMissed ? ' missed' : '');
         const attrs = (!isDone && !isMissed) ? ` data-idx="${g._i}" data-step="${i}"` : '';
         return `<span class="goal-step-box${cls}"${attrs}></span>`;
       }).join('');
@@ -1731,24 +1733,38 @@ function initApp(uid) {
     const newRow = `
       <div class="goal-row goal-row-new">
         <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
-        <input type="text" class="goal-input goal-input-new"
-               data-idx="-1" value="" placeholder="Add a goal…" maxlength="60" autocomplete="off">
+        <div class="goal-main">
+          <input type="text" class="goal-input goal-input-new"
+                 data-idx="-1" value="" placeholder="Add a goal…" maxlength="60" autocomplete="off">
+        </div>
       </div>`;
 
-    const totalPages = Math.max(1, Math.ceil(done.length / GOALS_DONE_PAGE));
-    if (goalsDonePage > totalPages) goalsDonePage = totalPages;
-    const pagSlice   = done.slice((goalsDonePage - 1) * GOALS_DONE_PAGE, goalsDonePage * GOALS_DONE_PAGE);
+    const filteredDone = goalsDoneFilter === 'completed'
+      ? done.filter(g => g.done)
+      : goalsDoneFilter === 'missed'
+        ? done.filter(g => isMissedGoal(g))
+        : done;
 
-    const divider = done.length ? '<div class="goals-divider"></div>' : '';
+    const totalPages = Math.max(1, Math.ceil(filteredDone.length / GOALS_DONE_PAGE));
+    if (goalsDonePage > totalPages) goalsDonePage = totalPages;
+    const pagSlice = filteredDone.slice((goalsDonePage - 1) * GOALS_DONE_PAGE, goalsDonePage * GOALS_DONE_PAGE);
+
+    const filterCtrl = done.length ? `<div class="goals-filter-row">
+      <select class="goals-filter-sel">
+        <option value="all"${goalsDoneFilter==='all'?' selected':''}>All</option>
+        <option value="completed"${goalsDoneFilter==='completed'?' selected':''}>Completed</option>
+        <option value="missed"${goalsDoneFilter==='missed'?' selected':''}>Missed</option>
+      </select>
+    </div>` : '';
 
     list.innerHTML =
       active.map(g => goalRow(g, false, false)).join('') +
       newRow +
-      divider +
+      (done.length ? '<div class="goals-divider"></div>' + filterCtrl : '') +
       pagSlice.map(g => goalRow(g, true, isMissedGoal(g))).join('');
 
     if (pag) {
-      if (done.length > GOALS_DONE_PAGE) {
+      if (filteredDone.length > GOALS_DONE_PAGE) {
         pag.style.display = '';
         document.getElementById('goals-page-info').textContent = `Page ${goalsDonePage} of ${totalPages}`;
         document.getElementById('goals-prev').disabled = goalsDonePage <= 1;
@@ -1843,6 +1859,15 @@ function initApp(uid) {
       });
       inp.addEventListener('click', e => e.stopPropagation());
     });
+
+    const filterSel = list.querySelector('.goals-filter-sel');
+    if (filterSel) {
+      filterSel.addEventListener('change', () => {
+        goalsDoneFilter = filterSel.value;
+        goalsDonePage = 1;
+        renderGoals(currentSettings && currentSettings.goals);
+      });
+    }
 
     const newInp = list.querySelector('.goal-input-new');
     if (newInp) {
@@ -1965,6 +1990,7 @@ function initApp(uid) {
     const lbls = { squat:'Legs', bench:'Chest', dead:'Back', arm:'Arms', press:'Arms', other:'Other', rest:'Rest Day' };
     const order = ['squat','bench','dead','arm','press','other','rest'];
     const used = [...new Set(usedCls)].sort((a, b) => (order.indexOf(a) ?? 99) - (order.indexOf(b) ?? 99));
+    if (!legend) return;
     legend.innerHTML = used.map(c => {
       if (c === 'rest') {
         return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(107,114,128,0.4)"></div>${lbls[c] || c}</div>`;

@@ -247,6 +247,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .goal-finish-input{ font-size:10px; color:var(--text-dimmer); background:transparent; border:none; outline:none; cursor:pointer; font-family:var(--body); padding:0; color-scheme:dark; }
 .goal-finish-input::-webkit-calendar-picker-indicator{ filter:invert(1) opacity(.35); cursor:pointer; }
 .goal-row-missed .goal-input{ color:var(--text-dimmer); text-decoration:line-through; }
+.goals-filter-row{ padding:6px 12px; }
+.goals-filter-sel{ background:transparent; border:1px solid var(--border-strong); color:var(--text-dimmer); font-size:11px; font-family:var(--mono); border-radius:5px; padding:3px 7px; cursor:pointer; outline:none; }
+.goals-filter-sel:hover{ border-color:var(--border-xstrong,var(--text-dimmer)); }
+.goals-filter-sel option{ background:var(--surface); }
 .goals-divider{ border:none; border-top:1px solid var(--border-strong); margin:4px 0; }
 .goal-row-done .goal-input{ font-weight:500; }
 .goal-steps{ display:flex; align-items:center; gap:5px; flex-shrink:0; padding-top:3px; }
