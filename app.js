@@ -2094,9 +2094,8 @@ function initApp(uid) {
       }
       const base = colors[c] || colors.other;
       const rv3 = rgbVarMap[c];
-      const dotGlow = rv3 ? `0 2px 8px rgba(var(${rv3}),.55)` : '';
       const dotBg = `radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${base}`;
-      return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${dotBg};box-shadow:${dotGlow}"></div>${lbls[c] || c}</div>`;
+      return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${dotBg}"></div>${lbls[c] || c}</div>`;
     }).join('');
   }
 
