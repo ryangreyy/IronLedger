@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=90">
+<link rel="stylesheet" href="styles.css?v=94">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -167,6 +167,17 @@
           <p class="settings-card-title">Lift group colors</p>
           <p class="settings-card-desc">Each exercise is color-coded by movement type in your Training Log. Pick a color for each group — changes apply to the dashboard instantly.</p>
 
+          <div class="color-harmony-row">
+            <select id="colorHarmony" class="color-sel" style="flex:1;">
+              <option value="custom">Custom</option>
+              <option value="complementary">Complementary</option>
+              <option value="triadic">Triadic</option>
+              <option value="analogous">Analogous</option>
+              <option value="monochromatic">Monochromatic</option>
+            </select>
+            <button id="colorRandomize" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;white-space:nowrap;flex-shrink:0;">Randomize</button>
+          </div>
+
           <div class="color-group-list">
 
             <div class="color-group-row">
@@ -175,7 +186,7 @@
                 <p class="color-group-name">Legs</p>
                 <p class="color-group-exercises">Squat, Leg Press, RDL, Hack Squat, Split Squat, BW Squat, Smith Squat, Lunges, Leg Extension, Leg Curl, Seated Hamstring Curl, Lying Hamstring Curl, Calf Raise, Adductors, Abductors</p>
               </div>
-              <select id="color-squat" class="color-sel"></select>
+              <input type="color" id="color-squat" class="color-inp">
             </div>
 
             <div class="color-group-row">
@@ -184,7 +195,7 @@
                 <p class="color-group-name">Chest</p>
                 <p class="color-group-exercises">Bench Press, Incline Press, DB Flat Press, DB Incline Press, Chest Fly, Pec Dec, Dips, Push-Up</p>
               </div>
-              <select id="color-bench" class="color-sel"></select>
+              <input type="color" id="color-bench" class="color-inp">
             </div>
 
             <div class="color-group-row">
@@ -193,7 +204,7 @@
                 <p class="color-group-name">Back</p>
                 <p class="color-group-exercises">Deadlift, Row, T-Bar Row, Pulldown, Pull-Up</p>
               </div>
-              <select id="color-dead" class="color-sel"></select>
+              <input type="color" id="color-dead" class="color-inp">
             </div>
 
             <div class="color-group-row">
@@ -202,7 +213,7 @@
                 <p class="color-group-name">Arms</p>
                 <p class="color-group-exercises">Overhead Press, OHP, Lateral Raise, Rear Delt Raise, Front Raise, Face Pull, Tricep Pushdown, Overhead Tricep, Skull Crusher, Close Grip Bench, Bicep Curl, Hammer Curl, Preacher Curl, Concentration Curl</p>
               </div>
-              <select id="color-press" class="color-sel"></select>
+              <input type="color" id="color-press" class="color-inp">
             </div>
 
           </div>
@@ -610,18 +621,6 @@
   });
 
   /* ── COLOR PERSONALIZATION ── */
-  const COLOR_OPTIONS = [
-    { label: 'Lime',   value: '#D6FF3D' },
-    { label: 'Teal',   value: '#5BD6E6' },
-    { label: 'Orange', value: '#FF8A4C' },
-    { label: 'Purple', value: '#B78BFF' },
-    { label: 'Red',    value: '#FF5C5C' },
-    { label: 'Pink',   value: '#FF7EB3' },
-    { label: 'Blue',   value: '#4A9EFF' },
-    { label: 'Green',  value: '#4ADE80' },
-    { label: 'Gold',   value: '#FFD700' },
-    { label: 'Silver', value: '#C0C0C0' },
-  ];
   const COLOR_GROUPS = [
     { key: 'squat', field: 'colorSquat', def: '#D6FF3D' },
     { key: 'bench', field: 'colorBench', def: '#5BD6E6' },
@@ -629,10 +628,29 @@
     { key: 'press', field: 'colorPress', def: '#B78BFF' },
   ];
 
-  COLOR_GROUPS.forEach(({ key }) => {
-    document.getElementById(`color-${key}`).innerHTML =
-      COLOR_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
-  });
+  function hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return '#' + [f(0), f(8), f(4)].map(x => Math.round(255 * x).toString(16).padStart(2, '0')).join('');
+  }
+
+  function harmonyColors(scheme, hue) {
+    const H = ((hue % 360) + 360) % 360;
+    const S = 78, L = 60;
+    switch (scheme) {
+      case 'complementary':
+        return [hslToHex(H, S, L), hslToHex((H+180)%360, S, L), hslToHex(H, S-18, L+12), hslToHex((H+180)%360, S-18, L+12)];
+      case 'triadic':
+        return [hslToHex(H, S, L), hslToHex((H+120)%360, S, L), hslToHex((H+240)%360, S, L), hslToHex(H, S-20, L+14)];
+      case 'analogous':
+        return [hslToHex(H, S, L), hslToHex((H+30)%360, S, L), hslToHex((H+60)%360, S, L), hslToHex((H+90)%360, S, L)];
+      case 'monochromatic':
+        return [hslToHex(H, S, 65), hslToHex(H, S-12, 50), hslToHex(H, S+5, 42), hslToHex(H, S-22, 72)];
+      default: return null;
+    }
+  }
 
   function applyColorToPage(key, hex) {
     const r = parseInt(hex.slice(1,3),16);
@@ -642,18 +660,41 @@
     document.documentElement.style.setProperty(`--${key}-rgb`, `${r},${g},${b}`);
     const dot = document.getElementById(`dot-${key}`);
     if (dot) dot.style.background = hex;
-    const sel = document.getElementById(`color-${key}`);
-    if (sel) sel.value = hex;
+    const inp = document.getElementById(`color-${key}`);
+    if (inp) inp.value = hex;
   }
 
   function loadColors(d) {
     COLOR_GROUPS.forEach(({ key, field, def }) => applyColorToPage(key, d?.[field] || def));
   }
 
+  async function saveAllColors(colors) {
+    const msg = document.getElementById('colorMsg');
+    const update = {};
+    COLOR_GROUPS.forEach(({ field }, i) => { update[field] = colors[i]; });
+    try {
+      await settingsRef().set(update, { merge: true });
+      msg.style.color = 'var(--up)'; msg.textContent = '✓ Colors saved.';
+      setTimeout(() => { msg.textContent = ''; }, 2000);
+    } catch (err) {
+      msg.style.color = 'var(--down)'; msg.textContent = 'Could not save colors.';
+    }
+  }
+
+  function applyHarmony(scheme, hue) {
+    const colors = harmonyColors(scheme, hue);
+    if (!colors) return;
+    COLOR_GROUPS.forEach(({ key }, i) => applyColorToPage(key, colors[i]));
+    saveAllColors(colors);
+  }
+
   let colorSaveTimer;
   COLOR_GROUPS.forEach(({ key, field }) => {
-    document.getElementById(`color-${key}`).addEventListener('change', async e => {
+    document.getElementById(`color-${key}`).addEventListener('input', e => {
       applyColorToPage(key, e.target.value);
+      document.getElementById('colorHarmony').value = 'custom';
+    });
+    document.getElementById(`color-${key}`).addEventListener('change', async e => {
       clearTimeout(colorSaveTimer);
       colorSaveTimer = setTimeout(async () => {
         const msg = document.getElementById('colorMsg');
@@ -666,6 +707,16 @@
         }
       }, 400);
     });
+  });
+
+  document.getElementById('colorHarmony').addEventListener('change', e => {
+    if (e.target.value !== 'custom') applyHarmony(e.target.value, Math.random() * 360);
+  });
+
+  document.getElementById('colorRandomize').addEventListener('click', () => {
+    const scheme = document.getElementById('colorHarmony').value;
+    applyHarmony(scheme === 'custom' ? 'triadic' : scheme, Math.random() * 360);
+    if (scheme === 'custom') document.getElementById('colorHarmony').value = 'triadic';
   });
 
   /* ── UNIT TOGGLE ── */
