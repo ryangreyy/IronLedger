@@ -156,7 +156,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .hero::before{
   content:""; position:absolute; top:-60px; left:50%; transform:translateX(-50%);
   width:700px; height:420px; pointer-events:none;
-  background:radial-gradient(ellipse at center,rgba(193,39,45,.20) 0%,transparent 68%);
+  background:radial-gradient(ellipse at center,rgba(193,39,45,.11) 0%,transparent 68%);
   animation:heroPulse 4s ease-in-out infinite;
 }
 @keyframes heroPulse{0%,100%{opacity:.7;transform:translateX(-50%) scale(1);}50%{opacity:1;transform:translateX(-50%) scale(1.08);}}
