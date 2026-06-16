@@ -274,7 +274,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .goal-date-missed{ color:rgba(193,39,45,.8); }
 .goal-date-label{ font-size:10px; color:var(--text-dimmer); display:flex; align-items:center; gap:3px; cursor:pointer; }
 .goal-finish-input{ font-size:10px; color:var(--text-dimmer); background:transparent; border:none; outline:none; cursor:pointer; font-family:var(--body); padding:0; color-scheme:dark; }
-.goal-finish-input::-webkit-calendar-picker-indicator{ filter:invert(1) opacity(.35); cursor:pointer; }
+.goal-finish-input::-webkit-calendar-picker-indicator{ filter:invert(1) opacity(.8); cursor:pointer; }
 .goal-row-missed .goal-input{ color:var(--text-dimmer); text-decoration:line-through; }
 .goals-filter-row{ padding:6px 12px; }
 .goals-filter-sel{ background:transparent; border:1px solid var(--border-strong); color:var(--text-dimmer); font-size:11px; font-family:var(--mono); border-radius:5px; padding:3px 7px; cursor:pointer; outline:none; }

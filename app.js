@@ -1693,7 +1693,7 @@ function initApp(uid) {
 
     function goalRow(g, isDone, isMissed) {
       const steps        = g.steps || 1;
-      const stepsChecked = isDone ? steps : (g.stepsChecked || 0);
+      const stepsChecked = (isDone && !isMissed) ? steps : (g.stepsChecked || 0);
       const boxes = Array.from({length: steps}, (_, i) => {
         const cls = i < stepsChecked ? ' checked' : (isMissed ? ' missed' : '');
         const attrs = (!isDone && !isMissed) ? ` data-idx="${g._i}" data-step="${i}"` : '';
@@ -1724,7 +1724,8 @@ function initApp(uid) {
         const dateMeta = `<div class="goal-dates">${created}<label class="goal-date-label">Due <input type="date" class="goal-finish-input" data-idx="${g._i}" value="${g.finishBy||''}"></label></div>`;
         mainContent = `<span class="goal-text">${esc(g.text)}</span>${dateMeta}`;
       } else if (isMissed) {
-        const dateMeta = `<div class="goal-dates"><span class="goal-date-text goal-date-missed">Missed · ${fmtDs(g.finishBy)}</span></div>`;
+        const created = g.createdAt ? `<span class="goal-date-text">Added ${fmtTs(g.createdAt)}</span>` : '';
+        const dateMeta = `<div class="goal-dates">${created}<span class="goal-date-text goal-date-missed">Missed · ${fmtDs(g.finishBy)}</span></div>`;
         mainContent = `<span class="goal-text goal-done">${esc(g.text)}</span>${dateMeta}`;
       } else {
         const parts = [g.createdAt ? `Added ${fmtTs(g.createdAt)}` : '', g.completedAt ? `Done ${fmtTs(g.completedAt)}` : ''].filter(Boolean);
@@ -1750,6 +1751,7 @@ function initApp(uid) {
         <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
         <div class="goal-main">
           <input type="text" class="goal-input goal-add-input" maxlength="60" autocomplete="off" placeholder="Type your goal…">
+          <div class="goal-dates"><label class="goal-date-label">Due <input type="date" class="goal-finish-input goal-add-due" title="Optional due date"></label></div>
           <div class="goal-edit-actions">
             <button class="goal-add-done btn-goal-act">Done</button>
             <button class="goal-add-cancel btn-goal-cancel">Cancel</button>
@@ -1879,9 +1881,11 @@ function initApp(uid) {
     if (addDoneBtn) {
       addDoneBtn.addEventListener('click', () => {
         const inp = list.querySelector('.goal-add-input');
+        const dueInp = list.querySelector('.goal-add-due');
         const text = inp ? inp.value.trim() : '';
+        const finishBy = dueInp ? (dueInp.value || null) : null;
         goalsAddOpen = false;
-        if (text) saveGoals([...allGoals, { text, done: false, steps: 1, stepsChecked: 0, completedAt: null, createdAt: Date.now(), finishBy: null }]);
+        if (text) saveGoals([...allGoals, { text, done: false, steps: 1, stepsChecked: 0, completedAt: null, createdAt: Date.now(), finishBy }]);
         else renderGoals(currentSettings && currentSettings.goals);
       });
     }
