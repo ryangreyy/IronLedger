@@ -2259,11 +2259,12 @@ function initApp(uid) {
       const isDone    = (t.completedDates || []).includes(todayISO);
       const streak    = trackerStreak(t.completedDates);
       const safeLabel = (t.label || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const restoreBtn = !streak ? `<button class="tracker-restore-btn" data-id="${t.id}" title="Restore streak">↩ Restore streak</button>` : '';
       return `
         <div class="tracker-row" data-id="${t.id}">
           <textarea class="tracker-row-input" placeholder="What are you tracking?" maxlength="60" rows="1" data-id="${t.id}">${safeLabel}</textarea>
           <button class="tracker-row-check${isDone ? ' done' : ''}" data-id="${t.id}">${isDone ? '✓' : ''}</button>
-          <span class="tracker-row-streak">${streak ? '🔥 ' + streak + 'd' : ''}</span>
+          <span class="tracker-row-streak">${streak ? '🔥 ' + streak + 'd' : restoreBtn}</span>
           <button class="tracker-row-delete" data-id="${t.id}">✕</button>
         </div>`;
     }).join('');
@@ -2301,6 +2302,34 @@ function initApp(uid) {
       btn.addEventListener('click', () => {
         const updated = (currentSettings?.personalTrackers || []).filter(t => t.id !== btn.dataset.id);
         settingsRef().set({ personalTrackers: updated }, { merge: true }).catch(trackerWriteErr);
+      });
+    });
+
+    // Restore streak — show inline date picker, backfill all dates from chosen start to today
+    list.querySelectorAll('.tracker-restore-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const streakSpan = btn.closest('.tracker-row').querySelector('.tracker-row-streak');
+        streakSpan.innerHTML = `
+          <span class="tracker-restore-label">Started</span>
+          <input type="date" class="tracker-restore-date" max="${todayISO}">
+          <button class="tracker-restore-set" data-id="${btn.dataset.id}">Set</button>
+          <button class="tracker-restore-cancel">✕</button>`;
+        streakSpan.querySelector('.tracker-restore-cancel').addEventListener('click', () => renderTracker());
+        streakSpan.querySelector('.tracker-restore-set').addEventListener('click', () => {
+          const dateVal = streakSpan.querySelector('.tracker-restore-date').value;
+          if (!dateVal) return;
+          const dates = [];
+          const cur = new Date(dateVal + 'T12:00:00');
+          const end = new Date(todayISO + 'T12:00:00');
+          while (cur <= end) {
+            dates.push(cur.toISOString().slice(0, 10));
+            cur.setDate(cur.getDate() + 1);
+          }
+          const updated = (currentSettings?.personalTrackers || []).map(t =>
+            t.id !== btn.dataset.id ? t : { ...t, completedDates: dates }
+          );
+          settingsRef().set({ personalTrackers: updated }, { merge: true }).catch(trackerWriteErr);
+        });
       });
     });
   }
