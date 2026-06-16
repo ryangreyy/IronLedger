@@ -528,8 +528,23 @@ document.getElementById('bwSubmit')?.addEventListener('click', async () => {
     });
     document.getElementById('bwInput').value = '';
     bwCurrentMonth = dateVal.slice(0, 7);
-  } catch(err) { console.error(err); }
+  } catch(err) { showToast('Could not save weight entry — ' + (err?.message || 'check your connection.')); }
 });
+
+/* ── TOAST NOTIFICATIONS ──────────────────────────────────────────────────── */
+function showToast(message, type = 'error') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = message;
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('toast-in'));
+  setTimeout(() => {
+    el.classList.remove('toast-in');
+    el.addEventListener('transitionend', () => el.remove(), { once: true });
+  }, 4500);
+}
 
 /* Plain-English versions of Firebase auth error codes */
 function friendlyError(code) {
@@ -712,7 +727,7 @@ function renderBodyweight() {
         btn.addEventListener('click', async () => {
           if (!currentUser) return;
           try { await db.collection('users').doc(currentUser.uid).collection('bodyweight').doc(btn.dataset.id).delete(); }
-          catch(err) { console.error(err); }
+          catch(err) { showToast('Could not delete entry — ' + (err?.message || 'check your connection.')); }
         });
       });
     } else {
@@ -897,11 +912,11 @@ function initApp(uid) {
         const color = getDonutColor(g.cls);
         const gap   = items.length > 1 ? 2 : 0;
         const d     = segmentPath(cx, cy, ro, ri, angle + gap/2, angle + sweep - gap/2);
-        defs += `<radialGradient id="drg${i}" gradientUnits="userSpaceOnUse" cx="90" cy="75" r="130"><stop offset="0%" stop-color="#fff" stop-opacity="0.48"/><stop offset="48%" stop-color="${color}" stop-opacity="1"/><stop offset="100%" stop-color="${color}" stop-opacity="1"/></radialGradient><filter id="dgf${i}" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="${color}" flood-opacity="0.55"/></filter>`;
-        paths += `<path fill="url(#drg${i})" filter="url(#dgf${i})" d="${d}"/><path fill="url(#dg-raised)" d="${d}" pointer-events="none"/>`;
+        defs += `<filter id="dgf${i}" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="${color}" flood-opacity="0.55"/></filter>`;
+        paths += `<path fill="${color}" filter="url(#dgf${i})" d="${d}"/><path fill="url(#dg-raised)" d="${d}" pointer-events="none"/>`;
         legendHTML += `
           <div class="donut-legend-row">
-            <span class="donut-dot" style="background:radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${color};box-shadow:0 2px 8px ${color}80"></span>
+            <span class="donut-dot" style="background:linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),${color};box-shadow:0 2px 8px ${color}80"></span>
             <span class="donut-lift">${g.lift}</span>
             <span class="donut-pct">${Math.round(pct * 100)}%</span>
           </div>`;
@@ -1392,7 +1407,7 @@ function initApp(uid) {
         ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = '');
         if (isPR) showPrStamp(lift, wt);
       })
-      .catch(err => alert('Could not save: ' + err.message));
+      .catch(err => showToast('Could not save session — ' + (err?.message || 'check your connection.')));
   });
 
   /* Unified click handler for edit / save / cancel / delete */
@@ -1420,12 +1435,12 @@ function initApp(uid) {
       const reps    = +document.getElementById('ed-reps').value;
       const wt      = +document.getElementById('ed-wt').value;
       const note    = document.getElementById('ed-note').value.trim();
-      if (!dateVal || !sets || !reps || !wt) { alert('Please fill in all fields.'); return; }
+      if (!dateVal || !sets || !reps || !wt) { showToast('Please fill in all fields.'); return; }
       const lift = liftVal.trim();
       const cls  = liftToCls(lift);
       sessionsRef().doc(id)
         .update({ date: formatDate(dateVal), dateRaw: dateVal, lift, cls, sets, reps, wt, note })
-        .catch(err => alert('Could not save: ' + err.message));
+        .catch(err => showToast('Could not update session — ' + (err?.message || 'check your connection.')));
       return;
     }
 
@@ -1438,7 +1453,7 @@ function initApp(uid) {
     if (deleteBtn) {
       if (confirm('Remove this session?')) {
         sessionsRef().doc(deleteBtn.dataset.id).delete()
-          .catch(err => alert('Could not delete: ' + err.message));
+          .catch(err => showToast('Could not delete session — ' + (err?.message || 'check your connection.')));
       }
     }
   });
@@ -1721,7 +1736,7 @@ function initApp(uid) {
 
     function saveGoals(updated) {
       settingsRef().set({ goals: updated }, { merge: true })
-        .catch(err => console.error('Goal save:', err));
+        .catch(err => showToast('Could not save goals — ' + (err?.message || 'check your connection.')));
     }
 
     list.querySelectorAll('.goal-step-box').forEach(box => {
@@ -1972,7 +1987,7 @@ function initApp(uid) {
         const update = cls === 'clear'
           ? { [`calendarColors.${dateStr}`]: firebase.firestore.FieldValue.delete() }
           : { [`calendarColors.${dateStr}`]: cls };
-        settingsRef().update(update).catch(console.error);
+        settingsRef().update(update).catch(err => showToast('Could not save calendar color — ' + (err?.message || 'check your connection.')));
         pop.style.display = 'none';
       });
     });
@@ -2140,17 +2155,17 @@ function initApp(uid) {
     const isOn     = existing.includes(today);
     const updated  = isOn ? existing.filter(d => d !== today) : [...existing, today];
     settingsRef().set({ restDays: updated }, { merge: true })
-      .catch(err => console.error('Rest day save:', err));
+      .catch(err => showToast('Could not toggle rest day — ' + (err?.message || 'check your connection.')));
     if (isOn) {
       const sess = currentSessions.find(s => s.isRestDay && s.dateRaw === today);
-      if (sess) sessionsRef().doc(sess.id).delete().catch(console.error);
+      if (sess) sessionsRef().doc(sess.id).delete().catch(err => showToast('Could not remove rest day session — ' + (err?.message || 'check your connection.')));
     } else {
       sessionsRef().add({
         date: formatDate(today), dateRaw: today,
         lift: 'Rest Day', cls: 'rest', sets: 0, reps: 0, wt: 0, note: '',
         isRestDay: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      }).catch(console.error);
+      }).catch(err => showToast('Could not log rest day — ' + (err?.message || 'check your connection.')));
     }
   });
 
