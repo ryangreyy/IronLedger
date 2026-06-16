@@ -197,7 +197,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 }
 .goals-tally{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); }
 .goal-row{
-  display:flex; align-items:center; gap:14px;
+  display:flex; align-items:flex-start; gap:14px;
   position:relative;
   padding:15px 10px 15px 12px; border-bottom:1px solid var(--border);
   cursor:pointer; user-select:none;
@@ -233,31 +233,40 @@ nav.nav-hidden{ transform:translateY(-100%); }
   transform:rotate(45deg) translate(-1px,-1px);
 }
 .goal-input{
-  flex:1; background:transparent; border:none; outline:none;
+  width:100%; background:transparent; border:none; outline:none;
   font-family:var(--body); font-size:14px; font-weight:600; color:var(--text);
   padding:0; line-height:1.4;
 }
 .goal-input::placeholder{ color:var(--text-dim); font-weight:500; }
 .goal-input.goal-done{ color:var(--text-dimmer); text-decoration:line-through; }
+.goal-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; padding-top:1px; }
+.goal-dates{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.goal-date-text{ font-size:10px; color:var(--text-dimmer); }
+.goal-date-missed{ color:rgba(193,39,45,.8); }
+.goal-date-label{ font-size:10px; color:var(--text-dimmer); display:flex; align-items:center; gap:3px; cursor:pointer; }
+.goal-finish-input{ font-size:10px; color:var(--text-dimmer); background:transparent; border:none; outline:none; cursor:pointer; font-family:var(--body); padding:0; color-scheme:dark; }
+.goal-finish-input::-webkit-calendar-picker-indicator{ filter:invert(1) opacity(.35); cursor:pointer; }
+.goal-row-missed .goal-input{ color:var(--text-dimmer); text-decoration:line-through; }
 .goals-divider{ border:none; border-top:1px solid var(--border-strong); margin:4px 0; }
 .goal-row-done .goal-input{ font-weight:500; }
+.goal-steps{ display:flex; align-items:center; gap:5px; flex-shrink:0; padding-top:3px; }
 .goal-delete{ opacity:0; transition:opacity .15s; }
 .goal-row:hover .goal-delete{ opacity:1; }
 
 /* step boxes */
-.goal-steps{ display:flex; align-items:center; gap:5px; flex-shrink:0; }
 .goal-step-box{
   width:20px; height:20px; border-radius:5px; flex-shrink:0;
   border:2px solid var(--border-strong); background:transparent;
   cursor:pointer; transition:background .15s, border-color .15s; position:relative;
 }
-.goal-step-box.checked{ background:var(--accent); border-color:var(--accent-bright); }
+.goal-step-box.checked{ background:#22c55e; border-color:#16a34a; }
 .goal-step-box.checked::after{
   content:''; display:block; position:absolute;
   width:5px; height:9px; top:2px; left:5px;
-  border:2px solid #000; border-top:none; border-left:none;
+  border:2px solid #fff; border-top:none; border-left:none;
   transform:rotate(45deg);
 }
+.goal-step-box.missed{ background:var(--accent); border-color:var(--accent-bright); }
 .goal-reset-btn{
   background:transparent; border:none; color:var(--text-dimmer);
   font-size:14px; cursor:pointer; padding:2px 5px; border-radius:4px;

@@ -1669,36 +1669,60 @@ function initApp(uid) {
     function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
     const allGoals = (Array.isArray(goalsData) ? goalsData : []).filter(g => g && g.text);
-    const active   = allGoals.map((g, i) => ({ ...g, _i: i })).filter(g => !g.done);
-    const done     = allGoals.map((g, i) => ({ ...g, _i: i })).filter(g => g.done)
-                             .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+    const today = new Date(); today.setHours(0,0,0,0);
+    const isMissedGoal = g => !g.done && !!g.finishBy && new Date(g.finishBy + 'T00:00:00') < today;
+    const active   = allGoals.map((g, i) => ({ ...g, _i: i })).filter(g => !g.done && !isMissedGoal(g));
+    const done     = allGoals.map((g, i) => ({ ...g, _i: i })).filter(g => g.done || isMissedGoal(g))
+                             .sort((a, b) => {
+                               const aD = a.done ? (a.completedAt||0) : new Date(a.finishBy+'T00:00:00').getTime();
+                               const bD = b.done ? (b.completedAt||0) : new Date(b.finishBy+'T00:00:00').getTime();
+                               return bD - aD;
+                             });
 
     if (tally) {
       const total = allGoals.length;
-      tally.textContent = total ? `${done.length} / ${total} done` : '';
+      const completedCount = allGoals.filter(g => g.done).length;
+      tally.textContent = total ? `${completedCount} / ${total} done` : '';
     }
 
-    function goalRow(g, isDone) {
+    function goalRow(g, isDone, isMissed) {
       const steps        = g.steps || 1;
       const stepsChecked = isDone ? steps : (g.stepsChecked || 0);
-      const boxes = Array.from({length: steps}, (_, i) =>
-        `<span class="goal-step-box${i < stepsChecked ? ' checked' : ''}" data-idx="${g._i}" data-step="${i}"></span>`
-      ).join('');
-      const resetBtn = !isDone && steps > 1 && stepsChecked > 0
+      const boxes = Array.from({length: steps}, (_, i) => {
+        const cls = isMissed ? ' missed' : (i < stepsChecked ? ' checked' : '');
+        const attrs = (!isDone && !isMissed) ? ` data-idx="${g._i}" data-step="${i}"` : '';
+        return `<span class="goal-step-box${cls}"${attrs}></span>`;
+      }).join('');
+      const resetBtn = !isDone && !isMissed && steps > 1 && stepsChecked > 0
         ? `<button class="goal-reset-btn" data-idx="${g._i}" title="Reset progress">↺</button>`
         : '';
-      const adjuster = !isDone ? `
+      const adjuster = !isDone && !isMissed ? `
         <div class="goal-steps-adj">
           <button class="goal-step-btn goal-step-minus" data-idx="${g._i}">−</button>
           <span class="goal-step-count">${steps}</span>
           <button class="goal-step-btn goal-step-plus" data-idx="${g._i}">+</button>
         </div>` : '';
+      const fmtTs = ts => new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const fmtDs = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); };
+      let dateMeta = '';
+      if (!isDone) {
+        const created = g.createdAt ? `<span class="goal-date-text">Added ${fmtTs(g.createdAt)}</span>` : '';
+        dateMeta = `<div class="goal-dates">${created}<label class="goal-date-label">Due <input type="date" class="goal-finish-input" data-idx="${g._i}" value="${g.finishBy||''}"></label></div>`;
+      } else if (isMissed) {
+        dateMeta = `<div class="goal-dates"><span class="goal-date-text goal-date-missed">Missed · ${fmtDs(g.finishBy)}</span></div>`;
+      } else {
+        const parts = [g.createdAt ? `Added ${fmtTs(g.createdAt)}` : '', g.completedAt ? `Done ${fmtTs(g.completedAt)}` : ''].filter(Boolean);
+        if (parts.length) dateMeta = `<div class="goal-dates">${parts.map(p=>`<span class="goal-date-text">${p}</span>`).join('')}</div>`;
+      }
       return `
-        <div class="goal-row${isDone ? ' goal-row-done' : ''}">
+        <div class="goal-row${isDone ? ' goal-row-done' : ''}${isMissed ? ' goal-row-missed' : ''}">
           <div class="goal-steps">${boxes}${resetBtn}</div>
-          <input type="text" class="goal-input${isDone ? ' goal-done' : ''}"
-                 data-idx="${g._i}" value="${esc(g.text)}"
-                 placeholder="" maxlength="60" autocomplete="off">
+          <div class="goal-main">
+            <input type="text" class="goal-input${isDone ? ' goal-done' : ''}"
+                   data-idx="${g._i}" value="${esc(g.text)}"
+                   placeholder="" maxlength="60" autocomplete="off">
+            ${dateMeta}
+          </div>
           ${adjuster}
           <button class="btn-delete goal-delete" data-idx="${g._i}" title="Delete goal">✕</button>
         </div>`;
@@ -1718,10 +1742,10 @@ function initApp(uid) {
     const divider = done.length ? '<div class="goals-divider"></div>' : '';
 
     list.innerHTML =
-      active.map(g => goalRow(g, false)).join('') +
+      active.map(g => goalRow(g, false, false)).join('') +
       newRow +
       divider +
-      pagSlice.map(g => goalRow(g, true)).join('');
+      pagSlice.map(g => goalRow(g, true, isMissedGoal(g))).join('');
 
     if (pag) {
       if (done.length > GOALS_DONE_PAGE) {
@@ -1810,11 +1834,21 @@ function initApp(uid) {
       inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
     });
 
+    list.querySelectorAll('.goal-finish-input').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const idx = +inp.dataset.idx;
+        if (isNaN(idx) || idx < 0) return;
+        const updated = allGoals.map((g, i) => i !== idx ? g : { ...g, finishBy: inp.value || null });
+        saveGoals(updated);
+      });
+      inp.addEventListener('click', e => e.stopPropagation());
+    });
+
     const newInp = list.querySelector('.goal-input-new');
     if (newInp) {
       newInp.addEventListener('blur', () => {
         const text = newInp.value.trim();
-        if (text) saveGoals([...allGoals, { text, done: false, steps: 1, stepsChecked: 0, completedAt: null }]);
+        if (text) saveGoals([...allGoals, { text, done: false, steps: 1, stepsChecked: 0, completedAt: null, createdAt: Date.now(), finishBy: null }]);
       });
       newInp.addEventListener('keydown', e => { if (e.key === 'Enter') newInp.blur(); });
     }
