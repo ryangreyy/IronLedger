@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=94">
+<link rel="stylesheet" href="styles.css?v=95">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -170,12 +170,21 @@
           <div class="color-harmony-row">
             <select id="colorHarmony" class="color-sel" style="flex:1;">
               <option value="custom">Custom</option>
-              <option value="complementary">Complementary</option>
-              <option value="triadic">Triadic</option>
-              <option value="analogous">Analogous</option>
-              <option value="monochromatic">Monochromatic</option>
+              <optgroup label="Harmony">
+                <option value="complementary">Complementary</option>
+                <option value="triadic">Triadic</option>
+                <option value="analogous">Analogous</option>
+                <option value="monochromatic">Monochromatic</option>
+              </optgroup>
+              <optgroup label="Saved" id="savedPresetsGroup"></optgroup>
             </select>
             <button id="colorRandomize" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;white-space:nowrap;flex-shrink:0;">Randomize</button>
+            <button id="colorSaveCombo" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;white-space:nowrap;flex-shrink:0;">Save combo</button>
+          </div>
+          <div class="color-save-row" id="colorSaveRow" style="display:none;">
+            <input type="text" id="colorPresetName" class="field-input" placeholder="Name this combo…" maxlength="30" style="flex:1;">
+            <button id="colorPresetSave" class="btn btn-primary" style="font-size:12px;padding:7px 14px;flex-shrink:0;">Save</button>
+            <button id="colorPresetCancel" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;flex-shrink:0;">Cancel</button>
           </div>
 
           <div class="color-group-list">
@@ -664,8 +673,18 @@
     if (inp) inp.value = hex;
   }
 
+  function buildHarmonyDropdown(presets) {
+    const group = document.getElementById('savedPresetsGroup');
+    if (!group) return;
+    group.innerHTML = presets.map((p, i) =>
+      `<option value="preset:${i}">${p.name}</option>`
+    ).join('');
+  }
+
   function loadColors(d) {
     COLOR_GROUPS.forEach(({ key, field, def }) => applyColorToPage(key, d?.[field] || def));
+    cachedPresets = d?.colorPresets || [];
+    buildHarmonyDropdown(cachedPresets);
   }
 
   async function saveAllColors(colors) {
@@ -709,14 +728,65 @@
     });
   });
 
+  let cachedPresets = [];
+
   document.getElementById('colorHarmony').addEventListener('change', e => {
-    if (e.target.value !== 'custom') applyHarmony(e.target.value, Math.random() * 360);
+    const val = e.target.value;
+    if (val.startsWith('preset:')) {
+      const p = cachedPresets[+val.slice(7)];
+      if (p) {
+        COLOR_GROUPS.forEach(({ key }) => applyColorToPage(key, p[key]));
+        saveAllColors(COLOR_GROUPS.map(({ key }) => p[key]));
+      }
+    } else if (val !== 'custom') {
+      applyHarmony(val, Math.random() * 360);
+    }
   });
 
   document.getElementById('colorRandomize').addEventListener('click', () => {
     const scheme = document.getElementById('colorHarmony').value;
-    applyHarmony(scheme === 'custom' ? 'triadic' : scheme, Math.random() * 360);
-    if (scheme === 'custom') document.getElementById('colorHarmony').value = 'triadic';
+    const base = scheme === 'custom' || scheme.startsWith('preset:') ? 'triadic' : scheme;
+    applyHarmony(base, Math.random() * 360);
+    document.getElementById('colorHarmony').value = base;
+  });
+
+  document.getElementById('colorSaveCombo').addEventListener('click', () => {
+    const row = document.getElementById('colorSaveRow');
+    row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+    if (row.style.display === 'flex') {
+      document.getElementById('colorPresetName').value = '';
+      document.getElementById('colorPresetName').focus();
+    }
+  });
+
+  document.getElementById('colorPresetCancel').addEventListener('click', () => {
+    document.getElementById('colorSaveRow').style.display = 'none';
+  });
+
+  document.getElementById('colorPresetSave').addEventListener('click', async () => {
+    const name = document.getElementById('colorPresetName').value.trim();
+    if (!name) return;
+    const preset = { name };
+    COLOR_GROUPS.forEach(({ key }) => {
+      preset[key] = document.getElementById(`color-${key}`).value;
+    });
+    cachedPresets = [...cachedPresets, preset];
+    buildHarmonyDropdown(cachedPresets);
+    document.getElementById('colorHarmony').value = `preset:${cachedPresets.length - 1}`;
+    document.getElementById('colorSaveRow').style.display = 'none';
+    const msg = document.getElementById('colorMsg');
+    try {
+      await settingsRef().set({ colorPresets: cachedPresets }, { merge: true });
+      msg.style.color = 'var(--up)'; msg.textContent = `✓ "${name}" saved.`;
+      setTimeout(() => { msg.textContent = ''; }, 2000);
+    } catch (err) {
+      msg.style.color = 'var(--down)'; msg.textContent = 'Could not save preset.';
+    }
+  });
+
+  document.getElementById('colorPresetName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('colorPresetSave').click();
+    if (e.key === 'Escape') document.getElementById('colorSaveRow').style.display = 'none';
   });
 
   /* ── UNIT TOGGLE ── */
