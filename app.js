@@ -809,6 +809,8 @@ function initApp(uid) {
 
   let goalsDonePage = 1;
   let goalsDoneFilter = 'all';
+  let goalsAddOpen = false;
+  let goalsEditIdx = -2;
   const GOALS_DONE_PAGE = 5;
 
   let calViewYear = new Date().getFullYear();
@@ -1683,9 +1685,11 @@ function initApp(uid) {
     if (tally) {
       const total = allGoals.length;
       const completedCount = allGoals.filter(g => g.done).length;
-      const missedCount = allGoals.filter(g => isMissedGoal(g)).length;
-      tally.textContent = total ? `${completedCount + missedCount} / ${total} done` : '';
+      tally.textContent = total ? `${completedCount} / ${total} done` : '';
     }
+
+    const fmtTs = ts => new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const fmtDs = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); };
 
     function goalRow(g, isDone, isMissed) {
       const steps        = g.steps || 1;
@@ -1695,48 +1699,66 @@ function initApp(uid) {
         const attrs = (!isDone && !isMissed) ? ` data-idx="${g._i}" data-step="${i}"` : '';
         return `<span class="goal-step-box${cls}"${attrs}></span>`;
       }).join('');
-      const resetBtn = !isDone && !isMissed && steps > 1 && stepsChecked > 0
-        ? `<button class="goal-reset-btn" data-idx="${g._i}" title="Reset progress">↺</button>`
-        : '';
-      const adjuster = !isDone && !isMissed ? `
+      const resetBtn = !isDone && !isMissed && steps > 1 && stepsChecked > 0 && g._i !== goalsEditIdx
+        ? `<button class="goal-reset-btn" data-idx="${g._i}" title="Reset progress">↺</button>` : '';
+      const adjuster = !isDone && !isMissed && g._i !== goalsEditIdx ? `
         <div class="goal-steps-adj">
           <button class="goal-step-btn goal-step-minus" data-idx="${g._i}">−</button>
           <span class="goal-step-count">${steps}</span>
           <button class="goal-step-btn goal-step-plus" data-idx="${g._i}">+</button>
         </div>` : '';
-      const fmtTs = ts => new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-      const fmtDs = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); };
-      let dateMeta = '';
-      if (!isDone) {
+
+      let mainContent = '';
+      if (!isDone && g._i === goalsEditIdx) {
         const created = g.createdAt ? `<span class="goal-date-text">Added ${fmtTs(g.createdAt)}</span>` : '';
-        dateMeta = `<div class="goal-dates">${created}<label class="goal-date-label">Due <input type="date" class="goal-finish-input" data-idx="${g._i}" value="${g.finishBy||''}"></label></div>`;
+        const dateMeta = `<div class="goal-dates">${created}<label class="goal-date-label">Due <input type="date" class="goal-finish-input" data-idx="${g._i}" value="${g.finishBy||''}"></label></div>`;
+        mainContent = `
+          <input type="text" class="goal-input" data-idx="${g._i}" value="${esc(g.text)}" maxlength="60" autocomplete="off">
+          ${dateMeta}
+          <div class="goal-edit-actions">
+            <button class="goal-edit-done btn-goal-act" data-idx="${g._i}">Done</button>
+            <button class="goal-edit-cancel btn-goal-cancel" data-idx="${g._i}">Cancel</button>
+          </div>`;
+      } else if (!isDone) {
+        const created = g.createdAt ? `<span class="goal-date-text">Added ${fmtTs(g.createdAt)}</span>` : '';
+        const dateMeta = `<div class="goal-dates">${created}<label class="goal-date-label">Due <input type="date" class="goal-finish-input" data-idx="${g._i}" value="${g.finishBy||''}"></label></div>`;
+        mainContent = `<span class="goal-text">${esc(g.text)}</span>${dateMeta}`;
       } else if (isMissed) {
-        dateMeta = `<div class="goal-dates"><span class="goal-date-text goal-date-missed">Missed · ${fmtDs(g.finishBy)}</span></div>`;
+        const dateMeta = `<div class="goal-dates"><span class="goal-date-text goal-date-missed">Missed · ${fmtDs(g.finishBy)}</span></div>`;
+        mainContent = `<span class="goal-text goal-done">${esc(g.text)}</span>${dateMeta}`;
       } else {
         const parts = [g.createdAt ? `Added ${fmtTs(g.createdAt)}` : '', g.completedAt ? `Done ${fmtTs(g.completedAt)}` : ''].filter(Boolean);
-        if (parts.length) dateMeta = `<div class="goal-dates">${parts.map(p=>`<span class="goal-date-text">${p}</span>`).join('')}</div>`;
+        const dateMeta = parts.length ? `<div class="goal-dates">${parts.map(p=>`<span class="goal-date-text">${p}</span>`).join('')}</div>` : '';
+        mainContent = `<span class="goal-text goal-done">${esc(g.text)}</span>${dateMeta}`;
       }
+
+      const editBtn = !isDone && !isMissed && g._i !== goalsEditIdx
+        ? `<button class="goal-edit-btn" data-idx="${g._i}" title="Edit goal"><i class="ti ti-pencil" aria-hidden="true"></i></button>` : '';
+
       return `
         <div class="goal-row${isDone ? ' goal-row-done' : ''}${isMissed ? ' goal-row-missed' : ''}">
           <div class="goal-steps">${boxes}${resetBtn}</div>
-          <div class="goal-main">
-            <input type="text" class="goal-input${isDone ? ' goal-done' : ''}"
-                   data-idx="${g._i}" value="${esc(g.text)}"
-                   placeholder="" maxlength="60" autocomplete="off">
-            ${dateMeta}
-          </div>
+          <div class="goal-main">${mainContent}</div>
           ${adjuster}
+          ${editBtn}
           <button class="btn-delete goal-delete" data-idx="${g._i}" title="Delete goal">✕</button>
         </div>`;
     }
 
-    const newRow = `
+    const addForm = goalsAddOpen ? `
       <div class="goal-row goal-row-new">
         <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
         <div class="goal-main">
-          <input type="text" class="goal-input goal-input-new"
-                 data-idx="-1" value="" placeholder="Add a goal…" maxlength="60" autocomplete="off">
+          <input type="text" class="goal-input goal-add-input" maxlength="60" autocomplete="off" placeholder="Type your goal…">
+          <div class="goal-edit-actions">
+            <button class="goal-add-done btn-goal-act">Done</button>
+            <button class="goal-add-cancel btn-goal-cancel">Cancel</button>
+          </div>
         </div>
+      </div>` : `
+      <div class="goal-row goal-row-new">
+        <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
+        <div class="goal-main"><button class="goal-add-btn">+ Set a goal</button></div>
       </div>`;
 
     const filteredDone = goalsDoneFilter === 'completed'
@@ -1759,7 +1781,7 @@ function initApp(uid) {
 
     list.innerHTML =
       active.map(g => goalRow(g, false, false)).join('') +
-      newRow +
+      addForm +
       (done.length ? '<div class="goals-divider"></div>' + filterCtrl : '') +
       pagSlice.map(g => goalRow(g, true, isMissedGoal(g))).join('');
 
@@ -1784,50 +1806,38 @@ function initApp(uid) {
         const idx  = +box.dataset.idx;
         const step = +box.dataset.step;
         if (isNaN(idx) || idx < 0) return;
-        const g     = allGoals[idx];
-        const steps = g.steps || 1;
-        const cur   = g.stepsChecked || 0;
+        const g          = allGoals[idx];
+        const steps      = g.steps || 1;
         const checking   = !box.classList.contains('checked');
         const newChecked = checking ? step + 1 : step;
         const isDone     = newChecked >= steps;
         if (checking) spawnConfetti(box);
-        const updated    = allGoals.map((g, i) => i !== idx ? g : {
-          ...g,
-          stepsChecked: newChecked,
-          done:         isDone,
-          completedAt:  isDone ? Date.now() : null,
-        });
-        saveGoals(updated);
+        saveGoals(allGoals.map((g, i) => i !== idx ? g : {
+          ...g, stepsChecked: newChecked, done: isDone, completedAt: isDone ? Date.now() : null,
+        }));
       });
     });
 
     list.querySelectorAll('.goal-reset-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const idx     = +btn.dataset.idx;
-        const updated = allGoals.map((g, i) => i !== idx ? g : { ...g, stepsChecked: 0 });
-        saveGoals(updated);
+        const idx = +btn.dataset.idx;
+        saveGoals(allGoals.map((g, i) => i !== idx ? g : { ...g, stepsChecked: 0 }));
       });
     });
 
     list.querySelectorAll('.goal-step-minus').forEach(btn => {
       btn.addEventListener('click', () => {
         const idx   = +btn.dataset.idx;
-        const g     = allGoals[idx];
-        const steps = Math.max(1, (g.steps || 1) - 1);
-        const updated = allGoals.map((g, i) => i !== idx ? g : {
-          ...g, steps, stepsChecked: Math.min(g.stepsChecked || 0, steps),
-        });
-        saveGoals(updated);
+        const steps = Math.max(1, (allGoals[idx].steps || 1) - 1);
+        saveGoals(allGoals.map((g, i) => i !== idx ? g : { ...g, steps, stepsChecked: Math.min(g.stepsChecked||0, steps) }));
       });
     });
 
     list.querySelectorAll('.goal-step-plus').forEach(btn => {
       btn.addEventListener('click', () => {
         const idx   = +btn.dataset.idx;
-        const g     = allGoals[idx];
-        const steps = Math.min(10, (g.steps || 1) + 1);
-        const updated = allGoals.map((g, i) => i !== idx ? g : { ...g, steps });
-        saveGoals(updated);
+        const steps = Math.min(10, (allGoals[idx].steps || 1) + 1);
+        saveGoals(allGoals.map((g, i) => i !== idx ? g : { ...g, steps }));
       });
     });
 
@@ -1838,24 +1848,11 @@ function initApp(uid) {
       });
     });
 
-    list.querySelectorAll('.goal-input:not(.goal-input-new)').forEach(inp => {
-      inp.addEventListener('blur', () => {
-        const idx  = +inp.dataset.idx;
-        const text = inp.value.trim();
-        const updated = text
-          ? allGoals.map((g, i) => i === idx ? { ...g, text } : g)
-          : allGoals.filter((_, i) => i !== idx);
-        saveGoals(updated);
-      });
-      inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
-    });
-
     list.querySelectorAll('.goal-finish-input').forEach(inp => {
       inp.addEventListener('change', () => {
         const idx = +inp.dataset.idx;
         if (isNaN(idx) || idx < 0) return;
-        const updated = allGoals.map((g, i) => i !== idx ? g : { ...g, finishBy: inp.value || null });
-        saveGoals(updated);
+        saveGoals(allGoals.map((g, i) => i !== idx ? g : { ...g, finishBy: inp.value || null }));
       });
       inp.addEventListener('click', e => e.stopPropagation());
     });
@@ -1869,14 +1866,77 @@ function initApp(uid) {
       });
     }
 
-    const newInp = list.querySelector('.goal-input-new');
-    if (newInp) {
-      newInp.addEventListener('blur', () => {
-        const text = newInp.value.trim();
-        if (text) saveGoals([...allGoals, { text, done: false, steps: 1, stepsChecked: 0, completedAt: null, createdAt: Date.now(), finishBy: null }]);
+    const addBtn = list.querySelector('.goal-add-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', () => {
+        goalsAddOpen = true;
+        renderGoals(currentSettings && currentSettings.goals);
+        requestAnimationFrame(() => { const i = list.querySelector('.goal-add-input'); if (i) i.focus(); });
       });
-      newInp.addEventListener('keydown', e => { if (e.key === 'Enter') newInp.blur(); });
     }
+
+    const addDoneBtn = list.querySelector('.goal-add-done');
+    if (addDoneBtn) {
+      addDoneBtn.addEventListener('click', () => {
+        const inp = list.querySelector('.goal-add-input');
+        const text = inp ? inp.value.trim() : '';
+        goalsAddOpen = false;
+        if (text) saveGoals([...allGoals, { text, done: false, steps: 1, stepsChecked: 0, completedAt: null, createdAt: Date.now(), finishBy: null }]);
+        else renderGoals(currentSettings && currentSettings.goals);
+      });
+    }
+
+    const addCancelBtn = list.querySelector('.goal-add-cancel');
+    if (addCancelBtn) {
+      addCancelBtn.addEventListener('click', () => {
+        goalsAddOpen = false;
+        renderGoals(currentSettings && currentSettings.goals);
+      });
+    }
+
+    list.querySelectorAll('.goal-edit-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        goalsEditIdx = +btn.dataset.idx;
+        renderGoals(currentSettings && currentSettings.goals);
+        requestAnimationFrame(() => {
+          const i = list.querySelector(`.goal-input[data-idx="${goalsEditIdx}"]`);
+          if (i) { i.focus(); i.select(); }
+        });
+      });
+    });
+
+    list.querySelectorAll('.goal-edit-done').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx  = +btn.dataset.idx;
+        const inp  = list.querySelector(`.goal-input[data-idx="${idx}"]`);
+        const text = inp ? inp.value.trim() : '';
+        goalsEditIdx = -2;
+        if (text && text !== (allGoals[idx] || {}).text) {
+          saveGoals(allGoals.map((g, i) => i === idx ? { ...g, text } : g));
+        } else {
+          renderGoals(currentSettings && currentSettings.goals);
+        }
+      });
+    });
+
+    list.querySelectorAll('.goal-edit-cancel').forEach(btn => {
+      btn.addEventListener('click', () => {
+        goalsEditIdx = -2;
+        renderGoals(currentSettings && currentSettings.goals);
+      });
+    });
+
+    list.querySelectorAll('.goal-input').forEach(inp => {
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          inp.closest('.goal-main')?.querySelector('.btn-goal-act')?.click();
+        } else if (e.key === 'Escape') {
+          inp.closest('.goal-main')?.querySelector('.btn-goal-cancel')?.click();
+        }
+      });
+    });
   }
 
   function renderCalendar() {
