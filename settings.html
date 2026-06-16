@@ -656,7 +656,7 @@
       case 'analogous':
         return [hslToHex(H, S, L), hslToHex((H+30)%360, S, L), hslToHex((H+60)%360, S, L), hslToHex((H+90)%360, S, L)];
       case 'monochromatic':
-        return [hslToHex(H, S, 65), hslToHex(H, S-12, 50), hslToHex(H, S+5, 42), hslToHex(H, S-22, 72)];
+        return [hslToHex(H, 82, 70), hslToHex(H, 78, 52), hslToHex(H, 74, 35), hslToHex(H, 80, 22)];
       default: return null;
     }
   }
@@ -729,8 +729,12 @@
   });
 
   let cachedPresets = [];
+  let harmonyPreClick = '';
+  const harmonyEl = document.getElementById('colorHarmony');
 
-  document.getElementById('colorHarmony').addEventListener('change', e => {
+  harmonyEl.addEventListener('mousedown', () => { harmonyPreClick = harmonyEl.value; });
+  harmonyEl.addEventListener('change', e => {
+    harmonyPreClick = '';
     const val = e.target.value;
     if (val.startsWith('preset:')) {
       const p = cachedPresets[+val.slice(7)];
@@ -740,6 +744,13 @@
       }
     } else if (val !== 'custom') {
       applyHarmony(val, Math.random() * 360);
+    }
+  });
+  harmonyEl.addEventListener('click', () => {
+    const val = harmonyEl.value;
+    if (harmonyPreClick && val === harmonyPreClick && val !== 'custom' && !val.startsWith('preset:')) {
+      applyHarmony(val, Math.random() * 360);
+      harmonyPreClick = '';
     }
   });
 
