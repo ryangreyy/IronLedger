@@ -1721,7 +1721,7 @@ function initApp(uid) {
           </div>`;
       } else if (!isDone) {
         const created = g.createdAt ? `<span class="goal-date-text">Added ${fmtTs(g.createdAt)}</span>` : '';
-        const dateMeta = `<div class="goal-dates">${created}<label class="goal-date-label">Due <input type="date" class="goal-finish-input" data-idx="${g._i}" value="${g.finishBy||''}"></label></div>`;
+        const dateMeta = created ? `<div class="goal-dates">${created}</div>` : '';
         mainContent = `<span class="goal-text">${esc(g.text)}</span>${dateMeta}`;
       } else if (isMissed) {
         const created = g.createdAt ? `<span class="goal-date-text">Added ${fmtTs(g.createdAt)}</span>` : '';
