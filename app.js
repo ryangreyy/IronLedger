@@ -2035,6 +2035,7 @@ function initApp(uid) {
     }
 
     const usedCls = [];
+    const rgbVarMap = { squat:'--squat-rgb', bench:'--bench-rgb', dead:'--dead-rgb', arm:'--press-rgb', press:'--press-rgb' };
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr  = `${year}-${monthPad}-${String(d).padStart(2,'0')}`;
@@ -2045,7 +2046,6 @@ function initApp(uid) {
 
       const hasSession = !!sessionMap[d];
       const isPlanned  = !!calColors[dateStr] && !hasSession;
-      const rgbVarMap  = { squat:'--squat-rgb', bench:'--bench-rgb', dead:'--dead-rgb', arm:'--press-rgb', press:'--press-rgb' };
 
       let classes = 'cal-day clickable';
       if (isFuture) classes += ' future';
