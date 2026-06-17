@@ -219,8 +219,6 @@
     const sR = bw ? sq / bw : 0, bR = bw ? bn / bw : 0, dR = bw ? dl / bw : 0;
     const big3 = sq + bn + dl;
     const totalR = bw ? (big3 / bw).toFixed(1) : '—';
-    const bmi    = hIn ? ((bw / (hIn * hIn)) * 703).toFixed(1) : null;
-    const bmiDesc = !bmi ? '' : +bmi < 18.5 ? 'Underweight' : +bmi < 25 ? 'Normal range' : +bmi < 30 ? 'Overweight' : 'Obese';
     const ipfCls  = getIpfClass(bw);
     const totalDesc = +totalR < 4 ? 'Beginner range' : +totalR < 5 ? 'Intermediate range' : +totalR < 6 ? 'Advanced range' : 'Elite range';
 
@@ -231,9 +229,6 @@
       `<div class="stat-tile forged"><div class="st-label">Bodyweight</div>
         <div class="st-value">${bw}<span>lbs</span></div>
         <div class="st-sub">${(bw/2.2046).toFixed(1)} kg</div></div>` +
-      (bmi ? `<div class="stat-tile forged"><div class="st-label">BMI</div>
-        <div class="st-value">${bmi}</div>
-        <div class="st-sub">${bmiDesc}</div></div>` : '') +
       `<div class="stat-tile forged highlight"><div class="st-label">Big-3 Total</div>
         <div class="st-value">${big3.toLocaleString()}<span>lbs</span></div>
         <div class="st-sub">${(big3/2.2046).toFixed(0)} kg</div></div>
@@ -309,7 +304,9 @@
     });
   }
 
+  let currentProfileState = { squatMax: 0, benchMax: 0, deadMax: 0, bodyweight: 185, height: '' };
   let unsubscribeSettings = null;
+  let unsubscribeBw = null;
   let updateListenerAdded = false;
 
   auth.onAuthStateChanged(user => {
@@ -321,17 +318,33 @@
       if (page) page.style.display = '';
 
       const settingsRef = db.collection('users').doc(user.uid).collection('settings').doc('main');
+      const bwRef = db.collection('users').doc(user.uid).collection('bodyweight');
 
       if (unsubscribeSettings) unsubscribeSettings();
       unsubscribeSettings = settingsRef.onSnapshot(doc => {
         if (doc.exists) {
           const d = doc.data();
           const { squatMax, benchMax, deadMax, bodyweight, height } = d;
+          currentProfileState = { squatMax: squatMax || 0, benchMax: benchMax || 0, deadMax: deadMax || 0, bodyweight: bodyweight || 185, height: height || '' };
           applyColors(d);
-          renderProfile(squatMax, benchMax, deadMax, bodyweight || 185, height || '');
+          renderProfile(currentProfileState.squatMax, currentProfileState.benchMax, currentProfileState.deadMax, currentProfileState.bodyweight, currentProfileState.height);
         } else {
+          currentProfileState = { squatMax: 0, benchMax: 0, deadMax: 0, bodyweight: 185, height: '' };
           renderProfile(0, 0, 0, 185, '');
         }
+      });
+
+      if (unsubscribeBw) unsubscribeBw();
+      unsubscribeBw = bwRef.orderBy('date', 'desc').limit(1).onSnapshot(snap => {
+        if (snap.empty) return;
+        const latest = snap.docs[0].data();
+        if (!latest.weight) return;
+        const newBw = +latest.weight;
+        const el = document.getElementById('weightInput');
+        if (el) el.value = newBw;
+        currentProfileState.bodyweight = newBw;
+        renderProfile(currentProfileState.squatMax, currentProfileState.benchMax, currentProfileState.deadMax, newBw, currentProfileState.height);
+        settingsRef.set({ bodyweight: newBw }, { merge: true }).catch(() => {});
       });
 
       if (!updateListenerAdded) {
@@ -351,6 +364,7 @@
       }
     } else {
       if (unsubscribeSettings) { unsubscribeSettings(); unsubscribeSettings = null; }
+      if (unsubscribeBw) { unsubscribeBw(); unsubscribeBw = null; }
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }
