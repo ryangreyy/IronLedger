@@ -385,10 +385,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
   aspect-ratio:1; border-radius:8px;
   border:1px solid rgba(255,255,255,0.12);
   background:rgba(255,255,255,0.06);
-  display:flex; align-items:center; justify-content:center;
   font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-dimmer);
   position:relative; cursor:default;
 }
+.cal-day span{ position:absolute; top:4px; left:5px; font-size:11px; font-weight:700; line-height:1; }
 .cal-day.empty{ border-color:transparent; background:transparent; }
 .cal-day.future{ background:transparent; border-color:rgba(255,255,255,0.06); color:rgba(255,255,255,0.2); }
 .cal-day.has-session{ color:#fff; font-weight:800; border-color:transparent; }
@@ -430,7 +430,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   padding:2px 7px; border-radius:4px; margin-left:6px; vertical-align:middle;
 }
 .cal-day.planned-day{ color:var(--text-dim); }
-.cal-day.planned-day span{ position:relative; z-index:1; }
+.cal-day.planned-day span{ z-index:1; }
 .cal-legend{ display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; max-width:420px; }
 .cal-legend-item{
   display:flex; align-items:center; gap:6px;
