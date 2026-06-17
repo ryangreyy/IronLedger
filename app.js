@@ -1508,7 +1508,7 @@ function initApp(uid) {
 
   /* ===== GLADIATOR RANK SYSTEM =====================================
      Maps a lift vs the bodyweight strength standards to a rank. */
-  const RANK_NAMES = ['Recruit','Legionary','Centurion','Champion','Gladiator'];
+  const RANK_NAMES = ['Recruit','Bronze','Silver','Gold','Elite','Titan','Legend','Gladiator'];
   function rankWeightClass(bw) {
     const keys = Object.keys(bodyweightStandards).map(Number).sort((a,b) => a-b);
     for (const k of keys) if (bw <= k) return k;
@@ -1516,13 +1516,22 @@ function initApp(uid) {
   }
   function liftTier(liftKey, max, bw) {
     const wc = rankWeightClass(bw);
-    const th = bodyweightStandards[wc][liftKey];        // [Beginner..Elite]
+    const th = bodyweightStandards[wc][liftKey];
     let passed = 0; for (const t of th) if (max >= t) passed++;
     return { passed, th };
   }
   function rankHex(rankIdx) {
-    const cols = [['#8a6f4a','#c8923f'],['#c8923f','#f4d9a8'],['#9a9ea8','#e8eaef'],['#e8eaef','#ffffff'],['#C1272D','#F0565B']];
-    const num  = ['I','II','III','IV','V'][rankIdx];
+    const cols = [
+      ['#4B5563','#9AA0AC'], // Recruit   — gray
+      ['#7D4A1E','#CD7F32'], // Bronze    — bronze
+      ['#6B7280','#C8CAD0'], // Silver    — silver
+      ['#92700A','#FFD700'], // Gold      — gold
+      ['#1E40AF','#60A5FA'], // Elite     — blue
+      ['#5B21B6','#A78BFA'], // Titan     — purple
+      ['#9A3412','#FB923C'], // Legend    — orange
+      ['#C1272D','#F0565B'], // Gladiator — red
+    ];
+    const num = ['I','II','III','IV','V','VI','VII','VIII'][rankIdx];
     return '<svg class="rank-hex" viewBox="0 0 60 70">' +
       '<polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="#15171c" stroke="' + cols[rankIdx][0] + '" stroke-width="2.5"/>' +
       '<text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="' + cols[rankIdx][1] + '">' + num + '</text></svg>';
@@ -1536,15 +1545,15 @@ function initApp(uid) {
     for (const [key,label,mx] of lifts) {
       if (!mx) continue;
       const { passed, th } = liftTier(key, mx, bw);
-      const idx = Math.max(0, Math.min(4, passed - 1));
+      const idx = Math.max(0, Math.min(7, passed - 1));
       sumIdx += idx; n++;
       let pct, nextTxt;
-      if (passed >= 5) { pct = 100; nextTxt = 'Max rank reached — Elite'; }
+      if (passed >= 8) { pct = 100; nextTxt = 'Max rank reached — Gladiator'; }
       else {
         const base = passed > 0 ? th[passed-1] : 0;
         const next = th[passed];
         pct = Math.max(4, Math.min(100, Math.round((mx - base) / (next - base) * 100)));
-        nextTxt = '<b>+' + (next - mx) + ' lbs</b> &rarr; ' + RANK_NAMES[Math.min(4, passed)];
+        nextTxt = '<b>+' + (next - mx) + ' lbs</b> &rarr; ' + RANK_NAMES[Math.min(7, passed)];
       }
       rows += '<div class="rank-lift">' + rankHex(idx) + '<div class="rank-lift-body">' +
         '<div class="rank-lift-name">' + label + '</div>' +
