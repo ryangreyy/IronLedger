@@ -1,0 +1,342 @@
+<!-- IRONGLADIATOR — Athlete Profile -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRONGLADIATOR — Athlete Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=98">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html#dashboard">Dashboard</a>
+        <a href="index.html#log">Training Log</a>
+        <a href="index.html#bodyweight">Bodyweight</a>
+        <a href="index.html#breakdown">Breakdown</a>
+        <a href="index.html#calc">1RM Calculator</a>
+        <a href="profile.html" class="nav-current">Profile</a>
+        <a href="guide.html">Workout Schedule Guide</a>
+        <a href="yoga.html">Yoga &amp; PT</a>
+        <a href="running.html">Cardio and Endurance</a>
+        <a href="settings.html">Settings</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+        </div>
+        <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+          <div id="nav-avatar" class="nav-avatar"></div>
+          <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+          <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <rect width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Signed-out gate -->
+  <div id="profile-gate" style="display:none;position:relative;z-index:1;">
+    <section style="max-width:680px;margin:0 auto;padding:120px 28px;text-align:center;">
+      <div class="eyebrow">Athlete Profile</div>
+      <h2 class="title">Sign in to view your profile</h2>
+      <p class="sub">Your stats, rank, and strength DNA are saved to your account.</p>
+      <a href="index.html" class="btn btn-primary" style="display:inline-block;margin-top:24px;">Sign in</a>
+    </section>
+  </div>
+
+  <!-- Profile page (shown after sign-in) -->
+  <div id="profile-page" style="display:none;position:relative;z-index:1;">
+    <section style="max-width:960px;margin:0 auto;padding:72px 28px 120px;">
+
+      <div class="eyebrow">Benchmarking</div>
+      <h2 class="title">Where you stand</h2>
+      <p class="sub">Enter your numbers and see your full strength breakdown, and earn your rank!</p>
+
+      <div class="card" style="margin-top:16px;padding:24px 22px 20px;">
+        <p class="controls-label">Your stats</p>
+        <div class="profile-inputs">
+          <div class="field">
+            <label for="heightInput">Height</label>
+            <input id="heightInput" type="text" placeholder="5'11&quot;">
+          </div>
+          <div class="field">
+            <label for="weightInput">Bodyweight (lbs)</label>
+            <input id="weightInput" type="number" placeholder="185" min="80" step="1">
+          </div>
+          <div class="field">
+            <label for="squatInput">Squat max (lbs)</label>
+            <input id="squatInput" type="number" placeholder="315" min="45" step="5">
+          </div>
+          <div class="field">
+            <label for="benchInput">Bench max (lbs)</label>
+            <input id="benchInput" type="number" placeholder="225" min="45" step="5">
+          </div>
+          <div class="field">
+            <label for="deadInput">Deadlift max (lbs)</label>
+            <input id="deadInput" type="number" placeholder="405" min="45" step="5">
+          </div>
+        </div>
+        <button id="updateStandards" class="btn btn-primary" style="margin-top:4px;">Update profile</button>
+      </div>
+
+      <div class="stat-grid" id="statGrid" style="margin-top:18px;"></div>
+      <div class="card rank-card" id="rankCard" style="display:none;"></div>
+      <div class="card dna-card" id="dnaCard" style="margin-top:18px;display:none;"></div>
+
+    </section>
+  </div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="data.js"></script>
+<script>
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  function parseHeightToInches(str) {
+    if (!str) return null;
+    const s = str.toString().trim();
+    const m = s.match(/^(\d+)\D+(\d+)/);
+    if (m) return +m[1] * 12 + +m[2];
+    const n = parseFloat(s);
+    return (!isNaN(n) && n > 24) ? n : null;
+  }
+  function formatHeight(inches) {
+    if (!inches) return '';
+    return `${Math.floor(inches / 12)}'${inches % 12}"`;
+  }
+  function getIpfClass(weightLbs) {
+    const kg = weightLbs / 2.2046;
+    for (const c of [59, 66, 74, 83, 93, 105, 120]) { if (kg <= c) return c; }
+    return '120+';
+  }
+  function getDnaType(sR, bR, dR) {
+    const mx = Math.max(sR, bR, dR), mn = Math.min(sR, bR, dR);
+    if (mx - mn < 0.25) return 'Well Balanced';
+    if (dR === mx) return 'Posterior Chain Dominant';
+    if (sR === mx) return 'Lower Body Dominant';
+    return 'Upper Body Dominant';
+  }
+
+  const RANK_NAMES = ['Recruit','Legionary','Centurion','Champion','Gladiator'];
+  function rankWeightClass(bw) {
+    const keys = Object.keys(bodyweightStandards).map(Number).sort((a,b) => a-b);
+    for (const k of keys) if (bw <= k) return k;
+    return keys[keys.length-1];
+  }
+  function liftTier(liftKey, max, bw) {
+    const wc = rankWeightClass(bw);
+    const th = bodyweightStandards[wc][liftKey];
+    let passed = 0; for (const t of th) if (max >= t) passed++;
+    return { passed, th };
+  }
+  function rankHex(rankIdx) {
+    const cols = [['#8a6f4a','#c8923f'],['#c8923f','#f4d9a8'],['#9a9ea8','#e8eaef'],['#e8eaef','#ffffff'],['#C1272D','#F0565B']];
+    const num  = ['I','II','III','IV','V'][rankIdx];
+    return '<svg class="rank-hex" viewBox="0 0 60 70">' +
+      '<polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="#15171c" stroke="' + cols[rankIdx][0] + '" stroke-width="2.5"/>' +
+      '<text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="' + cols[rankIdx][1] + '">' + num + '</text></svg>';
+  }
+  function renderRank(sq, bn, dl, bw) {
+    const card = document.getElementById('rankCard');
+    if (!card) return;
+    if (!sq && !bn && !dl) { card.style.display = 'none'; return; }
+    const lifts = [['squat','Squat',sq],['bench','Bench',bn],['dead','Deadlift',dl]];
+    let sumIdx = 0, n = 0, rows = '';
+    for (const [key,label,mx] of lifts) {
+      if (!mx) continue;
+      const { passed, th } = liftTier(key, mx, bw);
+      const idx = Math.max(0, Math.min(4, passed - 1));
+      sumIdx += idx; n++;
+      let pct, nextTxt;
+      if (passed >= 5) { pct = 100; nextTxt = 'Max rank reached — Elite'; }
+      else {
+        const base = passed > 0 ? th[passed-1] : 0;
+        const next = th[passed];
+        pct = Math.max(4, Math.min(100, Math.round((mx - base) / (next - base) * 100)));
+        nextTxt = '<b>+' + (next - mx) + ' lbs</b> &rarr; ' + RANK_NAMES[Math.min(4, passed)];
+      }
+      rows += '<div class="rank-lift">' + rankHex(idx) + '<div class="rank-lift-body">' +
+        '<div class="rank-lift-name">' + label + '</div>' +
+        '<div class="rank-lift-rank">' + RANK_NAMES[idx] + '</div>' +
+        '<div class="rank-prog"><span data-w="' + pct + '"></span></div>' +
+        '<div class="rank-next">' + nextTxt + '</div></div></div>';
+    }
+    const overall = n ? Math.round(sumIdx / n) : 0;
+    card.style.display = '';
+    card.innerHTML =
+      '<div class="rank-head"><div class="rank-overall">' + rankHex(overall) +
+        '<div class="rank-overall-meta"><div class="rank-eyebrow">Your Gladiator Rank</div>' +
+        '<div class="rank-name">' + RANK_NAMES[overall] + '</div>' +
+        '<div class="rank-flair">Big-3 ranked against lifters in the ' + rankWeightClass(bw) + ' lb class</div>' +
+        '</div></div></div>' +
+      '<div class="rank-grid">' + rows + '</div>';
+    setTimeout(() => card.querySelectorAll('.rank-prog > span').forEach(s => s.style.width = s.dataset.w + '%'), 80);
+  }
+
+  function renderProfile(squatMax, benchMax, deadMax, bodyweight, height) {
+    const sq = +squatMax || 0, bn = +benchMax || 0, dl = +deadMax || 0;
+    const bw = +bodyweight || 185;
+    const hIn = parseHeightToInches(height);
+
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+    if (sq) setVal('squatInput', sq);
+    if (bn) setVal('benchInput', bn);
+    if (dl) setVal('deadInput',  dl);
+    setVal('weightInput', bw);
+    if (hIn) setVal('heightInput', formatHeight(hIn));
+
+    const statGrid = document.getElementById('statGrid');
+    const dnaCard  = document.getElementById('dnaCard');
+    if (!statGrid || !dnaCard) return;
+
+    if (!sq && !bn && !dl) {
+      statGrid.innerHTML = ''; dnaCard.style.display = 'none';
+      const rc = document.getElementById('rankCard'); if (rc) rc.style.display = 'none';
+      return;
+    }
+
+    const sR = bw ? sq / bw : 0, bR = bw ? bn / bw : 0, dR = bw ? dl / bw : 0;
+    const big3 = sq + bn + dl;
+    const totalR = bw ? (big3 / bw).toFixed(1) : '—';
+    const bmi    = hIn ? ((bw / (hIn * hIn)) * 703).toFixed(1) : null;
+    const bmiDesc = !bmi ? '' : +bmi < 18.5 ? 'Underweight' : +bmi < 25 ? 'Normal range' : +bmi < 30 ? 'Overweight' : 'Obese';
+    const ipfCls  = getIpfClass(bw);
+    const totalDesc = +totalR < 4 ? 'Beginner range' : +totalR < 5 ? 'Intermediate range' : +totalR < 6 ? 'Advanced range' : 'Elite range';
+
+    statGrid.innerHTML =
+      (hIn ? `<div class="stat-tile forged"><div class="st-label">Height</div>
+        <div class="st-value">${Math.floor(hIn/12)}'${hIn%12}<span>in</span></div>
+        <div class="st-sub">${Math.round(hIn*2.54)} cm</div></div>` : '') +
+      `<div class="stat-tile forged"><div class="st-label">Bodyweight</div>
+        <div class="st-value">${bw}<span>lbs</span></div>
+        <div class="st-sub">${(bw/2.2046).toFixed(1)} kg</div></div>` +
+      (bmi ? `<div class="stat-tile forged"><div class="st-label">BMI</div>
+        <div class="st-value">${bmi}</div>
+        <div class="st-sub">${bmiDesc}</div></div>` : '') +
+      `<div class="stat-tile forged highlight"><div class="st-label">Big-3 Total</div>
+        <div class="st-value">${big3.toLocaleString()}<span>lbs</span></div>
+        <div class="st-sub">${(big3/2.2046).toFixed(0)} kg</div></div>
+      <div class="stat-tile forged"><div class="st-label">Total / Bodyweight</div>
+        <div class="st-value">${totalR}<span>×</span></div>
+        <div class="st-sub">${totalDesc}</div></div>
+      <div class="stat-tile forged"><div class="st-label">IPF Weight Class</div>
+        <div class="st-value" style="font-size:24px;">${ipfCls}<span>kg</span></div>
+        <div class="st-sub">You'd compete at ${ipfCls} kg</div></div>`;
+
+    renderRank(sq, bn, dl, bw);
+
+    const ranked = [{n:'squat',v:sq,r:sR},{n:'bench',v:bn,r:bR},{n:'deadlift',v:dl,r:dR}]
+      .sort((a,b) => b.r - a.r);
+    const best = ranked[0], worst = ranked[2];
+    const dnaType = getDnaType(sR, bR, dR);
+    const dnaDesc = `Your ${best.n} is your standout lift at <strong style="color:var(--text);">${best.v} lbs (${best.r.toFixed(1)}× bodyweight)</strong>.
+      Your ${worst.n} has the most room to grow at <strong style="color:var(--text);">${worst.v} lbs (${worst.r.toFixed(1)}×)</strong>.
+      ${ranked[0].r - ranked[2].r < 0.3 ? 'Overall your three lifts are well balanced.' : `Focus on bringing your ${worst.n} up to match your ${best.n}.`}`;
+
+    dnaCard.style.display = '';
+    dnaCard.innerHTML = `
+      <div class="dna-header">
+        <div>
+          <p class="controls-label" style="margin-bottom:8px;">Strength DNA</p>
+          <div class="dna-type-badge">${dnaType}</div>
+        </div>
+      </div>
+      <p class="dna-desc">${dnaDesc}</p>
+      <div class="profile-divider"></div>
+      <div class="dna-bars">
+        <div class="dna-bar-row">
+          <div class="dna-bar-label">Legs</div>
+          <div class="dna-bar-track"><div class="dna-bar-fill squat" style="width:0" data-w="${(sR/3*100).toFixed(1)}">${sq} lbs</div></div>
+          <div class="dna-bar-ratio squat">${sR.toFixed(1)}×</div>
+        </div>
+        <div class="dna-bar-row">
+          <div class="dna-bar-label">Chest</div>
+          <div class="dna-bar-track"><div class="dna-bar-fill bench" style="width:0" data-w="${(bR/3*100).toFixed(1)}">${bn} lbs</div></div>
+          <div class="dna-bar-ratio bench">${bR.toFixed(1)}×</div>
+        </div>
+        <div class="dna-bar-row">
+          <div class="dna-bar-label">Deadlift</div>
+          <div class="dna-bar-track"><div class="dna-bar-fill dead" style="width:0" data-w="${(dR/3*100).toFixed(1)}">${dl} lbs</div></div>
+          <div class="dna-bar-ratio dead">${dR.toFixed(1)}×</div>
+        </div>
+      </div>
+      <div class="dna-ticks">
+        <span class="dna-tick">0×</span><span class="dna-tick">1×</span>
+        <span class="dna-tick">1.5×</span><span class="dna-tick">2×</span>
+        <span class="dna-tick">2.5×</span><span class="dna-tick">3×</span>
+      </div>`;
+
+    setTimeout(() => {
+      dnaCard.querySelectorAll('.dna-bar-fill').forEach(f => { f.style.width = f.dataset.w + '%'; });
+    }, 60);
+  }
+
+  let unsubscribeSettings = null;
+  let updateListenerAdded = false;
+
+  auth.onAuthStateChanged(user => {
+    const page = document.getElementById('profile-page');
+    const gate = document.getElementById('profile-gate');
+
+    if (user) {
+      if (gate) gate.style.display = 'none';
+      if (page) page.style.display = '';
+
+      const settingsRef = db.collection('users').doc(user.uid).collection('settings').doc('main');
+
+      if (unsubscribeSettings) unsubscribeSettings();
+      unsubscribeSettings = settingsRef.onSnapshot(doc => {
+        if (doc.exists) {
+          const { squatMax, benchMax, deadMax, bodyweight, height } = doc.data();
+          renderProfile(squatMax, benchMax, deadMax, bodyweight || 185, height || '');
+        } else {
+          renderProfile(0, 0, 0, 185, '');
+        }
+      });
+
+      if (!updateListenerAdded) {
+        updateListenerAdded = true;
+        document.getElementById('updateStandards').addEventListener('click', () => {
+          const squatMax   = +document.getElementById('squatInput').value;
+          const benchMax   = +document.getElementById('benchInput').value;
+          const deadMax    = +document.getElementById('deadInput').value;
+          const bodyweight = +document.getElementById('weightInput').value;
+          const height     = document.getElementById('heightInput').value.trim();
+          if (!squatMax || !benchMax || !deadMax || !bodyweight) {
+            alert('Please enter your bodyweight and all three lift maxes.'); return;
+          }
+          settingsRef.set({ squatMax, benchMax, deadMax, bodyweight, height }, { merge: true })
+            .catch(err => alert('Could not save: ' + err.message));
+        });
+      }
+    } else {
+      if (unsubscribeSettings) { unsubscribeSettings(); unsubscribeSettings = null; }
+      if (gate) gate.style.display = '';
+      if (page) page.style.display = 'none';
+    }
+  });
+</script>
+<script src="nav-auth.js"></script>
+</body>
+</html>

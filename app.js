@@ -2354,8 +2354,9 @@ function initApp(uid) {
     }
   });
 
-  /* Save & update profile */
-  document.getElementById('updateStandards').addEventListener('click', () => {
+  /* Save & update profile — button lives on profile.html, not here */
+  const updateStandardsBtn = document.getElementById('updateStandards');
+  if (updateStandardsBtn) updateStandardsBtn.addEventListener('click', () => {
     const squatMax   = +document.getElementById('squatInput').value;
     const benchMax   = +document.getElementById('benchInput').value;
     const deadMax    = +document.getElementById('deadInput').value;
