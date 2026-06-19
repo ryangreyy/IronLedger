@@ -694,24 +694,39 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       if (file.size > 8 * 1024 * 1024) {
         alert('Please choose a photo under 8 MB.'); return;
       }
-      const editBtn  = document.getElementById('bannerEdit');
-      const ctaSpan  = document.querySelector('#bannerCta span');
+      const editBtn = document.getElementById('bannerEdit');
+      const ctaSpan = document.querySelector('#bannerCta span');
+
+      function restoreButtons() {
+        if (editBtn) { editBtn.disabled = false; editBtn.innerHTML = '<i class="ti ti-photo" aria-hidden="true"></i> Change photo'; }
+        if (ctaSpan) ctaSpan.textContent = 'Add cover photo';
+      }
+
       if (editBtn) { editBtn.disabled = true; editBtn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Uploading…'; }
       if (ctaSpan) ctaSpan.textContent = 'Uploading…';
 
-      const ref = storage.ref('banners/' + userId + '/cover');
-      ref.put(file)
-        .then(() => ref.getDownloadURL())
-        .then(url => settingsRef.set({ bannerUrl: url }, { merge: true }))
-        .then(() => {
-          if (editBtn) { editBtn.disabled = false; editBtn.innerHTML = '<i class="ti ti-photo" aria-hidden="true"></i> Change photo'; }
-          if (ctaSpan) ctaSpan.textContent = 'Add cover photo';
-        })
-        .catch(err => {
-          if (editBtn) { editBtn.disabled = false; editBtn.innerHTML = '<i class="ti ti-photo" aria-hidden="true"></i> Change photo'; }
-          if (ctaSpan) ctaSpan.textContent = 'Add cover photo';
-          alert('Upload failed: ' + err.message);
-        });
+      try {
+        const ref = storage.ref('banners/' + userId + '/cover');
+        ref.put(file)
+          .then(() => ref.getDownloadURL())
+          .then(url => settingsRef.set({ bannerUrl: url }, { merge: true }))
+          .then(() => restoreButtons())
+          .catch(err => {
+            restoreButtons();
+            console.error('Banner upload error:', err);
+            if (err.code === 'storage/unauthorized') {
+              alert('Upload blocked: your Firebase Storage security rules need to allow writes.\n\nIn the Firebase console go to Storage → Rules and allow authenticated users to write to banners/{userId}.');
+            } else if (err.code === 'storage/no-default-bucket') {
+              alert('Firebase Storage is not set up yet.\n\nGo to your Firebase console, open Storage, and click "Get started" to create a bucket.');
+            } else {
+              alert('Upload failed: ' + (err.message || err.code || 'Unknown error'));
+            }
+          });
+      } catch (err) {
+        restoreButtons();
+        console.error('Storage init error:', err);
+        alert('Storage error: ' + err.message + '\n\nMake sure Firebase Storage is enabled in your Firebase project.');
+      }
     }
 
     if (bannerInput) bannerInput.addEventListener('change', e => {
