@@ -146,6 +146,13 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 .ach-icon{ width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:18px; }
 .ach-name{ font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text); margin-bottom:2px; }
 .ach-desc{ font-size:11px; color:var(--text-dimmer); }
+.ach-item.ach-tiered{ align-items:flex-start; cursor:pointer; user-select:none; transition:border-color 0.15s,background 0.15s; }
+.ach-item.ach-tiered:hover{ border-color:var(--border-strong); background:var(--surface-2); }
+.ach-tier-nav{ display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+.ach-tier-pips{ display:flex; gap:5px; align-items:center; }
+.ach-tier-pip{ width:6px; height:6px; border-radius:50%; background:var(--surface-2); border:1px solid var(--border-strong); flex-shrink:0; transition:transform 0.15s; }
+.ach-tier-pip.pip-current{ transform:scale(1.4); border-color:rgba(255,255,255,0.3); }
+.ach-tier-counter{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); }
 </style>
 </head>
 <body>
@@ -644,58 +651,71 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   }
 
   /* ---- Achievements ---- */
+  const achCycleState = {};
   const ACH_DEFS = [
-    // ---- Bench ----
-    { label:'Plate on Bench',    desc:'135 lb bench press',              icon:'ti-award',   bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentProfileState.benchMax>=135 },
-    { label:'Two-Plate Bench',   desc:'225 lb bench press',              icon:'ti-trophy',  bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentProfileState.benchMax>=225 },
-    { label:'Three-Plate Bench', desc:'315 lb bench press',              icon:'ti-trophy',  bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentProfileState.benchMax>=315 },
-    { label:'Four-Plate Bench',  desc:'405 lb bench press',              icon:'ti-trophy',  bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentProfileState.benchMax>=405 },
-    // ---- Squat ----
-    { label:'Three-Plate Squat', desc:'315 lb squat',                    icon:'ti-star',    bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',  check:()=>currentProfileState.squatMax>=315 },
-    { label:'Four-Plate Squat',  desc:'405 lb squat',                    icon:'ti-star',    bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',  check:()=>currentProfileState.squatMax>=405 },
-    { label:'Five-Plate Squat',  desc:'495 lb squat',                    icon:'ti-star',    bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',  check:()=>currentProfileState.squatMax>=495 },
-    // ---- Deadlift ----
-    { label:'4-Plate Pull',      desc:'405 lb deadlift',                 icon:'ti-bolt',    bg:'rgba(255,138,76,0.08)',   bdr:'rgba(255,138,76,0.15)',   fg:'var(--dead)',   check:()=>currentProfileState.deadMax>=405 },
-    { label:'Five-Plate Pull',   desc:'495 lb deadlift',                 icon:'ti-bolt',    bg:'rgba(255,138,76,0.08)',   bdr:'rgba(255,138,76,0.15)',   fg:'var(--dead)',   check:()=>currentProfileState.deadMax>=495 },
-    { label:'Six-Plate Pull',    desc:'585 lb deadlift',                 icon:'ti-bolt',    bg:'rgba(255,138,76,0.08)',   bdr:'rgba(255,138,76,0.15)',   fg:'var(--dead)',   check:()=>currentProfileState.deadMax>=585 },
-    // ---- Big-3 total ----
-    { label:'Big-3 Unlocked',    desc:'Logged all 3 lifts',              icon:'ti-barbell', bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentProfileState.squatMax>0&&currentProfileState.benchMax>0&&currentProfileState.deadMax>0 },
-    { label:'1,000 lb Club',     desc:'Big-3 total over 1,000',          icon:'ti-crown',   bg:'rgba(193,39,45,0.10)',    bdr:'rgba(193,39,45,0.2)',     fg:'var(--accent)', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=1000 },
-    { label:'Iron 1250',         desc:'Big-3 total over 1,250',          icon:'ti-crown',   bg:'rgba(193,39,45,0.10)',    bdr:'rgba(193,39,45,0.2)',     fg:'var(--accent)', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=1250 },
-    { label:'Iron 1500',         desc:'Big-3 total over 1,500',          icon:'ti-crown',   bg:'rgba(193,39,45,0.10)',    bdr:'rgba(193,39,45,0.2)',     fg:'var(--accent)', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=1500 },
-    { label:'Iron 1750',         desc:'Big-3 total over 1,750',          icon:'ti-crown',   bg:'rgba(193,39,45,0.10)',    bdr:'rgba(193,39,45,0.2)',     fg:'var(--accent)', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=1750 },
-    { label:'2,000 lb Club',     desc:'Big-3 total over 2,000',          icon:'ti-crown',   bg:'rgba(193,39,45,0.10)',    bdr:'rgba(193,39,45,0.2)',     fg:'var(--accent)', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=2000 },
-    // ---- Sessions ----
-    { label:'First Entry',       desc:'Log your very first session',     icon:'ti-flag',    bg:'rgba(124,227,139,0.08)', bdr:'rgba(124,227,139,0.15)', fg:'var(--up)',     check:()=>currentTotalSessions>=1 },
-    { label:'10 Sessions',       desc:'Log 10 workouts',                 icon:'ti-calendar',bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',  check:()=>currentTotalSessions>=10 },
-    { label:'50 Sessions',       desc:'50 workout milestone',            icon:'ti-calendar',bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentTotalSessions>=50 },
-    { label:'100 Sessions',      desc:'Log 100 workouts',                icon:'ti-calendar',bg:'rgba(193,39,45,0.10)',    bdr:'rgba(193,39,45,0.2)',     fg:'var(--accent)', check:()=>currentTotalSessions>=100 },
-    { label:'200 Sessions',      desc:'Log 200 workouts',                icon:'ti-calendar',bg:'rgba(183,139,255,0.08)', bdr:'rgba(183,139,255,0.15)', fg:'var(--press)',  check:()=>currentTotalSessions>=200 },
-    { label:'365 Sessions',      desc:"A full year's worth of sessions", icon:'ti-calendar',bg:'rgba(255,215,0,0.08)',    bdr:'rgba(255,215,0,0.15)',    fg:'#FFD700',       check:()=>currentTotalSessions>=365 },
-    // ---- Streaks ----
-    { label:'Week Warrior',      desc:'7-day training streak',           icon:'ti-flame',   bg:'rgba(124,227,139,0.08)', bdr:'rgba(124,227,139,0.15)', fg:'var(--up)',     check:()=>(currentStreak||0)>=7 },
-    { label:'Iron Habit',        desc:'30-day training streak',          icon:'ti-flame',   bg:'rgba(193,39,45,0.10)',    bdr:'rgba(193,39,45,0.2)',     fg:'var(--accent)', check:()=>(currentStreak||0)>=30 },
-    { label:'60-Day Grind',      desc:'60-day training streak',          icon:'ti-flame',   bg:'rgba(255,138,76,0.08)',   bdr:'rgba(255,138,76,0.15)',   fg:'var(--dead)',   check:()=>(currentStreak||0)>=60 },
-    { label:'90-Day Warrior',    desc:'90-day training streak',          icon:'ti-flame',   bg:'rgba(183,139,255,0.08)', bdr:'rgba(183,139,255,0.15)', fg:'var(--press)',  check:()=>(currentStreak||0)>=90 },
-    // ---- Bodyweight ratios ----
-    { label:'Bodyweight Squat',  desc:'Squat 1× your bodyweight',        icon:'ti-barbell', bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',  check:()=>currentProfileState.bodyweight>0&&currentProfileState.squatMax>=currentProfileState.bodyweight },
-    { label:'1.5× Squat',       desc:'Squat 1.5× bodyweight',           icon:'ti-barbell', bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',  check:()=>currentProfileState.bodyweight>0&&currentProfileState.squatMax>=currentProfileState.bodyweight*1.5 },
-    { label:'2× Squat',         desc:'Squat 2× bodyweight',             icon:'ti-barbell', bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',  check:()=>currentProfileState.bodyweight>0&&currentProfileState.squatMax>=currentProfileState.bodyweight*2 },
-    { label:'Bodyweight Bench',  desc:'Bench 1× your bodyweight',        icon:'ti-barbell', bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentProfileState.bodyweight>0&&currentProfileState.benchMax>=currentProfileState.bodyweight },
-    { label:'1.5× Bench',       desc:'Bench 1.5× bodyweight',           icon:'ti-barbell', bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentProfileState.bodyweight>0&&currentProfileState.benchMax>=currentProfileState.bodyweight*1.5 },
-    { label:'2× Deadlift',      desc:'Deadlift 2× bodyweight',          icon:'ti-barbell', bg:'rgba(255,138,76,0.08)',   bdr:'rgba(255,138,76,0.15)',   fg:'var(--dead)',   check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*2 },
-    { label:'2.5× Deadlift',    desc:'Deadlift 2.5× bodyweight',        icon:'ti-barbell', bg:'rgba(255,138,76,0.08)',   bdr:'rgba(255,138,76,0.15)',   fg:'var(--dead)',   check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*2.5 },
-    { label:'3× Deadlift',      desc:'Deadlift 3× bodyweight',          icon:'ti-barbell', bg:'rgba(255,138,76,0.08)',   bdr:'rgba(255,138,76,0.15)',   fg:'var(--dead)',   check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*3 },
-    // ---- Ranks ----
-    { label:'Bronze',            desc:'Reach Bronze rank',               icon:'ti-medal',   bg:'rgba(205,127,50,0.10)',   bdr:'rgba(205,127,50,0.20)',   fg:'#CD7F32',       check:()=>currentOverallRank>=1 },
-    { label:'Silver',            desc:'Reach Silver rank',               icon:'ti-medal',   bg:'rgba(200,200,200,0.10)',  bdr:'rgba(200,200,200,0.20)',  fg:'#C0C0C0',       check:()=>currentOverallRank>=2 },
-    { label:'Gold',              desc:'Reach Gold rank',                 icon:'ti-medal',   bg:'rgba(255,215,0,0.10)',    bdr:'rgba(255,215,0,0.20)',    fg:'#FFD700',       check:()=>currentOverallRank>=3 },
-    { label:'Elite Status',      desc:'Reach Elite rank or above',       icon:'ti-shield',  bg:'rgba(183,139,255,0.08)', bdr:'rgba(183,139,255,0.15)', fg:'var(--press)',  check:()=>currentOverallRank>=4 },
-    { label:'Legend',            desc:'Reach Legend rank',               icon:'ti-medal',   bg:'rgba(255,138,76,0.10)',   bdr:'rgba(255,138,76,0.20)',   fg:'var(--dead)',   check:()=>currentOverallRank>=6 },
-    { label:'Gladiator',         desc:'Reach the highest rank',          icon:'ti-sword',   bg:'rgba(193,39,45,0.10)',    bdr:'rgba(193,39,45,0.2)',     fg:'var(--accent)', check:()=>currentOverallRank>=7 },
-    // ---- Consistency ----
-    { label:'Rest Day',          desc:'Log a rest day',                  icon:'ti-clock',   bg:'rgba(107,114,128,0.10)',  bdr:'rgba(107,114,128,0.20)',  fg:'var(--text-dim)',check:()=>currentHasRestDay },
-    { label:'Daily Driver',      desc:'Train 5 days in one week',        icon:'ti-calendar',bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',  check:()=>currentMaxWeeklyDays>=5 },
+    { group:'Bench Press', icon:'ti-barbell', bg:'rgba(91,214,230,0.08)', bdr:'rgba(91,214,230,0.15)', fg:'var(--bench)', tiers:[
+      { label:'Plate on Bench',    desc:'135 lb bench press', check:()=>currentProfileState.benchMax>=135 },
+      { label:'Two-Plate Bench',   desc:'225 lb bench press', check:()=>currentProfileState.benchMax>=225 },
+      { label:'Three-Plate Bench', desc:'315 lb bench press', check:()=>currentProfileState.benchMax>=315 },
+      { label:'Four-Plate Bench',  desc:'405 lb bench press', check:()=>currentProfileState.benchMax>=405 },
+    ]},
+    { group:'Squat', icon:'ti-star', bg:'rgba(214,255,61,0.08)', bdr:'rgba(214,255,61,0.15)', fg:'var(--squat)', tiers:[
+      { label:'Three-Plate Squat', desc:'315 lb squat', check:()=>currentProfileState.squatMax>=315 },
+      { label:'Four-Plate Squat',  desc:'405 lb squat', check:()=>currentProfileState.squatMax>=405 },
+      { label:'Five-Plate Squat',  desc:'495 lb squat', check:()=>currentProfileState.squatMax>=495 },
+    ]},
+    { group:'Deadlift', icon:'ti-bolt', bg:'rgba(255,138,76,0.08)', bdr:'rgba(255,138,76,0.15)', fg:'var(--dead)', tiers:[
+      { label:'4-Plate Pull',    desc:'405 lb deadlift', check:()=>currentProfileState.deadMax>=405 },
+      { label:'Five-Plate Pull', desc:'495 lb deadlift', check:()=>currentProfileState.deadMax>=495 },
+      { label:'Six-Plate Pull',  desc:'585 lb deadlift', check:()=>currentProfileState.deadMax>=585 },
+    ]},
+    { group:'Big-3 Total', icon:'ti-crown', bg:'rgba(193,39,45,0.10)', bdr:'rgba(193,39,45,0.2)', fg:'var(--accent)', tiers:[
+      { label:'1,000 lb Club', desc:'Big-3 total over 1,000', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=1000 },
+      { label:'Iron 1250',     desc:'Big-3 total over 1,250', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=1250 },
+      { label:'Iron 1500',     desc:'Big-3 total over 1,500', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=1500 },
+      { label:'Iron 1750',     desc:'Big-3 total over 1,750', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=1750 },
+      { label:'2,000 lb Club', desc:'Big-3 total over 2,000', check:()=>(currentProfileState.squatMax+currentProfileState.benchMax+currentProfileState.deadMax)>=2000 },
+    ]},
+    { group:'Workouts Logged', icon:'ti-calendar', bg:'rgba(214,255,61,0.08)', bdr:'rgba(214,255,61,0.15)', fg:'var(--squat)', tiers:[
+      { label:'First Entry',  desc:'Log your very first session', check:()=>currentTotalSessions>=1 },
+      { label:'10 Sessions',  desc:'Log 10 workouts',             check:()=>currentTotalSessions>=10 },
+      { label:'50 Sessions',  desc:'50 workout milestone',        check:()=>currentTotalSessions>=50 },
+      { label:'100 Sessions', desc:'Log 100 workouts',            check:()=>currentTotalSessions>=100 },
+      { label:'200 Sessions', desc:'Log 200 workouts',            check:()=>currentTotalSessions>=200 },
+      { label:'365 Sessions', desc:"A full year's worth",         check:()=>currentTotalSessions>=365 },
+    ]},
+    { group:'Training Streak', icon:'ti-flame', bg:'rgba(193,39,45,0.10)', bdr:'rgba(193,39,45,0.2)', fg:'var(--accent)', tiers:[
+      { label:'Week Warrior',   desc:'7-day training streak',  check:()=>(currentStreak||0)>=7 },
+      { label:'Iron Habit',     desc:'30-day training streak', check:()=>(currentStreak||0)>=30 },
+      { label:'60-Day Grind',   desc:'60-day streak',          check:()=>(currentStreak||0)>=60 },
+      { label:'90-Day Warrior', desc:'90-day streak',          check:()=>(currentStreak||0)>=90 },
+    ]},
+    { group:'Squat / BW', icon:'ti-barbell', bg:'rgba(214,255,61,0.08)', bdr:'rgba(214,255,61,0.15)', fg:'var(--squat)', tiers:[
+      { label:'Bodyweight Squat', desc:'Squat 1× your bodyweight', check:()=>currentProfileState.bodyweight>0&&currentProfileState.squatMax>=currentProfileState.bodyweight },
+      { label:'1.5× Squat',      desc:'Squat 1.5× bodyweight',    check:()=>currentProfileState.bodyweight>0&&currentProfileState.squatMax>=currentProfileState.bodyweight*1.5 },
+      { label:'2× Squat',        desc:'Squat 2× bodyweight',      check:()=>currentProfileState.bodyweight>0&&currentProfileState.squatMax>=currentProfileState.bodyweight*2 },
+    ]},
+    { group:'Bench / BW', icon:'ti-barbell', bg:'rgba(91,214,230,0.08)', bdr:'rgba(91,214,230,0.15)', fg:'var(--bench)', tiers:[
+      { label:'Bodyweight Bench', desc:'Bench 1× your bodyweight', check:()=>currentProfileState.bodyweight>0&&currentProfileState.benchMax>=currentProfileState.bodyweight },
+      { label:'1.5× Bench',      desc:'Bench 1.5× bodyweight',    check:()=>currentProfileState.bodyweight>0&&currentProfileState.benchMax>=currentProfileState.bodyweight*1.5 },
+    ]},
+    { group:'Deadlift / BW', icon:'ti-barbell', bg:'rgba(255,138,76,0.08)', bdr:'rgba(255,138,76,0.15)', fg:'var(--dead)', tiers:[
+      { label:'2× Deadlift',   desc:'Deadlift 2× bodyweight',   check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*2 },
+      { label:'2.5× Deadlift', desc:'Deadlift 2.5× bodyweight', check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*2.5 },
+      { label:'3× Deadlift',   desc:'Deadlift 3× bodyweight',   check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*3 },
+    ]},
+    { group:'Rank', icon:'ti-medal', bg:'rgba(183,139,255,0.08)', bdr:'rgba(183,139,255,0.15)', fg:'var(--press)', tiers:[
+      { label:'Bronze',       desc:'Reach Bronze rank',         check:()=>currentOverallRank>=1, tierBg:'rgba(205,127,50,0.10)',   tierBdr:'rgba(205,127,50,0.20)',   tierFg:'#CD7F32' },
+      { label:'Silver',       desc:'Reach Silver rank',         check:()=>currentOverallRank>=2, tierBg:'rgba(200,200,200,0.10)',  tierBdr:'rgba(200,200,200,0.20)',  tierFg:'#C0C0C0' },
+      { label:'Gold',         desc:'Reach Gold rank',           check:()=>currentOverallRank>=3, tierBg:'rgba(255,215,0,0.10)',    tierBdr:'rgba(255,215,0,0.20)',    tierFg:'#FFD700' },
+      { label:'Elite Status', desc:'Reach Elite rank or above', check:()=>currentOverallRank>=4, tierBg:'rgba(183,139,255,0.08)', tierBdr:'rgba(183,139,255,0.15)', tierFg:'var(--press)' },
+      { label:'Legend',       desc:'Reach Legend rank',         check:()=>currentOverallRank>=6, tierBg:'rgba(255,138,76,0.10)',   tierBdr:'rgba(255,138,76,0.20)',   tierFg:'var(--dead)' },
+      { label:'Gladiator',    desc:'Reach the highest rank',    check:()=>currentOverallRank>=7, tierBg:'rgba(193,39,45,0.10)',    tierBdr:'rgba(193,39,45,0.2)',     tierFg:'var(--accent)' },
+    ]},
+    // ---- Solo achievements ----
+    { label:'Big-3 Unlocked', desc:'Logged all 3 lifts',       icon:'ti-barbell',  bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',    check:()=>currentProfileState.squatMax>0&&currentProfileState.benchMax>0&&currentProfileState.deadMax>0 },
+    { label:'Rest Day',       desc:'Log a rest day',            icon:'ti-clock',    bg:'rgba(107,114,128,0.10)', bdr:'rgba(107,114,128,0.20)', fg:'var(--text-dim)', check:()=>currentHasRestDay },
+    { label:'Daily Driver',   desc:'Train 5 days in one week',  icon:'ti-calendar', bg:'rgba(214,255,61,0.08)',   bdr:'rgba(214,255,61,0.15)',   fg:'var(--squat)',    check:()=>currentMaxWeeklyDays>=5 },
   ];
 
   function renderAchievements() {
@@ -703,12 +723,48 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const countEl  = document.getElementById('achCount');
     const grid     = document.getElementById('achGrid');
     if (!section || !grid) return;
-    const unlocked = ACH_DEFS.filter(a => a.check());
-    const locked   = ACH_DEFS.filter(a => !a.check());
+
+    function isEarned(a) { return a.tiers ? a.tiers.some(t => t.check()) : a.check(); }
+    const unlocked = ACH_DEFS.filter(isEarned);
+    const locked   = ACH_DEFS.filter(a => !isEarned(a));
     if (countEl) countEl.textContent = `${unlocked.length} of ${ACH_DEFS.length} unlocked`;
+
+    ACH_DEFS.forEach(a => {
+      if (!a.tiers || achCycleState[a.group] != null) return;
+      let hi = 0;
+      for (let i = a.tiers.length - 1; i >= 0; i--) { if (a.tiers[i].check()) { hi = i; break; } }
+      achCycleState[a.group] = hi;
+    });
+
     grid.innerHTML = [...unlocked, ...locked].map(a => {
+      if (a.tiers) {
+        const idx    = achCycleState[a.group] ?? 0;
+        const tier   = a.tiers[idx];
+        const earned = tier.check();
+        const bg  = earned ? (tier.tierBg  || a.bg)  : 'var(--surface-2)';
+        const bdr = earned ? (tier.tierBdr || a.bdr) : 'var(--border)';
+        const fg  = earned ? (tier.tierFg  || a.fg)  : 'var(--text-dimmer)';
+        const pips = a.tiers.map((t, i) => {
+          const te = t.check();
+          const tf = t.tierFg || a.fg;
+          return `<span class="ach-tier-pip${i===idx?' pip-current':''}"${te?` style="background:${tf};border-color:${tf}"`:''} title="${t.label}"></span>`;
+        }).join('');
+        return `<div class="ach-item ach-tiered${earned?'':' ach-locked'}" data-group="${a.group}">
+          <div class="ach-icon" style="background:${bg};border:1px solid ${bdr}">
+            <i class="ti ${a.icon}" style="color:${fg}" aria-hidden="true"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="ach-name">${tier.label}</div>
+            <div class="ach-desc">${tier.desc}</div>
+            <div class="ach-tier-nav">
+              <div class="ach-tier-pips">${pips}</div>
+              <div class="ach-tier-counter">${idx+1} / ${a.tiers.length}</div>
+            </div>
+          </div>
+        </div>`;
+      }
       const earned = a.check();
-      return `<div class="ach-item${earned ? '' : ' ach-locked'}">
+      return `<div class="ach-item${earned?'':' ach-locked'}">
         <div class="ach-icon" style="background:${earned?a.bg:'var(--surface-2)'};border:1px solid ${earned?a.bdr:'var(--border)'}">
           <i class="ti ${a.icon}" style="color:${earned?a.fg:'var(--text-dimmer)'}" aria-hidden="true"></i>
         </div>
@@ -718,6 +774,20 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         </div>
       </div>`;
     }).join('');
+
+    if (!grid._achListenerSet) {
+      grid._achListenerSet = true;
+      grid.addEventListener('click', e => {
+        const item = e.target.closest('[data-group]');
+        if (!item) return;
+        const group = item.dataset.group;
+        const def   = ACH_DEFS.find(a => a.tiers && a.group === group);
+        if (!def) return;
+        achCycleState[group] = ((achCycleState[group] ?? 0) + 1) % def.tiers.length;
+        renderAchievements();
+      });
+    }
+
     section.style.display = '';
   }
 
