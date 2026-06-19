@@ -660,11 +660,16 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       { label:'Four-Plate Bench',  desc:'405 lb bench press', check:()=>currentProfileState.benchMax>=405 },
     ]},
     { group:'Squat', icon:'ti-star', bg:'rgba(214,255,61,0.08)', bdr:'rgba(214,255,61,0.15)', fg:'var(--squat)', tiers:[
+      { label:'One-Plate Squat',   desc:'135 lb squat', check:()=>currentProfileState.squatMax>=135 },
+      { label:'Two-Plate Squat',   desc:'225 lb squat', check:()=>currentProfileState.squatMax>=225 },
       { label:'Three-Plate Squat', desc:'315 lb squat', check:()=>currentProfileState.squatMax>=315 },
       { label:'Four-Plate Squat',  desc:'405 lb squat', check:()=>currentProfileState.squatMax>=405 },
       { label:'Five-Plate Squat',  desc:'495 lb squat', check:()=>currentProfileState.squatMax>=495 },
     ]},
     { group:'Deadlift', icon:'ti-bolt', bg:'rgba(255,138,76,0.08)', bdr:'rgba(255,138,76,0.15)', fg:'var(--dead)', tiers:[
+      { label:'One-Plate Pull',   desc:'135 lb deadlift', check:()=>currentProfileState.deadMax>=135 },
+      { label:'Two-Plate Pull',   desc:'225 lb deadlift', check:()=>currentProfileState.deadMax>=225 },
+      { label:'Three-Plate Pull', desc:'315 lb deadlift', check:()=>currentProfileState.deadMax>=315 },
       { label:'4-Plate Pull',    desc:'405 lb deadlift', check:()=>currentProfileState.deadMax>=405 },
       { label:'Five-Plate Pull', desc:'495 lb deadlift', check:()=>currentProfileState.deadMax>=495 },
       { label:'Six-Plate Pull',  desc:'585 lb deadlift', check:()=>currentProfileState.deadMax>=585 },
@@ -698,8 +703,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     { group:'Bench / BW', icon:'ti-barbell', bg:'rgba(91,214,230,0.08)', bdr:'rgba(91,214,230,0.15)', fg:'var(--bench)', tiers:[
       { label:'Bodyweight Bench', desc:'Bench 1× your bodyweight', check:()=>currentProfileState.bodyweight>0&&currentProfileState.benchMax>=currentProfileState.bodyweight },
       { label:'1.5× Bench',      desc:'Bench 1.5× bodyweight',    check:()=>currentProfileState.bodyweight>0&&currentProfileState.benchMax>=currentProfileState.bodyweight*1.5 },
+      { label:'2× Bench',        desc:'Bench 2× bodyweight',      check:()=>currentProfileState.bodyweight>0&&currentProfileState.benchMax>=currentProfileState.bodyweight*2 },
     ]},
     { group:'Deadlift / BW', icon:'ti-barbell', bg:'rgba(255,138,76,0.08)', bdr:'rgba(255,138,76,0.15)', fg:'var(--dead)', tiers:[
+      { label:'Bodyweight Deadlift', desc:'Deadlift 1× your bodyweight', check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight },
+      { label:'1.5× Deadlift',      desc:'Deadlift 1.5× bodyweight',    check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*1.5 },
       { label:'2× Deadlift',   desc:'Deadlift 2× bodyweight',   check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*2 },
       { label:'2.5× Deadlift', desc:'Deadlift 2.5× bodyweight', check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*2.5 },
       { label:'3× Deadlift',   desc:'Deadlift 3× bodyweight',   check:()=>currentProfileState.bodyweight>0&&currentProfileState.deadMax>=currentProfileState.bodyweight*3 },
