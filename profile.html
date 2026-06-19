@@ -320,12 +320,14 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="data.js"></script>
 <script>
   firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db   = firebase.firestore();
+  const auth    = firebase.auth();
+  const db      = firebase.firestore();
+  const storage = firebase.storage();
 
   /* ---- Edit stats toggle ---- */
   document.getElementById('editStatsToggle').addEventListener('click', () => {
@@ -622,6 +624,23 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   let updateListenerAdded  = false;
   let currentUser          = null;
 
+  /* ---- Banner display ---- */
+  function applyBannerUrl(url) {
+    const bannerImg  = document.getElementById('bannerImg');
+    const bannerCta  = document.getElementById('bannerCta');
+    const bannerEdit = document.getElementById('bannerEdit');
+    if (!bannerImg) return;
+    if (url) {
+      bannerImg.src = url; bannerImg.style.display = 'block';
+      if (bannerCta)  bannerCta.style.display  = 'none';
+      if (bannerEdit) bannerEdit.style.display  = 'flex';
+    } else {
+      bannerImg.src = ''; bannerImg.style.display = 'none';
+      if (bannerCta)  bannerCta.style.display  = '';
+      if (bannerEdit) bannerEdit.style.display  = 'none';
+    }
+  }
+
   /* ---- Achievements ---- */
   const ACH_DEFS = [
     { label:'Big-3 Unlocked',    desc:'Logged all 3 lifts',         icon:'ti-barbell',  bg:'rgba(91,214,230,0.08)',   bdr:'rgba(91,214,230,0.15)',   fg:'var(--bench)',  check:()=>currentProfileState.squatMax>0&&currentProfileState.benchMax>0&&currentProfileState.deadMax>0 },
@@ -664,40 +683,41 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   /* ---- Cover Banner ---- */
   let bannerInited = false;
   function initBanner(userId) {
-    const bannerImg   = document.getElementById('bannerImg');
-    const bannerCta   = document.getElementById('bannerCta');
-    const bannerEdit  = document.getElementById('bannerEdit');
-    const bannerInput = document.getElementById('bannerInput');
-    if (!bannerImg) return;
-
-    function applyBanner(src) {
-      bannerImg.src = src; bannerImg.style.display = 'block';
-      if (bannerCta)  bannerCta.style.display  = 'none';
-      if (bannerEdit) bannerEdit.style.display  = 'flex';
-    }
-    function clearBanner() {
-      bannerImg.src = ''; bannerImg.style.display = 'none';
-      if (bannerCta)  bannerCta.style.display  = '';
-      if (bannerEdit) bannerEdit.style.display  = 'none';
-    }
-
-    const saved = localStorage.getItem('ig_banner_' + userId);
-    if (saved) applyBanner(saved); else clearBanner();
-
     if (bannerInited) return;
     bannerInited = true;
 
-    if (bannerInput) {
-      bannerInput.addEventListener('change', e => {
-        const file = e.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-          localStorage.setItem('ig_banner_' + userId, ev.target.result);
-          applyBanner(ev.target.result);
-        };
-        reader.readAsDataURL(file);
-      });
+    const bannerInput  = document.getElementById('bannerInput');
+    const bannerEdit   = document.getElementById('bannerEdit');
+    const settingsRef  = db.collection('users').doc(userId).collection('settings').doc('main');
+
+    function doUpload(file) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('Please choose a photo under 8 MB.'); return;
+      }
+      const editBtn  = document.getElementById('bannerEdit');
+      const ctaSpan  = document.querySelector('#bannerCta span');
+      if (editBtn) { editBtn.disabled = true; editBtn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Uploading…'; }
+      if (ctaSpan) ctaSpan.textContent = 'Uploading…';
+
+      const ref = storage.ref('banners/' + userId + '/cover');
+      ref.put(file)
+        .then(() => ref.getDownloadURL())
+        .then(url => settingsRef.set({ bannerUrl: url }, { merge: true }))
+        .then(() => {
+          if (editBtn) { editBtn.disabled = false; editBtn.innerHTML = '<i class="ti ti-photo" aria-hidden="true"></i> Change photo'; }
+          if (ctaSpan) ctaSpan.textContent = 'Add cover photo';
+        })
+        .catch(err => {
+          if (editBtn) { editBtn.disabled = false; editBtn.innerHTML = '<i class="ti ti-photo" aria-hidden="true"></i> Change photo'; }
+          if (ctaSpan) ctaSpan.textContent = 'Add cover photo';
+          alert('Upload failed: ' + err.message);
+        });
     }
+
+    if (bannerInput) bannerInput.addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return;
+      doUpload(file);
+    });
     if (bannerEdit) bannerEdit.addEventListener('click', () => bannerInput && bannerInput.click());
   }
 
@@ -725,6 +745,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         currentProfileState = { squatMax:squatMax||0, benchMax:benchMax||0, deadMax:deadMax||0, bodyweight:bodyweight||185, height:height||'' };
         applyColors(d);
         renderHero(user, d);
+        applyBannerUrl(d.bannerUrl || null);
         renderAll();
       });
 
