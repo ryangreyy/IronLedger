@@ -133,6 +133,14 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 }
 .profile-banner-edit:hover{ color:var(--text); border-color:var(--accent); }
 .profile-banner-edit i{ font-size:13px; }
+.profile-banner-progress{
+  position:absolute; bottom:0; left:0; right:0; height:3px;
+  background:rgba(255,255,255,0.1); display:none; z-index:3;
+}
+.profile-banner-progress-fill{
+  height:100%; width:0%; background:var(--accent);
+  transition:width .2s ease; border-radius:0 2px 2px 0;
+}
 
 /* ---- Achievements ---- */
 .ach-section{ margin-top:20px; }
@@ -220,6 +228,9 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
           <button class="profile-banner-edit" id="bannerEdit">
             <i class="ti ti-photo" aria-hidden="true"></i> Change photo
           </button>
+          <div class="profile-banner-progress" id="bannerProgress">
+            <div class="profile-banner-progress-fill" id="bannerProgressFill"></div>
+          </div>
         </div>
         <div class="profile-hero">
           <div class="profile-hero-left">
@@ -810,47 +821,77 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const settingsRef  = db.collection('users').doc(userId).collection('settings').doc('main');
 
     function doUpload(file) {
-      if (file.size > 8 * 1024 * 1024) {
-        alert('Please choose a photo under 8 MB.'); return;
+      if (!file) return;
+      if (file.size > 12 * 1024 * 1024) {
+        alert('Please choose a photo under 12 MB.'); return;
       }
-      const editBtn = document.getElementById('bannerEdit');
-      const ctaSpan = document.querySelector('#bannerCta span');
+
+      const editBtn      = document.getElementById('bannerEdit');
+      const ctaLabel     = document.getElementById('bannerCta');
+      const ctaSpan      = document.querySelector('#bannerCta span');
+      const progressBar  = document.getElementById('bannerProgress');
+      const progressFill = document.getElementById('bannerProgressFill');
+
+      function setLoading(pct) {
+        if (editBtn)      { editBtn.disabled = true; editBtn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Uploading…'; }
+        if (ctaSpan)      ctaSpan.textContent = pct != null ? pct + '%' : 'Uploading…';
+        if (ctaLabel)     ctaLabel.style.pointerEvents = 'none';
+        if (progressBar)  progressBar.style.display = 'block';
+        if (progressFill && pct != null) progressFill.style.width = pct + '%';
+      }
 
       function restoreButtons() {
-        if (editBtn) { editBtn.disabled = false; editBtn.innerHTML = '<i class="ti ti-photo" aria-hidden="true"></i> Change photo'; }
-        if (ctaSpan) ctaSpan.textContent = 'Add cover photo';
+        if (editBtn)      { editBtn.disabled = false; editBtn.innerHTML = '<i class="ti ti-photo" aria-hidden="true"></i> Change photo'; }
+        if (ctaSpan)      ctaSpan.textContent = 'Add cover photo';
+        if (ctaLabel)     ctaLabel.style.pointerEvents = '';
+        if (progressBar)  progressBar.style.display = 'none';
+        if (progressFill) progressFill.style.width = '0%';
+        if (bannerInput)  bannerInput.value = '';
       }
 
-      if (editBtn) { editBtn.disabled = true; editBtn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Uploading…'; }
-      if (ctaSpan) ctaSpan.textContent = 'Uploading…';
+      setLoading(0);
 
       try {
-        const ref = storage.ref('banners/' + userId + '/cover');
-        ref.put(file)
-          .then(() => ref.getDownloadURL())
-          .then(url => settingsRef.set({ bannerUrl: url }, { merge: true }))
-          .then(() => restoreButtons())
-          .catch(err => {
+        const ref  = storage.ref('banners/' + userId + '/cover');
+        const task = ref.put(file);
+
+        task.on('state_changed',
+          snapshot => {
+            const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            setLoading(pct);
+          },
+          err => {
             restoreButtons();
             console.error('Banner upload error:', err);
             if (err.code === 'storage/unauthorized') {
-              alert('Upload blocked: your Firebase Storage security rules need to allow writes.\n\nIn the Firebase console go to Storage → Rules and allow authenticated users to write to banners/{userId}.');
-            } else if (err.code === 'storage/no-default-bucket') {
-              alert('Firebase Storage is not set up yet.\n\nGo to your Firebase console, open Storage, and click "Get started" to create a bucket.');
+              alert('Upload blocked by Firebase Storage rules.\n\nIn your Firebase console go to Storage → Rules and allow authenticated users to write to banners/{userId}.');
+            } else if (err.code === 'storage/canceled') {
+              /* user cancelled — silent */
             } else {
               alert('Upload failed: ' + (err.message || err.code || 'Unknown error'));
             }
-          });
+          },
+          () => {
+            ref.getDownloadURL().then(url => {
+              return settingsRef.set({ bannerUrl: url }, { merge: true });
+            }).then(() => {
+              restoreButtons();
+            }).catch(err => {
+              restoreButtons();
+              console.error('Banner save error:', err);
+              alert('Photo uploaded but failed to save: ' + (err.message || err.code));
+            });
+          }
+        );
       } catch (err) {
         restoreButtons();
         console.error('Storage init error:', err);
-        alert('Storage error: ' + err.message + '\n\nMake sure Firebase Storage is enabled in your Firebase project.');
+        alert('Storage error: ' + err.message);
       }
     }
 
     if (bannerInput) bannerInput.addEventListener('change', e => {
-      const file = e.target.files[0]; if (!file) return;
-      doUpload(file);
+      doUpload(e.target.files[0]);
     });
     if (bannerEdit) bannerEdit.addEventListener('click', () => bannerInput && bannerInput.click());
   }
