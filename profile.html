@@ -180,6 +180,30 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 .banner-repo-btn.cancel{ background:rgba(0,0,0,0.5); color:#ccc; }
 .banner-repo-btn:hover{ opacity:.85; }
 
+/* ---- Avatar photo ---- */
+.profile-avatar-wrap{ position:relative; flex-shrink:0; }
+.profile-avatar-img{ position:absolute; display:none; object-fit:fill; }
+.avatar-overlay{
+  position:absolute; inset:0; border-radius:50%;
+  background:rgba(0,0,0,0.35); cursor:grab; z-index:2; display:none;
+}
+.avatar-overlay:active{ cursor:grabbing; }
+.avatar-repo-toolbar{
+  position:absolute; top:calc(100% + 8px); left:50%;
+  transform:translateX(-50%); display:none;
+  gap:4px; white-space:nowrap; z-index:10;
+}
+.avatar-tool-btn{
+  font-family:var(--mono); font-size:10px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+  border-radius:5px; padding:4px 9px; cursor:pointer;
+  border:1px solid rgba(255,255,255,0.25);
+  background:rgba(0,0,0,0.75); color:#fff; transition:opacity .15s;
+}
+.avatar-tool-btn.save{ background:var(--accent); border-color:var(--accent); }
+.avatar-tool-btn.cancel{ color:#aaa; }
+.avatar-tool-btn:hover{ opacity:.8; }
+
 /* Edit Profile section */
 .edit-profile-section{ margin-top:16px; }
 .edit-profile-btn{
@@ -311,7 +335,20 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         </div>
         <div class="profile-hero">
           <div class="profile-hero-left">
-            <div id="profileAvatar" class="profile-avatar"></div>
+            <div class="profile-avatar-wrap">
+              <div id="profileAvatar" class="profile-avatar">
+                <img id="avatarImg" class="profile-avatar-img" alt="">
+                <span id="avatarContent"></span>
+                <div class="avatar-overlay" id="avatarRepoOverlay"></div>
+              </div>
+              <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+              <div class="avatar-repo-toolbar" id="avatarRepoToolbar">
+                <button class="avatar-tool-btn" id="avatarZoomOut" type="button">−</button>
+                <button class="avatar-tool-btn" id="avatarZoomIn" type="button">+</button>
+                <button class="avatar-tool-btn cancel" id="avatarRepoCancel" type="button">Cancel</button>
+                <button class="avatar-tool-btn save" id="avatarRepoSave" type="button">Save</button>
+              </div>
+            </div>
             <div>
               <div class="eyebrow" style="margin-bottom:8px;">Athlete Profile</div>
               <div id="profileName" class="profile-name">—</div>
@@ -346,6 +383,17 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
               </button>
               <button class="ep-action-btn danger" id="epRemoveBanner" style="display:none;">
                 <i class="ti ti-trash" aria-hidden="true"></i>Remove banner
+              </button>
+            </div>
+            <div class="ep-row" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+              <button class="ep-action-btn" id="epChangeAvatar">
+                <i class="ti ti-user-circle" aria-hidden="true"></i>Change avatar photo
+              </button>
+              <button class="ep-action-btn" id="epRepositionAvatar" style="display:none;">
+                <i class="ti ti-arrows-move" aria-hidden="true"></i>Reposition avatar
+              </button>
+              <button class="ep-action-btn danger" id="epRemoveAvatar" style="display:none;">
+                <i class="ti ti-trash" aria-hidden="true"></i>Remove avatar photo
               </button>
             </div>
           </div>
@@ -532,23 +580,215 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   /* ---- Avatar ---- */
   const EMBLEMS = { gladius:'ti-sword',scutum:'ti-shield',summit:'ti-mountain',inferno:'ti-flame',surge:'ti-bolt',iron:'ti-barbell',duellum:'ti-swords',target:'ti-target',anchor:'ti-anchor',skull:'ti-skull',securis:'ti-axe',tridens:'ti-spade',serpens:'ti-dna-2',taurus:'ti-chess-rook',corona:'ti-crown',dagger:'ti-tools',storm:'ti-tornado',rex:'ti-chess-king' };
   function renderAvatar(user, settings) {
-    const el = document.getElementById('profileAvatar');
+    const el      = document.getElementById('profileAvatar');
+    const content = document.getElementById('avatarContent');
+    const img     = document.getElementById('avatarImg');
     if (!el) return;
-    const avatarId  = settings?.avatarId;
     const ringColor = settings?.avatarRingColor || '#d4af37';
     const bgColor   = settings?.avatarBgColor   || '#8b1c1c';
     const iconColor = settings?.avatarIconColor  || '#fff';
-    const emb = avatarId && EMBLEMS[avatarId];
-    if (emb) {
-      el.style.cssText = `background:${bgColor};box-shadow:inset 0 0 0 3px ${ringColor};`;
-      el.innerHTML = `<i class="ti ${emb}" style="color:${iconColor}" aria-hidden="true"></i>`;
-    } else if (user.photoURL) {
-      el.style.cssText = 'box-shadow:inset 0 0 0 3px #d4af37;';
-      el.innerHTML = `<img src="${user.photoURL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    } else {
-      el.style.cssText = `background:${bgColor};box-shadow:inset 0 0 0 3px ${ringColor};`;
-      el.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+    el.style.boxShadow = `inset 0 0 0 3px ${ringColor}`;
+    if (settings?.avatarPhotoUrl) {
+      el.style.background = 'transparent';
+      if (content) content.style.display = 'none';
+      return; /* photo applied via applyAvatarPhoto from settings snapshot */
     }
+    if (img) { img.src = ''; img.style.display = 'none'; }
+    el.style.background = bgColor;
+    if (content) {
+      content.style.display = '';
+      const avatarId = settings?.avatarId;
+      const emb = avatarId && EMBLEMS[avatarId];
+      if (emb) {
+        content.innerHTML = `<i class="ti ${emb}" style="color:${iconColor}" aria-hidden="true"></i>`;
+      } else if (user?.photoURL) {
+        content.innerHTML = `<img src="${user.photoURL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else {
+        content.innerHTML = '';
+        content.textContent = (user?.displayName || user?.email || '?').charAt(0).toUpperCase();
+      }
+    }
+  }
+
+  /* ---- Avatar photo transform (same math as banner) ---- */
+  function setAvatarTransform(img, zoom, posX, posY) {
+    const container = document.getElementById('profileAvatar');
+    if (!container || !img || !img.naturalWidth) return;
+    const cW = container.offsetWidth, cH = container.offsetHeight;
+    const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+    const dW = img.naturalWidth  * base * zoom;
+    const dH = img.naturalHeight * base * zoom;
+    img.style.objectFit = 'fill';
+    img.style.transform = '';
+    img.style.width  = dW + 'px';
+    img.style.height = dH + 'px';
+    img.style.left   = -((dW - cW) * posX / 100) + 'px';
+    img.style.top    = -((dH - cH) * posY / 100) + 'px';
+  }
+
+  function applyAvatarPhoto(url, zoom, posX, posY) {
+    const img       = document.getElementById('avatarImg');
+    const content   = document.getElementById('avatarContent');
+    const epRepos   = document.getElementById('epRepositionAvatar');
+    const epRemove  = document.getElementById('epRemoveAvatar');
+    if (!img) return;
+    if (url) {
+      img.style.display = 'block';
+      if (content) content.style.display = 'none';
+      if (epRepos)  epRepos.style.display  = '';
+      if (epRemove) epRemove.style.display = '';
+      const apply = () => setAvatarTransform(img, zoom || 1, posX != null ? posX : 50, posY != null ? posY : 50);
+      if (img.src !== url) { img.onload = apply; img.src = url; } else apply();
+    } else {
+      img.src = ''; img.style.display = 'none';
+      img.style.width = ''; img.style.height = ''; img.style.left = ''; img.style.top = '';
+      if (content) content.style.display = '';
+      if (epRepos)  epRepos.style.display  = 'none';
+      if (epRemove) epRemove.style.display = 'none';
+    }
+  }
+
+  /* ---- Avatar init ---- */
+  let avatarInited = false;
+  function initAvatar(userId) {
+    if (avatarInited) return;
+    avatarInited = true;
+
+    const avatarInput = document.getElementById('avatarInput');
+    const settingsRef = db.collection('users').doc(userId).collection('settings').doc('main');
+
+    let currentZoom = 1, currentPosX = 50, currentPosY = 50;
+    let liveZoom    = 1, livePosX   = 50, livePosY    = 50;
+    let dragging = false, dragStartX = 0, dragStartY = 0, basePosX = 50, basePosY = 50;
+
+    function getImg() { return document.getElementById('avatarImg'); }
+
+    function applyLive() {
+      const img = getImg();
+      if (img) setAvatarTransform(img, liveZoom, livePosX, livePosY);
+    }
+
+    function dragToPct(dx, dy) {
+      const c = document.getElementById('profileAvatar'), img = getImg();
+      if (!c || !img || !img.naturalWidth) return { dpx: 0, dpy: 0 };
+      const base = Math.max(c.offsetWidth / img.naturalWidth, c.offsetHeight / img.naturalHeight);
+      const exW = img.naturalWidth  * base * liveZoom - c.offsetWidth;
+      const exH = img.naturalHeight * base * liveZoom - c.offsetHeight;
+      return { dpx: exW > 0 ? -dx * 100 / exW : 0, dpy: exH > 0 ? -dy * 100 / exH : 0 };
+    }
+
+    function compressAvatar(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Could not read file'));
+        reader.onload = ev => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Could not decode image'));
+          img.onload = () => {
+            const MAX = 400, ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+            const w = Math.round(img.width * ratio), h = Math.round(img.height * ratio);
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.92));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function doUpload(file) {
+      if (!file) return;
+      try {
+        const dataUrl = await compressAvatar(file);
+        if (dataUrl.length > 900000) { alert('Image too large. Please choose a different photo.'); return; }
+        await settingsRef.set({ avatarPhotoUrl: dataUrl }, { merge: true });
+      } catch (err) { alert('Failed to save photo: ' + (err.message || 'Unknown error')); }
+    }
+
+    function enterReposMode() {
+      liveZoom = currentZoom; livePosX = currentPosX; livePosY = currentPosY;
+      applyLive();
+      const overlay = document.getElementById('avatarRepoOverlay');
+      const toolbar = document.getElementById('avatarRepoToolbar');
+      if (overlay) overlay.style.display = 'block';
+      if (toolbar) toolbar.style.display = 'flex';
+    }
+
+    function exitReposMode() {
+      dragging = false;
+      const overlay = document.getElementById('avatarRepoOverlay');
+      const toolbar = document.getElementById('avatarRepoToolbar');
+      if (overlay) overlay.style.display = 'none';
+      if (toolbar) toolbar.style.display = 'none';
+    }
+
+    const overlay = document.getElementById('avatarRepoOverlay');
+    if (overlay) {
+      overlay.addEventListener('mousedown', e => {
+        e.preventDefault(); dragging = true;
+        dragStartX = e.clientX; dragStartY = e.clientY;
+        basePosX = livePosX; basePosY = livePosY;
+      });
+      overlay.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const { dpx, dpy } = dragToPct(e.clientX - dragStartX, e.clientY - dragStartY);
+        livePosX = Math.max(0, Math.min(100, basePosX + dpx));
+        livePosY = Math.max(0, Math.min(100, basePosY + dpy));
+        applyLive();
+      });
+      overlay.addEventListener('mouseup',    () => { dragging = false; });
+      overlay.addEventListener('mouseleave', () => { dragging = false; });
+      overlay.addEventListener('touchstart', e => {
+        e.preventDefault(); dragging = true;
+        dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY;
+        basePosX = livePosX; basePosY = livePosY;
+      }, { passive: false });
+      overlay.addEventListener('touchmove', e => {
+        if (!dragging) return; e.preventDefault();
+        const { dpx, dpy } = dragToPct(e.touches[0].clientX - dragStartX, e.touches[0].clientY - dragStartY);
+        livePosX = Math.max(0, Math.min(100, basePosX + dpx));
+        livePosY = Math.max(0, Math.min(100, basePosY + dpy));
+        applyLive();
+      }, { passive: false });
+      overlay.addEventListener('touchend', () => { dragging = false; });
+    }
+
+    const zoomIn  = document.getElementById('avatarZoomIn');
+    const zoomOut = document.getElementById('avatarZoomOut');
+    if (zoomIn)  zoomIn.addEventListener('click',  () => { liveZoom = Math.min(4, +(liveZoom + 0.25).toFixed(2)); applyLive(); });
+    if (zoomOut) zoomOut.addEventListener('click', () => { liveZoom = Math.max(1, +(liveZoom - 0.25).toFixed(2)); applyLive(); });
+
+    const epChangeAv  = document.getElementById('epChangeAvatar');
+    const epReposAv   = document.getElementById('epRepositionAvatar');
+    const epRemoveAv  = document.getElementById('epRemoveAvatar');
+    const repoSave    = document.getElementById('avatarRepoSave');
+    const repoCancel  = document.getElementById('avatarRepoCancel');
+
+    if (epChangeAv) epChangeAv.addEventListener('click', () => avatarInput && avatarInput.click());
+    if (epReposAv)  epReposAv.addEventListener('click',  () => enterReposMode());
+    if (epRemoveAv) epRemoveAv.addEventListener('click', async () => {
+      if (!confirm('Remove avatar photo?')) return;
+      try {
+        await settingsRef.set({ avatarPhotoUrl: null, avatarZoom: 1, avatarPosX: 50, avatarPosY: 50 }, { merge: true });
+      } catch (err) { alert('Failed: ' + (err.message || 'Unknown error')); }
+    });
+    if (repoSave) repoSave.addEventListener('click', async () => {
+      try {
+        await settingsRef.set({ avatarZoom: liveZoom, avatarPosX: livePosX, avatarPosY: livePosY }, { merge: true });
+        currentZoom = liveZoom; currentPosX = livePosX; currentPosY = livePosY;
+        exitReposMode();
+      } catch (err) { alert('Failed: ' + (err.message || 'Unknown error')); }
+    });
+    if (repoCancel) repoCancel.addEventListener('click', () => {
+      liveZoom = currentZoom; livePosX = currentPosX; livePosY = currentPosY;
+      applyLive(); exitReposMode();
+    });
+
+    if (avatarInput) avatarInput.addEventListener('change', e => { doUpload(e.target.files[0]); });
+
+    initAvatar.setCurrentState = (z, px, py) => { currentZoom = z; currentPosX = px; currentPosY = py; };
   }
 
   /* ---- Hero card ---- */
@@ -1163,6 +1403,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 
       renderHero(user, null);
       initBanner(user.uid);
+      initAvatar(user.uid);
 
       const settingsRef  = db.collection('users').doc(user.uid).collection('settings').doc('main');
       const sessionsRef  = db.collection('users').doc(user.uid).collection('sessions');
@@ -1181,6 +1422,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         const bPosY = d.bannerPosY != null ? d.bannerPosY : 50;
         applyBannerUrl(d.bannerUrl || null, bZoom, bPosX, bPosY);
         if (initBanner.setCurrentState) initBanner.setCurrentState(bZoom, bPosX, bPosY);
+        const aZ  = d.avatarZoom  != null ? d.avatarZoom  : 1;
+        const aPX = d.avatarPosX  != null ? d.avatarPosX  : 50;
+        const aPY = d.avatarPosY  != null ? d.avatarPosY  : 50;
+        applyAvatarPhoto(d.avatarPhotoUrl || null, aZ, aPX, aPY);
+        if (initAvatar.setCurrentState) initAvatar.setCurrentState(aZ, aPX, aPY);
         renderAll();
       });
 
