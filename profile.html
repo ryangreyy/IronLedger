@@ -855,23 +855,36 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         const ref  = storage.ref('banners/' + userId + '/cover');
         const task = ref.put(file);
 
+        let started = false;
+        const timeout = setTimeout(() => {
+          if (!started) {
+            task.cancel();
+            restoreButtons();
+            alert('Upload blocked — your Firebase Storage rules are not allowing writes.\n\nFix:\n1. Go to Firebase Console → Storage → Rules\n2. Replace the rules with:\n\nrules_version = \'2\';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /{allPaths=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}\n\n3. Click Publish.');
+          }
+        }, 15000);
+
         task.on('state_changed',
           snapshot => {
+            started = true;
+            clearTimeout(timeout);
             const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
             setLoading(pct);
           },
           err => {
+            clearTimeout(timeout);
             restoreButtons();
             console.error('Banner upload error:', err);
             if (err.code === 'storage/unauthorized') {
-              alert('Upload blocked by Firebase Storage rules.\n\nIn your Firebase console go to Storage → Rules and allow authenticated users to write to banners/{userId}.');
+              alert('Upload blocked by Firebase Storage rules.\n\nFix:\n1. Go to Firebase Console → Storage → Rules\n2. Replace the rules with:\n\nrules_version = \'2\';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /{allPaths=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}\n\n3. Click Publish.');
             } else if (err.code === 'storage/canceled') {
-              /* user cancelled — silent */
+              /* timeout-cancelled — already alerted */
             } else {
               alert('Upload failed: ' + (err.message || err.code || 'Unknown error'));
             }
           },
           () => {
+            clearTimeout(timeout);
             ref.getDownloadURL().then(url => {
               return settingsRef.set({ bannerUrl: url }, { merge: true });
             }).then(() => {
