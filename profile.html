@@ -744,29 +744,41 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   let currentUser          = null;
 
   /* ---- Banner display ---- */
-  function applyBannerUrl(url, zoom, txPct, tyPct) {
+  /* posX/posY: 0–100 where 50=centered. Sets explicit px size/position on img. */
+  function setBannerTransform(img, zoom, posX, posY) {
+    const banner = document.getElementById('profileBanner');
+    if (!banner || !img || !img.naturalWidth) return;
+    const cW = banner.offsetWidth, cH = banner.offsetHeight;
+    const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+    const dW = img.naturalWidth  * base * zoom;
+    const dH = img.naturalHeight * base * zoom;
+    const exW = dW - cW, exH = dH - cH;
+    img.style.objectFit = 'fill';
+    img.style.transform = '';
+    img.style.objectPosition = '';
+    img.style.width  = dW + 'px';
+    img.style.height = dH + 'px';
+    img.style.left   = -(exW * posX / 100) + 'px';
+    img.style.top    = -(exH * posY / 100) + 'px';
+  }
+
+  function applyBannerUrl(url, zoom, posX, posY) {
     const bannerImg = document.getElementById('bannerImg');
     const bannerCta = document.getElementById('bannerCta');
     const epRepos   = document.getElementById('epReposition');
     const epRemove  = document.getElementById('epRemoveBanner');
     if (!bannerImg) return;
     if (url) {
-      bannerImg.src = url;
       bannerImg.style.display = 'block';
-      bannerImg.style.objectPosition = '';
-      const banner = document.getElementById('profileBanner');
-      const bW = banner ? banner.offsetWidth  : 1;
-      const bH = banner ? banner.offsetHeight : 1;
-      const tx = ((txPct || 0) / 100) * bW;
-      const ty = ((tyPct || 0) / 100) * bH;
-      bannerImg.style.transform = `translate(${tx}px,${ty}px) scale(${zoom || 1})`;
-      bannerImg.style.transformOrigin = 'center center';
       if (bannerCta) bannerCta.style.display = 'none';
       if (epRepos)   epRepos.style.display   = '';
       if (epRemove)  epRemove.style.display  = '';
+      const apply = () => setBannerTransform(bannerImg, zoom || 1, posX != null ? posX : 50, posY != null ? posY : 50);
+      if (bannerImg.src !== url) { bannerImg.onload = apply; bannerImg.src = url; }
+      else apply();
     } else {
       bannerImg.src = ''; bannerImg.style.display = 'none';
-      bannerImg.style.transform = '';
+      bannerImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;';
       if (bannerCta) bannerCta.style.display = '';
       if (epRepos)   epRepos.style.display   = 'none';
       if (epRemove)  epRemove.style.display  = 'none';
@@ -931,38 +943,33 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const bannerInput = document.getElementById('bannerInput');
     const settingsRef = db.collection('users').doc(userId).collection('settings').doc('main');
 
-    /* Saved state (loaded from Firestore) */
-    let currentZoom  = 1, currentTxPct = 0, currentTyPct = 0;
-    /* Live state during reposition mode (screen px) */
-    let liveZoom = 1, liveTx = 0, liveTy = 0;
-    /* Drag tracking */
-    let dragging = false, dragStartX = 0, dragStartY = 0, dragBaseTx = 0, dragBaseTy = 0;
-    /* Pinch tracking */
+    /* posX/posY: 0–100, 50=centered. zoom: 1–4. */
+    let currentZoom = 1, currentPosX = 50, currentPosY = 50;
+    let liveZoom    = 1, livePosX   = 50, livePosY    = 50;
+    let dragging = false, dragStartX = 0, dragStartY = 0, basePosX = 50, basePosY = 50;
     let pinching = false, pinchStartDist = 0, pinchStartZoom = 1;
 
-    function getBannerEl()  { return document.getElementById('profileBanner'); }
     function getBannerImg() { return document.getElementById('bannerImg'); }
 
-    function getMaxPan() {
-      const banner = getBannerEl(), img = getBannerImg();
-      if (!banner || !img || !img.naturalWidth) return { maxTx: 0, maxTy: 0 };
+    /* Re-applies current live state to the img element */
+    function applyLive() {
+      const img = getBannerImg();
+      if (img) setBannerTransform(img, liveZoom, livePosX, livePosY);
+    }
+
+    /* Converts a screen-pixel drag delta to posX/posY delta */
+    function dragToPct(dx, dy) {
+      const banner = document.getElementById('profileBanner');
+      const img    = getBannerImg();
+      if (!banner || !img || !img.naturalWidth) return { dpx: 0, dpy: 0 };
       const cW = banner.offsetWidth, cH = banner.offsetHeight;
       const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+      const exW = img.naturalWidth  * base * liveZoom - cW;
+      const exH = img.naturalHeight * base * liveZoom - cH;
       return {
-        maxTx: Math.max(0, (img.naturalWidth  * base * liveZoom - cW) / 2),
-        maxTy: Math.max(0, (img.naturalHeight * base * liveZoom - cH) / 2)
+        dpx: exW > 0 ? -dx * 100 / exW : 0,
+        dpy: exH > 0 ? -dy * 100 / exH : 0
       };
-    }
-
-    function clampLive() {
-      const { maxTx, maxTy } = getMaxPan();
-      liveTx = Math.max(-maxTx, Math.min(maxTx, liveTx));
-      liveTy = Math.max(-maxTy, Math.min(maxTy, liveTy));
-    }
-
-    function applyLiveTransform() {
-      const img = getBannerImg();
-      if (img) img.style.transform = `translate(${liveTx}px,${liveTy}px) scale(${liveZoom})`;
     }
 
     /* Compress image to JPEG via canvas — uses FileReader for mobile compatibility */
@@ -995,7 +1002,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       const ctaSpan      = document.querySelector('#bannerCta span');
       const progressBar  = document.getElementById('bannerProgress');
       const progressFill = document.getElementById('bannerProgressFill');
-
       function setLoading(pct, label) {
         if (ctaSpan)      ctaSpan.textContent = label || (pct != null ? pct + '%' : 'Processing…');
         if (ctaLabel)     ctaLabel.style.pointerEvents = 'none';
@@ -1012,11 +1018,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       try {
         setLoading(20, 'Processing…');
         const dataUrl = await compressImage(file);
-        if (dataUrl.length > 900000) {
-          restoreButtons();
-          alert('Photo is too large after compression. Please choose a different image.');
-          return;
-        }
+        if (dataUrl.length > 900000) { restoreButtons(); alert('Photo is too large after compression. Please choose a different image.'); return; }
         setLoading(70, 'Saving…');
         await settingsRef.set({ bannerUrl: dataUrl }, { merge: true });
         setLoading(100, 'Done!');
@@ -1030,13 +1032,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 
     /* ---- Reposition mode ---- */
     function enterReposMode() {
-      const banner = getBannerEl();
-      const bW = banner ? banner.offsetWidth  : 1;
-      const bH = banner ? banner.offsetHeight : 1;
-      liveZoom = currentZoom;
-      liveTx   = (currentTxPct / 100) * bW;
-      liveTy   = (currentTyPct / 100) * bH;
-      applyLiveTransform();
+      liveZoom = currentZoom; livePosX = currentPosX; livePosY = currentPosY;
+      applyLive();
       const overlay = document.getElementById('bannerRepoOverlay');
       if (overlay) overlay.style.display = 'flex';
     }
@@ -1052,37 +1049,33 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const CONTROLS = '.banner-reposition-actions,.banner-reposition-zoom';
 
     if (overlay) {
-      /* Mouse */
       overlay.addEventListener('mousedown', e => {
         if (e.target.closest(CONTROLS)) return;
         e.preventDefault();
         dragging = true;
         dragStartX = e.clientX; dragStartY = e.clientY;
-        dragBaseTx = liveTx;   dragBaseTy = liveTy;
+        basePosX = livePosX; basePosY = livePosY;
       });
       overlay.addEventListener('mousemove', e => {
         if (!dragging) return;
-        liveTx = dragBaseTx + (e.clientX - dragStartX);
-        liveTy = dragBaseTy + (e.clientY - dragStartY);
-        clampLive(); applyLiveTransform();
+        const { dpx, dpy } = dragToPct(e.clientX - dragStartX, e.clientY - dragStartY);
+        livePosX = Math.max(0, Math.min(100, basePosX + dpx));
+        livePosY = Math.max(0, Math.min(100, basePosY + dpy));
+        applyLive();
       });
-      overlay.addEventListener('mouseup',   () => { dragging = false; });
-      overlay.addEventListener('mouseleave',() => { dragging = false; });
+      overlay.addEventListener('mouseup',    () => { dragging = false; });
+      overlay.addEventListener('mouseleave', () => { dragging = false; });
 
-      /* Touch — 1 finger = pan, 2 fingers = pinch zoom */
       overlay.addEventListener('touchstart', e => {
         if (e.target.closest(CONTROLS)) return;
         e.preventDefault();
         if (e.touches.length === 1) {
           dragging = true; pinching = false;
           dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY;
-          dragBaseTx = liveTx; dragBaseTy = liveTy;
+          basePosX = livePosX; basePosY = livePosY;
         } else if (e.touches.length === 2) {
           dragging = false; pinching = true;
-          pinchStartDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
+          pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
           pinchStartZoom = liveZoom;
         }
       }, { passive: false });
@@ -1090,16 +1083,14 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       overlay.addEventListener('touchmove', e => {
         e.preventDefault();
         if (dragging && e.touches.length === 1) {
-          liveTx = dragBaseTx + (e.touches[0].clientX - dragStartX);
-          liveTy = dragBaseTy + (e.touches[0].clientY - dragStartY);
-          clampLive(); applyLiveTransform();
+          const { dpx, dpy } = dragToPct(e.touches[0].clientX - dragStartX, e.touches[0].clientY - dragStartY);
+          livePosX = Math.max(0, Math.min(100, basePosX + dpx));
+          livePosY = Math.max(0, Math.min(100, basePosY + dpy));
+          applyLive();
         } else if (pinching && e.touches.length === 2) {
-          const dist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
+          const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
           liveZoom = Math.max(1, Math.min(4, pinchStartZoom * (dist / pinchStartDist)));
-          clampLive(); applyLiveTransform();
+          applyLive();
         }
       }, { passive: false });
 
@@ -1112,8 +1103,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     /* ---- Zoom buttons ---- */
     const zoomIn  = document.getElementById('bannerZoomIn');
     const zoomOut = document.getElementById('bannerZoomOut');
-    if (zoomIn)  zoomIn.addEventListener('click',  () => { liveZoom = Math.min(4, +(liveZoom + 0.25).toFixed(2)); clampLive(); applyLiveTransform(); });
-    if (zoomOut) zoomOut.addEventListener('click', () => { liveZoom = Math.max(1, +(liveZoom - 0.25).toFixed(2)); clampLive(); applyLiveTransform(); });
+    if (zoomIn)  zoomIn.addEventListener('click',  () => { liveZoom = Math.min(4, +(liveZoom + 0.25).toFixed(2)); applyLive(); });
+    if (zoomOut) zoomOut.addEventListener('click', () => { liveZoom = Math.max(1, +(liveZoom - 0.25).toFixed(2)); applyLive(); });
 
     /* ---- Edit Profile toggle ---- */
     const editToggle = document.getElementById('editProfileToggle');
@@ -1137,39 +1128,27 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     if (epRemove) epRemove.addEventListener('click', async () => {
       if (!confirm('Remove banner photo?')) return;
       try {
-        await settingsRef.set({ bannerUrl: null, bannerZoom: 1, bannerTxPct: 0, bannerTyPct: 0 }, { merge: true });
+        await settingsRef.set({ bannerUrl: null, bannerZoom: 1, bannerPosX: 50, bannerPosY: 50 }, { merge: true });
       } catch (err) { alert('Failed to remove banner: ' + (err.message || 'Unknown error')); }
     });
 
     if (repoSave) repoSave.addEventListener('click', async () => {
-      const banner = getBannerEl();
-      const bW = banner ? banner.offsetWidth  : 1;
-      const bH = banner ? banner.offsetHeight : 1;
-      const txPct = (liveTx / bW) * 100;
-      const tyPct = (liveTy / bH) * 100;
       try {
-        await settingsRef.set({ bannerZoom: liveZoom, bannerTxPct: txPct, bannerTyPct: tyPct }, { merge: true });
-        currentZoom = liveZoom; currentTxPct = txPct; currentTyPct = tyPct;
+        await settingsRef.set({ bannerZoom: liveZoom, bannerPosX: livePosX, bannerPosY: livePosY }, { merge: true });
+        currentZoom = liveZoom; currentPosX = livePosX; currentPosY = livePosY;
         exitReposMode();
       } catch (err) { alert('Failed to save position: ' + (err.message || 'Unknown error')); }
     });
 
     if (repoCancel) repoCancel.addEventListener('click', () => {
-      const banner = getBannerEl();
-      const bW = banner ? banner.offsetWidth  : 1;
-      const bH = banner ? banner.offsetHeight : 1;
-      liveZoom = currentZoom;
-      liveTx   = (currentTxPct / 100) * bW;
-      liveTy   = (currentTyPct / 100) * bH;
-      applyLiveTransform();
-      exitReposMode();
+      liveZoom = currentZoom; livePosX = currentPosX; livePosY = currentPosY;
+      applyLive(); exitReposMode();
     });
 
     if (bannerInput) bannerInput.addEventListener('change', e => { doUpload(e.target.files[0]); });
 
-    /* Expose setter so the settings snapshot can sync saved state */
-    initBanner.setCurrentState = (zoom, txPct, tyPct) => {
-      currentZoom = zoom; currentTxPct = txPct; currentTyPct = tyPct;
+    initBanner.setCurrentState = (z, px, py) => {
+      currentZoom = z; currentPosX = px; currentPosY = py;
     };
   }
 
@@ -1197,11 +1176,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         currentProfileState = { squatMax:squatMax||0, benchMax:benchMax||0, deadMax:deadMax||0, bodyweight:bodyweight||185, height:height||'' };
         applyColors(d);
         renderHero(user, d);
-        const bZoom  = d.bannerZoom  != null ? d.bannerZoom  : 1;
-        const bTxPct = d.bannerTxPct != null ? d.bannerTxPct : 0;
-        const bTyPct = d.bannerTyPct != null ? d.bannerTyPct : 0;
-        applyBannerUrl(d.bannerUrl || null, bZoom, bTxPct, bTyPct);
-        if (initBanner.setCurrentState) initBanner.setCurrentState(bZoom, bTxPct, bTyPct);
+        const bZoom = d.bannerZoom != null ? d.bannerZoom : 1;
+        const bPosX = d.bannerPosX != null ? d.bannerPosX : 50;
+        const bPosY = d.bannerPosY != null ? d.bannerPosY : 50;
+        applyBannerUrl(d.bannerUrl || null, bZoom, bPosX, bPosY);
+        if (initBanner.setCurrentState) initBanner.setCurrentState(bZoom, bPosX, bPosY);
         renderAll();
       });
 
