@@ -141,6 +141,62 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   height:100%; width:0%; background:var(--accent);
   transition:width .2s ease; border-radius:0 2px 2px 0;
 }
+/* Reposition drag overlay */
+.banner-reposition-overlay{
+  position:absolute; inset:0; z-index:4; display:none;
+  cursor:grab; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.35);
+}
+.banner-reposition-overlay.active{ display:flex; }
+.banner-reposition-overlay:active{ cursor:grabbing; }
+.banner-reposition-hint{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  color:#fff; font-family:var(--mono); font-size:11px;
+  letter-spacing:.12em; text-transform:uppercase;
+  pointer-events:none; user-select:none;
+}
+.banner-reposition-hint i{ font-size:22px; opacity:.9; }
+.banner-reposition-actions{
+  position:absolute; bottom:10px; right:10px; display:flex; gap:8px;
+  pointer-events:all;
+}
+.banner-repo-btn{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+  border-radius:6px; padding:5px 12px; cursor:pointer;
+  border:1px solid rgba(255,255,255,0.3); transition:all .15s;
+}
+.banner-repo-btn.save{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.banner-repo-btn.cancel{ background:rgba(0,0,0,0.5); color:#ccc; }
+.banner-repo-btn:hover{ opacity:.85; }
+
+/* Edit Profile section */
+.edit-profile-section{ margin-top:16px; }
+.edit-profile-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--mono); font-size:12px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase;
+  color:var(--text-dimmer); background:none;
+  border:1px solid var(--border); border-radius:8px;
+  padding:10px 18px; cursor:pointer; transition:color .18s,border-color .18s;
+}
+.edit-profile-btn:hover{ color:var(--text); border-color:var(--border-strong); }
+.edit-profile-btn i{ font-size:15px; }
+.edit-profile-panel{ display:none; margin-top:14px; }
+.ep-row{
+  display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+}
+.ep-action-btn{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+  color:var(--text-dim); background:rgba(255,255,255,0.04);
+  border:1px solid var(--border); border-radius:8px;
+  padding:9px 16px; cursor:pointer; transition:all .18s;
+}
+.ep-action-btn:hover{ color:var(--text); border-color:var(--border-strong); background:rgba(255,255,255,0.07); }
+.ep-action-btn i{ font-size:14px; }
+.ep-action-btn.danger:hover{ color:#FF5050; border-color:rgba(255,80,80,0.35); }
 
 /* ---- Achievements ---- */
 .ach-section{ margin-top:20px; }
@@ -225,9 +281,16 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
             <span>Add cover photo</span>
           </label>
           <input type="file" id="bannerInput" accept="image/*" style="display:none;">
-          <button class="profile-banner-edit" id="bannerEdit">
-            <i class="ti ti-photo" aria-hidden="true"></i> Change photo
-          </button>
+          <div class="banner-reposition-overlay" id="bannerRepoOverlay">
+            <div class="banner-reposition-hint">
+              <i class="ti ti-arrows-move" aria-hidden="true"></i>
+              <span>Drag to reposition</span>
+            </div>
+            <div class="banner-reposition-actions">
+              <button class="banner-repo-btn cancel" id="bannerRepoCancel">Cancel</button>
+              <button class="banner-repo-btn save" id="bannerRepoSave">Save</button>
+            </div>
+          </div>
           <div class="profile-banner-progress" id="bannerProgress">
             <div class="profile-banner-progress-fill" id="bannerProgressFill"></div>
           </div>
@@ -249,6 +312,28 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
             <div class="profile-big3-label">Big-3 Total</div>
             <div id="heroBig3" class="profile-big3-num">—</div>
             <div id="heroBig3Sub" class="profile-big3-sub"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Edit Profile ── -->
+      <div class="edit-profile-section">
+        <button class="edit-profile-btn" id="editProfileToggle">
+          <i class="ti ti-user-edit" aria-hidden="true"></i>Edit profile
+        </button>
+        <div class="edit-profile-panel" id="editProfilePanel">
+          <div class="card" style="padding:20px 22px;">
+            <div class="ep-row">
+              <button class="ep-action-btn" id="epChangeBanner">
+                <i class="ti ti-photo" aria-hidden="true"></i>Change banner photo
+              </button>
+              <button class="ep-action-btn" id="epReposition" style="display:none;">
+                <i class="ti ti-arrows-move" aria-hidden="true"></i>Reposition banner
+              </button>
+              <button class="ep-action-btn danger" id="epRemoveBanner" style="display:none;">
+                <i class="ti ti-trash" aria-hidden="true"></i>Remove banner
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -645,19 +730,25 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   let currentUser          = null;
 
   /* ---- Banner display ---- */
-  function applyBannerUrl(url) {
-    const bannerImg  = document.getElementById('bannerImg');
-    const bannerCta  = document.getElementById('bannerCta');
-    const bannerEdit = document.getElementById('bannerEdit');
+  function applyBannerUrl(url, posY) {
+    const bannerImg   = document.getElementById('bannerImg');
+    const bannerCta   = document.getElementById('bannerCta');
+    const epRepos     = document.getElementById('epReposition');
+    const epRemove    = document.getElementById('epRemoveBanner');
     if (!bannerImg) return;
     if (url) {
-      bannerImg.src = url; bannerImg.style.display = 'block';
-      if (bannerCta)  bannerCta.style.display  = 'none';
-      if (bannerEdit) bannerEdit.style.display  = 'flex';
+      bannerImg.src = url;
+      bannerImg.style.display = 'block';
+      bannerImg.style.objectPosition = `center ${posY != null ? posY : 50}%`;
+      if (bannerCta)  bannerCta.style.display = 'none';
+      if (epRepos)    epRepos.style.display   = '';
+      if (epRemove)   epRemove.style.display  = '';
     } else {
       bannerImg.src = ''; bannerImg.style.display = 'none';
-      if (bannerCta)  bannerCta.style.display  = '';
-      if (bannerEdit) bannerEdit.style.display  = 'none';
+      bannerImg.style.objectPosition = 'center 50%';
+      if (bannerCta)  bannerCta.style.display = '';
+      if (epRepos)    epRepos.style.display   = 'none';
+      if (epRemove)   epRemove.style.display  = 'none';
     }
   }
 
@@ -817,8 +908,12 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     bannerInited = true;
 
     const bannerInput = document.getElementById('bannerInput');
-    const bannerEdit  = document.getElementById('bannerEdit');
     const settingsRef = db.collection('users').doc(userId).collection('settings').doc('main');
+
+    let currentPosY    = 50;
+    let dragPosY       = 50;
+    let dragStartMouseY = 0;
+    let dragging       = false;
 
     /* Compress image to JPEG via canvas — uses FileReader for mobile compatibility */
     function compressImage(file) {
@@ -847,14 +942,12 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     async function doUpload(file) {
       if (!file) return;
 
-      const editBtn      = document.getElementById('bannerEdit');
       const ctaLabel     = document.getElementById('bannerCta');
       const ctaSpan      = document.querySelector('#bannerCta span');
       const progressBar  = document.getElementById('bannerProgress');
       const progressFill = document.getElementById('bannerProgressFill');
 
       function setLoading(pct, label) {
-        if (editBtn)      { editBtn.disabled = true; editBtn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Saving…'; }
         if (ctaSpan)      ctaSpan.textContent = label || (pct != null ? pct + '%' : 'Processing…');
         if (ctaLabel)     ctaLabel.style.pointerEvents = 'none';
         if (progressBar)  progressBar.style.display = 'block';
@@ -862,7 +955,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       }
 
       function restoreButtons() {
-        if (editBtn)      { editBtn.disabled = false; editBtn.innerHTML = '<i class="ti ti-photo" aria-hidden="true"></i> Change photo'; }
         if (ctaSpan)      ctaSpan.textContent = 'Add cover photo';
         if (ctaLabel)     ctaLabel.style.pointerEvents = '';
         if (progressBar)  progressBar.style.display = 'none';
@@ -874,7 +966,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         setLoading(20, 'Processing…');
         const dataUrl = await compressImage(file);
 
-        /* Firestore doc limit ~1 MB — base64 banner should be ~100–200 KB */
         if (dataUrl.length > 900000) {
           restoreButtons();
           alert('Photo is too large after compression. Please choose a different image.');
@@ -892,8 +983,111 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       }
     }
 
+    /* ---- Drag-to-reposition ---- */
+    function getBannerHeight() {
+      const el = document.getElementById('profileBanner');
+      return el ? Math.max(el.offsetHeight, 1) : 200;
+    }
+
+    function applyLivePosY(posY) {
+      const bannerImg = document.getElementById('bannerImg');
+      if (bannerImg) bannerImg.style.objectPosition = `center ${posY}%`;
+    }
+
+    function enterReposMode() {
+      dragPosY = currentPosY;
+      const overlay = document.getElementById('bannerRepoOverlay');
+      if (overlay) overlay.style.display = 'flex';
+    }
+
+    function exitReposMode() {
+      const overlay = document.getElementById('bannerRepoOverlay');
+      if (overlay) overlay.style.display = '';
+      dragging = false;
+    }
+
+    const overlay = document.getElementById('bannerRepoOverlay');
+    if (overlay) {
+      overlay.addEventListener('mousedown', e => {
+        if (e.target.closest('.banner-reposition-actions')) return;
+        e.preventDefault();
+        dragging = true;
+        dragStartMouseY = e.clientY;
+      });
+      overlay.addEventListener('touchstart', e => {
+        if (e.target.closest('.banner-reposition-actions')) return;
+        e.preventDefault();
+        dragging = true;
+        dragStartMouseY = e.touches[0].clientY;
+      }, { passive: false });
+
+      overlay.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const deltaPct = (e.clientY - dragStartMouseY) / getBannerHeight() * 100;
+        applyLivePosY(Math.max(0, Math.min(100, dragPosY - deltaPct)));
+      });
+      overlay.addEventListener('touchmove', e => {
+        if (!dragging) return;
+        e.preventDefault();
+        const deltaPct = (e.touches[0].clientY - dragStartMouseY) / getBannerHeight() * 100;
+        applyLivePosY(Math.max(0, Math.min(100, dragPosY - deltaPct)));
+      }, { passive: false });
+
+      const endDrag = (clientY) => {
+        if (!dragging) return;
+        const deltaPct = (clientY - dragStartMouseY) / getBannerHeight() * 100;
+        dragPosY = Math.max(0, Math.min(100, dragPosY - deltaPct));
+        dragging = false;
+      };
+      overlay.addEventListener('mouseup',  e => endDrag(e.clientY));
+      overlay.addEventListener('touchend', e => endDrag(e.changedTouches[0].clientY));
+    }
+
+    /* ---- Edit Profile toggle ---- */
+    const editToggle = document.getElementById('editProfileToggle');
+    const editPanel  = document.getElementById('editProfilePanel');
+    if (editToggle && editPanel) {
+      editToggle.addEventListener('click', () => {
+        editPanel.style.display = editPanel.style.display === 'block' ? 'none' : 'block';
+      });
+    }
+
+    /* ---- Edit Profile buttons ---- */
+    const epChange  = document.getElementById('epChangeBanner');
+    const epRepos   = document.getElementById('epReposition');
+    const epRemove  = document.getElementById('epRemoveBanner');
+    const repoSave  = document.getElementById('bannerRepoSave');
+    const repoCancel = document.getElementById('bannerRepoCancel');
+
+    if (epChange) epChange.addEventListener('click', () => bannerInput && bannerInput.click());
+
+    if (epRepos) epRepos.addEventListener('click', () => enterReposMode());
+
+    if (epRemove) epRemove.addEventListener('click', async () => {
+      if (!confirm('Remove banner photo?')) return;
+      try {
+        await settingsRef.set({ bannerUrl: null, bannerPositionY: 50 }, { merge: true });
+      } catch (err) { alert('Failed to remove banner: ' + (err.message || 'Unknown error')); }
+    });
+
+    if (repoSave) repoSave.addEventListener('click', async () => {
+      try {
+        await settingsRef.set({ bannerPositionY: Math.round(dragPosY) }, { merge: true });
+        currentPosY = dragPosY;
+        exitReposMode();
+      } catch (err) { alert('Failed to save position: ' + (err.message || 'Unknown error')); }
+    });
+
+    if (repoCancel) repoCancel.addEventListener('click', () => {
+      applyLivePosY(currentPosY);
+      dragPosY = currentPosY;
+      exitReposMode();
+    });
+
     if (bannerInput) bannerInput.addEventListener('change', e => { doUpload(e.target.files[0]); });
-    if (bannerEdit)  bannerEdit.addEventListener('click',  () => bannerInput && bannerInput.click());
+
+    /* expose setter so the settings snapshot can sync currentPosY */
+    initBanner.setCurrentPosY = (y) => { currentPosY = y; dragPosY = y; };
   }
 
   auth.onAuthStateChanged(user => {
@@ -920,7 +1114,9 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         currentProfileState = { squatMax:squatMax||0, benchMax:benchMax||0, deadMax:deadMax||0, bodyweight:bodyweight||185, height:height||'' };
         applyColors(d);
         renderHero(user, d);
-        applyBannerUrl(d.bannerUrl || null);
+        const posY = d.bannerPositionY != null ? d.bannerPositionY : 50;
+        applyBannerUrl(d.bannerUrl || null, posY);
+        if (initBanner.setCurrentPosY) initBanner.setCurrentPosY(posY);
         renderAll();
       });
 
