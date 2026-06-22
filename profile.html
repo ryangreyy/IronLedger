@@ -1036,6 +1036,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       liveZoom = currentZoom;
       liveTx   = (currentTxPct / 100) * bW;
       liveTy   = (currentTyPct / 100) * bH;
+      applyLiveTransform();
       const overlay = document.getElementById('bannerRepoOverlay');
       if (overlay) overlay.style.display = 'flex';
     }
