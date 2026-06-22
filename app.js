@@ -121,8 +121,13 @@ const ICON_COLORS  = ['#ffffff','#f0f4f8','#d4af37','#ff5a5a','#ff8a4c','#ffd700
 
 let currentUser = null;
 
-function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor) {
+function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl) {
   if (!navAvatar) return;
+  if (avatarPhotoUrl) {
+    navAvatar.style.cssText = 'overflow:hidden;background:transparent;';
+    navAvatar.innerHTML = `<img src="${avatarPhotoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+    return;
+  }
   const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
   if (emb) {
     navAvatar.style.cssText = `background:${bgColor||'#8b1c1c'};box-shadow:inset 0 0 0 2.5px ${ringColor||'#d4af37'};display:flex;align-items:center;justify-content:center;`;
@@ -2200,7 +2205,7 @@ function initApp(uid) {
       applyColors(currentSettings);
       renderGoals(currentSettings.goals);
       applyCustomLifts(currentSettings.customLifts);
-      applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarRingColor || null, currentSettings.avatarBgColor || null, currentSettings.avatarIconColor || null);
+      applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarRingColor || null, currentSettings.avatarBgColor || null, currentSettings.avatarIconColor || null, currentSettings.avatarPhotoUrl || null);
     } else {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');

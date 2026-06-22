@@ -1428,6 +1428,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         const aPY = d.avatarPosY  != null ? d.avatarPosY  : 50;
         applyAvatarPhoto(d.avatarPhotoUrl || null, aZ, aPX, aPY);
         if (initAvatar.setCurrentState) initAvatar.setCurrentState(aZ, aPX, aPY);
+        const navAv = document.getElementById('nav-avatar');
+        if (navAv && d.avatarPhotoUrl) {
+          navAv.style.cssText = 'overflow:hidden;background:transparent;';
+          navAv.innerHTML = `<img src="${d.avatarPhotoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+        }
         renderAll();
       });
 

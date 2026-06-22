@@ -23,8 +23,13 @@
     { id:'rex',      icon:'ti-chess-king' },
   ];
 
-  function applyAvatar(el, user, avatarId, ringColor, bgColor, iconColor) {
+  function applyAvatar(el, user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl) {
     if (!el) return;
+    if (avatarPhotoUrl) {
+      el.style.cssText = 'overflow:hidden;background:transparent;';
+      el.innerHTML = `<img src="${avatarPhotoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      return;
+    }
     const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
     if (emb) {
       el.style.cssText = `background:${bgColor||'#8b1c1c'};box-shadow:inset 0 0 0 2.5px ${ringColor||'#d4af37'};display:flex;align-items:center;justify-content:center;`;
@@ -61,9 +66,9 @@
       try {
         const snap = await db.doc(`users/${user.uid}/settings/main`).get();
         const d = snap.data() || {};
-        applyAvatar(navAvatarEl, user, d.avatarId, d.avatarRingColor, d.avatarBgColor, d.avatarIconColor);
+        applyAvatar(navAvatarEl, user, d.avatarId, d.avatarRingColor, d.avatarBgColor, d.avatarIconColor, d.avatarPhotoUrl);
       } catch (_) {
-        applyAvatar(navAvatarEl, user, null, null, null, null);
+        applyAvatar(navAvatarEl, user, null, null, null, null, null);
       }
     } else {
       if (navSignedIn)  navSignedIn.style.display  = 'none';

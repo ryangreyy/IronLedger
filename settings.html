@@ -343,10 +343,11 @@
     '#ff7eb3','#c9a84c',
   ];
 
-  let selectedEmblemId  = 'gladius';
-  let selectedRingColor = '#d4af37';
-  let selectedBgColor   = '#8b1c1c';
-  let selectedIconColor = '#ffffff';
+  let selectedEmblemId      = 'gladius';
+  let selectedRingColor     = '#d4af37';
+  let selectedBgColor       = '#8b1c1c';
+  let selectedIconColor     = '#ffffff';
+  let selectedAvatarPhotoUrl = null;
 
   function updatePreview() {
     const preview = document.getElementById('emblemPreview');
@@ -358,9 +359,14 @@
     }
   }
 
-  function applyNavAvatarSettings(emblemId, ringColor, bgColor, iconColor, user) {
+  function applyNavAvatarSettings(emblemId, ringColor, bgColor, iconColor, user, avatarPhotoUrl) {
     const navAv = document.getElementById('nav-avatar');
     if (!navAv) return;
+    if (avatarPhotoUrl) {
+      navAv.style.cssText = 'overflow:hidden;background:transparent;';
+      navAv.innerHTML = `<img src="${avatarPhotoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      return;
+    }
     const emb = EMBLEMS.find(e => e.id === emblemId);
     if (emb) {
       navAv.style.cssText = `background:${bgColor};box-shadow:inset 0 0 0 2.5px ${ringColor};display:flex;align-items:center;justify-content:center;`;
@@ -388,7 +394,7 @@
         selectedEmblemId = btn.dataset.id;
         renderEmblemGrid(user);
         updatePreview();
-        applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
+        applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user, selectedAvatarPhotoUrl);
         try { await settingsRef().set({ avatarId: selectedEmblemId }, { merge: true }); } catch(e) {}
       });
     });
@@ -479,13 +485,14 @@
         if (d.defaultLift !== undefined) document.getElementById('defaultLiftSel').value = d.defaultLift;
         loadColors(d);
         if (Array.isArray(d.customLifts)) { customLifts = d.customLifts; renderCustomLiftList(); }
-        if (d.avatarId)        selectedEmblemId  = d.avatarId;
-        if (d.avatarRingColor) selectedRingColor = d.avatarRingColor;
-        if (d.avatarBgColor)   selectedBgColor   = d.avatarBgColor;
-        if (d.avatarIconColor) selectedIconColor = d.avatarIconColor;
+        if (d.avatarId)        selectedEmblemId      = d.avatarId;
+        if (d.avatarRingColor) selectedRingColor     = d.avatarRingColor;
+        if (d.avatarBgColor)   selectedBgColor       = d.avatarBgColor;
+        if (d.avatarIconColor) selectedIconColor     = d.avatarIconColor;
+        if (d.avatarPhotoUrl)  selectedAvatarPhotoUrl = d.avatarPhotoUrl;
         renderEmblemGrid(user); renderRingPicker(user); renderBgPicker(user); renderIconPicker(user);
         updatePreview();
-        applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
+        applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user, selectedAvatarPhotoUrl);
       }
     } catch (e) { /* preferences not saved yet — use defaults */ }
   });
