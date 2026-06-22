@@ -816,15 +816,33 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     if (bannerInited) return;
     bannerInited = true;
 
-    const bannerInput  = document.getElementById('bannerInput');
-    const bannerEdit   = document.getElementById('bannerEdit');
-    const settingsRef  = db.collection('users').doc(userId).collection('settings').doc('main');
+    const bannerInput = document.getElementById('bannerInput');
+    const bannerEdit  = document.getElementById('bannerEdit');
+    const settingsRef = db.collection('users').doc(userId).collection('settings').doc('main');
 
-    function doUpload(file) {
+    /* Compress image to JPEG via canvas — no Firebase Storage needed */
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const img    = new Image();
+        const blobUrl = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(blobUrl);
+          const MAX_W = 1200, MAX_H = 400;
+          const ratio = Math.min(MAX_W / img.width, MAX_H / img.height, 1);
+          const w = Math.round(img.width  * ratio);
+          const h = Math.round(img.height * ratio);
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.78));
+        };
+        img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error('Could not read image')); };
+        img.src = blobUrl;
+      });
+    }
+
+    async function doUpload(file) {
       if (!file) return;
-      if (file.size > 12 * 1024 * 1024) {
-        alert('Please choose a photo under 12 MB.'); return;
-      }
 
       const editBtn      = document.getElementById('bannerEdit');
       const ctaLabel     = document.getElementById('bannerCta');
@@ -832,9 +850,9 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       const progressBar  = document.getElementById('bannerProgress');
       const progressFill = document.getElementById('bannerProgressFill');
 
-      function setLoading(pct) {
-        if (editBtn)      { editBtn.disabled = true; editBtn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Uploading…'; }
-        if (ctaSpan)      ctaSpan.textContent = pct != null ? pct + '%' : 'Uploading…';
+      function setLoading(pct, label) {
+        if (editBtn)      { editBtn.disabled = true; editBtn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Saving…'; }
+        if (ctaSpan)      ctaSpan.textContent = label || (pct != null ? pct + '%' : 'Processing…');
         if (ctaLabel)     ctaLabel.style.pointerEvents = 'none';
         if (progressBar)  progressBar.style.display = 'block';
         if (progressFill && pct != null) progressFill.style.width = pct + '%';
@@ -849,64 +867,30 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         if (bannerInput)  bannerInput.value = '';
       }
 
-      setLoading(0);
-
       try {
-        const ref  = storage.ref('banners/' + userId + '/cover');
-        const task = ref.put(file);
+        setLoading(20, 'Processing…');
+        const dataUrl = await compressImage(file);
 
-        let started = false;
-        const timeout = setTimeout(() => {
-          if (!started) {
-            task.cancel();
-            restoreButtons();
-            alert('Upload blocked — your Firebase Storage rules are not allowing writes.\n\nFix:\n1. Go to Firebase Console → Storage → Rules\n2. Replace the rules with:\n\nrules_version = \'2\';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /{allPaths=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}\n\n3. Click Publish.');
-          }
-        }, 15000);
+        /* Firestore doc limit ~1 MB — base64 banner should be ~100–200 KB */
+        if (dataUrl.length > 900000) {
+          restoreButtons();
+          alert('Photo is too large after compression. Please choose a different image.');
+          return;
+        }
 
-        task.on('state_changed',
-          snapshot => {
-            started = true;
-            clearTimeout(timeout);
-            const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-            setLoading(pct);
-          },
-          err => {
-            clearTimeout(timeout);
-            restoreButtons();
-            console.error('Banner upload error:', err);
-            if (err.code === 'storage/unauthorized') {
-              alert('Upload blocked by Firebase Storage rules.\n\nFix:\n1. Go to Firebase Console → Storage → Rules\n2. Replace the rules with:\n\nrules_version = \'2\';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /{allPaths=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}\n\n3. Click Publish.');
-            } else if (err.code === 'storage/canceled') {
-              /* timeout-cancelled — already alerted */
-            } else {
-              alert('Upload failed: ' + (err.message || err.code || 'Unknown error'));
-            }
-          },
-          () => {
-            clearTimeout(timeout);
-            ref.getDownloadURL().then(url => {
-              return settingsRef.set({ bannerUrl: url }, { merge: true });
-            }).then(() => {
-              restoreButtons();
-            }).catch(err => {
-              restoreButtons();
-              console.error('Banner save error:', err);
-              alert('Photo uploaded but failed to save: ' + (err.message || err.code));
-            });
-          }
-        );
+        setLoading(70, 'Saving…');
+        await settingsRef.set({ bannerUrl: dataUrl }, { merge: true });
+        setLoading(100, 'Done!');
+        restoreButtons();
       } catch (err) {
         restoreButtons();
-        console.error('Storage init error:', err);
-        alert('Storage error: ' + err.message);
+        console.error('Banner error:', err);
+        alert('Failed to save photo: ' + (err.message || 'Unknown error'));
       }
     }
 
-    if (bannerInput) bannerInput.addEventListener('change', e => {
-      doUpload(e.target.files[0]);
-    });
-    if (bannerEdit) bannerEdit.addEventListener('click', () => bannerInput && bannerInput.click());
+    if (bannerInput) bannerInput.addEventListener('change', e => { doUpload(e.target.files[0]); });
+    if (bannerEdit)  bannerEdit.addEventListener('click',  () => bannerInput && bannerInput.click());
   }
 
   auth.onAuthStateChanged(user => {
