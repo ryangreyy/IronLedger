@@ -36,9 +36,7 @@
         <a href="running.html">Cardio and Endurance</a>
         <a href="#dashboard">Dashboard</a>
         <a href="#log">Training Log</a>
-        <a href="#bodyweight">Bodyweight</a>
-        <a href="#breakdown">Breakdown</a>
-        <a href="#calc">1RM Calculator</a>
+        <a href="tools.html">Tools</a>
       </div>
       <div class="nav-right">
         <!-- Shown when signed out -->
@@ -191,6 +189,61 @@
         <div id="trackerError" style="display:none;font-size:12px;color:var(--down);font-family:var(--mono);margin-bottom:8px;padding:6px 10px;background:rgba(255,80,80,.08);border-radius:6px;"></div>
         <div id="trackerList" class="tracker-list"></div>
       </div>
+
+      <!-- Bodyweight subsection -->
+      <div class="eyebrow" style="margin-top:28px;margin-bottom:12px;">Bodyweight</div>
+      <div class="card chart-card">
+        <div class="bw-form">
+          <input id="bwInput" type="number" step="0.1" min="50" max="999" placeholder="lbs" class="bw-input">
+          <input id="bwDate" type="date" class="bw-date-input">
+          <button id="bwSubmit" class="btn btn-primary">Log weight</button>
+        </div>
+        <div class="bw-month-nav">
+          <button id="bwPrev" class="btn-page">&#8592;</button>
+          <span id="bwMonthLabel" class="bw-month-label"></span>
+          <button id="bwNext" class="btn-page">&#8594;</button>
+        </div>
+        <svg id="bwChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
+        <p id="bwEmpty" class="chart-empty" style="display:none;">No entries this month — log your weight above.</p>
+        <div id="bwList" class="bw-list"></div>
+      </div>
+
+      <!-- Breakdown subsection -->
+      <div class="eyebrow" style="margin-top:28px;margin-bottom:12px;">Daily Breakdown</div>
+      <div class="card chart-card">
+        <div class="chart-head">
+          <select id="breakdownDate" class="breakdown-date-sel">
+            <option>Log a session to see your breakdown</option>
+          </select>
+          <div class="legend-note" id="breakdownNote"></div>
+        </div>
+        <div class="donut-wrap" id="donutWrap">
+          <svg id="donutChart" viewBox="0 0 300 300" width="220" height="220" style="flex-shrink:0;"></svg>
+          <div id="donutLegend" class="donut-legend"></div>
+        </div>
+        <p id="donutEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+           padding:40px 0;font-family:var(--mono);font-size:14px;">
+          No sessions logged for this date yet.
+        </p>
+      </div>
+
+      <div class="card chart-card" style="margin-top:18px;">
+        <div class="chart-head">
+          <div>
+            <p class="controls-label" style="margin-bottom:10px;">Exercise history</p>
+            <select id="historyLift" class="breakdown-date-sel">
+              <option value="">Log sessions to see history</option>
+            </select>
+          </div>
+          <div class="legend-note" id="historyNote"></div>
+        </div>
+        <svg id="historyChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
+        <div id="historyDetails" class="history-details"></div>
+        <p id="historyEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+           padding:40px 0;font-family:var(--mono);font-size:14px;">
+          No sessions found for this exercise.
+        </p>
+      </div>
     </section>
 
     <!-- ================= TRAINING LOG ================= -->
@@ -314,7 +367,7 @@
         </div>
         <div class="add-session-actions">
           <button id="addSession" class="btn btn-primary">Add session</button>
-          <a href="#plates" class="calc-hint-link">Having trouble calculating barbell weight?</a>
+          <a href="tools.html#plates" class="calc-hint-link">Having trouble calculating barbell weight?</a>
         </div>
       </div>
 
@@ -332,166 +385,6 @@
           <button id="log-prev" class="btn-page">&#8592; Prev</button>
           <span id="log-page-info" class="page-info">Page 1 of 1</span>
           <button id="log-next" class="btn-page">Next &#8594;</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= BODYWEIGHT TRACKER ================= -->
-    <section id="bodyweight" class="reveal">
-      <div class="eyebrow">Progress</div>
-      <h2 class="title">Bodyweight</h2>
-      <p class="sub">Log your weight to track progress over time.</p>
-
-      <div class="card chart-card" style="margin-top:16px;">
-        <!-- Log form -->
-        <div class="bw-form">
-          <input id="bwInput" type="number" step="0.1" min="50" max="999" placeholder="lbs" class="bw-input">
-          <input id="bwDate" type="date" class="bw-date-input">
-          <button id="bwSubmit" class="btn btn-primary">Log weight</button>
-        </div>
-
-        <!-- Month navigation -->
-        <div class="bw-month-nav">
-          <button id="bwPrev" class="btn-page">&#8592;</button>
-          <span id="bwMonthLabel" class="bw-month-label"></span>
-          <button id="bwNext" class="btn-page">&#8594;</button>
-        </div>
-
-        <!-- Chart -->
-        <svg id="bwChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
-        <p id="bwEmpty" class="chart-empty" style="display:none;">No entries this month — log your weight above.</p>
-
-        <!-- Entry list -->
-        <div id="bwList" class="bw-list"></div>
-      </div>
-    </section>
-
-    <!-- ================= LIFT BREAKDOWN ================= -->
-    <section id="breakdown" class="reveal">
-      <div class="eyebrow">Daily Breakdown</div>
-      <h2 class="title">What you lifted</h2>
-      <p class="sub">Pick a training day to see how your session was split across lifts.</p>
-
-      <div class="card chart-card" style="margin-top:16px;">
-        <div class="chart-head">
-          <select id="breakdownDate" class="breakdown-date-sel">
-            <option>Log a session to see your breakdown</option>
-          </select>
-          <div class="legend-note" id="breakdownNote"></div>
-        </div>
-        <div class="donut-wrap" id="donutWrap">
-          <svg id="donutChart" viewBox="0 0 300 300" width="220" height="220" style="flex-shrink:0;"></svg>
-          <div id="donutLegend" class="donut-legend"></div>
-        </div>
-        <p id="donutEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
-           padding:40px 0;font-family:var(--mono);font-size:14px;">
-          No sessions logged for this date yet.
-        </p>
-      </div>
-
-      <!-- Exercise history line chart -->
-      <div class="card chart-card" style="margin-top:18px;">
-        <div class="chart-head">
-          <div>
-            <p class="controls-label" style="margin-bottom:10px;">Exercise history</p>
-            <select id="historyLift" class="breakdown-date-sel">
-              <option value="">Log sessions to see history</option>
-            </select>
-          </div>
-          <div class="legend-note" id="historyNote"></div>
-        </div>
-        <svg id="historyChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
-        <div id="historyDetails" class="history-details"></div>
-        <p id="historyEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
-           padding:40px 0;font-family:var(--mono);font-size:14px;">
-          No sessions found for this exercise.
-        </p>
-      </div>
-    </section>
-
-    <!-- ================= 1RM CALCULATOR ================= -->
-    <section id="calc" class="reveal">
-      <div class="eyebrow">Interactive Tool</div>
-      <h2 class="title">One&#8209;rep max calculator</h2>
-      <p class="sub">Enter a set you did. See your estimated max and working weights for every rep range.</p>
-
-      <div class="calc-grid" style="margin-top:16px;">
-        <div class="card">
-          <div class="field">
-            <label for="lift">Lift</label>
-            <select id="lift">
-              <option value="Squat">Squat</option>
-              <option value="Bench Press">Bench Press</option>
-              <option value="Deadlift">Deadlift</option>
-              <option value="Shoulder Press">Shoulder Press</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="weight">Weight lifted (<span class="unit-label">lbs</span>)</label>
-            <input id="weight" type="number" value="225" min="1" step="5">
-          </div>
-          <div class="field">
-            <label for="reps">Reps performed</label>
-            <input id="reps" type="number" value="5" min="1" max="12">
-          </div>
-
-        </div>
-
-        <div class="card">
-          <div class="result-big">
-            <div class="cap">Estimated 1&#8209;rep max</div>
-            <div class="num"><span id="orm">263</span><small>lbs</small></div>
-          </div>
-          <table class="pct">
-            <thead><tr><th>Intensity</th><th>% of 1RM</th><th>Working weight</th><th>Typical use</th></tr></thead>
-            <tbody id="pctBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= PLATE CALCULATOR ================= -->
-    <section id="plates" class="reveal">
-      <div class="eyebrow">Interactive Tool</div>
-      <h2 class="title">Plate calculator</h2>
-      <p class="sub">Click to add plates, click again to remove them.</p>
-
-      <div class="card" style="margin-top:16px; padding:28px 24px;">
-        <!-- Unit + bar row -->
-        <div class="pc-top">
-          <div>
-            <div class="pc-label">Unit</div>
-            <div class="pc-toggle" id="pcUnitToggle">
-              <button class="active" data-val="lbs">lbs</button>
-              <button data-val="kg">kg</button>
-            </div>
-          </div>
-          <div>
-            <div class="pc-label">Bar</div>
-            <div class="pc-toggle" id="pcBarToggle">
-              <button class="active" data-val="standard">Standard</button>
-              <button data-val="womens">Women's</button>
-              <button data-val="custom">Custom</button>
-            </div>
-          </div>
-          <div id="pcCustomWrap" style="display:none;">
-            <div class="pc-label">Bar weight (<span id="pcBarUnit">lbs</span>)</div>
-            <input id="pcBarCustom" type="number" value="45" min="1" step="0.5">
-          </div>
-        </div>
-
-        <!-- Plate palette -->
-        <div class="pc-section-label">Add plates <span class="pc-hint">— one per side</span></div>
-        <div class="pc-palette" id="pcPalette"></div>
-
-        <!-- Barbell visual -->
-        <div class="pc-section-label" style="margin-top:22px;">Loaded bar <span class="pc-hint">— click a plate to remove it</span></div>
-        <div id="pcBarbellWrap" class="pc-barbell-wrap"></div>
-
-        <!-- Total -->
-        <div class="pc-total-row">
-          <div id="pcTotal" class="pc-total"></div>
-          <button class="pc-clear-btn" id="pcClear">Clear</button>
         </div>
       </div>
     </section>

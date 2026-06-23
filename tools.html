@@ -1,0 +1,336 @@
+<!-- IRONGLADIATOR — Strength Tools: 1RM Calculator · Plate Calculator -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>IRONGLADIATOR — Strength Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=98">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
+</head>
+<body>
+
+  <!-- ================= NAV ================= -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
+      <div class="nav-links" id="nav-links">
+        <a href="profile.html">Profile</a>
+        <a href="settings.html">Settings</a>
+        <a href="yoga.html">Yoga &amp; PT</a>
+        <a href="guide.html">Workout Schedule Guide</a>
+        <a href="running.html">Cardio and Endurance</a>
+        <a href="index.html#dashboard">Dashboard</a>
+        <a href="index.html#log">Training Log</a>
+        <a href="tools.html" class="nav-current">Tools</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+        </div>
+        <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+          <div id="nav-avatar" class="nav-avatar"></div>
+          <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+          <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <rect width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div id="main-content">
+  <div class="wrap">
+
+    <!-- ================= PAGE HEADER ================= -->
+    <section class="reveal" style="padding-top:12px;">
+      <div class="eyebrow">Utility</div>
+      <h2 class="title">Strength Tools</h2>
+      <p class="sub">Calculate your one-rep max or figure out your plate setup before you load the bar.</p>
+    </section>
+
+    <!-- ================= 1RM CALCULATOR ================= -->
+    <section id="calc" class="reveal">
+      <div class="eyebrow">Interactive Tool</div>
+      <h2 class="title">One&#8209;rep max calculator</h2>
+      <p class="sub">Enter a set you did. See your estimated max and working weights for every rep range.</p>
+
+      <div class="calc-grid" style="margin-top:16px;">
+        <div class="card">
+          <div class="field">
+            <label for="lift">Lift</label>
+            <select id="lift">
+              <option value="Squat">Squat</option>
+              <option value="Bench Press">Bench Press</option>
+              <option value="Deadlift">Deadlift</option>
+              <option value="Shoulder Press">Shoulder Press</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="weight">Weight lifted (<span class="unit-label">lbs</span>)</label>
+            <input id="weight" type="number" value="225" min="1" step="5">
+          </div>
+          <div class="field">
+            <label for="reps">Reps performed</label>
+            <input id="reps" type="number" value="5" min="1" max="12">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="result-big">
+            <div class="cap">Estimated 1&#8209;rep max</div>
+            <div class="num"><span id="orm">263</span><small>lbs</small></div>
+          </div>
+          <table class="pct">
+            <thead><tr><th>Intensity</th><th>% of 1RM</th><th>Working weight</th><th>Typical use</th></tr></thead>
+            <tbody id="pctBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PLATE CALCULATOR ================= -->
+    <section id="plates" class="reveal">
+      <div class="eyebrow">Interactive Tool</div>
+      <h2 class="title">Plate calculator</h2>
+      <p class="sub">Click to add plates, click again to remove them.</p>
+
+      <div class="card" style="margin-top:16px; padding:28px 24px;">
+        <!-- Unit + bar row -->
+        <div class="pc-top">
+          <div>
+            <div class="pc-label">Unit</div>
+            <div class="pc-toggle" id="pcUnitToggle">
+              <button class="active" data-val="lbs">lbs</button>
+              <button data-val="kg">kg</button>
+            </div>
+          </div>
+          <div>
+            <div class="pc-label">Bar</div>
+            <div class="pc-toggle" id="pcBarToggle">
+              <button class="active" data-val="standard">Standard</button>
+              <button data-val="womens">Women's</button>
+              <button data-val="custom">Custom</button>
+            </div>
+          </div>
+          <div id="pcCustomWrap" style="display:none;">
+            <div class="pc-label">Bar weight (<span id="pcBarUnit">lbs</span>)</div>
+            <input id="pcBarCustom" type="number" value="45" min="1" step="0.5">
+          </div>
+        </div>
+
+        <!-- Plate palette -->
+        <div class="pc-section-label">Add plates <span class="pc-hint">— one per side</span></div>
+        <div class="pc-palette" id="pcPalette"></div>
+
+        <!-- Barbell visual -->
+        <div class="pc-section-label" style="margin-top:22px;">Loaded bar <span class="pc-hint">— click a plate to remove it</span></div>
+        <div id="pcBarbellWrap" class="pc-barbell-wrap"></div>
+
+        <!-- Total -->
+        <div class="pc-total-row">
+          <div id="pcTotal" class="pc-total"></div>
+          <button class="pc-clear-btn" id="pcClear">Clear</button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /wrap -->
+  </div><!-- /main-content -->
+
+  <footer>
+    <div class="foot-inner">
+      <div class="brand" style="font-size:18px;"><img class="mark" src="favicon.svg?v=5" alt="" style="height:24px;"> IRONGLADIATOR</div>
+      <div>© 2026 IRONGLADIATOR. All rights reserved. All data saved privately per account.</div>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="nav-auth.js"></script>
+  <script src="data.js"></script>
+  <script>
+  /* ── 1RM Calculator ──────────────────────────────────── */
+  (function ormCalc() {
+    const ormEl   = document.getElementById('orm');
+    const pctBody = document.getElementById('pctBody');
+
+    ['lift','weight','reps'].forEach(id => {
+      const saved = localStorage.getItem('il_calc_' + id);
+      if (saved) document.getElementById(id).value = saved;
+    });
+
+    function calc() {
+      const w = +document.getElementById('weight').value || 0;
+      const r = +document.getElementById('reps').value   || 1;
+      const orm = r <= 1 ? w : Math.round(w * (1 + r / 30));
+      ormEl.textContent = orm.toLocaleString();
+      pctBody.innerHTML = pctRows.map(row => `
+        <tr>
+          <td>${row.reps}</td>
+          <td class="pct-tag">${row.pct}%</td>
+          <td class="w">${Math.round(orm * row.pct / 100 / 5) * 5} lbs</td>
+          <td style="color:var(--text-dim)">${row.use}</td>
+        </tr>`).join('');
+    }
+
+    ['lift','weight','reps'].forEach(id => document.getElementById(id).addEventListener('input', e => {
+      localStorage.setItem('il_calc_' + id, e.target.value);
+      calc();
+    }));
+    calc();
+  })();
+
+  /* ── Plate Calculator ─────────────────────────────────── */
+  (function plateCalc() {
+    const $ = id => document.getElementById(id);
+    if (!$('pcPalette')) return;
+
+    const PLATES = {
+      lbs: [45, 35, 25, 10, 5, 2.5],
+      kg:  [25, 20, 15, 10, 5, 2.5, 1.25],
+    };
+    const COLORS = {
+      lbs: { 45: '#BF3020', 35: '#1755A2', 25: '#CFA000', 10: '#1A7A38', 5: '#B0B0B0', 2.5: '#565656' },
+      kg:  { 25: '#BF3020', 20: '#1755A2', 15: '#CFA000', 10: '#1A7A38', 5: '#B0B0B0', 2.5: '#565656', 1.25: '#444444' },
+    };
+    const BAR = {
+      lbs: { standard: 45, womens: 35 },
+      kg:  { standard: 20, womens: 15 },
+    };
+
+    let unit = 'lbs', bar = 'standard';
+    let counts = {};
+
+    function barWt() {
+      if (bar === 'custom') return parseFloat($('pcBarCustom').value) || 0;
+      return BAR[unit][bar];
+    }
+
+    function totalWt() {
+      const plates = PLATES[unit];
+      let sum = barWt();
+      for (const p of plates) sum += (counts[p] || 0) * p * 2;
+      return Math.round(sum * 1000) / 1000;
+    }
+
+    function buildBarbell() {
+      const W = 800, H = 130, CY = 65;
+      const PH = {
+        lbs: { 45: 44, 35: 40, 25: 34, 10: 26, 5: 19, 2.5: 13 },
+        kg:  { 25: 44, 20: 40, 15: 34, 10: 26, 5: 19, 2.5: 13, 1.25: 9 },
+      };
+      const PW = 13;
+      const GL = 255, GR = 545;
+      const SL = 58,  SR = 742;
+      const GRIP_H = 8, SLEEVE_H = 4;
+      const COLLAR_W = 10, COLLAR_H = 17;
+
+      const el = [];
+
+      el.push(`<rect x="${SL}" y="${CY-SLEEVE_H}" width="${GL-SL}" height="${SLEEVE_H*2}" fill="#7a7a7a" rx="2"/>`);
+      el.push(`<rect x="${GR}" y="${CY-SLEEVE_H}" width="${SR-GR}" height="${SLEEVE_H*2}" fill="#7a7a7a" rx="2"/>`);
+      el.push(`<rect x="${GL}" y="${CY-GRIP_H}" width="${GR-GL}" height="${GRIP_H*2}" fill="#5a5a5a" rx="2"/>`);
+      for (let gx = GL+14; gx < GR-8; gx += 11) {
+        el.push(`<line x1="${gx}" y1="${CY-GRIP_H+2}" x2="${gx}" y2="${CY+GRIP_H-2}" stroke="#484848" stroke-width="1.5"/>`);
+      }
+      el.push(`<rect x="${SL-5}" y="${CY-SLEEVE_H-2}" width="5" height="${(SLEEVE_H+2)*2}" fill="#888" rx="2"/>`);
+      el.push(`<rect x="${SR}"   y="${CY-SLEEVE_H-2}" width="5" height="${(SLEEVE_H+2)*2}" fill="#888" rx="2"/>`);
+      el.push(`<rect x="${GL-COLLAR_W}" y="${CY-COLLAR_H}" width="${COLLAR_W}" height="${COLLAR_H*2}" fill="#9e9e9e" rx="2"/>`);
+      el.push(`<rect x="${GR}"          y="${CY-COLLAR_H}" width="${COLLAR_W}" height="${COLLAR_H*2}" fill="#9e9e9e" rx="2"/>`);
+
+      let xL = GL - COLLAR_W, xR = GR + COLLAR_W;
+      for (const p of PLATES[unit]) {
+        const c = counts[p] || 0;
+        if (!c) continue;
+        const h = PH[unit][p], color = COLORS[unit][p];
+        for (let i = 0; i < c; i++) {
+          if (xL - PW < SL + 2) break;
+          xL -= PW;
+          el.push(`<rect x="${xL}" y="${CY-h}" width="${PW}" height="${h*2}" fill="${color}" rx="2" stroke="rgba(0,0,0,0.35)" stroke-width="1" data-rm="${p}"/>`);
+          el.push(`<rect x="${xR}" y="${CY-h}" width="${PW}" height="${h*2}" fill="${color}" rx="2" stroke="rgba(0,0,0,0.35)" stroke-width="1" data-rm="${p}"/>`);
+          xR += PW;
+        }
+      }
+
+      return `<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible;">${el.join('')}</svg>`;
+    }
+
+    function render() {
+      const plates = PLATES[unit];
+      $('pcPalette').innerHTML = plates.map(p =>
+        `<button class="pc-plate-btn" style="background:${COLORS[unit][p]}" data-plate="${p}">${p}</button>`
+      ).join('');
+      $('pcBarbellWrap').innerHTML = buildBarbell();
+      const total = totalWt();
+      const conv  = unit === 'lbs'
+        ? `/ ${(total / 2.20462).toFixed(1)} kg`
+        : `/ ${(total * 2.20462).toFixed(1)} lbs`;
+      $('pcTotal').innerHTML =
+        `<span class="pc-total-num">${total}</span><span class="pc-total-unit"> ${unit}</span><span class="pc-total-conv"> ${conv}</span>`;
+    }
+
+    $('pcPalette').addEventListener('click', e => {
+      const btn = e.target.closest('[data-plate]');
+      if (!btn) return;
+      const p = parseFloat(btn.dataset.plate);
+      counts[p] = (counts[p] || 0) + 1;
+      render();
+    });
+
+    $('pcBarbellWrap').addEventListener('click', e => {
+      const rect = e.target.closest('[data-rm]');
+      if (!rect) return;
+      const p = parseFloat(rect.dataset.rm);
+      if (counts[p] > 0) { counts[p]--; if (!counts[p]) delete counts[p]; }
+      render();
+    });
+
+    $('pcUnitToggle').addEventListener('click', e => {
+      const btn = e.target.closest('button[data-val]');
+      if (!btn || btn.dataset.val === unit) return;
+      unit = btn.dataset.val;
+      counts = {};
+      $('pcUnitToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.val === unit));
+      $('pcBarUnit').textContent = unit;
+      render();
+    });
+
+    $('pcBarToggle').addEventListener('click', e => {
+      const btn = e.target.closest('button[data-val]');
+      if (!btn) return;
+      bar = btn.dataset.val;
+      $('pcBarToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.val === bar));
+      $('pcCustomWrap').style.display = bar === 'custom' ? '' : 'none';
+      render();
+    });
+
+    $('pcBarCustom').addEventListener('input', render);
+    $('pcClear').addEventListener('click', () => { counts = {}; render(); });
+
+    render();
+  })();
+
+  /* ── Reveal on scroll ──────────────────────────────────── */
+  (function () {
+    const els = document.querySelectorAll('.reveal');
+    if (!els.length) return;
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+    }, { threshold: 0.06 });
+    els.forEach(el => io.observe(el));
+  })();
+  </script>
+</body>
+</html>
