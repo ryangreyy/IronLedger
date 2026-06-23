@@ -1,11 +1,17 @@
 /* IRONGLADIATOR — Interactive logic, Firebase auth, and per-user data sync.
    Load order: firebase SDKs → firebase-config.js → data.js → this file. */
 
-/* Always start at the very top — prevents browser scroll restoration on refresh */
+/* Start at top on fresh loads; scroll to hash when navigating from another page */
 history.scrollRestoration = 'manual';
-if (location.hash) history.replaceState(null, null, location.pathname + location.search);
-window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-window.addEventListener('load', () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
+if (location.hash) {
+  window.addEventListener('load', () => {
+    const el = document.querySelector(location.hash);
+    if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+  });
+} else {
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  window.addEventListener('load', () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
+}
 
 /* Arm the reveal animation before the first paint.
    Without this, .reveal elements are fully visible (no JS = no hidden state).
