@@ -112,7 +112,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0;
   background:var(--accent); display:flex; align-items:center; justify-content:center;
   font-size:16px; font-weight:800; color:#fff; letter-spacing:0;
-  border:2px solid rgba(255,255,255,0.08);
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,0.08);
 }
 .nav-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
 .avatar-grid{
