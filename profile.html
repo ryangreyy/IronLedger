@@ -13,6 +13,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <style>
 /* ---- Profile hero ---- */
+.profile-hero-card{ padding:28px 32px; }
 .profile-hero{ display:flex; align-items:center; justify-content:space-between; gap:28px; flex-wrap:wrap; }
 .profile-hero-left{ display:flex; align-items:center; gap:22px; }
 .profile-avatar{
@@ -51,6 +52,29 @@
 .profile-big3-sub{
   font-family:var(--mono); font-size:11px; color:var(--text-dimmer);
   margin-top:6px; letter-spacing:0.1em; text-transform:uppercase;
+}
+
+@media(max-width:600px){
+  .profile-hero-card{ padding:18px 16px; }
+  .profile-hero-card .profile-banner{ margin:-18px -16px 18px -16px; }
+  .profile-hero{ flex-direction:column; gap:14px; align-items:stretch; flex-wrap:nowrap; }
+  .profile-hero-left{ gap:14px; align-items:center; }
+  .profile-avatar{ width:64px; height:64px; }
+  .profile-avatar i{ font-size:22px; }
+  .profile-name{ font-size:clamp(18px,6vw,26px); margin-bottom:7px; }
+  .profile-rank-row{ margin-bottom:5px; }
+  .profile-hero-right{
+    text-align:left;
+    border-top:1px solid var(--border);
+    padding-top:14px;
+    display:flex;
+    align-items:baseline;
+    gap:10px 20px;
+    flex-wrap:wrap;
+  }
+  .profile-big3-label{ margin-bottom:0; white-space:nowrap; }
+  .profile-big3-num{ font-size:32px; }
+  .profile-big3-sub{ width:100%; margin-top:2px; }
 }
 
 /* ---- KPI strip ---- */
@@ -307,7 +331,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     <section style="max-width:1060px;margin:0 auto;padding:72px 28px 120px;">
 
       <!-- ── Hero card ── -->
-      <div class="card" style="padding:28px 32px;">
+      <div class="card profile-hero-card">
         <!-- Cover banner -->
         <div class="profile-banner" id="profileBanner">
           <img id="bannerImg" class="profile-banner-img" alt="">
