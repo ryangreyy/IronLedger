@@ -39,6 +39,28 @@
   font-family:var(--mono); font-size:11px; color:var(--text-dimmer);
   letter-spacing:0.1em; text-transform:uppercase;
 }
+.profile-bio{
+  font-size:13px; color:var(--text-dim); line-height:1.55;
+  margin-top:10px; max-width:420px;
+}
+.profile-bio:empty{ display:none; }
+.ep-bio-wrap{ margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+.ep-bio-label{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--text-dimmer);
+  margin-bottom:8px;
+}
+.ep-bio-textarea{
+  width:100%; box-sizing:border-box; resize:none;
+  background:var(--bg-2); border:1px solid var(--border); border-radius:8px;
+  color:var(--text); font-size:13px; font-family:inherit; line-height:1.5;
+  padding:10px 12px; outline:none; transition:border-color .15s;
+}
+.ep-bio-textarea:focus{ border-color:var(--border-strong); }
+.ep-bio-count{
+  font-family:var(--mono); font-size:10px; color:var(--text-dimmer);
+  text-align:right; margin-top:4px;
+}
 .profile-hero-right{ text-align:right; }
 .profile-big3-label{
   font-family:var(--mono); font-size:11px; letter-spacing:0.2em;
@@ -415,6 +437,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
                 <span id="profileRankName" class="profile-rank-label">—</span>
               </div>
               <div id="profileMeta" class="profile-meta"></div>
+              <div id="profileBio" class="profile-bio"></div>
             </div>
           </div>
           <div class="profile-hero-right">
@@ -453,6 +476,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
               <button class="ep-action-btn danger" id="epRemoveAvatar" style="display:none;">
                 <i class="ti ti-trash" aria-hidden="true"></i>Remove avatar photo
               </button>
+            </div>
+            <div class="ep-bio-wrap">
+              <div class="ep-bio-label">Bio</div>
+              <textarea id="epBioTextarea" class="ep-bio-textarea" rows="3" maxlength="150" placeholder="Tell people about yourself…"></textarea>
+              <div class="ep-bio-count"><span id="epBioCount">0</span> / 150</div>
             </div>
           </div>
         </div>
@@ -853,6 +881,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   function renderHero(user, settings) {
     const nameEl = document.getElementById('profileName');
     if (nameEl) nameEl.textContent = (user.displayName || user.email?.split('@')[0] || '').toUpperCase();
+    const bioEl = document.getElementById('profileBio');
+    if (bioEl) bioEl.textContent = settings?.bio || '';
     renderAvatar(user, settings);
   }
 
@@ -1413,6 +1443,21 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       });
     }
 
+    /* ---- Bio ---- */
+    const bioTextarea = document.getElementById('epBioTextarea');
+    const bioCount    = document.getElementById('epBioCount');
+    if (bioTextarea) {
+      bioTextarea.addEventListener('input', () => {
+        if (bioCount) bioCount.textContent = bioTextarea.value.length;
+      });
+      bioTextarea.addEventListener('blur', async () => {
+        const val = bioTextarea.value.trim();
+        const bioEl = document.getElementById('profileBio');
+        if (bioEl) bioEl.textContent = val;
+        try { await settingsRef.set({ bio: val }, { merge: true }); } catch (e) {}
+      });
+    }
+
     /* ---- Edit Profile buttons ---- */
     const epChange   = document.getElementById('epChangeBanner');
     const epRepos    = document.getElementById('epReposition');
@@ -1475,6 +1520,9 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         currentProfileState = { squatMax:squatMax||0, benchMax:benchMax||0, deadMax:deadMax||0, bodyweight:bodyweight||185, height:height||'' };
         applyColors(d);
         renderHero(user, d);
+        const bioTextarea = document.getElementById('epBioTextarea');
+        const bioCount    = document.getElementById('epBioCount');
+        if (bioTextarea) { bioTextarea.value = d.bio || ''; if (bioCount) bioCount.textContent = (d.bio || '').length; }
         const bZoom = d.bannerZoom != null ? d.bannerZoom : 1;
         const bPosX = d.bannerPosX != null ? d.bannerPosX : 50;
         const bPosY = d.bannerPosY != null ? d.bannerPosY : 50;
