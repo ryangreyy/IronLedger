@@ -41,7 +41,7 @@
 }
 .profile-bio{
   font-size:13px; color:var(--text-dim); line-height:1.55;
-  margin-top:10px; max-width:420px;
+  margin-top:10px; max-width:420px; white-space:pre-wrap;
 }
 .profile-bio:empty{ display:none; }
 .ep-bio-wrap{ margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
@@ -480,7 +480,10 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
             <div class="ep-bio-wrap">
               <div class="ep-bio-label">Bio</div>
               <textarea id="epBioTextarea" class="ep-bio-textarea" rows="3" maxlength="150" placeholder="Tell people about yourself…"></textarea>
-              <div class="ep-bio-count"><span id="epBioCount">0</span> / 150</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+                <button id="epBioDone" class="ep-action-btn" style="display:none;padding:5px 14px;font-size:11px;">Done</button>
+                <div class="ep-bio-count" style="margin-top:0;margin-left:auto;"><span id="epBioCount">0</span> / 150</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1446,16 +1449,26 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     /* ---- Bio ---- */
     const bioTextarea = document.getElementById('epBioTextarea');
     const bioCount    = document.getElementById('epBioCount');
+    const bioDoneBtn  = document.getElementById('epBioDone');
+
+    async function saveBio() {
+      const val = bioTextarea.value.trim();
+      const bioEl = document.getElementById('profileBio');
+      if (bioEl) bioEl.textContent = val;
+      if (bioDoneBtn) bioDoneBtn.style.display = 'none';
+      try { await settingsRef.set({ bio: val }, { merge: true }); } catch (e) {}
+    }
+
     if (bioTextarea) {
+      bioTextarea.addEventListener('focus', () => {
+        if (bioDoneBtn) bioDoneBtn.style.display = '';
+      });
       bioTextarea.addEventListener('input', () => {
         if (bioCount) bioCount.textContent = bioTextarea.value.length;
       });
-      bioTextarea.addEventListener('blur', async () => {
-        const val = bioTextarea.value.trim();
-        const bioEl = document.getElementById('profileBio');
-        if (bioEl) bioEl.textContent = val;
-        try { await settingsRef.set({ bio: val }, { merge: true }); } catch (e) {}
-      });
+    }
+    if (bioDoneBtn) {
+      bioDoneBtn.addEventListener('click', () => { bioTextarea.blur(); saveBio(); });
     }
 
     /* ---- Edit Profile buttons ---- */
