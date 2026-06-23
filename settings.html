@@ -61,8 +61,8 @@
         <p class="settings-group-label">Profile</p>
         <div class="card" style="padding:28px;">
           <div class="field">
-            <label for="settingsName">Display name</label>
-            <input id="settingsName" type="text" placeholder="Your name" autocomplete="off">
+            <label for="settingsName">Username</label>
+            <input id="settingsName" type="text" placeholder="Choose a username" autocomplete="off" maxlength="30" spellcheck="false">
           </div>
           <div class="field">
             <label>Email</label>
@@ -85,7 +85,7 @@
             <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Icon color</p>
             <div id="iconColorPicker" class="avatar-bg-grid" style="margin-bottom:0;"></div>
           </div>
-          <button id="saveProfile" class="btn btn-primary">Save name</button>
+          <button id="saveProfile" class="btn btn-primary">Save username</button>
           <p id="profileMsg" class="settings-msg"></p>
         </div>
       </div>
@@ -351,6 +351,7 @@
   let selectedAvatarZoom     = null;
   let selectedAvatarPosX     = null;
   let selectedAvatarPosY     = null;
+  let currentUsername        = null;
 
   function updatePreview() {
     const preview = document.getElementById('emblemPreview');
@@ -515,6 +516,7 @@
         if (d.avatarZoom  != null) selectedAvatarZoom = d.avatarZoom;
         if (d.avatarPosX  != null) selectedAvatarPosX = d.avatarPosX;
         if (d.avatarPosY  != null) selectedAvatarPosY = d.avatarPosY;
+        if (d.username) { document.getElementById('settingsName').value = d.username; currentUsername = d.username; }
         renderEmblemGrid(user); renderRingPicker(user); renderBgPicker(user); renderIconPicker(user);
         updatePreview();
         applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user, selectedAvatarPhotoUrl, selectedAvatarZoom, selectedAvatarPosX, selectedAvatarPosY);
@@ -580,22 +582,55 @@
     auth.signOut().then(() => { window.location.href = 'index.html'; });
   });
 
-  /* ── SAVE DISPLAY NAME ── */
+  /* ── SAVE USERNAME ── */
   document.getElementById('saveProfile').addEventListener('click', async () => {
-    const newName = document.getElementById('settingsName').value.trim();
-    const msg     = document.getElementById('profileMsg');
-    const btn     = document.getElementById('saveProfile');
+    const raw = document.getElementById('settingsName').value.trim();
+    const msg = document.getElementById('profileMsg');
+    const btn = document.getElementById('saveProfile');
     msg.textContent = '';
-    if (!newName) { msg.style.color='var(--down)'; msg.textContent='Please enter a display name.'; return; }
+
+    if (!raw) { msg.style.color='var(--down)'; msg.textContent='Please enter a username.'; return; }
+    if (!/^[a-zA-Z0-9._]{3,30}$/.test(raw)) {
+      msg.style.color='var(--down)';
+      msg.textContent='3–30 chars, letters, numbers, dots, and underscores only.';
+      return;
+    }
+
+    const newKey = raw.toLowerCase();
+    const oldKey = currentUsername ? currentUsername.toLowerCase() : null;
+
+    if (oldKey && newKey === oldKey) {
+      msg.style.color='var(--text-dim)'; msg.textContent='That\'s already your username.';
+      return;
+    }
+
     btn.textContent = 'Saving…'; btn.disabled = true;
+
     try {
-      await auth.currentUser.updateProfile({ displayName: newName });
-      document.getElementById('nav-user-name').textContent = newName;
-      msg.style.color = 'var(--up)'; msg.textContent = '✓ Display name updated.';
+      const user = auth.currentUser;
+      const newDocRef = db.collection('usernames').doc(newKey);
+      const settRef   = db.doc(`users/${user.uid}/settings/main`);
+
+      await db.runTransaction(async tx => {
+        const snap = await tx.get(newDocRef);
+        if (snap.exists && snap.data().uid !== user.uid) {
+          throw new Error('That username is already taken.');
+        }
+        if (oldKey && oldKey !== newKey) {
+          tx.delete(db.collection('usernames').doc(oldKey));
+        }
+        tx.set(newDocRef, { uid: user.uid });
+        tx.set(settRef, { username: raw }, { merge: true });
+      });
+
+      await user.updateProfile({ displayName: raw });
+      document.getElementById('nav-user-name').textContent = raw;
+      currentUsername = raw;
+      msg.style.color = 'var(--up)'; msg.textContent = '✓ Username saved.';
       setTimeout(() => { msg.textContent = ''; }, 3000);
     } catch (err) {
       msg.style.color = 'var(--down)'; msg.textContent = err.message || 'Something went wrong.';
-    } finally { btn.textContent = 'Save name'; btn.disabled = false; }
+    } finally { btn.textContent = 'Save username'; btn.disabled = false; }
   });
 
   /* ── CHANGE PASSWORD ── */

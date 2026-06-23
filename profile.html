@@ -903,7 +903,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 
   function renderHero(user, settings) {
     const nameEl = document.getElementById('profileName');
-    if (nameEl) nameEl.textContent = (user.displayName || user.email?.split('@')[0] || '').toUpperCase();
+    if (nameEl) nameEl.textContent = (settings?.username || user.displayName || user.email?.split('@')[0] || '').toUpperCase();
     const bioEl = document.getElementById('profileBio');
     if (bioEl) applyBio(bioEl, settings?.bio || '');
     renderAvatar(user, settings);
