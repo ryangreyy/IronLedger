@@ -1430,8 +1430,27 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         if (initAvatar.setCurrentState) initAvatar.setCurrentState(aZ, aPX, aPY);
         const navAv = document.getElementById('nav-avatar');
         if (navAv && d.avatarPhotoUrl) {
-          navAv.style.cssText = 'overflow:hidden;background:transparent;';
-          navAv.innerHTML = `<img src="${d.avatarPhotoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+          navAv.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
+          navAv.innerHTML = '';
+          const navImg = document.createElement('img');
+          navImg.alt = '';
+          navImg.style.cssText = 'position:absolute;object-fit:fill;';
+          navImg.onload = function () {
+            const cW = navAv.offsetWidth  || 36;
+            const cH = navAv.offsetHeight || 36;
+            const z  = aZ;
+            const px = aPX;
+            const py = aPY;
+            const base = Math.max(cW / navImg.naturalWidth, cH / navImg.naturalHeight);
+            const dW = navImg.naturalWidth  * base * z;
+            const dH = navImg.naturalHeight * base * z;
+            navImg.style.width  = dW + 'px';
+            navImg.style.height = dH + 'px';
+            navImg.style.left   = -((dW - cW) * px / 100) + 'px';
+            navImg.style.top    = -((dH - cH) * py / 100) + 'px';
+          };
+          navImg.src = d.avatarPhotoUrl;
+          navAv.appendChild(navImg);
         }
         renderAll();
       });

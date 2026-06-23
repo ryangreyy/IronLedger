@@ -23,11 +23,34 @@
     { id:'rex',      icon:'ti-chess-king' },
   ];
 
-  function applyAvatar(el, user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl) {
+  function applyNavPhoto(el, url, zoom, posX, posY) {
+    el.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
+    el.innerHTML = '';
+    const img = document.createElement('img');
+    img.alt = '';
+    img.style.cssText = 'position:absolute;object-fit:fill;';
+    img.onload = function () {
+      const cW = el.offsetWidth  || 36;
+      const cH = el.offsetHeight || 36;
+      const z  = zoom  != null ? zoom  : 1;
+      const px = posX  != null ? posX  : 50;
+      const py = posY  != null ? posY  : 50;
+      const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+      const dW = img.naturalWidth  * base * z;
+      const dH = img.naturalHeight * base * z;
+      img.style.width  = dW + 'px';
+      img.style.height = dH + 'px';
+      img.style.left   = -((dW - cW) * px / 100) + 'px';
+      img.style.top    = -((dH - cH) * py / 100) + 'px';
+    };
+    img.src = url;
+    el.appendChild(img);
+  }
+
+  function applyAvatar(el, user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY) {
     if (!el) return;
     if (avatarPhotoUrl) {
-      el.style.cssText = 'overflow:hidden;background:transparent;';
-      el.innerHTML = `<img src="${avatarPhotoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      applyNavPhoto(el, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY);
       return;
     }
     const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
@@ -66,14 +89,14 @@
       try {
         const snap = await db.doc(`users/${user.uid}/settings/main`).get();
         const d = snap.data() || {};
-        applyAvatar(navAvatarEl, user, d.avatarId, d.avatarRingColor, d.avatarBgColor, d.avatarIconColor, d.avatarPhotoUrl);
+        applyAvatar(navAvatarEl, user, d.avatarId, d.avatarRingColor, d.avatarBgColor, d.avatarIconColor, d.avatarPhotoUrl, d.avatarZoom, d.avatarPosX, d.avatarPosY);
       } catch (_) {
-        applyAvatar(navAvatarEl, user, null, null, null, null, null);
+        applyAvatar(navAvatarEl, user, null, null, null, null, null, null, null, null);
       }
     } else {
       if (navSignedIn)  navSignedIn.style.display  = 'none';
       if (navSignedOut) navSignedOut.style.display = '';
-      applyAvatar(navAvatarEl, null, null, null, null, null);
+      applyAvatar(navAvatarEl, null, null, null, null, null, null, null, null, null);
     }
   });
 

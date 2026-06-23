@@ -121,11 +121,30 @@ const ICON_COLORS  = ['#ffffff','#f0f4f8','#d4af37','#ff5a5a','#ff8a4c','#ffd700
 
 let currentUser = null;
 
-function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl) {
+function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY) {
   if (!navAvatar) return;
   if (avatarPhotoUrl) {
-    navAvatar.style.cssText = 'overflow:hidden;background:transparent;';
-    navAvatar.innerHTML = `<img src="${avatarPhotoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+    navAvatar.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
+    navAvatar.innerHTML = '';
+    const img = document.createElement('img');
+    img.alt = '';
+    img.style.cssText = 'position:absolute;object-fit:fill;';
+    img.onload = function () {
+      const cW = navAvatar.offsetWidth  || 36;
+      const cH = navAvatar.offsetHeight || 36;
+      const z  = avatarZoom != null ? avatarZoom : 1;
+      const px = avatarPosX != null ? avatarPosX : 50;
+      const py = avatarPosY != null ? avatarPosY : 50;
+      const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+      const dW = img.naturalWidth  * base * z;
+      const dH = img.naturalHeight * base * z;
+      img.style.width  = dW + 'px';
+      img.style.height = dH + 'px';
+      img.style.left   = -((dW - cW) * px / 100) + 'px';
+      img.style.top    = -((dH - cH) * py / 100) + 'px';
+    };
+    img.src = avatarPhotoUrl;
+    navAvatar.appendChild(img);
     return;
   }
   const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
@@ -2205,7 +2224,7 @@ function initApp(uid) {
       applyColors(currentSettings);
       renderGoals(currentSettings.goals);
       applyCustomLifts(currentSettings.customLifts);
-      applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarRingColor || null, currentSettings.avatarBgColor || null, currentSettings.avatarIconColor || null, currentSettings.avatarPhotoUrl || null);
+      applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarRingColor || null, currentSettings.avatarBgColor || null, currentSettings.avatarIconColor || null, currentSettings.avatarPhotoUrl || null, currentSettings.avatarZoom != null ? currentSettings.avatarZoom : null, currentSettings.avatarPosX != null ? currentSettings.avatarPosX : null, currentSettings.avatarPosY != null ? currentSettings.avatarPosY : null);
     } else {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');
