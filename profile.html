@@ -885,12 +885,12 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   function applyBio(el, text) {
     el.textContent = '';
     if (!text) return;
-    /* Split on URLs (capture group keeps them in the array) */
-    const parts = text.split(/(https?:\/\/[^\s]+)/g);
+    /* Split on URLs — matches https?:// or bare www. */
+    const parts = text.split(/(https?:\/\/[^\s]+|www\.[^\s]+)/g);
     parts.forEach((part, i) => {
       if (i % 2 === 1) {
         const a = document.createElement('a');
-        a.href = part;
+        a.href = part.startsWith('http') ? part : 'https://' + part;
         a.textContent = part;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
