@@ -482,15 +482,23 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
   /* Detach native datalist so only our custom dropdown shows */
   input.removeAttribute('list');
 
+  const catFilter = document.getElementById('liftCatFilter');
+
   function allLifts() {
-    return Array.from(document.querySelectorAll('#lift-options option')).map(o => o.value);
+    return Array.from(document.querySelectorAll('#lift-options option')).map(o => ({
+      value: o.value,
+      cat: o.dataset.cat || ''
+    }));
   }
 
   function render(filter) {
-    const q    = (filter || '').toLowerCase();
-    const opts = allLifts().filter(o => !q || o.toLowerCase().includes(q));
+    const q   = (filter || '').toLowerCase();
+    const cat = catFilter ? catFilter.value : '';
+    const opts = allLifts().filter(o =>
+      (!cat || o.cat === cat) && (!q || o.value.toLowerCase().includes(q))
+    );
     list.innerHTML = opts.length
-      ? opts.map(o => `<div class="lift-opt">${o}</div>`).join('')
+      ? opts.map(o => `<div class="lift-opt">${o.value}</div>`).join('')
       : '<div class="lift-opt lift-opt-empty">No matches</div>';
     list.querySelectorAll('.lift-opt:not(.lift-opt-empty)').forEach(el => {
       el.addEventListener('click', () => {
@@ -510,12 +518,19 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
     isOpen() ? close() : open();
   });
 
+  if (catFilter) {
+    catFilter.addEventListener('change', () => {
+      input.value = '';
+      open();
+    });
+  }
+
   input.addEventListener('focus', () => open());
   input.addEventListener('input', () => { if (isOpen()) render(input.value); });
   input.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 
   document.addEventListener('pointerdown', e => {
-    if (!e.target.closest('.lift-wrap')) close();
+    if (!e.target.closest('.lift-wrap') && !e.target.closest('#liftCatFilter')) close();
   });
 })();
 
@@ -2182,16 +2197,19 @@ function initApp(uid) {
     });
   }
 
+  const CLS_TO_CAT = { squat:'legs', bench:'chest', dead:'back', arm:'arms' };
   function applyCustomLifts(lifts) {
     const datalist = document.getElementById('lift-options');
     if (!datalist) return;
     datalist.querySelectorAll('option[data-custom]').forEach(o => o.remove());
     (lifts || []).forEach(l => {
       const name = typeof l === 'string' ? l : l.name;
+      const cls  = typeof l === 'string' ? '' : (l.cls || '');
       if (!name) return;
       const opt = document.createElement('option');
       opt.value = name;
       opt.dataset.custom = '1';
+      opt.dataset.cat = CLS_TO_CAT[cls] || '';
       datalist.appendChild(opt);
     });
   }

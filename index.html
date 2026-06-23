@@ -207,7 +207,17 @@
             <input id="logDate" type="date">
           </div>
           <div class="field">
-            <label for="logLift">Lift</label>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label for="logLift" style="margin:0;">Lift</label>
+              <select id="liftCatFilter" style="font-size:11px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--bg-2);border:1px solid var(--border);color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;outline:none;">
+                <option value="">All</option>
+                <option value="legs">Legs</option>
+                <option value="chest">Chest</option>
+                <option value="back">Back</option>
+                <option value="shoulders">Shoulders</option>
+                <option value="arms">Arms</option>
+              </select>
+            </div>
             <div class="lift-wrap">
               <input id="logLift" list="lift-options" placeholder="Type or pick a lift…" autocomplete="off">
               <button type="button" id="liftDropdownBtn" class="lift-dropdown-btn" tabindex="-1" aria-label="Show lift options">
@@ -219,70 +229,71 @@
 
           <datalist id="lift-options">
             <!-- Legs -->
-            <option value="Squat">
-            <option value="BW Squat">
-            <option value="Smith Squat">
-            <option value="Bulgarian Split Squats">
-            <option value="Hack Squat">
-            <option value="Pendulum Squat">
-            <option value="Leg Press">
-            <option value="Lunges">
-            <option value="Hip Thrust">
-            <option value="RDL">
-            <option value="Leg Extension">
-            <option value="Seated Hamstring Curl">
-            <option value="Lying Hamstring Curl">
-            <option value="Calf Raise">
-            <option value="Adductors">
-            <option value="Abductors">
+            <option value="Squat" data-cat="legs">
+            <option value="BW Squat" data-cat="legs">
+            <option value="Smith Squat" data-cat="legs">
+            <option value="Bulgarian Split Squats" data-cat="legs">
+            <option value="Hack Squat" data-cat="legs">
+            <option value="Pendulum Squat" data-cat="legs">
+            <option value="Leg Press" data-cat="legs">
+            <option value="Lunges" data-cat="legs">
+            <option value="Hip Thrust" data-cat="legs">
+            <option value="RDL" data-cat="legs">
+            <option value="Leg Extension" data-cat="legs">
+            <option value="Seated Hamstring Curl" data-cat="legs">
+            <option value="Lying Hamstring Curl" data-cat="legs">
+            <option value="Calf Raise" data-cat="legs">
+            <option value="Adductors" data-cat="legs">
+            <option value="Abductors" data-cat="legs">
             <!-- Chest -->
-            <option value="Bench Press">
-            <option value="Incline Press">
-            <option value="Decline Chest Press">
-            <option value="DB Flat Press">
-            <option value="DB Incline Press">
-            <option value="Machine Chest Press">
-            <option value="Dips">
-            <option value="Push-Up">
-            <option value="Low Chest Fly">
-            <option value="Mid Chest Fly">
-            <option value="High Chest Fly">
-            <option value="Pec Dec">
+            <option value="Bench Press" data-cat="chest">
+            <option value="Incline Press" data-cat="chest">
+            <option value="Decline Chest Press" data-cat="chest">
+            <option value="DB Flat Press" data-cat="chest">
+            <option value="DB Incline Press" data-cat="chest">
+            <option value="Machine Chest Press" data-cat="chest">
+            <option value="Dips" data-cat="chest">
+            <option value="Push-Up" data-cat="chest">
+            <option value="Low Chest Fly" data-cat="chest">
+            <option value="Mid Chest Fly" data-cat="chest">
+            <option value="High Chest Fly" data-cat="chest">
+            <option value="Pec Dec" data-cat="chest">
             <!-- Back -->
-            <option value="Deadlift">
-            <option value="Rack Pull">
-            <option value="Barbell Row">
-            <option value="Cable Row">
-            <option value="Chest Supported Row">
-            <option value="Machine Row">
-            <option value="T-Bar Row">
-            <option value="Machine Lat Pulldown">
-            <option value="Cable Lat Pulldown">
-            <option value="Pull-Up">
-            <option value="Lat Pullover">
-            <option value="Shrugs">
-            <!-- Arms / Shoulders -->
-            <option value="Shoulder Press">
-            <option value="Arnold Press">
-            <option value="DB Lateral Raise">
-            <option value="Cable Lateral Raise">
-            <option value="Machine Lateral Raise">
-            <option value="Rear Delt Raise">
-            <option value="Face Pull">
-            <option value="DB Bicep Curl">
-            <option value="Cable Bicep Curl">
-            <option value="Machine Bicep Curl">
-            <option value="Hammer Curl">
-            <option value="Preacher Curl">
-            <option value="Tricep Pushdown">
-            <option value="Single Arm Tricep Pushdown">
-            <option value="DB Tricep Extension">
-            <option value="Cable Tricep Extension">
-            <option value="Machine Tricep Extension">
-            <option value="Close Grip Bench">
-            <option value="Skull Crusher">
-            <option value="Overhead Tricep">
-            <option value="JM Press">
+            <option value="Deadlift" data-cat="back">
+            <option value="Rack Pull" data-cat="back">
+            <option value="Barbell Row" data-cat="back">
+            <option value="Cable Row" data-cat="back">
+            <option value="Chest Supported Row" data-cat="back">
+            <option value="Machine Row" data-cat="back">
+            <option value="T-Bar Row" data-cat="back">
+            <option value="Machine Lat Pulldown" data-cat="back">
+            <option value="Cable Lat Pulldown" data-cat="back">
+            <option value="Pull-Up" data-cat="back">
+            <option value="Lat Pullover" data-cat="back">
+            <option value="Shrugs" data-cat="back">
+            <!-- Shoulders -->
+            <option value="Shoulder Press" data-cat="shoulders">
+            <option value="Arnold Press" data-cat="shoulders">
+            <option value="DB Lateral Raise" data-cat="shoulders">
+            <option value="Cable Lateral Raise" data-cat="shoulders">
+            <option value="Machine Lateral Raise" data-cat="shoulders">
+            <option value="Rear Delt Raise" data-cat="shoulders">
+            <option value="Face Pull" data-cat="shoulders">
+            <!-- Arms -->
+            <option value="DB Bicep Curl" data-cat="arms">
+            <option value="Cable Bicep Curl" data-cat="arms">
+            <option value="Machine Bicep Curl" data-cat="arms">
+            <option value="Hammer Curl" data-cat="arms">
+            <option value="Preacher Curl" data-cat="arms">
+            <option value="Tricep Pushdown" data-cat="arms">
+            <option value="Single Arm Tricep Pushdown" data-cat="arms">
+            <option value="DB Tricep Extension" data-cat="arms">
+            <option value="Cable Tricep Extension" data-cat="arms">
+            <option value="Machine Tricep Extension" data-cat="arms">
+            <option value="Close Grip Bench" data-cat="arms">
+            <option value="Skull Crusher" data-cat="arms">
+            <option value="Overhead Tricep" data-cat="arms">
+            <option value="JM Press" data-cat="arms">
           </datalist>
           <div class="field">
             <label for="logSets">Sets</label>
