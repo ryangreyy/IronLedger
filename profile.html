@@ -1635,7 +1635,17 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       if (page) page.style.display = 'none';
     }
   });
+
+  /* ── Sign-out + hamburger (inline — nav-auth.js not loaded on this page) ── */
+  const _signOutBtn = document.getElementById('signOut');
+  if (_signOutBtn) _signOutBtn.addEventListener('click', () => auth.signOut().then(() => { window.location.href = 'index.html'; }));
+  const _hamburger  = document.getElementById('nav-hamburger');
+  const _navLinks   = document.getElementById('nav-links');
+  if (_hamburger && _navLinks) {
+    _hamburger.addEventListener('click', e => { e.stopPropagation(); _navLinks.classList.toggle('open'); });
+    _navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => _navLinks.classList.remove('open')));
+    document.addEventListener('click', () => _navLinks.classList.remove('open'));
+  }
 </script>
-<script src="nav-auth.js"></script>
 </body>
 </html>
