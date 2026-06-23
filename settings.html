@@ -68,23 +68,6 @@
             <label>Email</label>
             <input id="settingsEmail" type="text" disabled style="opacity:0.45;cursor:not-allowed;">
           </div>
-          <div class="field" style="margin-bottom:0;">
-            <label style="margin-bottom:10px;display:block;">Profile emblem</label>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-              <p style="font-size:13px;color:var(--text-dim);margin:0;">Pick your emblem and customize the colors.</p>
-              <button id="avatarRandomBtn" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;white-space:nowrap;flex-shrink:0;margin-left:12px;">Randomize</button>
-            </div>
-            <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
-              <div id="emblemPreview" style="width:64px;height:64px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
-            </div>
-            <div id="emblemGrid" class="avatar-grid" style="margin-bottom:20px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Ring color</p>
-            <div id="ringColorPicker" class="avatar-bg-grid" style="margin-bottom:16px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Background color</p>
-            <div id="bgColorPicker" class="avatar-bg-grid" style="margin-bottom:16px;"></div>
-            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin:0 0 8px;">Icon color</p>
-            <div id="iconColorPicker" class="avatar-bg-grid" style="margin-bottom:0;"></div>
-          </div>
           <button id="saveProfile" class="btn btn-primary">Save username</button>
           <p id="profileMsg" class="settings-msg"></p>
         </div>
@@ -303,67 +286,13 @@
   let currentUid = null;
   const settingsRef = () => db.collection('users').doc(currentUid).collection('settings').doc('main');
 
-  /* ── IRON EMBLEMS PICKER ── */
-  const EMBLEMS = [
-    { id:'gladius',  icon:'ti-sword',     label:'Gladius'  },
-    { id:'scutum',   icon:'ti-shield',    label:'Scutum'   },
-    { id:'summit',   icon:'ti-mountain',  label:'Summit'   },
-    { id:'inferno',  icon:'ti-flame',     label:'Inferno'  },
-    { id:'surge',    icon:'ti-bolt',      label:'Surge'    },
-    { id:'iron',     icon:'ti-barbell',   label:'Iron'     },
-    { id:'duellum',  icon:'ti-swords',    label:'Duellum'  },
-    { id:'target',   icon:'ti-target',    label:'Target'   },
-    { id:'anchor',   icon:'ti-anchor',    label:'Anchor'   },
-    { id:'skull',    icon:'ti-skull',     label:'Skull'    },
-    { id:'securis',  icon:'ti-axe',       label:'Securis'  },
-    { id:'tridens',  icon:'ti-spade',     label:'Tridens'  },
-    { id:'serpens',  icon:'ti-dna-2',     label:'Serpens'  },
-    { id:'taurus',   icon:'ti-chess-rook',label:'Taurus'   },
-    { id:'corona',   icon:'ti-crown',     label:'Corona'   },
-    { id:'dagger',   icon:'ti-tools',     label:'Dagger'   },
-    { id:'storm',    icon:'ti-tornado',   label:'Storm'    },
-    { id:'rex',      icon:'ti-chess-king',label:'Rex'      },
-  ];
-  const RING_COLORS = [
-    '#d4af37','#c0c0c0','#cd7f32','#e63946','#ffffff',
-    '#4a9eff','#4ade80','#ff7eb3','#b78bff','#ff8a4c',
-    '#5bd6e6','#c9a84c',
-  ];
-  const BG_COLORS = [
-    '#1a1a26','#12161f','#0d1320','#1e2d42','#7a0e0e',
-    '#1e3a24','#3a0e1e','#4a2010','#0d2640','#1a3020',
-    '#2a3442','#222730',
-    '#ffffff','#e0e0e0','#ffb3b3','#ffd6a0',
-    '#fff176','#a5d6a7','#90caf9','#ce93d8',
-    '#f48fb1','#80deea','#c5e1a5','#ffcc80',
-  ];
-  const ICON_COLORS = [
-    '#ffffff','#f0f4f8','#d4af37','#ff5a5a','#ff8a4c',
-    '#ffd700','#4ade80','#5bd6e6','#4a9eff','#b78bff',
-    '#ff7eb3','#c9a84c',
-  ];
-
-  let selectedEmblemId       = 'gladius';
-  let selectedRingColor      = '#d4af37';
-  let selectedBgColor        = '#8b1c1c';
-  let selectedIconColor      = '#ffffff';
   let selectedAvatarPhotoUrl = null;
   let selectedAvatarZoom     = null;
   let selectedAvatarPosX     = null;
   let selectedAvatarPosY     = null;
   let currentUsername        = null;
 
-  function updatePreview() {
-    const preview = document.getElementById('emblemPreview');
-    if (!preview) return;
-    const emb = EMBLEMS.find(e => e.id === selectedEmblemId);
-    if (emb) {
-      preview.style.cssText = `width:64px;height:64px;border-radius:50%;background:${selectedBgColor};box-shadow:inset 0 0 0 4px ${selectedRingColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;`;
-      preview.innerHTML = `<i class="ti ${emb.icon}" style="font-size:28px;color:${selectedIconColor};line-height:1;" aria-hidden="true"></i>`;
-    }
-  }
-
-  function applyNavAvatarSettings(emblemId, ringColor, bgColor, iconColor, user, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY) {
+  function applyNavAvatarSettings(user, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY) {
     const navAv = document.getElementById('nav-avatar');
     if (!navAv) return;
     if (avatarPhotoUrl) {
@@ -388,12 +317,6 @@
       };
       img.src = avatarPhotoUrl;
       navAv.appendChild(img);
-      return;
-    }
-    const emb = EMBLEMS.find(e => e.id === emblemId);
-    if (emb) {
-      navAv.style.cssText = `background:${bgColor};box-shadow:inset 0 0 0 2.5px ${ringColor};display:flex;align-items:center;justify-content:center;`;
-      navAv.innerHTML = `<i class="ti ${emb.icon}" style="font-size:15px;color:${iconColor};line-height:1;" aria-hidden="true"></i>`;
     } else if (user && user.photoURL) {
       navAv.style.cssText = '';
       navAv.innerHTML = `<img src="${user.photoURL}" alt="">`;
@@ -402,63 +325,6 @@
       navAv.innerHTML = '';
       navAv.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
     }
-  }
-
-  function renderEmblemGrid(user) {
-    const grid = document.getElementById('emblemGrid');
-    if (!grid) return;
-    grid.innerHTML = EMBLEMS.map(e =>
-      `<button class="avatar-option${selectedEmblemId === e.id ? ' av-selected' : ''}" data-id="${e.id}" title="${e.label}" aria-label="${e.label}" style="background:${selectedBgColor};box-shadow:inset 0 0 0 2.5px ${selectedRingColor};">
-        <i class="ti ${e.icon}" style="font-size:22px;color:${selectedIconColor};line-height:1;" aria-hidden="true"></i>
-      </button>`
-    ).join('');
-    grid.querySelectorAll('.avatar-option').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        selectedEmblemId = btn.dataset.id;
-        renderEmblemGrid(user);
-        updatePreview();
-        applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user, selectedAvatarPhotoUrl, selectedAvatarZoom, selectedAvatarPosX, selectedAvatarPosY);
-        try { await settingsRef().set({ avatarId: selectedEmblemId }, { merge: true }); } catch(e) {}
-      });
-    });
-  }
-
-  function renderColorPicker(containerId, colors, selectedColor, onSelect) {
-    const picker = document.getElementById(containerId);
-    if (!picker) return;
-    picker.innerHTML = colors.map(color =>
-      `<div class="avatar-bg-swatch${selectedColor === color ? ' bg-selected' : ''}" data-color="${color}" style="background:${color};" title="${color}"></div>`
-    ).join('');
-    picker.querySelectorAll('.avatar-bg-swatch').forEach(sw => {
-      sw.addEventListener('click', () => onSelect(sw.dataset.color));
-    });
-  }
-
-  function renderRingPicker(user) {
-    renderColorPicker('ringColorPicker', RING_COLORS, selectedRingColor, async color => {
-      selectedRingColor = color;
-      renderRingPicker(user); renderEmblemGrid(user); updatePreview();
-      applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
-      try { await settingsRef().set({ avatarRingColor: color }, { merge: true }); } catch(e) {}
-    });
-  }
-
-  function renderBgPicker(user) {
-    renderColorPicker('bgColorPicker', BG_COLORS, selectedBgColor, async color => {
-      selectedBgColor = color;
-      renderBgPicker(user); renderEmblemGrid(user); updatePreview();
-      applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
-      try { await settingsRef().set({ avatarBgColor: color }, { merge: true }); } catch(e) {}
-    });
-  }
-
-  function renderIconPicker(user) {
-    renderColorPicker('iconColorPicker', ICON_COLORS, selectedIconColor, async color => {
-      selectedIconColor = color;
-      renderIconPicker(user); renderEmblemGrid(user); updatePreview();
-      applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
-      try { await settingsRef().set({ avatarIconColor: color }, { merge: true }); } catch(e) {}
-    });
   }
 
   /* ── AUTH STATE ── */
@@ -480,24 +346,6 @@
         'Your password is managed through your Google account.';
     }
 
-    /* Render emblem pickers immediately with defaults, then load prefs */
-    renderEmblemGrid(user);
-    renderRingPicker(user);
-    renderBgPicker(user);
-    renderIconPicker(user);
-    updatePreview();
-
-    document.getElementById('avatarRandomBtn').addEventListener('click', async () => {
-      selectedEmblemId  = EMBLEMS[Math.floor(Math.random() * EMBLEMS.length)].id;
-      selectedRingColor = RING_COLORS[Math.floor(Math.random() * RING_COLORS.length)];
-      selectedBgColor   = BG_COLORS[Math.floor(Math.random() * BG_COLORS.length)];
-      selectedIconColor = ICON_COLORS[Math.floor(Math.random() * ICON_COLORS.length)];
-      renderEmblemGrid(user); renderRingPicker(user); renderBgPicker(user); renderIconPicker(user);
-      updatePreview();
-      applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user);
-      try { await settingsRef().set({ avatarId: selectedEmblemId, avatarRingColor: selectedRingColor, avatarBgColor: selectedBgColor, avatarIconColor: selectedIconColor }, { merge: true }); } catch(e) {}
-    });
-
     /* Load saved preferences */
     loadColors(null); /* apply defaults immediately while Firestore loads */
     try {
@@ -508,18 +356,12 @@
         if (d.defaultLift !== undefined) document.getElementById('defaultLiftSel').value = d.defaultLift;
         loadColors(d);
         if (Array.isArray(d.customLifts)) { customLifts = d.customLifts; renderCustomLiftList(); }
-        if (d.avatarId)        selectedEmblemId       = d.avatarId;
-        if (d.avatarRingColor) selectedRingColor      = d.avatarRingColor;
-        if (d.avatarBgColor)   selectedBgColor        = d.avatarBgColor;
-        if (d.avatarIconColor) selectedIconColor      = d.avatarIconColor;
         if (d.avatarPhotoUrl)  selectedAvatarPhotoUrl = d.avatarPhotoUrl;
         if (d.avatarZoom  != null) selectedAvatarZoom = d.avatarZoom;
         if (d.avatarPosX  != null) selectedAvatarPosX = d.avatarPosX;
         if (d.avatarPosY  != null) selectedAvatarPosY = d.avatarPosY;
         if (d.username) { document.getElementById('settingsName').value = d.username; currentUsername = d.username; }
-        renderEmblemGrid(user); renderRingPicker(user); renderBgPicker(user); renderIconPicker(user);
-        updatePreview();
-        applyNavAvatarSettings(selectedEmblemId, selectedRingColor, selectedBgColor, selectedIconColor, user, selectedAvatarPhotoUrl, selectedAvatarZoom, selectedAvatarPosX, selectedAvatarPosY);
+        applyNavAvatarSettings(user, selectedAvatarPhotoUrl, selectedAvatarZoom, selectedAvatarPosX, selectedAvatarPosY);
       }
     } catch (e) { /* preferences not saved yet — use defaults */ }
   });
