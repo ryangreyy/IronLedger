@@ -1,14 +1,9 @@
 /* IRONGLADIATOR — Interactive logic, Firebase auth, and per-user data sync.
    Load order: firebase SDKs → firebase-config.js → data.js → this file. */
 
-/* Start at top on fresh loads; scroll to hash when navigating from another page */
+/* Start at top on fresh loads; hash navigation re-scrolls after auth+data render */
 history.scrollRestoration = 'manual';
-if (location.hash) {
-  window.addEventListener('load', () => {
-    const el = document.querySelector(location.hash);
-    if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
-  });
-} else {
+if (!location.hash) {
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   window.addEventListener('load', () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
 }
@@ -344,6 +339,10 @@ auth.onAuthStateChanged(user => {
     navUserName.textContent = user.displayName || user.email.split('@')[0];
     applyNavAvatar(user, null, null, null, null); // placeholder; overridden by onSnapshot once settings load
     initApp(user.uid);
+    if (location.hash) setTimeout(() => {
+      const el = document.querySelector(location.hash);
+      if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }, 900);
   } else {
     /* ---- Signed out — show landing page, render empty cards ---- */
     isSignedIn = false;
@@ -352,6 +351,10 @@ auth.onAuthStateChanged(user => {
     navSignedIn.style.display  = 'none';
     navSignedOut.style.display = '';
     initApp(null);   // renders all cards with empty data, returns before Firestore
+    if (location.hash) setTimeout(() => {
+      const el = document.querySelector(location.hash);
+      if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }, 200);
   }
 });
 
