@@ -30,12 +30,6 @@
   font-family:var(--display); font-size:clamp(20px,3.6vw,40px);
   text-transform:uppercase; color:var(--text); line-height:1; margin-bottom:10px;
 }
-.profile-rank-row{ display:flex; align-items:center; gap:10px; margin-bottom:7px; }
-.profile-rank-row .rank-hex{ width:28px; height:32px; }
-.profile-rank-label{
-  font-family:var(--mono); font-size:13px; font-weight:700;
-  text-transform:uppercase; letter-spacing:0.14em; color:var(--accent-bright);
-}
 .profile-meta{
   font-family:var(--mono); font-size:11px; color:var(--text-dimmer);
   letter-spacing:0.1em; text-transform:uppercase;
@@ -73,7 +67,6 @@
   }
   .profile-avatar i{ font-size:24px; }
   .profile-name{ font-size:clamp(20px,6vw,26px); margin-bottom:6px; }
-  .profile-rank-row{ margin-bottom:4px; }
 }
 
 /* ---- KPI strip ---- */
@@ -385,10 +378,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
             <div>
               <div class="eyebrow" style="margin-bottom:8px;">Athlete Profile</div>
               <div id="profileName" class="profile-name">—</div>
-              <div class="profile-rank-row">
-                <span id="profileRankHex"></span>
-                <span id="profileRankName" class="profile-rank-label">—</span>
-              </div>
               <div id="profileMeta" class="profile-meta"></div>
               <div id="profileBio" class="profile-bio"></div>
               <!-- XP rank bar — populated by challenges.js -->
@@ -895,10 +884,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   }
 
   function updateHeroRank(sq, bn, dl, bw) {
-    const hexEl  = document.getElementById('profileRankHex');
-    const nameEl = document.getElementById('profileRankName');
-    if (!hexEl || !nameEl) return;
-    if (!sq && !bn && !dl) { hexEl.innerHTML = ''; nameEl.textContent = '—'; return; }
+    if (!sq && !bn && !dl) return;
     const lifts = [['squat',sq],['bench',bn],['dead',dl]];
     let sumIdx = 0, n = 0;
     for (const [key, mx] of lifts) {
@@ -906,10 +892,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       const { passed } = liftTier(key, mx, bw);
       sumIdx += Math.max(0, Math.min(7, passed - 1)); n++;
     }
-    const overall = n ? Math.round(sumIdx / n) : 0;
-    currentOverallRank = overall;
-    hexEl.innerHTML = rankHex(overall);
-    nameEl.textContent = RANK_NAMES[overall];
+    currentOverallRank = n ? Math.round(sumIdx / n) : 0;
   }
 
   /* ---- KPI strip ---- */
