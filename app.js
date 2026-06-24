@@ -1133,7 +1133,7 @@ function initApp(uid) {
     if (['bench','bench press','incline press','decline chest press','db flat press','db incline press','machine chest press','dips','push-up','chest fly','low chest fly','mid chest fly','high chest fly','pec dec'].includes(n)) return 'bench';
     if (['deadlift','rack pull'].includes(n))                                                        return 'dead';
     if (['row','barbell row','cable row','chest supported row','machine row','pulldown','lat pulldown','machine lat pulldown','cable lat pulldown','pull-up','t-bar row','lat pullover','shrugs'].includes(n)) return 'dead';
-    if (['overhead press','ohp','arnold press','lateral raise','db lateral raise','cable lateral raise','machine lateral raise',
+    if (['overhead press','ohp','shoulder press','arnold press','lateral raise','db lateral raise','cable lateral raise','machine lateral raise',
          'rear delt raise','front raise','face pull',
          'tricep pushdown','single arm tricep pushdown','db tricep extension','cable tricep extension','machine tricep extension',
          'overhead tricep','skull crusher','close grip bench','jm press',
@@ -1341,12 +1341,14 @@ function initApp(uid) {
 
   function renderLog(sessions) {
     currentSessions = sessions;
+    const logBodyEl = document.getElementById('logBody');
     const totalPages = Math.max(1, Math.ceil(sessions.length / PAGE_SIZE));
     if (currentPage > totalPages) currentPage = totalPages;
     const start = (currentPage - 1) * PAGE_SIZE;
     const page  = sessions.slice(start, start + PAGE_SIZE);
 
-    document.getElementById('logBody').innerHTML = sessions.length
+    if (!logBodyEl) return;
+    logBodyEl.innerHTML = sessions.length
       ? page.map(s => s.isRestDay ? `
           <tr data-id="${s.id}" class="rest-day-row">
             <td style="color:var(--text-dim);white-space:nowrap">${s.date}</td>
