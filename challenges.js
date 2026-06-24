@@ -592,12 +592,7 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
   const section = document.getElementById('challenges-section');
   if (!section) return;
 
-  const total    = xpTotal || 0;
-  const rank     = getRankFromXP(total);
-  const progress = rank.nextXP
-    ? Math.min(100, Math.round(((total - rank.thisXP) / (rank.nextXP - rank.thisXP)) * 100))
-    : 100;
-  const xpLeft   = rank.nextXP ? (rank.nextXP - total).toLocaleString() + ' XP to ' + rank.nextName : 'Max rank reached';
+  igRenderXPBar(xpTotal);
 
   function card(entry) {
     const c = CHALLENGE_POOL.find(x => x.id === entry.id);
@@ -637,16 +632,7 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
   const weeklyAssigned = weeklyData?.assigned || [];
 
   section.innerHTML = `
-    <div class="eyebrow" style="margin-bottom:14px;">Daily Progress</div>
-
-    <div class="card ch-xp-card">
-      <div class="ch-xp-row">
-        <div class="ch-rank-name">${rank.rankName}</div>
-        <div class="ch-xp-nums">${total.toLocaleString()} / ${rank.nextXP ? rank.nextXP.toLocaleString() : '—'} XP</div>
-      </div>
-      <div class="ch-bar-bg"><div class="ch-bar-fill" style="width:${progress}%"></div></div>
-      <div class="ch-xp-sub">${xpLeft}</div>
-    </div>
+    <div class="eyebrow" style="margin-bottom:14px;">Challenges</div>
 
     <div class="ch-section-head">
       <div style="display:flex;align-items:center;gap:10px;">
@@ -669,5 +655,31 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
     </div>
 
     ${weeklyAssigned.length ? weeklyAssigned.map(card).join('') : '<p class="ch-empty">No weekly challenges assigned yet.</p>'}
+  `;
+}
+
+/* Render XP progress bar — targets #profile-xp-bar on profile.html */
+function igRenderXPBar(xpTotal) {
+  const el = document.getElementById('profile-xp-bar');
+  if (!el) return;
+
+  const total    = xpTotal || 0;
+  const rank     = getRankFromXP(total);
+  const progress = rank.nextXP
+    ? Math.min(100, Math.round(((total - rank.thisXP) / (rank.nextXP - rank.thisXP)) * 100))
+    : 100;
+  const xpLeft   = rank.nextXP
+    ? (rank.nextXP - total).toLocaleString() + ' XP until ' + rank.nextName
+    : 'Maximum rank achieved';
+
+  el.innerHTML = `
+    <div class="ch-xp-card" style="margin-top:16px;padding:18px 20px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+      <div class="ch-xp-row">
+        <div class="ch-rank-name">${rank.rankName}</div>
+        <div class="ch-xp-nums">${total.toLocaleString()} / ${rank.nextXP ? rank.nextXP.toLocaleString() : '—'} XP</div>
+      </div>
+      <div class="ch-bar-bg"><div class="ch-bar-fill" style="width:${progress}%"></div></div>
+      <div class="ch-xp-sub">${xpLeft}</div>
+    </div>
   `;
 }

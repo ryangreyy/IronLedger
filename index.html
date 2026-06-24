@@ -30,6 +30,7 @@
       <a href="#" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
       <div class="nav-links" id="nav-links">
         <a href="profile.html">Profile</a>
+        <a href="training.html">Training Log</a>
         <a href="settings.html">Settings</a>
         <a href="yoga.html">Yoga &amp; PT</a>
         <a href="guide.html">Workout Schedule Guide</a>
@@ -108,7 +109,7 @@
         <div class="hero-cta-top">
           <a href="tools.html#calc" class="btn btn-primary hero-primary">Estimate my 1&#8209;rep max →</a>
           <a href="#dashboard" class="btn btn-solid">View dashboard</a>
-          <a href="#log" class="btn btn-solid">Log a session</a>
+          <a href="training.html#log" class="btn btn-solid">Log a session</a>
         </div>
         <div class="hero-cta-links">
           <a href="guide.html" class="hero-link">Workout guide</a>
@@ -193,203 +194,6 @@
         <div id="trackerList" class="tracker-list"></div>
       </div>
 
-      <!-- Bodyweight subsection -->
-      <div class="eyebrow" style="margin-top:28px;margin-bottom:12px;">Bodyweight</div>
-      <div class="card chart-card">
-        <div class="bw-form">
-          <input id="bwInput" type="number" step="0.1" min="50" max="999" placeholder="lbs" class="bw-input">
-          <input id="bwDate" type="date" class="bw-date-input">
-          <button id="bwSubmit" class="btn btn-primary">Log weight</button>
-        </div>
-        <div class="bw-month-nav">
-          <button id="bwPrev" class="btn-page">&#8592;</button>
-          <span id="bwMonthLabel" class="bw-month-label"></span>
-          <button id="bwNext" class="btn-page">&#8594;</button>
-        </div>
-        <svg id="bwChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
-        <p id="bwEmpty" class="chart-empty" style="display:none;">No entries this month — log your weight above.</p>
-        <div id="bwList" class="bw-list"></div>
-      </div>
-
-      <!-- Breakdown subsection -->
-      <div class="eyebrow" style="margin-top:28px;margin-bottom:12px;">Daily Breakdown</div>
-      <div class="card chart-card">
-        <div class="chart-head">
-          <select id="breakdownDate" class="breakdown-date-sel">
-            <option>Log a session to see your breakdown</option>
-          </select>
-          <div class="legend-note" id="breakdownNote"></div>
-        </div>
-        <div class="donut-wrap" id="donutWrap">
-          <svg id="donutChart" viewBox="0 0 300 300" width="220" height="220" style="flex-shrink:0;"></svg>
-          <div id="donutLegend" class="donut-legend"></div>
-        </div>
-        <p id="donutEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
-           padding:40px 0;font-family:var(--mono);font-size:14px;">
-          No sessions logged for this date yet.
-        </p>
-      </div>
-
-      <div class="card chart-card" style="margin-top:18px;">
-        <div class="chart-head">
-          <div>
-            <p class="controls-label" style="margin-bottom:10px;">Exercise history</p>
-            <select id="historyLift" class="breakdown-date-sel">
-              <option value="">Log sessions to see history</option>
-            </select>
-          </div>
-          <div class="legend-note" id="historyNote"></div>
-        </div>
-        <svg id="historyChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
-        <div id="historyDetails" class="history-details"></div>
-        <p id="historyEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
-           padding:40px 0;font-family:var(--mono);font-size:14px;">
-          No sessions found for this exercise.
-        </p>
-      </div>
-    </section>
-
-    <!-- ================= TRAINING LOG ================= -->
-    <section id="log" class="reveal">
-      <div class="eyebrow">Recent Activity</div>
-      <h2 class="title">Training log</h2>
-
-      <!-- Add session form -->
-      <div class="card" style="margin-top:16px;padding:24px 22px 20px;">
-        <p class="controls-label">Log a new session</p>
-        <div class="add-session-grid">
-          <div class="field">
-            <label for="logDate">Date</label>
-            <input id="logDate" type="date">
-          </div>
-          <div class="field">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-              <label for="logLift" style="margin:0;">Lift</label>
-              <select id="liftCatFilter" style="font-size:11px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--bg-2);border:1px solid var(--border);color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;outline:none;">
-                <option value="">All</option>
-                <option value="legs">Legs</option>
-                <option value="chest">Chest</option>
-                <option value="back">Back</option>
-                <option value="shoulders">Shoulders</option>
-                <option value="arms">Arms</option>
-              </select>
-            </div>
-            <div class="lift-wrap">
-              <input id="logLift" list="lift-options" placeholder="Type or pick a lift…" autocomplete="off">
-              <button type="button" id="liftDropdownBtn" class="lift-dropdown-btn" tabindex="-1" aria-label="Show lift options">
-                <svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              <div id="liftDropdownList" class="lift-dropdown-list" style="display:none;"></div>
-            </div>
-          </div>
-
-          <datalist id="lift-options">
-            <!-- Legs -->
-            <option value="Squat" data-cat="legs">
-            <option value="BW Squat" data-cat="legs">
-            <option value="Smith Squat" data-cat="legs">
-            <option value="Bulgarian Split Squats" data-cat="legs">
-            <option value="Hack Squat" data-cat="legs">
-            <option value="Pendulum Squat" data-cat="legs">
-            <option value="Leg Press" data-cat="legs">
-            <option value="Lunges" data-cat="legs">
-            <option value="Hip Thrust" data-cat="legs">
-            <option value="RDL" data-cat="legs">
-            <option value="Leg Extension" data-cat="legs">
-            <option value="Seated Hamstring Curl" data-cat="legs">
-            <option value="Lying Hamstring Curl" data-cat="legs">
-            <option value="Calf Raise" data-cat="legs">
-            <option value="Adductors" data-cat="legs">
-            <option value="Abductors" data-cat="legs">
-            <!-- Chest -->
-            <option value="Bench Press" data-cat="chest">
-            <option value="Incline Press" data-cat="chest">
-            <option value="Decline Chest Press" data-cat="chest">
-            <option value="DB Flat Press" data-cat="chest">
-            <option value="DB Incline Press" data-cat="chest">
-            <option value="Machine Chest Press" data-cat="chest">
-            <option value="Dips" data-cat="chest">
-            <option value="Push-Up" data-cat="chest">
-            <option value="Low Chest Fly" data-cat="chest">
-            <option value="Mid Chest Fly" data-cat="chest">
-            <option value="High Chest Fly" data-cat="chest">
-            <option value="Pec Dec" data-cat="chest">
-            <!-- Back -->
-            <option value="Deadlift" data-cat="back">
-            <option value="Rack Pull" data-cat="back">
-            <option value="Barbell Row" data-cat="back">
-            <option value="Cable Row" data-cat="back">
-            <option value="Chest Supported Row" data-cat="back">
-            <option value="Machine Row" data-cat="back">
-            <option value="T-Bar Row" data-cat="back">
-            <option value="Machine Lat Pulldown" data-cat="back">
-            <option value="Cable Lat Pulldown" data-cat="back">
-            <option value="Pull-Up" data-cat="back">
-            <option value="Lat Pullover" data-cat="back">
-            <option value="Shrugs" data-cat="back">
-            <!-- Shoulders -->
-            <option value="Shoulder Press" data-cat="shoulders">
-            <option value="Arnold Press" data-cat="shoulders">
-            <option value="DB Lateral Raise" data-cat="shoulders">
-            <option value="Cable Lateral Raise" data-cat="shoulders">
-            <option value="Machine Lateral Raise" data-cat="shoulders">
-            <option value="Rear Delt Raise" data-cat="shoulders">
-            <option value="Face Pull" data-cat="shoulders">
-            <!-- Arms -->
-            <option value="DB Bicep Curl" data-cat="arms">
-            <option value="Cable Bicep Curl" data-cat="arms">
-            <option value="Machine Bicep Curl" data-cat="arms">
-            <option value="Hammer Curl" data-cat="arms">
-            <option value="Preacher Curl" data-cat="arms">
-            <option value="Tricep Pushdown" data-cat="arms">
-            <option value="Single Arm Tricep Pushdown" data-cat="arms">
-            <option value="DB Tricep Extension" data-cat="arms">
-            <option value="Cable Tricep Extension" data-cat="arms">
-            <option value="Machine Tricep Extension" data-cat="arms">
-            <option value="Close Grip Bench" data-cat="arms">
-            <option value="Skull Crusher" data-cat="arms">
-            <option value="Overhead Tricep" data-cat="arms">
-            <option value="JM Press" data-cat="arms">
-          </datalist>
-          <div class="field">
-            <label for="logSets">Sets</label>
-            <input id="logSets" type="number" min="1" max="20" placeholder="3">
-          </div>
-          <div class="field">
-            <label for="logReps">Reps</label>
-            <input id="logReps" type="number" min="1" max="50" placeholder="5">
-          </div>
-          <div class="field">
-            <label for="logWeight">Weight (<span class="unit-label">lbs</span>)</label>
-            <input id="logWeight" type="number" min="1" step="5" placeholder="225">
-          </div>
-          <div class="field">
-            <label for="logNote">Note (optional)</label>
-            <input id="logNote" type="text" placeholder="PR, felt good…">
-          </div>
-        </div>
-        <div class="add-session-actions">
-          <button id="addSession" class="btn btn-primary">Add session</button>
-          <a href="tools.html#plates" class="calc-hint-link">Having trouble calculating barbell weight?</a>
-        </div>
-      </div>
-
-      <!-- Log table -->
-      <div class="card log-table-card" style="margin-top:18px;padding:8px 8px 4px;">
-        <div class="log-scroll-wrap">
-          <table class="log-table">
-            <thead>
-              <tr><th>Date</th><th>Lift</th><th>Sets × Reps</th><th>Weight</th><th>Note</th><th></th></tr>
-            </thead>
-            <tbody id="logBody"></tbody>
-          </table>
-        </div>
-        <div id="log-pagination" class="log-pagination" style="display:none;">
-          <button id="log-prev" class="btn-page">&#8592; Prev</button>
-          <span id="log-page-info" class="page-info">Page 1 of 1</span>
-          <button id="log-next" class="btn-page">Next &#8594;</button>
-        </div>
-      </div>
     </section>
 
     <!-- ================= FOOTER ================= -->

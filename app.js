@@ -872,12 +872,12 @@ function initApp(uid) {
 
   renderGoals(null);
 
-  document.getElementById('calPrev').addEventListener('click', () => {
+  document.getElementById('calPrev')?.addEventListener('click', () => {
     calViewMonth--;
     if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
     renderCalendar();
   });
-  document.getElementById('calNext').addEventListener('click', () => {
+  document.getElementById('calNext')?.addEventListener('click', () => {
     calViewMonth++;
     if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
     renderCalendar();
@@ -1462,7 +1462,7 @@ function initApp(uid) {
   }).catch(err => console.error('Challenge init error:', err));
 
   /* Add session — also saves dateRaw so the edit form can pre-fill it */
-  document.getElementById('addSession').addEventListener('click', () => {
+  document.getElementById('addSession')?.addEventListener('click', () => {
     const dateVal = document.getElementById('logDate').value;
     const liftVal = document.getElementById('logLift').value;
     const sets    = +document.getElementById('logSets').value;
@@ -1491,7 +1491,7 @@ function initApp(uid) {
   });
 
   /* Unified click handler for edit / save / cancel / delete */
-  document.getElementById('logBody').addEventListener('click', e => {
+  document.getElementById('logBody')?.addEventListener('click', e => {
 
     /* ── Edit button: swap row to inline edit mode ── */
     const editBtn = e.target.closest('.btn-row-edit');
@@ -2424,7 +2424,7 @@ function initApp(uid) {
   }
 
   /* Rest day toggle */
-  document.getElementById('restDayBtn').addEventListener('click', () => {
+  document.getElementById('restDayBtn')?.addEventListener('click', () => {
     const today    = localDateISO();
     const existing = Array.isArray(currentSettings?.restDays) ? currentSettings.restDays : [];
     const isOn     = existing.includes(today);

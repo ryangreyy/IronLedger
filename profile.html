@@ -285,6 +285,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       <a href="index.html" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
       <div class="nav-links" id="nav-links">
         <a href="profile.html" class="nav-current">Profile</a>
+        <a href="training.html">Training Log</a>
         <a href="settings.html">Settings</a>
         <a href="yoga.html">Yoga &amp; PT</a>
         <a href="guide.html">Workout Schedule Guide</a>
@@ -378,6 +379,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
               </div>
               <div id="profileMeta" class="profile-meta"></div>
               <div id="profileBio" class="profile-bio"></div>
+              <!-- XP rank bar — populated by challenges.js -->
+              <div id="profile-xp-bar"></div>
             </div>
           </div>
         </div>
@@ -512,6 +515,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="data.js"></script>
+<script src="challenges.js"></script>
 <script>
   firebase.initializeApp(firebaseConfig);
   const auth    = firebase.auth();
@@ -1025,6 +1029,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   let unsubscribeSettings  = null;
   let unsubscribeSessions  = null;
   let unsubscribeBw        = null;
+  let unsubscribeXP        = null;
   let updateListenerAdded  = false;
   let currentUser          = null;
 
@@ -1561,6 +1566,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         renderAll();
       });
 
+      /* XP rank bar */
+      if (unsubscribeXP) unsubscribeXP();
+      unsubscribeXP = db.collection('users').doc(user.uid).collection('xp').doc('main')
+        .onSnapshot(snap => igRenderXPBar(snap.exists ? (snap.data().total || 0) : 0));
+
       /* Bodyweight log — auto-sync most recent entry */
       if (unsubscribeBw) unsubscribeBw();
       unsubscribeBw = bwRef.orderBy('date', 'desc').limit(1).onSnapshot(snap => {
@@ -1601,6 +1611,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       if (unsubscribeSettings)  { unsubscribeSettings();  unsubscribeSettings  = null; }
       if (unsubscribeSessions)  { unsubscribeSessions();  unsubscribeSessions  = null; }
       if (unsubscribeBw)        { unsubscribeBw();        unsubscribeBw        = null; }
+      if (unsubscribeXP)        { unsubscribeXP();        unsubscribeXP        = null; }
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }

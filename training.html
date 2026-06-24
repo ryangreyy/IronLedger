@@ -1,0 +1,325 @@
+<!-- IRONGLADIATOR — Training Log -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>IRONGLADIATOR — Training Log</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css?v=98">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
+</head>
+<body>
+
+  <!-- ================= LIVING BACKGROUND MEDALLIONS ================= -->
+  <img class="bg-medallion m1" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="-0.18" data-rot="0.012">
+  <img class="bg-medallion m2" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="0.10" data-rot="-0.02">
+  <img class="bg-medallion m3" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="0.16" data-rot="0.025">
+  <img class="bg-medallion m4" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="-0.13" data-rot="-0.016">
+
+  <!-- ================= NAV ================= -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
+      <div class="nav-links" id="nav-links">
+        <a href="profile.html">Profile</a>
+        <a href="training.html" class="nav-current">Training Log</a>
+        <a href="settings.html">Settings</a>
+        <a href="yoga.html">Yoga &amp; PT</a>
+        <a href="guide.html">Workout Schedule Guide</a>
+        <a href="running.html">Cardio and Endurance</a>
+        <a href="tools.html">Tools</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;">
+          <button id="navSignUp" class="btn btn-ghost nav-signup-btn" style="padding:9px 16px;font-size:14px;">Create account</button>
+          <button id="navSignIn" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</button>
+        </div>
+        <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+          <div id="nav-avatar" class="nav-avatar"></div>
+          <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+          <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <rect width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================= AUTH MODAL ================= -->
+  <div id="auth-screen" style="display:none;">
+    <div class="auth-wrap">
+      <div class="card auth-card">
+        <button id="authClose" class="auth-close" aria-label="Close">&#x2715;</button>
+        <div class="brand auth-brand"><img class="mark" src="favicon.svg?v=5" alt=""> IRONGLADIATOR</div>
+        <p class="auth-sub">Sign in to access your personal training dashboard.</p>
+
+        <button id="googleSignIn" class="btn btn-google">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <div class="field">
+          <label for="authEmail">Email</label>
+          <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="authPassword">Password</label>
+          <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <button id="emailSignIn" class="btn btn-primary" style="width:100%;margin-top:4px;">Sign in</button>
+        <button id="emailSignUp" class="btn btn-ghost" style="width:100%;margin-top:10px;">Create account</button>
+
+        <p id="authError" class="auth-error"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <div id="main-content">
+  <div class="wrap">
+
+    <!-- ================= BODYWEIGHT ================= -->
+    <section class="reveal" style="margin-top:80px;">
+      <div class="eyebrow">Bodyweight</div>
+      <h2 class="title">Weight Tracking</h2>
+      <div class="card chart-card" style="margin-top:16px;">
+        <div class="bw-form">
+          <input id="bwInput" type="number" step="0.1" min="50" max="999" placeholder="lbs" class="bw-input">
+          <input id="bwDate" type="date" class="bw-date-input">
+          <button id="bwSubmit" class="btn btn-primary">Log weight</button>
+        </div>
+        <div class="bw-month-nav">
+          <button id="bwPrev" class="btn-page">&#8592;</button>
+          <span id="bwMonthLabel" class="bw-month-label"></span>
+          <button id="bwNext" class="btn-page">&#8594;</button>
+        </div>
+        <svg id="bwChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
+        <p id="bwEmpty" class="chart-empty" style="display:none;">No entries this month — log your weight above.</p>
+        <div id="bwList" class="bw-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= DAILY BREAKDOWN ================= -->
+    <section class="reveal">
+      <div class="eyebrow" style="margin-bottom:12px;">Daily Breakdown</div>
+      <div class="card chart-card">
+        <div class="chart-head">
+          <select id="breakdownDate" class="breakdown-date-sel">
+            <option>Log a session to see your breakdown</option>
+          </select>
+          <div class="legend-note" id="breakdownNote"></div>
+        </div>
+        <div class="donut-wrap" id="donutWrap">
+          <svg id="donutChart" viewBox="0 0 300 300" width="220" height="220" style="flex-shrink:0;"></svg>
+          <div id="donutLegend" class="donut-legend"></div>
+        </div>
+        <p id="donutEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+           padding:40px 0;font-family:var(--mono);font-size:14px;">
+          No sessions logged for this date yet.
+        </p>
+      </div>
+
+      <div class="card chart-card" style="margin-top:18px;">
+        <div class="chart-head">
+          <div>
+            <p class="controls-label" style="margin-bottom:10px;">Exercise history</p>
+            <select id="historyLift" class="breakdown-date-sel">
+              <option value="">Log sessions to see history</option>
+            </select>
+          </div>
+          <div class="legend-note" id="historyNote"></div>
+        </div>
+        <svg id="historyChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
+        <div id="historyDetails" class="history-details"></div>
+        <p id="historyEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+           padding:40px 0;font-family:var(--mono);font-size:14px;">
+          No sessions found for this exercise.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= TRAINING LOG ================= -->
+    <section id="log" class="reveal">
+      <div class="eyebrow">Recent Activity</div>
+      <h2 class="title">Training log</h2>
+
+      <!-- Add session form -->
+      <div class="card" style="margin-top:16px;padding:24px 22px 20px;">
+        <p class="controls-label">Log a new session</p>
+        <div class="add-session-grid">
+          <div class="field">
+            <label for="logDate">Date</label>
+            <input id="logDate" type="date">
+          </div>
+          <div class="field">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+              <label for="logLift" style="margin:0;">Lift</label>
+              <select id="liftCatFilter" style="font-size:11px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--bg-2);border:1px solid var(--border);color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;outline:none;">
+                <option value="">All</option>
+                <option value="legs">Legs</option>
+                <option value="chest">Chest</option>
+                <option value="back">Back</option>
+                <option value="shoulders">Shoulders</option>
+                <option value="arms">Arms</option>
+              </select>
+            </div>
+            <div class="lift-wrap">
+              <input id="logLift" list="lift-options" placeholder="Type or pick a lift…" autocomplete="off">
+              <button type="button" id="liftDropdownBtn" class="lift-dropdown-btn" tabindex="-1" aria-label="Show lift options">
+                <svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div id="liftDropdownList" class="lift-dropdown-list" style="display:none;"></div>
+            </div>
+          </div>
+
+          <datalist id="lift-options">
+            <!-- Legs -->
+            <option value="Squat" data-cat="legs">
+            <option value="BW Squat" data-cat="legs">
+            <option value="Smith Squat" data-cat="legs">
+            <option value="Bulgarian Split Squats" data-cat="legs">
+            <option value="Hack Squat" data-cat="legs">
+            <option value="Pendulum Squat" data-cat="legs">
+            <option value="Leg Press" data-cat="legs">
+            <option value="Lunges" data-cat="legs">
+            <option value="Hip Thrust" data-cat="legs">
+            <option value="RDL" data-cat="legs">
+            <option value="Leg Extension" data-cat="legs">
+            <option value="Seated Hamstring Curl" data-cat="legs">
+            <option value="Lying Hamstring Curl" data-cat="legs">
+            <option value="Calf Raise" data-cat="legs">
+            <option value="Adductors" data-cat="legs">
+            <option value="Abductors" data-cat="legs">
+            <!-- Chest -->
+            <option value="Bench Press" data-cat="chest">
+            <option value="Incline Press" data-cat="chest">
+            <option value="Decline Chest Press" data-cat="chest">
+            <option value="DB Flat Press" data-cat="chest">
+            <option value="DB Incline Press" data-cat="chest">
+            <option value="Machine Chest Press" data-cat="chest">
+            <option value="Dips" data-cat="chest">
+            <option value="Push-Up" data-cat="chest">
+            <option value="Low Chest Fly" data-cat="chest">
+            <option value="Mid Chest Fly" data-cat="chest">
+            <option value="High Chest Fly" data-cat="chest">
+            <option value="Pec Dec" data-cat="chest">
+            <!-- Back -->
+            <option value="Deadlift" data-cat="back">
+            <option value="Rack Pull" data-cat="back">
+            <option value="Barbell Row" data-cat="back">
+            <option value="Cable Row" data-cat="back">
+            <option value="Chest Supported Row" data-cat="back">
+            <option value="Machine Row" data-cat="back">
+            <option value="T-Bar Row" data-cat="back">
+            <option value="Machine Lat Pulldown" data-cat="back">
+            <option value="Cable Lat Pulldown" data-cat="back">
+            <option value="Pull-Up" data-cat="back">
+            <option value="Lat Pullover" data-cat="back">
+            <option value="Shrugs" data-cat="back">
+            <!-- Shoulders -->
+            <option value="Shoulder Press" data-cat="shoulders">
+            <option value="Arnold Press" data-cat="shoulders">
+            <option value="DB Lateral Raise" data-cat="shoulders">
+            <option value="Cable Lateral Raise" data-cat="shoulders">
+            <option value="Machine Lateral Raise" data-cat="shoulders">
+            <option value="Rear Delt Raise" data-cat="shoulders">
+            <option value="Face Pull" data-cat="shoulders">
+            <!-- Arms -->
+            <option value="DB Bicep Curl" data-cat="arms">
+            <option value="Cable Bicep Curl" data-cat="arms">
+            <option value="Machine Bicep Curl" data-cat="arms">
+            <option value="Hammer Curl" data-cat="arms">
+            <option value="Preacher Curl" data-cat="arms">
+            <option value="Tricep Pushdown" data-cat="arms">
+            <option value="Single Arm Tricep Pushdown" data-cat="arms">
+            <option value="DB Tricep Extension" data-cat="arms">
+            <option value="Cable Tricep Extension" data-cat="arms">
+            <option value="Machine Tricep Extension" data-cat="arms">
+            <option value="Close Grip Bench" data-cat="arms">
+            <option value="Skull Crusher" data-cat="arms">
+            <option value="Overhead Tricep" data-cat="arms">
+            <option value="JM Press" data-cat="arms">
+          </datalist>
+          <div class="field">
+            <label for="logSets">Sets</label>
+            <input id="logSets" type="number" min="1" max="20" placeholder="3">
+          </div>
+          <div class="field">
+            <label for="logReps">Reps</label>
+            <input id="logReps" type="number" min="1" max="50" placeholder="5">
+          </div>
+          <div class="field">
+            <label for="logWeight">Weight (<span class="unit-label">lbs</span>)</label>
+            <input id="logWeight" type="number" min="1" step="5" placeholder="225">
+          </div>
+          <div class="field">
+            <label for="logNote">Note (optional)</label>
+            <input id="logNote" type="text" placeholder="PR, felt good…">
+          </div>
+        </div>
+        <div class="add-session-actions">
+          <button id="addSession" class="btn btn-primary">Add session</button>
+          <a href="tools.html#plates" class="calc-hint-link">Having trouble calculating barbell weight?</a>
+        </div>
+      </div>
+
+      <!-- Log table -->
+      <div class="card log-table-card" style="margin-top:18px;padding:8px 8px 4px;">
+        <div class="log-scroll-wrap">
+          <table class="log-table">
+            <thead>
+              <tr><th>Date</th><th>Lift</th><th>Sets × Reps</th><th>Weight</th><th>Note</th><th></th></tr>
+            </thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+        <div id="log-pagination" class="log-pagination" style="display:none;">
+          <button id="log-prev" class="btn-page">&#8592; Prev</button>
+          <span id="log-page-info" class="page-info">Page 1 of 1</span>
+          <button id="log-next" class="btn-page">Next &#8594;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+    <footer>
+      <div class="foot-inner">
+        <div class="brand" style="font-size:18px;"><img class="mark" src="favicon.svg?v=5" alt="" style="height:24px;"> IRONGLADIATOR</div>
+        <div>© 2026 IRONGLADIATOR. All rights reserved. All data saved privately per account.</div>
+      </div>
+    </footer>
+
+  </div><!-- .wrap -->
+  </div><!-- #main-content -->
+
+<!-- Firebase SDK (compat version — works without any build tools) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<!-- Your Firebase project credentials -->
+<script src="firebase-config.js"></script>
+<!-- App data and logic -->
+<script src="data.js"></script>
+<script src="challenges.js"></script>
+<script src="app.js?v=88"></script>
+</body>
+</html>
