@@ -292,15 +292,14 @@
     return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
   }
 
-  /* Render one C3 card for a single friend on a single day */
-  function renderFriendDayCard(username, settings, sessions, dateRaw) {
+  /* Render one C3 card for a single friend on a single day.
+     colors = viewer's own palette so the feed matches their settings. */
+  function renderFriendDayCard(username, settings, sessions, dateRaw, colors) {
     const avatar   = buildAvatarEl(settings, username);
     const dateStr  = formatFeedDate(dateRaw);
     const lifts    = sessions.filter(s => !s.isRestDay);
     const restOnly = !lifts.length;
 
-    /* Top bar color = dominant muscle group, using this friend's color prefs */
-    const colors   = clsColors(settings);
     const dom      = dominantCls(lifts);
     const barColor = colors[dom] || CLS_FALLBACK;
 
@@ -347,10 +346,14 @@
     container.innerHTML = '<p class="feed-loading">Loading…</p>';
 
     try {
-      const [sentSnap, recvSnap] = await Promise.all([
+      const [sentSnap, recvSnap, mySettingsSnap] = await Promise.all([
         db.collection('friendRequests').where('fromUid', '==', myUid).where('status', '==', 'accepted').get(),
-        db.collection('friendRequests').where('toUid',   '==', myUid).where('status', '==', 'accepted').get()
+        db.collection('friendRequests').where('toUid',   '==', myUid).where('status', '==', 'accepted').get(),
+        db.doc(`users/${myUid}/settings/main`).get()
       ]);
+
+      /* Build color palette from the viewer's own settings */
+      const viewerColors = clsColors(mySettingsSnap.exists ? mySettingsSnap.data() : {});
       const friends = [
         ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
         ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername }))
@@ -404,7 +407,7 @@
         html += '<div class="feed-grid">';
         for (const uid of Object.keys(byDate[date])) {
           const { username, settings, sessions } = byDate[date][uid];
-          html += renderFriendDayCard(username, settings, sessions, date);
+          html += renderFriendDayCard(username, settings, sessions, date, viewerColors);
         }
         html += '</div>';
       }
