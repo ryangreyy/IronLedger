@@ -83,11 +83,19 @@
 /* ── Lift rows ── */
 .c3-lifts{ display:flex; flex-direction:column; gap:5px; }
 
+/* each lift gets its own tinted block */
+.c3-lift-block{
+  background:rgba(255,255,255,0.05);
+  border-radius:6px;
+  padding:8px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
 .c3-row{
   display:flex;
   align-items:center;
-  gap:7px;
-  min-height:22px;
+  gap:8px;
 }
 .c3-dot{
   width:8px; height:8px; border-radius:50%; flex-shrink:0;
@@ -108,11 +116,10 @@
   display:flex; align-items:center; gap:6px;
 }
 
-/* ── Note line ── */
+/* ── Note line (inside lift block, indented past the dot) ── */
 .c3-note{
   font-size:11px; color:var(--text-dim); font-style:italic;
-  border-left:2px solid var(--border-strong); padding-left:8px;
-  margin-top:2px; line-height:1.4;
+  padding-left:16px; line-height:1.4;
 }
 
 /* ── Gate (not signed in) ── */
@@ -297,11 +304,13 @@
         const vol  = (s.sets && s.reps) ? `${s.sets}×${s.reps}` : '';
         const stat = [wt, vol].filter(Boolean).join(' · ');
         const note = s.note ? `<div class="c3-note">${s.note}</div>` : '';
-        return `<div class="c3-row">
-          <div class="c3-dot" style="background:${dot};"></div>
-          <span class="c3-lift-name">${s.lift || '—'}</span>
-          ${stat ? `<span class="c3-lift-stat">${stat}</span>` : ''}
-        </div>${note}`;
+        return `<div class="c3-lift-block">
+          <div class="c3-row">
+            <div class="c3-dot" style="background:${dot};"></div>
+            <span class="c3-lift-name">${s.lift || '—'}</span>
+            ${stat ? `<span class="c3-lift-stat">${stat}</span>` : ''}
+          </div>${note}
+        </div>`;
       });
       liftRowsHtml = `<div class="c3-lifts">${rows.join('')}</div>`;
     }
