@@ -1,0 +1,673 @@
+/* challenges.js — IronGladiator XP & Challenges system
+   Load order: firebase SDKs → firebase-config.js → data.js → challenges.js → app.js */
+
+/* ============================================================
+   RANKS
+   ============================================================ */
+const RANKS    = ['Recruit','Bronze','Silver','Gold','Elite','Titan','Legend','Gladiator'];
+const RANK_XP  = [0, 300, 1000, 2500, 5000, 10000, 20000, 40000];
+
+function getRankFromXP(xp) {
+  let idx = 0;
+  for (let i = RANK_XP.length - 1; i >= 0; i--) {
+    if (xp >= RANK_XP[i]) { idx = i; break; }
+  }
+  return {
+    rankIndex: idx,
+    rankName:  RANKS[idx],
+    thisXP:    RANK_XP[idx],
+    nextXP:    RANK_XP[idx + 1] || null,
+    nextName:  RANKS[idx + 1]   || null,
+  };
+}
+
+/* ============================================================
+   DATE HELPERS  (self-contained so load order doesn't matter)
+   ============================================================ */
+function _igLocalISO(d) {
+  const t = d instanceof Date ? d : new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+
+function _igWeekStart(dateStr) {
+  const d   = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return _igLocalISO(d);
+}
+
+/* ============================================================
+   CHALLENGE POOL  (230 challenges)
+
+   check.type values:
+     session       — any non-rest session logged (daily: today / weekly: this week)
+     sets          — total sets (daily: today / weekly: max sets in any day this week)
+     sets_lift     — max sets on one lift (daily: today / weekly: max in any day this week)
+     exercises     — distinct exercise names (daily: today / weekly: max in any day this week)
+     muscle_groups — distinct cls values (daily: today / weekly: max in any day this week)
+     reps          — total reps (daily: today / weekly: max reps in any day this week)
+     streak        — consecutive training days ending today (same for daily & weekly)
+     sessions_week — distinct days with sessions this week (same for daily & weekly)
+     bw_logged     — bodyweight entry exists today (daily only)
+     bw_days_week  — distinct days with BW entry this week (daily only)
+     goal_done     — goals completed today (daily only)
+     goal_added    — goals added today (daily only)
+   ============================================================ */
+const CHALLENGE_POOL = [
+
+  // ─────── VOLUME — Easy ───────
+  { id:'vol_e_1',  name:'Show up',           desc:'Log any session today',                cat:'volume', diff:'easy',   xp:25,  check:{type:'session',    threshold:1} },
+  { id:'vol_e_2',  name:'Get moving',        desc:'Log at least 1 exercise today',        cat:'volume', diff:'easy',   xp:25,  check:{type:'exercises',  threshold:1} },
+  { id:'vol_e_3',  name:'Put in the work',   desc:'Log 3+ sets today',                   cat:'volume', diff:'easy',   xp:25,  check:{type:'sets',       threshold:3} },
+  { id:'vol_e_4',  name:'Clock in',          desc:'Complete a training session today',    cat:'volume', diff:'easy',   xp:25,  check:{type:'session',    threshold:1} },
+  { id:'vol_e_5',  name:'Just lift',         desc:'Log any lift today',                  cat:'volume', diff:'easy',   xp:25,  check:{type:'exercises',  threshold:1} },
+  { id:'vol_e_6',  name:'Still here',        desc:'Log a session today',                 cat:'volume', diff:'easy',   xp:25,  check:{type:'session',    threshold:1} },
+  { id:'vol_e_7',  name:'Baseline',          desc:'Log at least 3 exercises today',      cat:'volume', diff:'easy',   xp:25,  check:{type:'exercises',  threshold:3} },
+  { id:'vol_e_8',  name:'One more',          desc:'Log 5+ sets today',                   cat:'volume', diff:'easy',   xp:25,  check:{type:'sets',       threshold:5} },
+  { id:'vol_e_9',  name:'Early work',        desc:'Log a session today',                 cat:'volume', diff:'easy',   xp:25,  check:{type:'session',    threshold:1} },
+  { id:'vol_e_10', name:'Stay active',       desc:'Log any exercise today',              cat:'volume', diff:'easy',   xp:25,  check:{type:'exercises',  threshold:1} },
+  { id:'vol_e_11', name:'Foundation',        desc:'Log 4+ sets across 2 exercises',      cat:'volume', diff:'easy',   xp:25,  check:{type:'sets',       threshold:4} },
+  { id:'vol_e_12', name:'Lace up',           desc:'Complete any training session today', cat:'volume', diff:'easy',   xp:25,  check:{type:'session',    threshold:1} },
+  { id:'vol_e_13', name:'Opening set',       desc:'Log at least 1 set today',            cat:'volume', diff:'easy',   xp:25,  check:{type:'sets',       threshold:1} },
+  { id:'vol_e_14', name:'Start somewhere',   desc:'Log at least 2 sets today',           cat:'volume', diff:'easy',   xp:25,  check:{type:'sets',       threshold:2} },
+  { id:'vol_e_15', name:'Minimum entry',     desc:'Log 4+ sets today',                   cat:'volume', diff:'easy',   xp:25,  check:{type:'sets',       threshold:4} },
+  { id:'vol_e_16', name:'Warm up complete',  desc:'Log 3+ sets of any lift',             cat:'volume', diff:'easy',   xp:25,  check:{type:'sets',       threshold:3} },
+  { id:'vol_e_17', name:'Keep moving',       desc:'Log any session today',               cat:'volume', diff:'easy',   xp:25,  check:{type:'session',    threshold:1} },
+  { id:'vol_e_18', name:'First step',        desc:'Log 3+ sets on a single lift',        cat:'volume', diff:'easy',   xp:25,  check:{type:'sets_lift',  threshold:3} },
+  { id:'vol_e_19', name:'Stay in motion',    desc:'Log any training today',              cat:'volume', diff:'easy',   xp:25,  check:{type:'session',    threshold:1} },
+  { id:'vol_e_20', name:'Daily work',        desc:'Log 3+ sets across 2+ exercises',     cat:'volume', diff:'easy',   xp:25,  check:{type:'sets',       threshold:3} },
+
+  // ─────── VOLUME — Medium ───────
+  { id:'vol_m_1',  name:'Load up',                 desc:'Hit 10+ sets today',                        cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:10} },
+  { id:'vol_m_2',  name:'Stay hungry',             desc:'Log 4+ exercises in one session',           cat:'volume', diff:'medium', xp:60, check:{type:'exercises', threshold:4}  },
+  { id:'vol_m_3',  name:'Double down',             desc:'Hit 6+ sets on a single lift today',        cat:'volume', diff:'medium', xp:60, check:{type:'sets_lift', threshold:6}  },
+  { id:'vol_m_4',  name:'Push through',            desc:'Hit 12+ total sets today',                  cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:12} },
+  { id:'vol_m_5',  name:'Heavy day',               desc:'Log 5+ sets of a compound lift',            cat:'volume', diff:'medium', xp:60, check:{type:'sets_lift', threshold:5}  },
+  { id:'vol_m_6',  name:'Dig deeper',              desc:'Hit 15+ total sets in a session',           cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:15} },
+  { id:'vol_m_7',  name:'Full send',               desc:'Complete 5+ exercises today',               cat:'volume', diff:'medium', xp:60, check:{type:'exercises', threshold:5}  },
+  { id:'vol_m_8',  name:'Work ethic',              desc:'Hit 10+ sets before calling it a day',      cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:10} },
+  { id:'vol_m_9',  name:'Turn it up',              desc:'Log a session with 12+ total sets',         cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:12} },
+  { id:'vol_m_10', name:'Mean business',           desc:'Hit 4+ sets on 3 different exercises',      cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:12} },
+  { id:'vol_m_11', name:'No shortcuts',            desc:'Complete 3 exercises with 4+ sets each',    cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:12} },
+  { id:'vol_m_12', name:'Committed to the cause',  desc:'Hit 5+ sets on 2 different lifts today',   cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:10} },
+  { id:'vol_m_13', name:'Rep day',                 desc:'Log 50+ total reps today',                  cat:'volume', diff:'medium', xp:60, check:{type:'reps',      threshold:50} },
+  { id:'vol_m_14', name:'Stay the course',         desc:'Log 10+ sets across 4+ exercises',          cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:10} },
+  { id:'vol_m_15', name:'Grind session',           desc:'Hit 14+ total sets today',                  cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:14} },
+  { id:'vol_m_16', name:'More reps',               desc:'Log 50+ total reps today',                  cat:'volume', diff:'medium', xp:60, check:{type:'reps',      threshold:50} },
+  { id:'vol_m_17', name:'Eyes on the prize',       desc:'Complete a 4+ exercise session',            cat:'volume', diff:'medium', xp:60, check:{type:'exercises', threshold:4}  },
+  { id:'vol_m_18', name:'Raise the floor',         desc:'Log 12+ sets today',                        cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:12} },
+  { id:'vol_m_19', name:'Locked in',               desc:'Hit 5+ sets on 2 different lifts today',   cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:10} },
+  { id:'vol_m_20', name:'Go the distance',         desc:'Complete 5 exercises with 3+ sets each',    cat:'volume', diff:'medium', xp:60, check:{type:'sets',      threshold:15} },
+
+  // ─────── VOLUME — Hard ───────
+  { id:'vol_h_1',  name:'Grind it out',       desc:'Hit 20+ sets in one session',                    cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:20} },
+  { id:'vol_h_2',  name:'Beast mode',         desc:'Log 5+ exercises with 4+ sets each',             cat:'volume', diff:'hard', xp:150, check:{type:'exercises', threshold:5}  },
+  { id:'vol_h_3',  name:'No ceiling',         desc:'Hit 25+ total sets today',                       cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:25} },
+  { id:'vol_h_4',  name:'All out',            desc:'Hit 100+ total reps today',                      cat:'volume', diff:'hard', xp:150, check:{type:'reps',      threshold:100}},
+  { id:'vol_h_5',  name:'Relentless',         desc:'Log 6+ exercises with 3+ sets each',             cat:'volume', diff:'hard', xp:150, check:{type:'exercises', threshold:6}  },
+  { id:'vol_h_6',  name:'The full treatment', desc:'Complete a session with 25+ total sets',         cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:25} },
+  { id:'vol_h_7',  name:'High tide',          desc:'Hit 30+ total sets today',                       cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:30} },
+  { id:'vol_h_8',  name:'Unstoppable',        desc:'Complete 7+ exercises in one session',           cat:'volume', diff:'hard', xp:150, check:{type:'exercises', threshold:7}  },
+  { id:'vol_h_9',  name:'Stack it up',        desc:'Hit 100+ total reps today',                      cat:'volume', diff:'hard', xp:150, check:{type:'reps',      threshold:100}},
+  { id:'vol_h_10', name:'Maximum output',     desc:'Log 25+ sets across 5+ exercises',               cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:25} },
+  { id:'vol_h_11', name:'Earn it',            desc:'Complete a session with 6+ exercises and 20+ sets', cat:'volume', diff:'hard', xp:150, check:{type:'sets',   threshold:20} },
+  { id:'vol_h_12', name:'Leave nothing',      desc:'Log 30+ sets today',                             cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:30} },
+  { id:'vol_h_13', name:'Full arsenal',       desc:'Hit 5+ exercises across every major muscle group', cat:'volume', diff:'hard', xp:150, check:{type:'exercises',threshold:5}  },
+  { id:'vol_h_14', name:'Push your limits',   desc:'Hit 20+ sets today — your hardest session yet',  cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:20} },
+  { id:'vol_h_15', name:'Siege mode',         desc:'Complete 6+ exercises with 25+ total sets',      cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:25} },
+  { id:'vol_h_16', name:'Built different',    desc:'Hit 20+ sets AND 80+ total reps today',          cat:'volume', diff:'hard', xp:150, check:{type:'reps',      threshold:80} },
+  { id:'vol_h_17', name:'War ready',          desc:'Complete 6+ exercises with 3+ sets each',        cat:'volume', diff:'hard', xp:150, check:{type:'exercises', threshold:6}  },
+  { id:'vol_h_18', name:'Volume king',        desc:'Hit 20+ sets across 5+ different lifts',         cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:20} },
+  { id:'vol_h_19', name:'Iron man',           desc:'Log 30+ total sets today',                       cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:30} },
+  { id:'vol_h_20', name:'No half measures',   desc:'Complete 5+ exercises with 5 sets each',         cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:25} },
+
+  // ─────── CONSISTENCY — Easy ───────
+  { id:'con_e_1',  name:'Keep the streak',        desc:'Train 2 days in a row',              cat:'consistency', diff:'easy', xp:25, check:{type:'streak',       threshold:2} },
+  { id:'con_e_2',  name:'Back again',             desc:'Log a session today',                cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_3',  name:"Don't quit",             desc:'Log a session today',                cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_4',  name:'Stay in it',             desc:'Log a session today',                cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_5',  name:'Back at it',             desc:'Return to training today',           cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_6',  name:'Habit forming',          desc:'Train 2 days this week',             cat:'consistency', diff:'easy', xp:25, check:{type:'sessions_week',threshold:2} },
+  { id:'con_e_7',  name:'Small wins',             desc:'Log a session today',                cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_8',  name:'The grind starts',       desc:'Log a session today',                cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_9',  name:'Never skip',             desc:'Train today',                        cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_10', name:'Daily bread',            desc:'Log a session today',                cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_11', name:'Foot in the door',       desc:'Log any training today',             cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_12', name:'Keep it going',          desc:'Extend your streak by 1 today',     cat:'consistency', diff:'easy', xp:25, check:{type:'streak',       threshold:2} },
+  { id:'con_e_13', name:'One more day',           desc:"Log a session to keep your streak", cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_14', name:"Don't break the chain",  desc:'Maintain your current streak today',cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_15', name:'Show up again',          desc:'Train 2 days in a row',              cat:'consistency', diff:'easy', xp:25, check:{type:'streak',       threshold:2} },
+  { id:'con_e_16', name:'In the zone',            desc:'Train today',                        cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_17', name:'Regular season',         desc:'Train at least once today',          cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_18', name:'Momentum builder',       desc:'Log a session today',                cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_19', name:'Stay sharp',             desc:'Train today',                        cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+  { id:'con_e_20', name:'Just keep going',        desc:'Log a session today',                cat:'consistency', diff:'easy', xp:25, check:{type:'session',      threshold:1} },
+
+  // ─────── CONSISTENCY — Medium ───────
+  { id:'con_m_1',  name:'Locked in',              desc:'Train 3 days in a row',                   cat:'consistency', diff:'medium', xp:60, check:{type:'streak',       threshold:3} },
+  { id:'con_m_2',  name:'Iron routine',           desc:'Train 3 days this week',                  cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_3',  name:'Momentum',               desc:'Build a 4-day training streak',           cat:'consistency', diff:'medium', xp:60, check:{type:'streak',       threshold:4} },
+  { id:'con_m_4',  name:'No excuses',             desc:'Train 4 days this week',                  cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:4} },
+  { id:'con_m_5',  name:'Discipline check',       desc:'Maintain a 3-day streak',                cat:'consistency', diff:'medium', xp:60, check:{type:'streak',       threshold:3} },
+  { id:'con_m_6',  name:'Hold the line',          desc:'Keep a streak going for 3 days',         cat:'consistency', diff:'medium', xp:60, check:{type:'streak',       threshold:3} },
+  { id:'con_m_7',  name:'3 peat',                 desc:'Log sessions on 3 separate days this week', cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_8',  name:'Built on habits',        desc:'Train 4 days this week',                 cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:4} },
+  { id:'con_m_9',  name:'Show up again and again',desc:'Log sessions 3 days in a row',           cat:'consistency', diff:'medium', xp:60, check:{type:'streak',       threshold:3} },
+  { id:'con_m_10', name:'Mid-week push',          desc:'Hit 3 sessions by mid-week',             cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_11', name:'Keep the engine running',desc:'Train 4 consecutive days',               cat:'consistency', diff:'medium', xp:60, check:{type:'streak',       threshold:4} },
+  { id:'con_m_12', name:'The routine',            desc:'Hit 3 training days this week',          cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_13', name:'Committed',              desc:'Train at least 3 times this week',       cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_14', name:'Steady pace',            desc:'Train 3+ days this week',                cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_15', name:'No days wasted',         desc:'Train 4 times this week',                cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:4} },
+  { id:'con_m_16', name:'Full week start',        desc:'Train 3 days in the first half of the week', cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_17', name:'Stay on track',          desc:'Train 3 days in a row',                 cat:'consistency', diff:'medium', xp:60, check:{type:'streak',       threshold:3} },
+  { id:'con_m_18', name:'Mid-week warrior',       desc:'Train 3 days before the week is out',   cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_19', name:'Routine locked',         desc:'Log sessions on 3 different days this week', cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:3} },
+  { id:'con_m_20', name:'Consistent effort',      desc:'Train 4 days this week',                cat:'consistency', diff:'medium', xp:60, check:{type:'sessions_week',threshold:4} },
+
+  // ─────── CONSISTENCY — Hard ───────
+  { id:'con_h_1',  name:'Unbreakable',          desc:'Maintain a 7-day streak',           cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:7} },
+  { id:'con_h_2',  name:'Iron will',            desc:'Train 5 days this week',            cat:'consistency', diff:'hard', xp:150, check:{type:'sessions_week',threshold:5} },
+  { id:'con_h_3',  name:'Full week',            desc:'Train every weekday this week',     cat:'consistency', diff:'hard', xp:150, check:{type:'sessions_week',threshold:5} },
+  { id:'con_h_4',  name:'No days off',          desc:'Complete a 5-day training streak',  cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:5} },
+  { id:'con_h_5',  name:'Seven straight',       desc:'Log sessions 7 days in a row',     cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:7} },
+  { id:'con_h_6',  name:'Perfect week',         desc:'Hit 5 training days this week',    cat:'consistency', diff:'hard', xp:150, check:{type:'sessions_week',threshold:5} },
+  { id:'con_h_7',  name:'Beast of habit',       desc:'Train 5+ days without a break',    cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:5} },
+  { id:'con_h_8',  name:'All in',               desc:'Complete a 7-day training streak', cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:7} },
+  { id:'con_h_9',  name:'Steel routine',        desc:'Train 5 consecutive days',         cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:5} },
+  { id:'con_h_10', name:'Non-negotiable',       desc:'Hit 5 training sessions this week',cat:'consistency', diff:'hard', xp:150, check:{type:'sessions_week',threshold:5} },
+  { id:'con_h_11', name:'Machine',              desc:'Log sessions 5 days in a row',     cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:5} },
+  { id:'con_h_12', name:'Siege of the week',   desc:'Train 6 out of 7 days',            cat:'consistency', diff:'hard', xp:150, check:{type:'sessions_week',threshold:6} },
+  { id:'con_h_13', name:'The grind never stops',desc:'Train 5 days this week',           cat:'consistency', diff:'hard', xp:150, check:{type:'sessions_week',threshold:5} },
+  { id:'con_h_14', name:'Relentless pursuit',  desc:'Log sessions 6 days in a row',     cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:6} },
+  { id:'con_h_15', name:'Built for this',      desc:'Maintain a 7-day streak',           cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:7} },
+  { id:'con_h_16', name:'Unstoppable force',   desc:'Complete a 6-day streak this week', cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:6} },
+  { id:'con_h_17', name:'No stopping now',     desc:'Maintain a streak of 8+ days',      cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:8} },
+  { id:'con_h_18', name:'Lock in',             desc:'Train 6 days this week',             cat:'consistency', diff:'hard', xp:150, check:{type:'sessions_week',threshold:6} },
+  { id:'con_h_19', name:"Warrior's schedule",  desc:'Train every weekday this week',      cat:'consistency', diff:'hard', xp:150, check:{type:'sessions_week',threshold:5} },
+  { id:'con_h_20', name:'The obsessed',        desc:'Maintain a 10-day streak',           cat:'consistency', diff:'hard', xp:150, check:{type:'streak',       threshold:10}},
+
+  // ─────── VARIETY — Easy ───────
+  { id:'var_e_1',  name:'Mix it up',           desc:'Hit 2+ different lifts today',                    cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_2',  name:'Branch out',          desc:'Log 2+ different exercises today',                cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_3',  name:'Keep it fresh',       desc:"Do a lift you haven't done in a few days",        cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_4',  name:'Two birds',           desc:'Hit 2 different muscle groups today',             cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_5',  name:'Go wide',             desc:'Log exercises from 2 different categories',       cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_6',  name:'Not just one',        desc:'Hit 2+ different lifts today',                    cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_7',  name:'Spread the work',     desc:'Train 2 different muscle groups today',           cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_8',  name:'Add to the mix',      desc:"Log an exercise you haven't done this week",      cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_9',  name:'Diversify',           desc:'Hit 2+ different categories today',               cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_10', name:'Something different', desc:"Log a lift you haven't done recently",             cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_11', name:'All angles',          desc:'Hit 2 different muscle groups today',             cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_12', name:'Open it up',          desc:'Log exercises from 2+ categories today',          cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_13', name:'Not a one-trick pony',desc:'Hit 2 different lifts today',                     cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_14', name:'Show range',          desc:'Log 2+ exercises from different categories',      cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_15', name:'Balanced attack',     desc:'Train 2 muscle groups today',                     cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_16', name:'Change of pace',      desc:"Try a lift you haven't done this week",           cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_17', name:'Switch lanes',        desc:'Do a different lift than your usual opener',      cat:'variety', diff:'easy', xp:25, check:{type:'exercises',    threshold:2} },
+  { id:'var_e_18', name:'Cross work',          desc:'Hit 2 different muscle groups today',             cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_19', name:'Explore',             desc:'Log an exercise from a new category today',       cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_e_20', name:'Widen the net',       desc:'Log exercises from 2 categories today',           cat:'variety', diff:'easy', xp:25, check:{type:'muscle_groups',threshold:2} },
+
+  // ─────── VARIETY — Medium ───────
+  { id:'var_m_1',  name:'Switch it up',          desc:'Hit 3+ different lifts today',               cat:'variety', diff:'medium', xp:60, check:{type:'exercises',    threshold:3} },
+  { id:'var_m_2',  name:'Full assault',           desc:'Train 3 muscle groups today',               cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_3',  name:'Three-way',              desc:'Log 3+ different exercises today',          cat:'variety', diff:'medium', xp:60, check:{type:'exercises',    threshold:3} },
+  { id:'var_m_4',  name:'Attack from all sides',  desc:'Train 3 different muscle groups today',     cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_5',  name:'Well-rounded',           desc:'Hit exercises from 3 different categories', cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_6',  name:'No comfort zone',        desc:'Log 4+ different exercises today',          cat:'variety', diff:'medium', xp:60, check:{type:'exercises',    threshold:4} },
+  { id:'var_m_7',  name:'Rotation',               desc:"Train a muscle group you haven't hit recently", cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_m_8',  name:'Keep them guessing',     desc:'Log 3+ different exercises today',          cat:'variety', diff:'medium', xp:60, check:{type:'exercises',    threshold:3} },
+  { id:'var_m_9',  name:'Full body start',        desc:'Hit upper and lower body today',            cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_m_10', name:'Cover the bases',        desc:'Train 3+ muscle groups today',              cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_11', name:'Balanced week',          desc:'Train at least 3 different muscle groups',  cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_12', name:'Shock the system',       desc:"Train a muscle group not hit recently",     cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_m_13', name:'Triple threat',          desc:'Hit 3 different muscle groups today',       cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_14', name:'Expand the playbook',    desc:'Log 4+ different exercises today',          cat:'variety', diff:'medium', xp:60, check:{type:'exercises',    threshold:4} },
+  { id:'var_m_15', name:'Three different',        desc:'Log 3 exercises from 3 different categories', cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_16', name:'No weak points',         desc:"Hit a muscle group you haven't trained this week", cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:2} },
+  { id:'var_m_17', name:'Arsenal',                desc:'Use 4+ different exercises today',          cat:'variety', diff:'medium', xp:60, check:{type:'exercises',    threshold:4} },
+  { id:'var_m_18', name:'Full rotation',          desc:'Hit 3 different muscle groups by end of session', cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_19', name:'Widen the arsenal',      desc:'Log 3 exercises from 3 different categories', cat:'variety', diff:'medium', xp:60, check:{type:'muscle_groups',threshold:3} },
+  { id:'var_m_20', name:'Spread thin but strong', desc:'Hit 4+ different lifts today',              cat:'variety', diff:'medium', xp:60, check:{type:'exercises',    threshold:4} },
+
+  // ─────── VARIETY — Hard ───────
+  { id:'var_h_1',  name:'Full body blitz',       desc:'Train 4+ muscle groups in one session',          cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_2',  name:'No muscle left behind', desc:'Hit every major category today',                 cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_3',  name:'The full menu',         desc:'Log exercises from 4+ different categories',     cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_4',  name:'All angles covered',    desc:'Train 4 different muscle groups today',          cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_5',  name:'Complete attack',       desc:'Hit 5+ exercises across 4+ categories today',    cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_6',  name:'Master of all',         desc:'Log 6+ different exercises today',               cat:'variety', diff:'hard', xp:150, check:{type:'exercises',    threshold:6} },
+  { id:'var_h_7',  name:'Nothing off limits',    desc:'Hit 4 different muscle groups today',            cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_8',  name:'Full spectrum',         desc:'Log exercises from all major categories',         cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_9',  name:'Total warfare',         desc:'Train 4+ muscle groups with 3+ sets each',       cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_10', name:'Cover everything',      desc:'Log exercises from 4 different categories',       cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_11', name:'No blind spots',        desc:'Train every major muscle group today',            cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_12', name:'The whole arsenal',     desc:'Hit 6+ different exercises from 4+ categories',  cat:'variety', diff:'hard', xp:150, check:{type:'exercises',    threshold:6} },
+  { id:'var_h_13', name:'Complete soldier',      desc:'Train 4 muscle groups in a single session',      cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_14', name:'Leave no muscle untrained', desc:'Hit all major categories today',             cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_15', name:'Dominate all fronts',   desc:'Log 5+ exercises across 4+ categories',          cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_16', name:'Total body campaign',   desc:'Train every major muscle group today',            cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_17', name:'Iron versatility',      desc:'Hit 5+ different lifts across 4 muscle groups',  cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_18', name:'The complete warrior',  desc:'Log exercises from all major categories today',   cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_19', name:'Siege mentality',       desc:'Hit 4 muscle groups with 4+ sets each',          cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+  { id:'var_h_20', name:'Depth and width',       desc:'Hit 5+ exercises across 4+ muscle groups',       cat:'variety', diff:'hard', xp:150, check:{type:'muscle_groups',threshold:4} },
+
+  // ─────── BODYWEIGHT — Easy (daily only) ───────
+  { id:'bw_e_1',  name:'Check in',          desc:'Log your weight today',      cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_2',  name:'Step on the scale', desc:'Log your bodyweight today',  cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_3',  name:'Know the number',   desc:'Log your weight today',      cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_4',  name:'Face the scale',    desc:'Log your bodyweight today',  cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_5',  name:'Take stock',        desc:'Log your weight today',      cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_6',  name:"Numbers don't lie", desc:'Log your bodyweight today',  cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_7',  name:'Stay aware',        desc:'Log your weight today',      cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_8',  name:'The honest check',  desc:'Log your bodyweight today',  cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_9',  name:'Body check',        desc:'Log your current weight',    cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+  { id:'bw_e_10', name:'Daily weigh-in',    desc:'Log your bodyweight today',  cat:'bodyweight', diff:'easy', xp:25, check:{type:'bw_logged',threshold:1} },
+
+  // ─────── BODYWEIGHT — Medium (daily only) ───────
+  { id:'bw_m_1',  name:'3-day check',          desc:'Log your weight 3 times this week',    cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:3} },
+  { id:'bw_m_2',  name:'Track it',             desc:'Log your bodyweight 2 days in a row',  cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:2} },
+  { id:'bw_m_3',  name:'Stay consistent',      desc:'Log your weight 3 consecutive days',   cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:3} },
+  { id:'bw_m_4',  name:'Weekly average',       desc:'Log your weight 3+ times this week',   cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:3} },
+  { id:'bw_m_5',  name:'Twice this week',      desc:'Log your weight 2 times this week',    cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:2} },
+  { id:'bw_m_6',  name:'Body awareness',       desc:'Log your weight 2 days this week',     cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:2} },
+  { id:'bw_m_7',  name:'Consistent tracking',  desc:'Log your weight 3 days this week',     cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:3} },
+  { id:'bw_m_8',  name:'Body data',            desc:'Log your weight 3 times this week',    cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:3} },
+  { id:'bw_m_9',  name:'Mid-week weigh-in',    desc:'Log your weight 2 days this week',     cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:2} },
+  { id:'bw_m_10', name:'Know your baseline',   desc:'Log your weight 2 days in a row',      cat:'bodyweight', diff:'medium', xp:60, check:{type:'bw_days_week',threshold:2} },
+
+  // ─────── BODYWEIGHT — Hard (daily only) ───────
+  { id:'bw_h_1',  name:'Daily logger',      desc:'Log your weight every day this week',    cat:'bodyweight', diff:'hard', xp:150, check:{type:'bw_days_week',threshold:5} },
+  { id:'bw_h_2',  name:'Full week track',   desc:'Log your bodyweight 5+ times this week', cat:'bodyweight', diff:'hard', xp:150, check:{type:'bw_days_week',threshold:5} },
+  { id:'bw_h_3',  name:'No gaps',           desc:'Log your weight 5 consecutive days',     cat:'bodyweight', diff:'hard', xp:150, check:{type:'bw_days_week',threshold:5} },
+  { id:'bw_h_4',  name:'7-day log',         desc:'Log your weight every day this week',    cat:'bodyweight', diff:'hard', xp:150, check:{type:'bw_days_week',threshold:7} },
+  { id:'bw_h_5',  name:'Perfect tracking',  desc:'Log your weight 7 days in a row',        cat:'bodyweight', diff:'hard', xp:150, check:{type:'bw_days_week',threshold:7} },
+
+  // ─────── GOALS — Easy (daily only) ───────
+  { id:'goal_e_1',  name:'Cross it off',    desc:'Complete any goal today',         cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_2',  name:'One down',        desc:'Mark a goal as complete today',   cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_3',  name:'Make it happen',  desc:'Complete a goal today',           cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_4',  name:'Close it out',    desc:'Complete any active goal today',  cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_5',  name:'Check the box',   desc:'Complete a goal today',           cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_6',  name:'Get it done',     desc:'Finish any active goal today',    cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_7',  name:'Follow through',  desc:'Complete a goal today',           cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_8',  name:'Mark it done',    desc:'Complete any goal today',         cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_9',  name:'Finish line',     desc:'Complete an active goal today',   cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+  { id:'goal_e_10', name:'Deliver',         desc:'Complete any goal today',         cat:'goals', diff:'easy', xp:25, check:{type:'goal_done', threshold:1} },
+
+  // ─────── GOALS — Medium (daily only) ───────
+  { id:'goal_m_1',  name:'Set the stage',   desc:'Add a new goal today',                     cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:1} },
+  { id:'goal_m_2',  name:'Think ahead',     desc:'Add 2 new goals today',                    cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:2} },
+  { id:'goal_m_3',  name:'New target',      desc:'Add a new goal today',                     cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:1} },
+  { id:'goal_m_4',  name:'Goal setter',     desc:'Add a new goal today',                     cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:1} },
+  { id:'goal_m_5',  name:'Raise the bar',   desc:'Add a more ambitious goal today',          cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:1} },
+  { id:'goal_m_6',  name:'Map it out',      desc:'Add 2 new goals today',                    cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:2} },
+  { id:'goal_m_7',  name:'Future focused',  desc:"Add a goal you haven't attempted before",  cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:1} },
+  { id:'goal_m_8',  name:'Set your sights', desc:'Add a new goal today',                     cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:1} },
+  { id:'goal_m_9',  name:'Expand the list', desc:'Add 2 new goals today',                    cat:'goals', diff:'medium', xp:60, check:{type:'goal_added',threshold:2} },
+  { id:'goal_m_10', name:'Plan it out',     desc:'Add a goal and complete one today',        cat:'goals', diff:'medium', xp:60, check:{type:'goal_done', threshold:1} },
+
+  // ─────── GOALS — Hard (daily only) ───────
+  { id:'goal_h_1',  name:'Clean sweep',    desc:'Complete 2 goals today',              cat:'goals', diff:'hard', xp:150, check:{type:'goal_done',threshold:2} },
+  { id:'goal_h_2',  name:'Double down',    desc:'Complete 2 goals today',              cat:'goals', diff:'hard', xp:150, check:{type:'goal_done',threshold:2} },
+  { id:'goal_h_3',  name:'Get after it',   desc:'Complete 2+ goals today',             cat:'goals', diff:'hard', xp:150, check:{type:'goal_done',threshold:2} },
+  { id:'goal_h_4',  name:'Clear the board',desc:'Complete 2+ goals today',             cat:'goals', diff:'hard', xp:150, check:{type:'goal_done',threshold:2} },
+  { id:'goal_h_5',  name:'Goal crusher',   desc:'Complete 2+ goals today',             cat:'goals', diff:'hard', xp:150, check:{type:'goal_done',threshold:2} },
+];
+
+/* ============================================================
+   METRICS COMPUTATION
+   ============================================================ */
+function igComputeStreak(sessions) {
+  const today = _igLocalISO();
+  const days = new Set(sessions.filter(s => !s.isRestDay && s.dateRaw).map(s => s.dateRaw));
+  if (!days.has(today)) return 0;
+  let count = 0, d = new Date();
+  while (days.has(_igLocalISO(d))) { count++; d.setDate(d.getDate() - 1); }
+  return count;
+}
+
+function igComputeMetrics(sessions, bwEntries, goals) {
+  const today     = _igLocalISO();
+  const weekStart = _igWeekStart(today);
+
+  const todaySess = sessions.filter(s => s.dateRaw === today && !s.isRestDay);
+  const weekSess  = sessions.filter(s => s.dateRaw >= weekStart && s.dateRaw <= today && !s.isRestDay);
+
+  /* ── Daily metrics ── */
+  const setsToday       = todaySess.reduce((n, s) => n + (s.sets || 0), 0);
+  const repsToday       = todaySess.reduce((n, s) => n + (s.sets || 0) * (s.reps || 0), 0);
+  const sessionsToday   = todaySess.length > 0 ? 1 : 0;
+  const exercisesToday  = new Set(todaySess.map(s => s.lift)).size;
+  const mGroupsToday    = new Set(todaySess.map(s => s.cls).filter(Boolean)).size;
+
+  const liftMap = {};
+  todaySess.forEach(s => { liftMap[s.lift] = (liftMap[s.lift] || 0) + (s.sets || 0); });
+  const setsLiftToday = Object.values(liftMap).length ? Math.max(...Object.values(liftMap)) : 0;
+
+  /* ── Weekly metrics ── */
+  const sessionsWeek = new Set(weekSess.map(s => s.dateRaw)).size;
+
+  const daySetMap = {}, dayExMap = {}, dayMgMap = {}, dayRepMap = {}, dayLiftMap = {};
+  weekSess.forEach(s => {
+    const d = s.dateRaw;
+    daySetMap[d] = (daySetMap[d] || 0) + (s.sets || 0);
+    dayRepMap[d] = (dayRepMap[d] || 0) + (s.sets || 0) * (s.reps || 0);
+    if (!dayExMap[d]) dayExMap[d] = new Set();
+    dayExMap[d].add(s.lift);
+    if (!dayMgMap[d]) dayMgMap[d] = new Set();
+    if (s.cls) dayMgMap[d].add(s.cls);
+    if (!dayLiftMap[d]) dayLiftMap[d] = {};
+    dayLiftMap[d][s.lift] = (dayLiftMap[d][s.lift] || 0) + (s.sets || 0);
+  });
+
+  const vals = arr => arr.length ? Math.max(...arr) : 0;
+  const maxSetsInDayWeek     = vals(Object.values(daySetMap));
+  const maxRepsInDayWeek     = vals(Object.values(dayRepMap));
+  const maxExInDayWeek       = vals(Object.values(dayExMap).map(s => s.size));
+  const maxMgInDayWeek       = vals(Object.values(dayMgMap).map(s => s.size));
+  const maxSetsLiftInDayWeek = vals(Object.values(dayLiftMap).map(m => vals(Object.values(m))));
+
+  /* ── Bodyweight ── */
+  const bwToday    = bwEntries.some(e => e.date === today);
+  const bwDaysWeek = new Set(bwEntries.filter(e => e.date >= weekStart && e.date <= today).map(e => e.date)).size;
+
+  /* ── Goals ── */
+  const todayMs = new Date(today + 'T00:00:00').getTime();
+  const nextMs  = todayMs + 86400000;
+  const goalsDoneToday  = (goals || []).filter(g => g.done && g.completedAt >= todayMs && g.completedAt < nextMs).length;
+  const goalsAddedToday = (goals || []).filter(g => g.createdAt  >= todayMs && g.createdAt  < nextMs).length;
+
+  return {
+    setsToday, repsToday, sessionsToday, exercisesToday, mGroupsToday, setsLiftToday,
+    sessionsWeek, maxSetsInDayWeek, maxRepsInDayWeek, maxExInDayWeek, maxMgInDayWeek, maxSetsLiftInDayWeek,
+    streakDays: igComputeStreak(sessions),
+    bwToday, bwDaysWeek,
+    goalsDoneToday, goalsAddedToday,
+  };
+}
+
+function igEvalChallenge(challenge, metrics, scope) {
+  const { type, threshold } = challenge.check;
+  if (scope === 'daily') {
+    switch (type) {
+      case 'session':       return metrics.sessionsToday   >= threshold;
+      case 'sets':          return metrics.setsToday       >= threshold;
+      case 'sets_lift':     return metrics.setsLiftToday   >= threshold;
+      case 'exercises':     return metrics.exercisesToday  >= threshold;
+      case 'muscle_groups': return metrics.mGroupsToday    >= threshold;
+      case 'reps':          return metrics.repsToday       >= threshold;
+      case 'streak':        return metrics.streakDays      >= threshold;
+      case 'sessions_week': return metrics.sessionsWeek    >= threshold;
+      case 'bw_logged':     return metrics.bwToday;
+      case 'bw_days_week':  return metrics.bwDaysWeek      >= threshold;
+      case 'goal_done':     return metrics.goalsDoneToday  >= threshold;
+      case 'goal_added':    return metrics.goalsAddedToday >= threshold;
+      default: return false;
+    }
+  } else {
+    switch (type) {
+      case 'session':       return metrics.sessionsWeek        >= 1;
+      case 'sets':          return metrics.maxSetsInDayWeek    >= threshold;
+      case 'sets_lift':     return metrics.maxSetsLiftInDayWeek>= threshold;
+      case 'exercises':     return metrics.maxExInDayWeek      >= threshold;
+      case 'muscle_groups': return metrics.maxMgInDayWeek      >= threshold;
+      case 'reps':          return metrics.maxRepsInDayWeek    >= threshold;
+      case 'streak':        return metrics.streakDays          >= threshold;
+      case 'sessions_week': return metrics.sessionsWeek        >= threshold;
+      default: return false;
+    }
+  }
+}
+
+/* ============================================================
+   ASSIGNMENT
+   ============================================================ */
+const _CORE_CATS  = ['volume','consistency','variety'];
+const _DAILY_COMBOS  = [['easy','easy','medium'],['easy','easy','hard'],['easy','medium','medium'],['easy','medium','hard']];
+const _WEEKLY_COMBOS = [['easy','medium'],['easy','hard'],['medium','medium'],['medium','hard']];
+
+function _pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function igAssignDaily(recentIds) {
+  const combo = _pickRandom(_DAILY_COMBOS);
+  const result = [];
+  const usedCats = new Set();
+  const usedIds  = new Set(recentIds);
+
+  /* 30% chance one slot becomes a bodyweight or goals challenge */
+  const specialCat  = Math.random() < 0.30 ? _pickRandom(['bodyweight','goals']) : null;
+  let   specialUsed = false;
+
+  combo.forEach((diff, i) => {
+    const wantSpecial = specialCat && !specialUsed && i === combo.length - 1;
+    const cats = wantSpecial ? [specialCat] : _CORE_CATS;
+
+    let pool = CHALLENGE_POOL.filter(c =>
+      cats.includes(c.cat) && c.diff === diff && !usedIds.has(c.id) && !usedCats.has(c.cat)
+    );
+    if (!pool.length) {
+      pool = CHALLENGE_POOL.filter(c =>
+        cats.includes(c.cat) && c.diff === diff && !usedCats.has(c.cat)
+      );
+    }
+    if (!pool.length) return;
+
+    const pick = _pickRandom(pool);
+    result.push({ id: pick.id, completed: false, completedAt: null });
+    usedIds.add(pick.id);
+    usedCats.add(pick.cat);
+    if (wantSpecial) specialUsed = true;
+  });
+
+  return result;
+}
+
+function igAssignWeekly(recentIds) {
+  const combo = _pickRandom(_WEEKLY_COMBOS);
+  const result = [];
+  const usedCats = new Set();
+  const usedIds  = new Set(recentIds);
+
+  combo.forEach(diff => {
+    let pool = CHALLENGE_POOL.filter(c =>
+      _CORE_CATS.includes(c.cat) && c.diff === diff && !usedIds.has(c.id) && !usedCats.has(c.cat)
+    );
+    if (!pool.length) {
+      pool = CHALLENGE_POOL.filter(c =>
+        _CORE_CATS.includes(c.cat) && c.diff === diff && !usedCats.has(c.cat)
+      );
+    }
+    if (!pool.length) return;
+
+    const pick = _pickRandom(pool);
+    result.push({ id: pick.id, completed: false, completedAt: null });
+    usedIds.add(pick.id);
+    usedCats.add(pick.cat);
+  });
+
+  return result;
+}
+
+/* ============================================================
+   FIRESTORE INIT — call once after sign-in
+   Returns { dailyRef, weeklyRef, xpRef }
+   ============================================================ */
+async function igInitChallenges(uid, db) {
+  const today     = _igLocalISO();
+  const weekStart = _igWeekStart(today);
+
+  const challengesCol = db.collection('users').doc(uid).collection('challenges');
+  const xpRef         = db.collection('users').doc(uid).collection('xp').doc('main');
+  const dailyRef      = challengesCol.doc('daily_' + today);
+  const weeklyRef     = challengesCol.doc('weekly_' + weekStart);
+
+  /* Create daily doc if it doesn't exist yet */
+  const dailySnap = await dailyRef.get();
+  if (!dailySnap.exists) {
+    const yesterday  = _igLocalISO(new Date(Date.now() - 86400000));
+    const ySnap      = await challengesCol.doc('daily_' + yesterday).get();
+    const recentIds  = ySnap.exists ? (ySnap.data().assigned || []).map(c => c.id) : [];
+    await dailyRef.set({ date: today, scope: 'daily', assigned: igAssignDaily(recentIds) });
+  }
+
+  /* Create weekly doc if it doesn't exist yet */
+  const weeklySnap = await weeklyRef.get();
+  if (!weeklySnap.exists) {
+    const lastWeek   = _igLocalISO(new Date(new Date(weekStart + 'T00:00:00').getTime() - 7 * 86400000));
+    const lwSnap     = await challengesCol.doc('weekly_' + lastWeek).get();
+    const recentIds  = lwSnap.exists ? (lwSnap.data().assigned || []).map(c => c.id) : [];
+    await weeklyRef.set({ weekStart, scope: 'weekly', assigned: igAssignWeekly(recentIds) });
+  }
+
+  /* Create XP doc if missing */
+  const xpSnap = await xpRef.get();
+  if (!xpSnap.exists) await xpRef.set({ total: 0 });
+
+  return { dailyRef, weeklyRef, xpRef };
+}
+
+/* ============================================================
+   AUTO-CHECK — call after any data change (sessions, bw, goals)
+   ============================================================ */
+let _igChecking = false; // prevent overlapping runs
+
+async function igCheckChallenges(uid, db, sessions, bwEntries, goals) {
+  if (!uid || _igChecking) return;
+  _igChecking = true;
+  try {
+    const today     = _igLocalISO();
+    const weekStart = _igWeekStart(today);
+    const metrics   = igComputeMetrics(sessions || [], bwEntries || [], goals || []);
+
+    const challengesCol = db.collection('users').doc(uid).collection('challenges');
+    const xpRef         = db.collection('users').doc(uid).collection('xp').doc('main');
+    const pairs = [
+      [challengesCol.doc('daily_'  + today),     'daily'],
+      [challengesCol.doc('weekly_' + weekStart),  'weekly'],
+    ];
+
+    for (const [ref, scope] of pairs) {
+      const snap = await ref.get();
+      if (!snap.exists) continue;
+
+      const assigned = snap.data().assigned || [];
+      let xpEarned = 0, changed = false;
+
+      const updated = assigned.map(entry => {
+        if (entry.completed) return entry;
+        const c = CHALLENGE_POOL.find(x => x.id === entry.id);
+        if (!c) return entry;
+        if (igEvalChallenge(c, metrics, scope)) {
+          xpEarned += c.xp;
+          changed = true;
+          return { ...entry, completed: true, completedAt: Date.now() };
+        }
+        return entry;
+      });
+
+      if (changed) {
+        await ref.update({ assigned: updated });
+        if (xpEarned > 0) {
+          await xpRef.set(
+            { total: firebase.firestore.FieldValue.increment(xpEarned) },
+            { merge: true }
+          );
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Challenge check error:', e);
+  } finally {
+    _igChecking = false;
+  }
+}
+
+/* ============================================================
+   UI RENDER
+   ============================================================ */
+function igRenderChallenges(dailyData, weeklyData, xpTotal) {
+  const section = document.getElementById('challenges-section');
+  if (!section) return;
+
+  const total    = xpTotal || 0;
+  const rank     = getRankFromXP(total);
+  const progress = rank.nextXP
+    ? Math.min(100, Math.round(((total - rank.thisXP) / (rank.nextXP - rank.thisXP)) * 100))
+    : 100;
+  const xpLeft   = rank.nextXP ? (rank.nextXP - total).toLocaleString() + ' XP to ' + rank.nextName : 'Max rank reached';
+
+  function card(entry) {
+    const c = CHALLENGE_POOL.find(x => x.id === entry.id);
+    if (!c) return '';
+    const diffLabel = { easy:'Easy', medium:'Medium', hard:'Hard' }[c.diff];
+    const catLabel  = { volume:'Volume', consistency:'Consistency', variety:'Variety', bodyweight:'Bodyweight', goals:'Goals' }[c.cat];
+    return `
+      <div class="ch-card${entry.completed ? ' ch-done' : ''}">
+        <div class="ch-check${entry.completed ? ' ch-check-done' : ''}">
+          ${entry.completed ? '<svg width="13" height="10" viewBox="0 0 13 10" fill="none"><path d="M1.5 5L5 8.5L11.5 1.5" stroke="#0B0C0E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+        </div>
+        <div class="ch-body">
+          <div class="ch-meta">
+            <span class="ch-badge ch-${c.diff}">${diffLabel}</span>
+            <span class="ch-cat">${catLabel}</span>
+          </div>
+          <div class="ch-name">${c.name}</div>
+          <div class="ch-desc">${c.desc}</div>
+          <div class="ch-xp">+${c.xp} XP</div>
+        </div>
+      </div>`;
+  }
+
+  /* Countdown helpers */
+  const now = new Date();
+  const midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
+  const dSec = Math.max(0, Math.floor((midnight - now) / 1000));
+  const dH = Math.floor(dSec / 3600), dM = Math.floor((dSec % 3600) / 60);
+
+  const dow    = now.getDay();
+  const toMon  = (8 - dow) % 7 || 7;
+  const monMid = new Date(now); monMid.setDate(now.getDate() + toMon); monMid.setHours(0,0,0,0);
+  const wSec   = Math.max(0, Math.floor((monMid - now) / 1000));
+  const wD = Math.floor(wSec / 86400), wH = Math.floor((wSec % 86400) / 3600);
+
+  const dailyAssigned  = dailyData?.assigned  || [];
+  const weeklyAssigned = weeklyData?.assigned || [];
+
+  section.innerHTML = `
+    <div class="eyebrow" style="margin-bottom:14px;">Daily Progress</div>
+
+    <div class="card ch-xp-card">
+      <div class="ch-xp-row">
+        <div class="ch-rank-name">${rank.rankName}</div>
+        <div class="ch-xp-nums">${total.toLocaleString()} / ${rank.nextXP ? rank.nextXP.toLocaleString() : '—'} XP</div>
+      </div>
+      <div class="ch-bar-bg"><div class="ch-bar-fill" style="width:${progress}%"></div></div>
+      <div class="ch-xp-sub">${xpLeft}</div>
+    </div>
+
+    <div class="ch-section-head">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="ch-dot ch-dot-daily"></div>
+        <div class="ch-section-title">Daily Challenges</div>
+      </div>
+      <div class="ch-timer">resets in ${dH}h ${dM}m</div>
+    </div>
+
+    ${dailyAssigned.length ? dailyAssigned.map(card).join('') : '<p class="ch-empty">No daily challenges assigned yet.</p>'}
+
+    <div class="ch-divider"></div>
+
+    <div class="ch-section-head">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="ch-dot ch-dot-weekly"></div>
+        <div class="ch-section-title">Weekly Challenges</div>
+      </div>
+      <div class="ch-timer">resets in ${wD}d ${wH}h</div>
+    </div>
+
+    ${weeklyAssigned.length ? weeklyAssigned.map(card).join('') : '<p class="ch-empty">No weekly challenges assigned yet.</p>'}
+  `;
+}

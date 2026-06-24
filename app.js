@@ -740,6 +740,9 @@ function createDatePicker(inputId, initialDate) {
 let unsubscribeSessions   = null;   // track live listeners so we can
 let unsubscribeSettings   = null;   // clean them up on sign-out
 let unsubscribeBodyweight = null;
+let unsubscribeDaily      = null;
+let unsubscribeWeekly     = null;
+let unsubscribeXP         = null;
 
 let bwCurrentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 let bwAllEntries   = [];
@@ -849,6 +852,9 @@ function initApp(uid) {
   if (unsubscribeSessions)   { unsubscribeSessions();   unsubscribeSessions   = null; }
   if (unsubscribeSettings)   { unsubscribeSettings();   unsubscribeSettings   = null; }
   if (unsubscribeBodyweight) { unsubscribeBodyweight(); unsubscribeBodyweight = null; }
+  if (unsubscribeDaily)      { unsubscribeDaily();      unsubscribeDaily      = null; }
+  if (unsubscribeWeekly)     { unsubscribeWeekly();     unsubscribeWeekly     = null; }
+  if (unsubscribeXP)         { unsubscribeXP();         unsubscribeXP         = null; }
   bwAllEntries = [];
 
   /* Shorthand helpers for this user's Firestore sub-collections */
@@ -1416,6 +1422,7 @@ function initApp(uid) {
       renderHistoryChart(liftSessions);
       updateKPIs();
       renderCalendar();
+      igCheckChallenges(uid, db, currentSessions, bwAllEntries, currentSettings?.goals);
     }, err => {
       console.error('Sessions error:', err.code, err.message);
       renderLog([]);
@@ -1430,8 +1437,29 @@ function initApp(uid) {
       .onSnapshot(snap => {
         bwAllEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderBodyweight();
+        igCheckChallenges(uid, db, currentSessions, bwAllEntries, currentSettings?.goals);
       }, err => console.error('BW error:', err));
   }
+
+  /* Challenge subscriptions — init docs then subscribe to live updates */
+  igInitChallenges(uid, db).then(({ dailyRef, weeklyRef, xpRef }) => {
+    let _dailyData = null, _weeklyData = null, _xpTotal = 0;
+
+    unsubscribeDaily = dailyRef.onSnapshot(snap => {
+      _dailyData = snap.exists ? snap.data() : null;
+      igRenderChallenges(_dailyData, _weeklyData, _xpTotal);
+    });
+
+    unsubscribeWeekly = weeklyRef.onSnapshot(snap => {
+      _weeklyData = snap.exists ? snap.data() : null;
+      igRenderChallenges(_dailyData, _weeklyData, _xpTotal);
+    });
+
+    unsubscribeXP = xpRef.onSnapshot(snap => {
+      _xpTotal = snap.exists ? (snap.data().total || 0) : 0;
+      igRenderChallenges(_dailyData, _weeklyData, _xpTotal);
+    });
+  }).catch(err => console.error('Challenge init error:', err));
 
   /* Add session — also saves dateRaw so the edit form can pre-fill it */
   document.getElementById('addSession').addEventListener('click', () => {
@@ -2265,6 +2293,7 @@ function initApp(uid) {
     updateKPIs();
     renderCalendar();
     renderTracker();
+    igCheckChallenges(uid, db, currentSessions, bwAllEntries, currentSettings?.goals);
   }, err => {
     console.error('Settings error:', err.code, err.message);
     renderProfile(0, 0, 0, 185, '');

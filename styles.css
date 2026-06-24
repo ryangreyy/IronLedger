@@ -1476,3 +1476,60 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 @keyframes prSlam{ 0%{transform:scale(2.4) rotate(-9deg);opacity:0;} 55%{transform:scale(.92) rotate(-4deg);opacity:1;} 70%{transform:scale(1.04) rotate(-4deg);} 100%{transform:scale(1) rotate(-4deg);opacity:1;} }
 @keyframes prFlash{ 0%{opacity:0;} 8%{opacity:1;} 78%{opacity:1;} 100%{opacity:0;} }
 @media(prefers-reduced-motion:reduce){ .pr-stamp{ animation:none; transform:rotate(-4deg); opacity:1; } .pr-stamp-overlay{ animation:prFlash 1.6s ease forwards; } }
+
+/* ================================================================
+   CHALLENGES & XP
+   ================================================================ */
+
+/* XP rank card */
+.ch-xp-card{ padding:20px 22px 18px; margin-bottom:6px; }
+.ch-xp-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+.ch-rank-name{ font-family:var(--mono); font-size:18px; font-weight:700; color:var(--text); letter-spacing:.06em; text-transform:uppercase; }
+.ch-xp-nums{ font-family:var(--mono); font-size:13px; color:var(--text-dim); }
+.ch-bar-bg{ width:100%; height:7px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden; }
+.ch-bar-fill{ height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-bright)); border-radius:99px; transition:width .6s ease; }
+.ch-xp-sub{ margin-top:8px; font-size:12px; color:var(--text-dimmer); }
+
+/* Section headings */
+.ch-section-head{ display:flex; justify-content:space-between; align-items:center; margin:20px 0 10px; }
+.ch-section-title{ font-family:var(--mono); font-size:13px; font-weight:600; color:var(--text-dim); letter-spacing:.08em; text-transform:uppercase; }
+.ch-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.ch-dot-daily{ background:var(--accent-bright); box-shadow:0 0 8px var(--accent-bright); }
+.ch-dot-weekly{ background:#7CE38B; box-shadow:0 0 8px rgba(124,227,139,.6); }
+.ch-timer{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); }
+.ch-divider{ height:1px; background:var(--border); margin:24px 0 20px; }
+.ch-empty{ font-size:13px; color:var(--text-dimmer); margin:4px 0 12px; }
+
+/* Challenge card */
+.ch-card{
+  display:flex; gap:14px; align-items:flex-start;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px; margin-bottom:10px;
+  transition:border-color .2s, opacity .25s;
+}
+.ch-card.ch-done{ opacity:.55; }
+.ch-card.ch-done .ch-name{ text-decoration:line-through; color:var(--text-dim); }
+
+/* Checkbox circle */
+.ch-check{
+  flex-shrink:0; width:24px; height:24px; border-radius:50%;
+  border:2px solid var(--border); background:transparent;
+  display:flex; align-items:center; justify-content:center;
+  margin-top:2px;
+}
+.ch-check-done{ background:var(--up); border-color:var(--up); }
+
+/* Card body */
+.ch-body{ flex:1; min-width:0; }
+.ch-meta{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.ch-badge{
+  font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; padding:2px 8px; border-radius:99px;
+}
+.ch-badge.ch-easy  { background:rgba(124,227,139,.15); color:#7CE38B; }
+.ch-badge.ch-medium{ background:rgba(251,191,36,.15);  color:#FBBF24; }
+.ch-badge.ch-hard  { background:rgba(240,86,91,.15);   color:var(--accent-bright); }
+.ch-cat{ font-size:11px; color:var(--text-dimmer); text-transform:capitalize; }
+.ch-name{ font-size:15px; font-weight:600; color:var(--text); margin-bottom:3px; }
+.ch-desc{ font-size:12px; color:var(--text-dim); line-height:1.45; margin-bottom:6px; }
+.ch-xp{ font-family:var(--mono); font-size:11px; color:var(--accent-bright); font-weight:600; }
