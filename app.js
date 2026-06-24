@@ -337,7 +337,12 @@ auth.onAuthStateChanged(user => {
     navSignedIn.style.display  = 'flex';
     navSignedOut.style.display = 'none';
     navUserName.textContent = user.displayName || user.email.split('@')[0];
-    applyNavAvatar(user, null, null, null, null); // placeholder; overridden by onSnapshot once settings load
+    applyNavAvatar(user, null, null, null, null); // placeholder; replaced below once settings fetch resolves
+    db.doc(`users/${user.uid}/settings/main`).get().then(snap => {
+      if (!snap.exists) return;
+      const d = snap.data();
+      applyNavAvatar(user, d.avatarId || null, d.avatarRingColor || null, d.avatarBgColor || null, d.avatarIconColor || null, d.avatarPhotoUrl || null, d.avatarZoom != null ? d.avatarZoom : null, d.avatarPosX != null ? d.avatarPosX : null, d.avatarPosY != null ? d.avatarPosY : null);
+    }).catch(() => {});
     initApp(user.uid);
     if (location.hash) setTimeout(() => {
       const el = document.querySelector(location.hash);
