@@ -122,7 +122,7 @@ const ICON_COLORS  = ['#ffffff','#f0f4f8','#d4af37','#ff5a5a','#ff8a4c','#ffd700
 
 let currentUser = null;
 
-function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY) {
+function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY, doReveal) {
   if (!navAvatar) return;
   if (avatarPhotoUrl) {
     navAvatar.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
@@ -143,6 +143,7 @@ function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPho
       img.style.height = dH + 'px';
       img.style.left   = -((dW - cW) * px / 100) + 'px';
       img.style.top    = -((dH - cH) * py / 100) + 'px';
+      navAvatar.style.opacity = '1';
     };
     img.src = avatarPhotoUrl;
     navAvatar.appendChild(img);
@@ -160,6 +161,7 @@ function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPho
     navAvatar.innerHTML = '';
     navAvatar.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
   }
+  if (doReveal) navAvatar.style.opacity = '1';
 }
 
 function showOnboardingModal(user) {
@@ -339,12 +341,10 @@ auth.onAuthStateChanged(user => {
     navSignedIn.style.display  = 'flex';
     navSignedOut.style.display = 'none';
     navUserName.textContent = user.displayName || user.email.split('@')[0];
-    applyNavAvatar(user, null, null, null, null); // placeholder; replaced below once settings fetch resolves
     db.doc(`users/${user.uid}/settings/main`).get().then(snap => {
-      if (!snap.exists) return;
-      const d = snap.data();
-      applyNavAvatar(user, d.avatarId || null, d.avatarRingColor || null, d.avatarBgColor || null, d.avatarIconColor || null, d.avatarPhotoUrl || null, d.avatarZoom != null ? d.avatarZoom : null, d.avatarPosX != null ? d.avatarPosX : null, d.avatarPosY != null ? d.avatarPosY : null);
-    }).catch(() => {});
+      const d = snap.exists ? snap.data() : {};
+      applyNavAvatar(user, d.avatarId || null, d.avatarRingColor || null, d.avatarBgColor || null, d.avatarIconColor || null, d.avatarPhotoUrl || null, d.avatarZoom != null ? d.avatarZoom : null, d.avatarPosX != null ? d.avatarPosX : null, d.avatarPosY != null ? d.avatarPosY : null, true);
+    }).catch(() => { applyNavAvatar(user, null, null, null, null, null, null, null, null, true); });
     initApp(user.uid);
     if (location.hash) setTimeout(() => {
       const el = document.querySelector(location.hash);
@@ -2327,7 +2327,7 @@ function initApp(uid) {
       applyColors(currentSettings);
       renderGoals(currentSettings.goals);
       applyCustomLifts(currentSettings.customLifts);
-      applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarRingColor || null, currentSettings.avatarBgColor || null, currentSettings.avatarIconColor || null, currentSettings.avatarPhotoUrl || null, currentSettings.avatarZoom != null ? currentSettings.avatarZoom : null, currentSettings.avatarPosX != null ? currentSettings.avatarPosX : null, currentSettings.avatarPosY != null ? currentSettings.avatarPosY : null);
+      applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarRingColor || null, currentSettings.avatarBgColor || null, currentSettings.avatarIconColor || null, currentSettings.avatarPhotoUrl || null, currentSettings.avatarZoom != null ? currentSettings.avatarZoom : null, currentSettings.avatarPosX != null ? currentSettings.avatarPosX : null, currentSettings.avatarPosY != null ? currentSettings.avatarPosY : null, true);
     } else {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');

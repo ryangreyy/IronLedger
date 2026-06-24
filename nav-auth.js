@@ -42,6 +42,7 @@
       img.style.height = dH + 'px';
       img.style.left   = -((dW - cW) * px / 100) + 'px';
       img.style.top    = -((dH - cH) * py / 100) + 'px';
+      el.style.opacity = '1';
     };
     img.src = url;
     el.appendChild(img);
@@ -51,7 +52,7 @@
     if (!el) return;
     if (avatarPhotoUrl) {
       applyNavPhoto(el, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY);
-      return;
+      return; // opacity set inside applyNavPhoto's img.onload
     }
     const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
     if (emb) {
@@ -68,6 +69,7 @@
       el.style.cssText = '';
       el.innerHTML = '';
     }
+    el.style.opacity = '1';
   }
 
   const auth = firebase.auth();
