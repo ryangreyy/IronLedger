@@ -553,13 +553,23 @@ document.getElementById('bwPrev')?.addEventListener('click', () => {
   const [yr, mo] = bwCurrentMonth.split('-').map(Number);
   const d = new Date(yr, mo - 2, 1);
   bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  bwCurrentPage = 1;
   renderBodyweight();
 });
 document.getElementById('bwNext')?.addEventListener('click', () => {
   const [yr, mo] = bwCurrentMonth.split('-').map(Number);
   const d = new Date(yr, mo, 1);
   bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  bwCurrentPage = 1;
   renderBodyweight();
+});
+document.getElementById('bw-prev')?.addEventListener('click', () => {
+  if (bwCurrentPage > 1) { bwCurrentPage--; renderBodyweight(); }
+});
+document.getElementById('bw-next')?.addEventListener('click', () => {
+  const monthCount = bwAllEntries.filter(e => e.date && e.date.startsWith(bwCurrentMonth)).length;
+  const totalBWPages = Math.max(1, Math.ceil(monthCount / BW_PAGE_SIZE));
+  if (bwCurrentPage < totalBWPages) { bwCurrentPage++; renderBodyweight(); }
 });
 (function(){
   const d = document.getElementById('bwDate');
@@ -751,6 +761,8 @@ let unsubscribeXP         = null;
 
 let bwCurrentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 let bwAllEntries   = [];
+let bwCurrentPage  = 1;
+const BW_PAGE_SIZE = 6;
 
 const BW_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -768,10 +780,16 @@ function renderBodyweight() {
     .filter(e => e.date && e.date.startsWith(bwCurrentMonth))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  /* Entry list (newest first) */
+  /* Entry list (newest first) with pagination */
   if (list) {
-    if (entries.length) {
-      list.innerHTML = entries.slice().reverse().map(e => {
+    const reversed = entries.slice().reverse();
+    const totalBWPages = Math.max(1, Math.ceil(reversed.length / BW_PAGE_SIZE));
+    if (bwCurrentPage > totalBWPages) bwCurrentPage = totalBWPages;
+    const bwStart = (bwCurrentPage - 1) * BW_PAGE_SIZE;
+    const bwPage  = reversed.slice(bwStart, bwStart + BW_PAGE_SIZE);
+
+    if (reversed.length) {
+      list.innerHTML = bwPage.map(e => {
         const [, m, d] = e.date.split('-').map(Number);
         return `<div class="bw-entry">
           <span class="bw-entry-date">${BW_MONTHS[m-1]} ${d}</span>
@@ -788,6 +806,21 @@ function renderBodyweight() {
       });
     } else {
       list.innerHTML = '';
+    }
+
+    const pag  = document.getElementById('bw-pagination');
+    const pi   = document.getElementById('bw-page-info');
+    const bpv  = document.getElementById('bw-prev');
+    const bpn  = document.getElementById('bw-next');
+    if (pag) {
+      if (reversed.length > BW_PAGE_SIZE) {
+        pag.style.display = '';
+        if (pi)  pi.textContent  = `Page ${bwCurrentPage} of ${totalBWPages}`;
+        if (bpv) bpv.disabled    = bwCurrentPage <= 1;
+        if (bpn) bpn.disabled    = bwCurrentPage >= totalBWPages;
+      } else {
+        pag.style.display = 'none';
+      }
     }
   }
 
@@ -1157,7 +1190,7 @@ function initApp(uid) {
   let currentSettings = null;
   let historySelectedLift = '';
   let currentPage = 1;
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 6;
 
   /* ---- Guest mode: render empty card shells for signed-out visitors ----
      All render functions below are function declarations so they're

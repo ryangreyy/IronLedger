@@ -98,7 +98,7 @@
   <div class="wrap">
 
     <!-- ================= TRAINING LOG ================= -->
-    <section id="log" class="reveal" style="margin-top:80px;">
+    <section id="log" class="reveal">
       <div class="eyebrow">Recent Activity</div>
       <h2 class="title">Training log</h2>
 
@@ -258,6 +258,11 @@
         <svg id="bwChart" viewBox="0 0 700 240" width="100%" style="display:block;overflow:visible;margin-top:8px;"></svg>
         <p id="bwEmpty" class="chart-empty" style="display:none;">No entries this month — log your weight above.</p>
         <div id="bwList" class="bw-list"></div>
+        <div id="bw-pagination" class="log-pagination" style="display:none;">
+          <button id="bw-prev" class="btn-page">&#8592; Prev</button>
+          <span id="bw-page-info" class="page-info">Page 1 of 1</span>
+          <button id="bw-next" class="btn-page">Next &#8594;</button>
+        </div>
       </div>
     </section>
 
@@ -320,6 +325,6 @@
 <!-- App data and logic -->
 <script src="data.js"></script>
 <script src="challenges.js"></script>
-<script src="app.js?v=89"></script>
+<script src="app.js?v=90"></script>
 </body>
 </html>
