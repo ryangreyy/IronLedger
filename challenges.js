@@ -442,15 +442,123 @@ function igEvalChallenge(challenge, metrics, scope) {
 }
 
 /* ============================================================
+   SMART ASSIGNMENT — profile + scorer
+   ============================================================ */
+
+/* Build a profile from the last 14 days of sessions */
+function igComputeRecentProfile(sessions, bwEntries) {
+  const today     = _igLocalISO();
+  const weekStart = _igWeekStart(today);
+  const cutoff    = _igLocalISO(new Date(Date.now() - 14 * 86400000));
+
+  const recent = (sessions || []).filter(s => !s.isRestDay && s.dateRaw >= cutoff);
+
+  const byDay = {};
+  recent.forEach(s => {
+    if (!byDay[s.dateRaw]) byDay[s.dateRaw] = [];
+    byDay[s.dateRaw].push(s);
+  });
+
+  const days = Object.values(byDay);
+  const avg  = arr => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
+
+  const avgSets         = avg(days.map(d => d.reduce((s, x) => s + (x.sets || 0), 0)));
+  const avgReps         = avg(days.map(d => d.reduce((s, x) => s + (x.sets || 0) * (x.reps || 0), 0)));
+  const avgExercises    = avg(days.map(d => new Set(d.map(s => s.lift)).size));
+  const avgMuscleGroups = avg(days.map(d => new Set(d.map(s => s.cls).filter(Boolean)).size));
+  const avgSetsLift     = avg(days.map(d => {
+    const m = {};
+    d.forEach(s => { m[s.lift] = (m[s.lift] || 0) + (s.sets || 0); });
+    const vals = Object.values(m);
+    return vals.length ? Math.max(...vals) : 0;
+  }));
+
+  const streakDays  = igComputeStreak(sessions || []);
+  const sessionsWeek = new Set(
+    (sessions || []).filter(s => !s.isRestDay && s.dateRaw >= weekStart && s.dateRaw <= today)
+      .map(s => s.dateRaw)
+  ).size;
+  const bwDaysWeek = new Set(
+    (bwEntries || []).filter(e => e.date >= weekStart && e.date <= today).map(e => e.date)
+  ).size;
+  const bwToday = (bwEntries || []).some(e => e.date === today);
+
+  return { avgSets, avgReps, avgExercises, avgMuscleGroups, avgSetsLift,
+           streakDays, sessionsWeek, bwDaysWeek, bwToday, hasSessions: days.length > 0 };
+}
+
+/* Score how well a challenge fits this user's profile.
+   Returns a number — higher = better fit. */
+function _scoreChallenge(c, profile) {
+  if (!profile || !profile.hasSessions) return 0.5 + Math.random() * 0.1;
+
+  const { type, threshold } = c.check;
+
+  /* How close is the threshold to the user's typical output?
+     Sweet spot: target is 90–140% of average (challenging but reachable). */
+  function proximity(actual, target) {
+    if (!actual || actual <= 0) return 0.4;
+    const r = target / actual;
+    if (r < 0.5)             return 0.05; // they already blow past this
+    if (r > 3.0)             return 0.05; // way out of reach
+    if (r >= 0.9 && r <= 1.4) return 1.0; // sweet spot
+    if (r >= 0.7 && r <= 2.0) return 0.55;
+    return 0.25;
+  }
+
+  switch (type) {
+    case 'session':       return 0.75;
+    case 'sets':          return proximity(profile.avgSets,         threshold);
+    case 'sets_lift':     return proximity(profile.avgSetsLift,     threshold);
+    case 'exercises':     return proximity(profile.avgExercises,    threshold);
+    case 'muscle_groups': return proximity(profile.avgMuscleGroups, threshold);
+    case 'reps':          return proximity(profile.avgReps,         threshold);
+    case 'streak': {
+      const need = threshold - profile.streakDays;
+      if (need <= 0)  return 0.05; // already done
+      if (need === 1) return 2.0;  // one day away — perfect
+      if (need === 2) return 0.6;
+      return 0.1;
+    }
+    case 'sessions_week': {
+      const need = threshold - profile.sessionsWeek;
+      if (need <= 0)  return 0.05;
+      if (need === 1) return 1.5;
+      if (need === 2) return 0.6;
+      return 0.2;
+    }
+    case 'bw_logged':    return profile.bwToday   ? 0.05 : 1.0;
+    case 'bw_days_week': {
+      const need = threshold - profile.bwDaysWeek;
+      if (need <= 0)  return 0.05;
+      if (need === 1) return 1.5;
+      return 0.5;
+    }
+    case 'goal_done':
+    case 'goal_added':   return 0.5;
+    default:             return 0.5;
+  }
+}
+
+/* Pick from pool weighted by profile fit, with a small random factor
+   so the same user doesn't always get the identical challenge. */
+function _pickWeighted(pool, profile) {
+  if (!pool.length) return null;
+  const scored = pool.map(c => ({ c, w: _scoreChallenge(c, profile) + Math.random() * 0.35 }));
+  scored.sort((a, b) => b.w - a.w);
+  return scored[0].c;
+}
+
+function _pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+/* ============================================================
    ASSIGNMENT
    ============================================================ */
 const _CORE_CATS  = ['volume','consistency','variety'];
 const _DAILY_COMBOS  = [['easy','easy','medium'],['easy','easy','hard'],['easy','medium','medium'],['easy','medium','hard']];
 const _WEEKLY_COMBOS = [['easy','medium'],['easy','hard'],['medium','medium'],['medium','hard']];
 
-function _pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-function igAssignDaily(recentIds) {
+function igAssignDaily(recentIds, profile) {
   const combo = _pickRandom(_DAILY_COMBOS);
   const result = [];
   const usedCats = new Set();
@@ -474,7 +582,7 @@ function igAssignDaily(recentIds) {
     }
     if (!pool.length) return;
 
-    const pick = _pickRandom(pool);
+    const pick = _pickWeighted(pool, profile);
     result.push({ id: pick.id, completed: false, completedAt: null });
     usedIds.add(pick.id);
     usedCats.add(pick.cat);
@@ -484,7 +592,7 @@ function igAssignDaily(recentIds) {
   return result;
 }
 
-function igAssignWeekly(recentIds) {
+function igAssignWeekly(recentIds, profile) {
   const combo = _pickRandom(_WEEKLY_COMBOS);
   const result = [];
   const usedCats = new Set();
@@ -501,7 +609,7 @@ function igAssignWeekly(recentIds) {
     }
     if (!pool.length) return;
 
-    const pick = _pickRandom(pool);
+    const pick = _pickWeighted(pool, profile);
     result.push({ id: pick.id, completed: false, completedAt: null });
     usedIds.add(pick.id);
     usedCats.add(pick.cat);
@@ -523,22 +631,41 @@ async function igInitChallenges(uid, db) {
   const dailyRef      = challengesCol.doc('daily_' + today);
   const weeklyRef     = challengesCol.doc('weekly_' + weekStart);
 
+  /* Check whether we need to assign anything (avoid extra reads if docs exist) */
+  const [dailySnap, weeklySnap] = await Promise.all([dailyRef.get(), weeklyRef.get()]);
+  const needDaily  = !dailySnap.exists;
+  const needWeekly = !weeklySnap.exists;
+
+  /* Fetch session history + BW once only if either doc needs assignment */
+  let profile = null;
+  if (needDaily || needWeekly) {
+    const cutoff = _igLocalISO(new Date(Date.now() - 14 * 86400000));
+    const [sessSnap, bwSnap] = await Promise.all([
+      db.collection('users').doc(uid).collection('sessions')
+        .where('dateRaw', '>=', cutoff).get(),
+      db.collection('users').doc(uid).collection('bw')
+        .orderBy('date', 'desc').limit(30).get(),
+    ]);
+    profile = igComputeRecentProfile(
+      sessSnap.docs.map(d => d.data()),
+      bwSnap.docs.map(d => d.data())
+    );
+  }
+
   /* Create daily doc if it doesn't exist yet */
-  const dailySnap = await dailyRef.get();
-  if (!dailySnap.exists) {
-    const yesterday  = _igLocalISO(new Date(Date.now() - 86400000));
-    const ySnap      = await challengesCol.doc('daily_' + yesterday).get();
-    const recentIds  = ySnap.exists ? (ySnap.data().assigned || []).map(c => c.id) : [];
-    await dailyRef.set({ date: today, scope: 'daily', assigned: igAssignDaily(recentIds) });
+  if (needDaily) {
+    const yesterday = _igLocalISO(new Date(Date.now() - 86400000));
+    const ySnap     = await challengesCol.doc('daily_' + yesterday).get();
+    const recentIds = ySnap.exists ? (ySnap.data().assigned || []).map(c => c.id) : [];
+    await dailyRef.set({ date: today, scope: 'daily', assigned: igAssignDaily(recentIds, profile) });
   }
 
   /* Create weekly doc if it doesn't exist yet */
-  const weeklySnap = await weeklyRef.get();
-  if (!weeklySnap.exists) {
-    const lastWeek   = _igLocalISO(new Date(new Date(weekStart + 'T00:00:00').getTime() - 7 * 86400000));
-    const lwSnap     = await challengesCol.doc('weekly_' + lastWeek).get();
-    const recentIds  = lwSnap.exists ? (lwSnap.data().assigned || []).map(c => c.id) : [];
-    await weeklyRef.set({ weekStart, scope: 'weekly', assigned: igAssignWeekly(recentIds) });
+  if (needWeekly) {
+    const lastWeek  = _igLocalISO(new Date(new Date(weekStart + 'T00:00:00').getTime() - 7 * 86400000));
+    const lwSnap    = await challengesCol.doc('weekly_' + lastWeek).get();
+    const recentIds = lwSnap.exists ? (lwSnap.data().assigned || []).map(c => c.id) : [];
+    await weeklyRef.set({ weekStart, scope: 'weekly', assigned: igAssignWeekly(recentIds, profile) });
   }
 
   /* Create XP doc if missing */
