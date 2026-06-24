@@ -91,6 +91,7 @@
       try {
         const snap = await db.doc(`users/${user.uid}/settings/main`).get();
         const d = snap.data() || {};
+        if (d.username && navUserName) navUserName.textContent = d.username;
         applyAvatar(navAvatarEl, user, d.avatarId, d.avatarRingColor, d.avatarBgColor, d.avatarIconColor, d.avatarPhotoUrl, d.avatarZoom, d.avatarPosX, d.avatarPosY);
       } catch (_) {
         applyAvatar(navAvatarEl, user, null, null, null, null, null, null, null, null);

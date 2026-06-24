@@ -275,6 +275,17 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 .ach-tier-pip{ width:6px; height:6px; border-radius:50%; background:var(--surface-2); border:1px solid var(--border-strong); flex-shrink:0; transition:transform 0.15s; }
 .ach-tier-pip.pip-current{ transform:scale(1.4); border-color:rgba(255,255,255,0.3); }
 .ach-tier-counter{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); }
+
+/* ---- Friends ---- */
+.friends-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.friends-title{ font-family:var(--display); font-size:18px; color:var(--text); text-transform:uppercase; letter-spacing:0.04em; }
+.friends-count{ font-family:var(--mono); font-size:12px; color:var(--text-dimmer); margin-left:8px; font-weight:600; }
+.friend-row{ display:flex; align-items:center; justify-content:space-between; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin-bottom:6px; }
+.friend-handle{ font-size:14px; font-weight:700; color:var(--text); font-family:var(--mono); }
+.friends-empty{ font-size:13px; color:var(--text-dimmer); font-family:var(--mono); padding:4px 0; }
+.friends-section-label{ font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:8px; margin-top:14px; }
+.friend-search-wrap{ display:flex; gap:8px; align-items:center; margin-bottom:4px; }
+.friend-search-wrap .field{ flex:1; margin:0; }
 </style>
 </head>
 <body>
@@ -469,6 +480,26 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 
       <!-- ── Strength DNA ── -->
       <div class="card dna-card" id="dnaCard" style="margin-top:20px;display:none;"></div>
+
+      <!-- ── Friends ── -->
+      <div class="card" id="friendsSection" style="margin-top:20px;padding:24px 28px;">
+        <div class="friends-header">
+          <div>
+            <span class="friends-title">Friends</span>
+            <span id="friendCount" class="friends-count"></span>
+          </div>
+          <button id="addFriendBtn" class="btn btn-ghost" style="font-size:13px;padding:8px 14px;">+ Add Friend</button>
+        </div>
+        <div id="friendSearchRow" style="display:none;">
+          <div class="friend-search-wrap">
+            <div class="field"><input id="friendSearchInput" type="text" placeholder="@username" autocomplete="off" maxlength="30" spellcheck="false"></div>
+            <button id="friendSearchBtn" class="btn btn-primary" style="padding:10px 16px;font-size:13px;white-space:nowrap;">Find</button>
+          </div>
+          <div id="friendSearchResult"></div>
+        </div>
+        <div id="pendingRequestsList"></div>
+        <div id="friendsList"><p class="friends-empty">No friends yet. Search by username to add someone.</p></div>
+      </div>
 
       <!-- ── Edit stats ── -->
       <div style="margin-top:32px;">
@@ -1030,8 +1061,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   let unsubscribeSessions  = null;
   let unsubscribeBw        = null;
   let unsubscribeXP        = null;
+  let unsubscribeFriends   = null;
   let updateListenerAdded  = false;
+  let friendsInited        = false;
   let currentUser          = null;
+  let myUsername           = null;
 
   /* ---- Banner display ---- */
   /* posX/posY: 0–100 where 50=centered. Sets explicit px size/position on img. */
@@ -1467,6 +1501,158 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     };
   }
 
+  /* ---- Friends system ---- */
+  function renderFriendsList(list) {
+    const el = document.getElementById('friendsList');
+    if (!el) return;
+    if (!list.length) {
+      el.innerHTML = '<p class="friends-empty">No friends yet. Search by username to add someone.</p>';
+      return;
+    }
+    el.innerHTML = list.map(f => `
+      <div class="friend-row">
+        <span class="friend-handle">@${f.username}</span>
+        <button class="btn btn-ghost remove-friend" data-uid="${f.uid}" style="padding:6px 12px;font-size:12px;color:var(--down);">Remove</button>
+      </div>`).join('');
+    el.querySelectorAll('.remove-friend').forEach(btn =>
+      btn.addEventListener('click', () => removeFriend(btn.dataset.uid)));
+  }
+
+  function renderPendingRequests(list) {
+    const el = document.getElementById('pendingRequestsList');
+    if (!el) return;
+    if (!list.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `<p class="friends-section-label">Pending Requests (${list.length})</p>` +
+      list.map(r => `
+        <div class="friend-row">
+          <span class="friend-handle">@${r.username}</span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary accept-req" data-uid="${r.uid}" style="padding:6px 12px;font-size:12px;">Accept</button>
+            <button class="btn btn-ghost decline-req" data-uid="${r.uid}" style="padding:6px 12px;font-size:12px;">Decline</button>
+          </div>
+        </div>`).join('');
+    el.querySelectorAll('.accept-req').forEach(btn =>
+      btn.addEventListener('click', () => acceptFriendRequest(btn.dataset.uid)));
+    el.querySelectorAll('.decline-req').forEach(btn =>
+      btn.addEventListener('click', () => removeFriend(btn.dataset.uid)));
+  }
+
+  function initFriends(uid) {
+    if (unsubscribeFriends) { unsubscribeFriends(); unsubscribeFriends = null; }
+    unsubscribeFriends = db.collection(`users/${uid}/friends`).onSnapshot(snap => {
+      const pending = [], accepted = [];
+      snap.forEach(doc => {
+        const d = doc.data();
+        if (d.status === 'pending' && !d.initiated) pending.push({ uid: doc.id, ...d });
+        else if (d.status === 'accepted') accepted.push({ uid: doc.id, ...d });
+      });
+      renderPendingRequests(pending);
+      renderFriendsList(accepted);
+      const countEl = document.getElementById('friendCount');
+      if (countEl) countEl.textContent = accepted.length ? `(${accepted.length})` : '';
+    });
+
+    if (friendsInited) return;
+    friendsInited = true;
+
+    document.getElementById('addFriendBtn')?.addEventListener('click', () => {
+      const row = document.getElementById('friendSearchRow');
+      const btn = document.getElementById('addFriendBtn');
+      if (!row || !btn) return;
+      const isHidden = row.style.display === 'none';
+      row.style.display = isHidden ? '' : 'none';
+      if (isHidden) {
+        btn.textContent = '✕ Close';
+        document.getElementById('friendSearchInput')?.focus();
+      } else {
+        btn.textContent = '+ Add Friend';
+        const res = document.getElementById('friendSearchResult');
+        if (res) res.innerHTML = '';
+      }
+    });
+
+    document.getElementById('friendSearchBtn')?.addEventListener('click', doFriendSearch);
+    document.getElementById('friendSearchInput')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doFriendSearch();
+    });
+  }
+
+  async function doFriendSearch() {
+    const input = document.getElementById('friendSearchInput');
+    const resultEl = document.getElementById('friendSearchResult');
+    if (!input || !resultEl || !currentUser) return;
+    const handle = input.value.trim().replace(/^@/, '').toLowerCase();
+    if (!handle) return;
+    resultEl.innerHTML = '<span style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">Searching…</span>';
+    try {
+      const snap = await db.collection('usernames').doc(handle).get();
+      if (!snap.exists) {
+        resultEl.innerHTML = '<span style="font-size:13px;color:var(--down);font-family:var(--mono);">No user found with that username.</span>';
+        return;
+      }
+      const targetUid = snap.data().uid;
+      if (targetUid === currentUser.uid) {
+        resultEl.innerHTML = '<span style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">That\'s you!</span>';
+        return;
+      }
+      const friendDoc = await db.doc(`users/${currentUser.uid}/friends/${targetUid}`).get();
+      if (friendDoc.exists) {
+        const s = friendDoc.data().status;
+        if (s === 'accepted') {
+          resultEl.innerHTML = `<span style="font-size:13px;color:var(--up);font-family:var(--mono);">You're already friends with @${handle}.</span>`;
+          return;
+        }
+        if (s === 'pending' && friendDoc.data().initiated) {
+          resultEl.innerHTML = `<span style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">Request already sent to @${handle}.</span>`;
+          return;
+        }
+        if (s === 'pending' && !friendDoc.data().initiated) {
+          resultEl.innerHTML = `<span style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">@${handle} already sent you a request — check your pending requests above.</span>`;
+          return;
+        }
+      }
+      resultEl.innerHTML = `
+        <div class="friend-row" style="margin-top:8px;">
+          <span class="friend-handle">@${handle}</span>
+          <button id="sendReqBtn" class="btn btn-primary" data-uid="${targetUid}" data-handle="${handle}" style="padding:6px 12px;font-size:12px;">Send Request</button>
+        </div>`;
+      document.getElementById('sendReqBtn')?.addEventListener('click', async e => {
+        const btn = e.currentTarget;
+        btn.disabled = true; btn.textContent = 'Sending…';
+        await sendFriendRequest(btn.dataset.uid, btn.dataset.handle);
+        resultEl.innerHTML = `<span style="font-size:13px;color:var(--up);font-family:var(--mono);">✓ Request sent to @${handle}!</span>`;
+        const inp = document.getElementById('friendSearchInput');
+        if (inp) inp.value = '';
+      });
+    } catch (err) {
+      resultEl.innerHTML = `<span style="font-size:13px;color:var(--down);font-family:var(--mono);">Error: ${err.message}</span>`;
+    }
+  }
+
+  async function sendFriendRequest(targetUid, targetHandle) {
+    const batch = db.batch();
+    const ts = firebase.firestore.FieldValue.serverTimestamp();
+    batch.set(db.doc(`users/${currentUser.uid}/friends/${targetUid}`),
+      { username: targetHandle, status: 'pending', initiated: true,  sentAt: ts });
+    batch.set(db.doc(`users/${targetUid}/friends/${currentUser.uid}`),
+      { username: myUsername || currentUser.displayName || currentUser.email.split('@')[0], status: 'pending', initiated: false, sentAt: ts });
+    await batch.commit();
+  }
+
+  async function acceptFriendRequest(friendUid) {
+    const batch = db.batch();
+    batch.update(db.doc(`users/${currentUser.uid}/friends/${friendUid}`), { status: 'accepted' });
+    batch.update(db.doc(`users/${friendUid}/friends/${currentUser.uid}`), { status: 'accepted' });
+    await batch.commit();
+  }
+
+  async function removeFriend(friendUid) {
+    const batch = db.batch();
+    batch.delete(db.doc(`users/${currentUser.uid}/friends/${friendUid}`));
+    batch.delete(db.doc(`users/${friendUid}/friends/${currentUser.uid}`));
+    await batch.commit();
+  }
+
   auth.onAuthStateChanged(user => {
     const page = document.getElementById('profile-page');
     const gate = document.getElementById('profile-gate');
@@ -1479,6 +1665,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       renderHero(user, null);
       initBanner(user.uid);
       initAvatar(user.uid);
+      initFriends(user.uid);
 
       const settingsRef  = db.collection('users').doc(user.uid).collection('settings').doc('main');
       const sessionsRef  = db.collection('users').doc(user.uid).collection('sessions');
@@ -1491,6 +1678,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         const { squatMax, benchMax, deadMax, bodyweight, height } = d;
         currentProfileState = { squatMax:squatMax||0, benchMax:benchMax||0, deadMax:deadMax||0, bodyweight:bodyweight||185, height:height||'' };
         applyColors(d);
+        if (d.username) myUsername = d.username;
         renderHero(user, d);
         const bioTextarea = document.getElementById('epBioTextarea');
         const bioCount    = document.getElementById('epBioCount');
@@ -1612,6 +1800,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       if (unsubscribeSessions)  { unsubscribeSessions();  unsubscribeSessions  = null; }
       if (unsubscribeBw)        { unsubscribeBw();        unsubscribeBw        = null; }
       if (unsubscribeXP)        { unsubscribeXP();        unsubscribeXP        = null; }
+      if (unsubscribeFriends)   { unsubscribeFriends();   unsubscribeFriends   = null; }
+      myUsername = null; friendsInited = false;
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }
