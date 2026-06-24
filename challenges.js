@@ -7,6 +7,25 @@
 const RANKS    = ['Recruit','Bronze','Silver','Gold','Elite','Titan','Legend','Gladiator'];
 const RANK_XP  = [0, 300, 1000, 2500, 5000, 10000, 20000, 40000];
 
+const RANK_HEX_COLS = [
+  ['#4B5563','#9AA0AC'], // Recruit
+  ['#7D4A1E','#CD7F32'], // Bronze
+  ['#6B7280','#C8CAD0'], // Silver
+  ['#92700A','#FFD700'], // Gold
+  ['#1E40AF','#60A5FA'], // Elite
+  ['#5B21B6','#A78BFA'], // Titan
+  ['#9A3412','#FB923C'], // Legend
+  ['#C1272D','#F0565B'], // Gladiator
+];
+function rankHexBadge(idx) {
+  const [stroke, fill] = RANK_HEX_COLS[idx] || RANK_HEX_COLS[0];
+  const num = ['I','II','III','IV','V','VI','VII','VIII'][idx] || 'I';
+  return `<svg style="width:28px;height:32px;flex-shrink:0;" viewBox="0 0 60 70" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="#15171c" stroke="${stroke}" stroke-width="2.5"/>
+    <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="${fill}">${num}</text>
+  </svg>`;
+}
+
 function getRankFromXP(xp) {
   let idx = 0;
   for (let i = RANK_XP.length - 1; i >= 0; i--) {
@@ -675,7 +694,10 @@ function igRenderXPBar(xpTotal) {
   el.innerHTML = `
     <div class="ch-xp-card" style="margin-top:16px;padding:18px 20px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;">
       <div class="ch-xp-row">
-        <div class="ch-rank-name">${rank.rankName}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${rankHexBadge(rank.rankIndex)}
+          <div class="ch-rank-name">${rank.rankName}</div>
+        </div>
         <div class="ch-xp-nums">${total.toLocaleString()} / ${rank.nextXP ? rank.nextXP.toLocaleString() : '—'} XP</div>
       </div>
       <div class="ch-bar-bg"><div class="ch-bar-fill" style="width:${progress}%"></div></div>
