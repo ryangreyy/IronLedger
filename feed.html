@@ -204,14 +204,24 @@
 
   const EMBLEMS = {gladius:'ti-sword',scutum:'ti-shield',summit:'ti-mountain',inferno:'ti-flame',surge:'ti-bolt',iron:'ti-barbell',duellum:'ti-swords',target:'ti-target',anchor:'ti-anchor',skull:'ti-skull',securis:'ti-axe',tridens:'ti-spade',serpens:'ti-dna-2',taurus:'ti-chess-rook',corona:'ti-crown',dagger:'ti-tools',storm:'ti-tornado',rex:'ti-chess-king'};
 
-  /* Muscle group accent colors — must match the app's default palette */
-  const CLS_COLOR = {
-    squat: '#d6ff3d',
-    bench: '#5bd6e6',
-    dead:  '#ff8a4c',
-    arm:   '#b78bff'
+  /* Default muscle group colors — overridden per-user from their settings */
+  const CLS_DEFAULTS = {
+    squat: '#D6FF3D',
+    bench: '#5BD6E6',
+    dead:  '#FF8A4C',
+    arm:   '#B78BFF'
   };
   const CLS_FALLBACK = '#c1272d';
+
+  /* Build a color map from a friend's settings doc */
+  function clsColors(settings) {
+    return {
+      squat: settings?.colorSquat || CLS_DEFAULTS.squat,
+      bench: settings?.colorBench || CLS_DEFAULTS.bench,
+      dead:  settings?.colorDead  || CLS_DEFAULTS.dead,
+      arm:   settings?.colorPress || CLS_DEFAULTS.arm,
+    };
+  }
 
   function formatFeedDate(dateRaw) {
     if (!dateRaw) return '';
@@ -289,9 +299,10 @@
     const lifts    = sessions.filter(s => !s.isRestDay);
     const restOnly = !lifts.length;
 
-    /* Top bar color = dominant muscle group */
+    /* Top bar color = dominant muscle group, using this friend's color prefs */
+    const colors   = clsColors(settings);
     const dom      = dominantCls(lifts);
-    const barColor = CLS_COLOR[dom] || CLS_FALLBACK;
+    const barColor = colors[dom] || CLS_FALLBACK;
 
     /* Build lift rows */
     let liftRowsHtml = '';
@@ -299,7 +310,7 @@
       liftRowsHtml = `<div class="c3-rest"><i class="ti ti-moon" aria-hidden="true"></i>Rest day</div>`;
     } else {
       const rows = lifts.map(s => {
-        const dot  = CLS_COLOR[s.cls] || '#888';
+        const dot  = colors[s.cls] || '#888';
         const wt   = s.wt   ? s.wt + ' lbs' : '';
         const vol  = (s.sets && s.reps) ? `${s.sets}×${s.reps}` : '';
         const stat = [wt, vol].filter(Boolean).join(' · ');
