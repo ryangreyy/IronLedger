@@ -134,7 +134,7 @@ const CHALLENGE_POOL = [
   { id:'vol_h_12', name:'Leave nothing',      desc:'Log 30+ sets today',                             cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:30} },
   { id:'vol_h_13', name:'Full arsenal',       desc:'Hit 5+ exercises across every major muscle group', cat:'volume', diff:'hard', xp:150, check:{type:'exercises',threshold:5}  },
   { id:'vol_h_14', name:'Push your limits',   desc:'Hit 20+ sets today — your hardest session yet',  cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:20} },
-  { id:'vol_h_15', name:'Siege mode',         desc:'Complete 6+ exercises with 25+ total sets',      cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:25} },
+  { id:'vol_h_15', name:'Volume siege',        desc:'Log 25+ total sets today',                       cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:25} },
   { id:'vol_h_16', name:'Built different',    desc:'Hit 20+ sets AND 80+ total reps today',          cat:'volume', diff:'hard', xp:150, check:{type:'reps',      threshold:80} },
   { id:'vol_h_17', name:'War ready',          desc:'Complete 6+ exercises with 3+ sets each',        cat:'volume', diff:'hard', xp:150, check:{type:'exercises', threshold:6}  },
   { id:'vol_h_18', name:'Volume king',        desc:'Hit 20+ sets across 5+ different lifts',         cat:'volume', diff:'hard', xp:150, check:{type:'sets',      threshold:20} },
