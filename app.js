@@ -338,9 +338,11 @@ auth.onAuthStateChanged(user => {
     currentUser = user;
     authScreen.style.display   = 'none';
     mainContent.style.display  = '';
-    navSignedIn.style.display  = 'flex';
     navSignedOut.style.display = 'none';
+    navSignedIn.style.display  = 'flex';
+    navSignedIn.style.opacity  = '0';
     navUserName.textContent = user.displayName || user.email.split('@')[0];
+    requestAnimationFrame(() => requestAnimationFrame(() => { navSignedIn.style.opacity = '1'; }));
     db.doc(`users/${user.uid}/settings/main`).get().then(snap => {
       const d = snap.exists ? snap.data() : {};
       applyNavAvatar(user, d.avatarId || null, d.avatarRingColor || null, d.avatarBgColor || null, d.avatarIconColor || null, d.avatarPhotoUrl || null, d.avatarZoom != null ? d.avatarZoom : null, d.avatarPosX != null ? d.avatarPosX : null, d.avatarPosY != null ? d.avatarPosY : null, true);
@@ -357,6 +359,7 @@ auth.onAuthStateChanged(user => {
     mainContent.style.display  = '';
     navSignedIn.style.display  = 'none';
     navSignedOut.style.display = '';
+    requestAnimationFrame(() => requestAnimationFrame(() => { navSignedOut.style.opacity = '1'; }));
     initApp(null);   // renders all cards with empty data, returns before Firestore
     if (location.hash) setTimeout(() => {
       const el = document.querySelector(location.hash);

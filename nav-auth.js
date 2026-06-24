@@ -85,8 +85,8 @@
 
   auth.onAuthStateChanged(async user => {
     if (user) {
-      if (navSignedIn)  navSignedIn.style.display  = 'flex';
-      if (navSignedOut) navSignedOut.style.display = 'none';
+      if (navSignedOut) { navSignedOut.style.display = 'none'; }
+      if (navSignedIn)  { navSignedIn.style.display = 'flex'; navSignedIn.style.opacity = '0'; }
       if (navUserName)  navUserName.textContent = user.displayName || user.email.split('@')[0];
       try {
         const snap = await db.doc(`users/${user.uid}/settings/main`).get();
@@ -95,9 +95,10 @@
       } catch (_) {
         applyAvatar(navAvatarEl, user, null, null, null, null, null, null, null, null);
       }
+      if (navSignedIn) navSignedIn.style.opacity = '1';
     } else {
       if (navSignedIn)  navSignedIn.style.display  = 'none';
-      if (navSignedOut) navSignedOut.style.display = '';
+      if (navSignedOut) { navSignedOut.style.display = ''; requestAnimationFrame(() => requestAnimationFrame(() => { navSignedOut.style.opacity = '1'; })); }
       applyAvatar(navAvatarEl, null, null, null, null, null, null, null, null, null);
     }
   });
