@@ -1,0 +1,323 @@
+<!-- IRONGLADIATOR — Friends Activity Feed -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRONGLADIATOR — Feed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=98">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
+<style>
+.feed-wrap{ max-width:560px; margin:0 auto; padding:80px 20px 120px; }
+.feed-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:32px 0; }
+.feed-loading{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:24px 0; }
+
+.feed-card{
+  padding:20px 22px; margin-bottom:14px;
+  transition:border-color 0.15s;
+}
+.feed-card:hover{ border-color:var(--border-strong); }
+
+.feed-card-header{
+  display:flex; align-items:center; gap:12px; margin-bottom:14px;
+}
+.feed-avatar-circle{
+  width:36px; height:36px; border-radius:50%; flex-shrink:0;
+  background:#8b1c1c; position:relative; overflow:hidden;
+}
+.feed-card-meta{ display:flex; flex-direction:column; gap:2px; }
+.feed-username{
+  font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text);
+}
+.feed-date{
+  font-family:var(--mono); font-size:11px; color:var(--text-dimmer);
+  text-transform:uppercase; letter-spacing:0.08em;
+}
+
+.feed-lift{
+  font-family:var(--display); font-size:22px; text-transform:uppercase;
+  color:var(--text); line-height:1; margin-bottom:6px;
+}
+.feed-group{
+  font-family:var(--mono); font-size:10px; font-weight:700;
+  letter-spacing:0.16em; text-transform:uppercase;
+  color:var(--text-dimmer); margin-bottom:8px;
+}
+.feed-stats{
+  font-family:var(--mono); font-size:13px; color:var(--accent-bright);
+  font-weight:700; margin-bottom:6px;
+}
+.feed-note{
+  font-size:12px; color:var(--text-dim); font-style:italic;
+  border-left:2px solid var(--border-strong); padding-left:10px;
+  margin-top:8px;
+}
+.feed-rest{
+  font-family:var(--mono); font-size:13px; color:var(--text-dimmer);
+}
+
+.feed-day-label{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:0.18em; text-transform:uppercase;
+  color:var(--text-dimmer); margin:24px 0 10px;
+  padding-bottom:8px; border-bottom:1px solid var(--border);
+}
+.feed-day-label:first-child{ margin-top:0; }
+
+.feed-gate{
+  max-width:480px; margin:140px auto 0; text-align:center; padding:0 24px;
+}
+.feed-gate .eyebrow{ margin-bottom:10px; }
+.feed-gate h2{ margin-bottom:12px; }
+.feed-gate p{ font-size:14px; color:var(--text-dim); margin-bottom:28px; }
+
+@media(max-width:600px){
+  .feed-wrap{ padding:72px 14px 100px; }
+  .feed-card{ padding:16px 16px; }
+}
+</style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
+      <div class="nav-links" id="nav-links">
+        <a href="profile.html">Profile</a>
+        <a href="feed.html" class="nav-current">Feed</a>
+        <a href="training.html">Training Log</a>
+        <a href="settings.html">Settings</a>
+        <a href="yoga.html">Yoga &amp; PT</a>
+        <a href="guide.html">Workout Schedule Guide</a>
+        <a href="running.html">Cardio and Endurance</a>
+        <a href="tools.html">Tools</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;opacity:0;">
+          <a href="index.html" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+        </div>
+        <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+          <div id="nav-avatar" class="nav-avatar"></div>
+          <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+          <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <rect width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- GATE (not signed in) -->
+  <div id="feed-gate" style="display:none;">
+    <div class="feed-gate">
+      <div class="eyebrow">Friends Activity</div>
+      <h2 class="title">SIGN IN TO VIEW YOUR FEED</h2>
+      <p>See what your training partners are logging in real time.</p>
+      <a href="index.html" class="btn btn-primary">Sign in</a>
+    </div>
+  </div>
+
+  <!-- FEED PAGE -->
+  <div id="feed-page" style="display:none;">
+    <div class="feed-wrap">
+      <div class="eyebrow">Social</div>
+      <h2 class="title" style="margin-bottom:6px;">Friends Activity</h2>
+      <p style="font-family:var(--mono);font-size:11px;color:var(--text-dimmer);margin-bottom:28px;letter-spacing:0.08em;">LAST 7 DAYS</p>
+      <div id="feedContainer"><p class="feed-loading">Loading…</p></div>
+    </div>
+  </div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  const EMBLEMS = {gladius:'ti-sword',scutum:'ti-shield',summit:'ti-mountain',inferno:'ti-flame',surge:'ti-bolt',iron:'ti-barbell',duellum:'ti-swords',target:'ti-target',anchor:'ti-anchor',skull:'ti-skull',securis:'ti-axe',tridens:'ti-spade',serpens:'ti-dna-2',taurus:'ti-chess-rook',corona:'ti-crown',dagger:'ti-tools',storm:'ti-tornado',rex:'ti-chess-king'};
+  const GROUP_LABEL = { squat:'Legs', bench:'Chest', dead:'Back', arm:'Arms' };
+
+  function formatFeedDate(dateRaw) {
+    if (!dateRaw) return '';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const d = new Date(dateRaw + 'T12:00:00');
+    const diff = Math.round((today - d) / 86400000);
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return diff + ' days ago';
+  }
+
+  function applyPhotoAvatars() {
+    document.querySelectorAll('.feed-avatar-photo[data-photourl]').forEach(el => {
+      const url  = el.dataset.photourl;
+      const zoom = parseFloat(el.dataset.zoom) || 1;
+      const posX = parseFloat(el.dataset.posx) || 50;
+      const posY = parseFloat(el.dataset.posy) || 50;
+      el.style.cssText = 'overflow:hidden;background:transparent;position:relative;width:36px;height:36px;border-radius:50%;flex-shrink:0;';
+      const img = document.createElement('img');
+      img.alt = '';
+      img.style.cssText = 'position:absolute;object-fit:fill;';
+      img.onload = function () {
+        const cW = 36, cH = 36;
+        const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+        const dW = img.naturalWidth  * base * zoom;
+        const dH = img.naturalHeight * base * zoom;
+        img.style.width  = dW + 'px';
+        img.style.height = dH + 'px';
+        img.style.left   = -((dW - cW) * posX / 100) + 'px';
+        img.style.top    = -((dH - cH) * posY / 100) + 'px';
+      };
+      img.src = url;
+      el.appendChild(img);
+    });
+  }
+
+  function buildAvatarEl(settings, username) {
+    const photoUrl = settings?.avatarPhotoUrl;
+    if (photoUrl) {
+      return `<div class="feed-avatar-circle feed-avatar-photo"
+        data-photourl="${photoUrl.replace(/"/g,'&quot;')}"
+        data-zoom="${settings.avatarZoom || 1}"
+        data-posx="${settings.avatarPosX != null ? settings.avatarPosX : 50}"
+        data-posy="${settings.avatarPosY != null ? settings.avatarPosY : 50}"></div>`;
+    }
+    const avatarId = settings?.avatarId;
+    const icon = avatarId && EMBLEMS[avatarId];
+    if (icon) {
+      const ring  = settings.avatarRingColor || '#d4af37';
+      const bg    = settings.avatarBgColor   || '#8b1c1c';
+      const color = settings.avatarIconColor || '#fff';
+      return `<div class="feed-avatar-circle" style="background:${bg};box-shadow:inset 0 0 0 2px ${ring};display:flex;align-items:center;justify-content:center;">
+        <i class="ti ${icon}" style="font-size:13px;color:${color};" aria-hidden="true"></i></div>`;
+    }
+    const initial = (username || '?').charAt(0).toUpperCase();
+    return `<div class="feed-avatar-circle" style="background:#8b1c1c;box-shadow:inset 0 0 0 2px #d4af37;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:15px;color:#fff;">${initial}</div>`;
+  }
+
+  function renderFeedCard(s) {
+    const avatar   = buildAvatarEl(s._settings, s._username);
+    const dateStr  = formatFeedDate(s.dateRaw);
+    const grpLabel = GROUP_LABEL[s.cls] || '';
+    if (s.isRestDay) {
+      return `<div class="feed-card card">
+        <div class="feed-card-header">${avatar}
+          <div class="feed-card-meta">
+            <span class="feed-username">@${s._username}</span>
+            <span class="feed-date">${dateStr}</span>
+          </div>
+        </div>
+        <div class="feed-rest"><i class="ti ti-moon" style="margin-right:6px;color:var(--text-dimmer);" aria-hidden="true"></i>Rest day</div>
+      </div>`;
+    }
+    return `<div class="feed-card card">
+      <div class="feed-card-header">${avatar}
+        <div class="feed-card-meta">
+          <span class="feed-username">@${s._username}</span>
+          <span class="feed-date">${dateStr}</span>
+        </div>
+      </div>
+      <div class="feed-lift">${s.lift || ''}</div>
+      ${grpLabel ? `<div class="feed-group">${grpLabel}</div>` : ''}
+      <div class="feed-stats">${[s.wt ? s.wt + ' lbs' : '', s.sets ? s.sets + ' sets' : '', s.reps ? s.reps + ' reps' : ''].filter(Boolean).join(' · ')}</div>
+      ${s.note ? `<div class="feed-note">${s.note}</div>` : ''}
+    </div>`;
+  }
+
+  async function loadFeed(myUid) {
+    const container = document.getElementById('feedContainer');
+    if (!container) return;
+    container.innerHTML = '<p class="feed-loading">Loading…</p>';
+    try {
+      const [sentSnap, recvSnap] = await Promise.all([
+        db.collection('friendRequests').where('fromUid', '==', myUid).where('status', '==', 'accepted').get(),
+        db.collection('friendRequests').where('toUid',   '==', myUid).where('status', '==', 'accepted').get()
+      ]);
+      const friends = [
+        ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
+        ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername }))
+      ];
+      if (!friends.length) {
+        container.innerHTML = '<p class="feed-empty">Add friends on your profile to see their workouts here.</p>';
+        return;
+      }
+
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 7);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+      const perFriend = await Promise.all(friends.map(async f => {
+        const [sessSnap, settingsSnap] = await Promise.all([
+          db.collection(`users/${f.uid}/sessions`)
+            .where('dateRaw', '>=', cutoffStr)
+            .orderBy('dateRaw', 'desc')
+            .limit(15)
+            .get(),
+          db.doc(`users/${f.uid}/settings/main`).get()
+        ]);
+        const settings  = settingsSnap.exists ? settingsSnap.data() : {};
+        const username  = settings.username || f.username;
+        return sessSnap.docs.map(d => ({
+          ...d.data(), id: d.id,
+          _uid: f.uid, _username: username, _settings: settings
+        }));
+      }));
+
+      const all = perFriend.flat()
+        .sort((a, b) => {
+          const dc = b.dateRaw.localeCompare(a.dateRaw);
+          if (dc !== 0) return dc;
+          const ta = a.createdAt?.toMillis?.() || 0;
+          const tb = b.createdAt?.toMillis?.() || 0;
+          return tb - ta;
+        });
+
+      if (!all.length) {
+        container.innerHTML = '<p class="feed-empty">None of your friends have logged sessions in the last 7 days.</p>';
+        return;
+      }
+
+      let html = '';
+      let lastDate = null;
+      for (const s of all) {
+        if (s.dateRaw !== lastDate) {
+          html += `<div class="feed-day-label">${formatFeedDate(s.dateRaw)}</div>`;
+          lastDate = s.dateRaw;
+        }
+        html += renderFeedCard(s);
+      }
+      container.innerHTML = html;
+      applyPhotoAvatars();
+    } catch (err) {
+      container.innerHTML = `<p style="color:var(--down);font-family:var(--mono);font-size:13px;">Error: ${err.message}</p>`;
+    }
+  }
+
+  auth.onAuthStateChanged(user => {
+    const gate = document.getElementById('feed-gate');
+    const page = document.getElementById('feed-page');
+    if (user) {
+      if (gate) gate.style.display = 'none';
+      if (page) page.style.display = '';
+      loadFeed(user.uid);
+    } else {
+      if (gate) gate.style.display = '';
+      if (page) page.style.display = 'none';
+    }
+  });
+</script>
+<script src="nav-auth.js"></script>
+</body>
+</html>
