@@ -1376,13 +1376,18 @@ function initApp(uid) {
          </td></tr>`;
 
     const pag = document.getElementById('log-pagination');
-    if (sessions.length > PAGE_SIZE) {
-      pag.style.display = '';
-      document.getElementById('log-page-info').textContent = `Page ${currentPage} of ${totalPages}`;
-      document.getElementById('log-prev').disabled = currentPage <= 1;
-      document.getElementById('log-next').disabled = currentPage >= totalPages;
-    } else {
-      pag.style.display = 'none';
+    if (pag) {
+      if (sessions.length > PAGE_SIZE) {
+        pag.style.display = '';
+        const pi = document.getElementById('log-page-info');
+        const lp = document.getElementById('log-prev');
+        const ln = document.getElementById('log-next');
+        if (pi) pi.textContent = `Page ${currentPage} of ${totalPages}`;
+        if (lp) lp.disabled = currentPage <= 1;
+        if (ln) ln.disabled = currentPage >= totalPages;
+      } else {
+        pag.style.display = 'none';
+      }
     }
   }
 
@@ -1538,10 +1543,10 @@ function initApp(uid) {
     }
   });
 
-  document.getElementById('log-prev').addEventListener('click', () => {
+  document.getElementById('log-prev')?.addEventListener('click', () => {
     if (currentPage > 1) { currentPage--; renderLog(currentSessions); }
   });
-  document.getElementById('log-next').addEventListener('click', () => {
+  document.getElementById('log-next')?.addEventListener('click', () => {
     const totalPages = Math.ceil(currentSessions.length / PAGE_SIZE);
     if (currentPage < totalPages) { currentPage++; renderLog(currentSessions); }
   });
