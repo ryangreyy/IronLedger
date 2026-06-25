@@ -907,6 +907,7 @@ function initApp(uid) {
   let goalsDonePage = 1;
   let goalsDoneFilter = 'all';
   let goalsAddOpen = false;
+  let goalsAddSteps = 1;
   let goalsEditIdx = -2;
   const GOALS_DONE_PAGE = 5;
 
@@ -1917,9 +1918,19 @@ function initApp(uid) {
         </div>`;
     }
 
+    const addBoxes = Array.from({length: goalsAddSteps}, () =>
+      '<span class="goal-step-box" style="opacity:0.3"></span>'
+    ).join('');
+    const addAdjuster = `
+      <div class="goal-steps-adj">
+        <button class="goal-step-btn goal-add-step-minus" type="button">âˆ’</button>
+        <span class="goal-step-count">${goalsAddSteps}</span>
+        <button class="goal-step-btn goal-add-step-plus" type="button">+</button>
+      </div>`;
+
     const addForm = goalsAddOpen ? `
-      <div class="goal-row goal-row-new">
-        <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
+      <div class="goal-row goal-row-new goal-row-editing">
+        <div class="goal-steps">${addBoxes}</div>
         <div class="goal-main">
           <input type="text" class="goal-input goal-add-input" maxlength="60" autocomplete="off" placeholder="Type your goal…">
           <div class="goal-dates">
@@ -1932,6 +1943,7 @@ function initApp(uid) {
             <button class="goal-add-cancel btn-goal-cancel">Cancel</button>
           </div>
         </div>
+        ${addAdjuster}
       </div>` : `
       <div class="goal-row goal-row-new">
         <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
@@ -2047,10 +2059,38 @@ function initApp(uid) {
     if (addBtn) {
       addBtn.addEventListener('click', () => {
         goalsAddOpen = true;
+        goalsAddSteps = 1;
         renderGoals(currentSettings && currentSettings.goals);
         requestAnimationFrame(() => { const i = list.querySelector('.goal-add-input'); if (i) i.focus(); });
       });
     }
+
+    function renderAddStepPreview() {
+      const row = list.querySelector('.goal-row-new');
+      const stepsEl = row?.querySelector('.goal-steps');
+      const countEl = row?.querySelector('.goal-step-count');
+      if (stepsEl) {
+        stepsEl.innerHTML = Array.from({length: goalsAddSteps}, () =>
+          '<span class="goal-step-box" style="opacity:0.3"></span>'
+        ).join('');
+      }
+      if (countEl) countEl.textContent = goalsAddSteps;
+    }
+
+    list.querySelectorAll('.goal-add-step-minus').forEach(btn => {
+      btn.textContent = '-';
+      btn.addEventListener('click', () => {
+        goalsAddSteps = Math.max(1, goalsAddSteps - 1);
+        renderAddStepPreview();
+      });
+    });
+
+    list.querySelectorAll('.goal-add-step-plus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        goalsAddSteps = Math.min(10, goalsAddSteps + 1);
+        renderAddStepPreview();
+      });
+    });
 
     const addDoneBtn = list.querySelector('.goal-add-done');
     if (addDoneBtn) {
@@ -2060,7 +2100,11 @@ function initApp(uid) {
         const text = inp ? inp.value.trim() : '';
         const finishBy = dueInp ? (dueInp.value || null) : null;
         goalsAddOpen = false;
-        if (text) saveGoals([...allGoals, { text, done: false, steps: 1, stepsChecked: 0, completedAt: null, createdAt: Date.now(), finishBy }]);
+        const steps = goalsAddSteps;
+        goalsAddSteps = 1;
+        if (text) {
+          saveGoals([...allGoals, { text, done: false, steps, stepsChecked: 0, completedAt: null, createdAt: Date.now(), finishBy }]);
+        }
         else renderGoals(currentSettings && currentSettings.goals);
       });
     }
@@ -2069,6 +2113,7 @@ function initApp(uid) {
     if (addCancelBtn) {
       addCancelBtn.addEventListener('click', () => {
         goalsAddOpen = false;
+        goalsAddSteps = 1;
         renderGoals(currentSettings && currentSettings.goals);
       });
     }
