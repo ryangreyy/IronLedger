@@ -522,7 +522,8 @@ nav.nav-hidden{ transform:translateY(-100%); }
   font-size:14px; font-weight:900; color:var(--text-dimmer); transition:all .2s;
 }
 .tracker-row-check:hover{ border-color:var(--accent-bright); color:var(--accent-bright); }
-.tracker-row-check.done{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
+.tracker-row-check.done{ background:var(--up); border-color:var(--up); color:#0B0C0E; }
+.tracker-row-check.done:hover{ border-color:var(--up); color:#0B0C0E; }
 .tracker-row-streak{
   font-family:var(--mono); font-size:11px; font-weight:700;
   color:var(--text-dimmer); white-space:nowrap; min-width:46px; text-align:right;
