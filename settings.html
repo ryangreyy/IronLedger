@@ -615,18 +615,23 @@
     saveAllColors(colors);
   }
 
-  let colorSaveTimer;
+  /* One debounce timer PER group. A single shared timer caused each colour
+     pick to cancel the previous group's pending save, so only the last colour
+     touched was ever written to Firestore — the rest silently reverted to
+     defaults on other pages. */
+  const colorSaveTimers = {};
   COLOR_GROUPS.forEach(({ key, field }) => {
     document.getElementById(`color-${key}`).addEventListener('input', e => {
       applyColorToPage(key, e.target.value);
       document.getElementById('colorHarmony').value = 'custom';
     });
-    document.getElementById(`color-${key}`).addEventListener('change', async e => {
-      clearTimeout(colorSaveTimer);
-      colorSaveTimer = setTimeout(async () => {
+    document.getElementById(`color-${key}`).addEventListener('change', e => {
+      const val = e.target.value;
+      clearTimeout(colorSaveTimers[field]);
+      colorSaveTimers[field] = setTimeout(async () => {
         const msg = document.getElementById('colorMsg');
         try {
-          await settingsRef().set({ [field]: e.target.value }, { merge: true });
+          await settingsRef().set({ [field]: val }, { merge: true });
           msg.style.color = 'var(--up)'; msg.textContent = '✓ Color saved.';
           setTimeout(() => { msg.textContent = ''; }, 2000);
         } catch (err) {
