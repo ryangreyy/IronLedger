@@ -945,8 +945,19 @@ function initApp(uid) {
      popover and pills can never show different colors for the same group, and
      that they always reflect the user's saved settings regardless of whether
      the sessions listener or the settings listener rendered first. */
+  function normalizeLiftCls(cls) {
+    if (!cls) return '';
+    if (cls === 'press') return 'arm';
+    return cls;
+  }
+
+  function colorKeyForCls(cls) {
+    const normalized = normalizeLiftCls(cls);
+    return normalized === 'arm' ? 'press' : normalized;   // Arms share the saved 'press' color
+  }
+
   function clsColor(cls) {
-    const key = cls === 'arm' ? 'press' : cls;   // Arms share the 'press' color
+    const key = colorKeyForCls(cls);
     const v = getComputedStyle(document.documentElement)
                 .getPropertyValue(`--${key}`).trim();
     return v || '#9AA0AC';                        // 'other'/unknown → neutral grey
@@ -1000,7 +1011,7 @@ function initApp(uid) {
       const groups = {};
       day.forEach(s => {
         const key = s.lift || 'Other';
-        const cls = s.cls || liftToCls(s.lift) || 'other';
+        const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
         if (!groups[key]) groups[key] = { lift: key, cls, sets: 0 };
         groups[key].sets += (s.sets || 1);
       });
@@ -1077,6 +1088,9 @@ function initApp(uid) {
       if (empty) empty.style.display = 'none';
       if (note)  note.textContent = `Last ${liftSessions.length} session${liftSessions.length !== 1 ? 's' : ''}`;
 
+      const historyCls = normalizeLiftCls(liftSessions[0]?.cls || liftToCls(liftName) || 'other');
+      const historyColor = clsColor(historyCls);
+
       const W = 700, H = window.innerWidth < 640 ? 320 : 240;
       const padL = 52, padR = 24, padT = 24, padB = 52;
       const chartW = W - padL - padR, chartH = H - padT - padB;
@@ -1110,19 +1124,19 @@ function initApp(uid) {
         const [, m, d] = s.dateRaw.split('-').map(Number);
         const lbl = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
         vlines += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${(padT + chartH).toFixed(1)}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
-        dots   += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2.5"/>`;
+        dots   += `<circle cx="${x}" cy="${y}" r="5" fill="${historyColor}" stroke="var(--bg)" stroke-width="2.5"/>`;
         labels += `<text x="${x}" y="${H - 10}" text-anchor="middle" class="axis-label">${lbl}</text>`;
       });
 
       svg.innerHTML =
         `<defs><linearGradient id="hgrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.26"/>
-          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+          <stop offset="0%" stop-color="${historyColor}" stop-opacity="0.26"/>
+          <stop offset="100%" stop-color="${historyColor}" stop-opacity="0"/>
         </linearGradient></defs>` +
         `<rect x="${padL}" y="${padT}" width="${chartW}" height="${chartH}" rx="3" fill="rgba(255,255,255,0.04)"/>` +
         grid + vlines +
         `<path d="${area}" fill="url(#hgrad)"/>` +
-        `<path d="M${coords.join(' L')}" fill="none" stroke="var(--accent)"
+        `<path d="M${coords.join(' L')}" fill="none" stroke="${historyColor}"
                stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>` +
         dots + labels;
 
@@ -1316,7 +1330,7 @@ function initApp(uid) {
 
     groups.forEach(cls => {
       const best = Object.entries(lastSeen)
-        .filter(([lift, date]) => liftToCls(lift) === cls && date >= cutoffISO)
+        .filter(([lift, date]) => normalizeLiftCls(liftToCls(lift)) === cls && date >= cutoffISO)
         .map(([lift, date]) => ({
           lift, cls,
           days: Math.round((today - new Date(date + 'T12:00:00')) / 86400000)
@@ -1362,7 +1376,7 @@ function initApp(uid) {
       if (!s.dateRaw || s.isRestDay) return;
       const [y, m, dayNum] = s.dateRaw.split('-').map(Number);
       if (y !== thisYear || m - 1 !== thisMonth) return;
-      if (!sessionMap[dayNum]) sessionMap[dayNum] = s.cls || liftToCls(s.lift) || 'other';
+      if (!sessionMap[dayNum]) sessionMap[dayNum] = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
     });
 
     // Merge with manual calendar overrides — same priority as renderCalendar
@@ -1372,7 +1386,7 @@ function initApp(uid) {
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${thisYear}-${monthPad}-${String(d).padStart(2, '0')}`;
-      const cls     = calColors[dateStr] || sessionMap[d];
+      const cls     = normalizeLiftCls(calColors[dateStr] || sessionMap[d]);
       if (cls && cls !== 'rest' && cls !== 'other' && cls in counts) counts[cls]++;
     }
 
@@ -1411,7 +1425,7 @@ function initApp(uid) {
           </tr>` : `
           <tr data-id="${s.id}">
             <td style="color:var(--text-dim);white-space:nowrap">${s.date}</td>
-            <td><span class="pill ${s.cls || liftToCls(s.lift) || 'other'}">${s.lift}</span></td>
+            <td><span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${s.lift}</span></td>
             <td>${s.sets} × ${s.reps}</td>
             <td>${s.wt} lbs</td>
             <td>${s.note
@@ -2141,7 +2155,7 @@ function initApp(uid) {
       const parts = s.dateRaw.split('-').map(Number);
       if (parts[0] === year && parts[1] - 1 === month) {
         const day = parts[2];
-        if (!sessionMap[day]) sessionMap[day] = s.isRestDay ? 'rest' : (s.cls || liftToCls(s.lift) || 'other');
+        if (!sessionMap[day]) sessionMap[day] = s.isRestDay ? 'rest' : normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
       }
     });
 
@@ -2173,7 +2187,7 @@ function initApp(uid) {
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr  = `${year}-${monthPad}-${String(d).padStart(2,'0')}`;
       const el       = document.createElement('div');
-      const cls      = calColors[dateStr] || sessionMap[d];
+      const cls      = normalizeLiftCls(calColors[dateStr] || sessionMap[d]);
       const isToday  = isThisMonth && d === todayDate;
       const isFuture = isFutureMonth || (isThisMonth && d > todayDate);
 
@@ -2283,7 +2297,7 @@ function initApp(uid) {
     datalist.querySelectorAll('option[data-custom]').forEach(o => o.remove());
     (lifts || []).forEach(l => {
       const name = typeof l === 'string' ? l : l.name;
-      const cls  = typeof l === 'string' ? '' : (l.cls || '');
+      const cls  = typeof l === 'string' ? '' : normalizeLiftCls(l.cls || '');
       if (!name) return;
       const opt = document.createElement('option');
       opt.value = name;
@@ -2298,17 +2312,20 @@ function initApp(uid) {
       squat: s?.colorSquat || '#D6FF3D',
       bench: s?.colorBench || '#5BD6E6',
       dead:  s?.colorDead  || '#FF8A4C',
-      press: s?.colorPress || '#B78BFF',
+      press: s?.colorPress || s?.colorArm || '#B78BFF',
     };
     const root = document.documentElement;
     Object.entries(map).forEach(([key, hex]) => {
       const r = parseInt(hex.slice(1,3),16);
       const g = parseInt(hex.slice(3,5),16);
       const b = parseInt(hex.slice(5,7),16);
-      root.style.setProperty(`--${key}`, hex);
-      root.style.setProperty(`--${key}-rgb`, `${r},${g},${b}`);
-      root.style.setProperty(`--${key}-28`, `rgba(${r},${g},${b},0.28)`);
-      root.style.setProperty(`--${key}-55`, `rgba(${r},${g},${b},0.55)`);
+      const keys = key === 'press' ? ['press', 'arm'] : [key];
+      keys.forEach(cssKey => {
+        root.style.setProperty(`--${cssKey}`, hex);
+        root.style.setProperty(`--${cssKey}-rgb`, `${r},${g},${b}`);
+        root.style.setProperty(`--${cssKey}-28`, `rgba(${r},${g},${b},0.28)`);
+        root.style.setProperty(`--${cssKey}-55`, `rgba(${r},${g},${b},0.55)`);
+      });
     });
   }
 
