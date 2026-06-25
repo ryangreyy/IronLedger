@@ -1229,6 +1229,7 @@ function initApp(uid) {
     renderNeglect();
     renderTracker();
     renderLog([]);
+    if (typeof igRenderChallenges === 'function') igRenderChallenges(null, null, 0);
     return;
   }
 
@@ -1514,20 +1515,33 @@ function initApp(uid) {
   /* Challenge subscriptions — init docs then subscribe to live updates */
   igInitChallenges(uid, db).then(({ dailyRef, weeklyRef, xpRef }) => {
     let _dailyData = null, _weeklyData = null, _xpTotal = 0;
+    let _dailyReady = false, _weeklyReady = false;
+    let _challengeFrame = null;
+
+    function renderChallengesWhenReady() {
+      if (!_dailyReady || !_weeklyReady) return;
+      if (_challengeFrame) cancelAnimationFrame(_challengeFrame);
+      _challengeFrame = requestAnimationFrame(() => {
+        _challengeFrame = null;
+        igRenderChallenges(_dailyData, _weeklyData, _xpTotal);
+      });
+    }
 
     unsubscribeDaily = dailyRef.onSnapshot(snap => {
       _dailyData = snap.exists ? snap.data() : null;
-      igRenderChallenges(_dailyData, _weeklyData, _xpTotal);
+      _dailyReady = true;
+      renderChallengesWhenReady();
     });
 
     unsubscribeWeekly = weeklyRef.onSnapshot(snap => {
       _weeklyData = snap.exists ? snap.data() : null;
-      igRenderChallenges(_dailyData, _weeklyData, _xpTotal);
+      _weeklyReady = true;
+      renderChallengesWhenReady();
     });
 
     unsubscribeXP = xpRef.onSnapshot(snap => {
       _xpTotal = snap.exists ? (snap.data().total || 0) : 0;
-      igRenderChallenges(_dailyData, _weeklyData, _xpTotal);
+      renderChallengesWhenReady();
     });
   }).catch(err => console.error('Challenge init error:', err));
 
