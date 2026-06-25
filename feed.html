@@ -458,8 +458,11 @@
       ]);
 
       /* Build color palette from the viewer's own settings */
-      const viewerColors = clsColors(mySettingsSnap.exists ? mySettingsSnap.data() : {});
+      const mySettings    = mySettingsSnap.exists ? mySettingsSnap.data() : {};
+      const viewerColors  = clsColors(mySettings);
+      const viewerUsername = mySettings.username || 'me';
       const friends = [
+        { uid: myUid, username: viewerUsername },
         ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
         ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername }))
       ];
@@ -510,7 +513,8 @@
       for (const date of dates) {
         html += `<div class="feed-day-label">${formatFeedDate(date)}</div>`;
         html += '<div class="feed-grid">';
-        for (const uid of Object.keys(byDate[date])) {
+        const sortedUids = Object.keys(byDate[date]).sort((a, b) => a === myUid ? -1 : b === myUid ? 1 : 0);
+        for (const uid of sortedUids) {
           const { username, settings, sessions } = byDate[date][uid];
           html += renderFriendDayCard(uid, username, settings, sessions, date, viewerColors);
         }
