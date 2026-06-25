@@ -1616,10 +1616,10 @@ function initApp(uid) {
     if (currentPage < totalPages) { currentPage++; renderLog(currentSessions); }
   });
 
-  document.getElementById('goals-prev').addEventListener('click', () => {
+  document.getElementById('goals-prev')?.addEventListener('click', () => {
     if (goalsDonePage > 1) { goalsDonePage--; renderGoals(currentSettings && currentSettings.goals); }
   });
-  document.getElementById('goals-next').addEventListener('click', () => {
+  document.getElementById('goals-next')?.addEventListener('click', () => {
     goalsDonePage++; renderGoals(currentSettings && currentSettings.goals);
   });
 
