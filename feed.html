@@ -130,6 +130,28 @@
 .feed-gate h2{ margin-bottom:12px; }
 .feed-gate p{ font-size:14px; color:var(--text-dim); margin-bottom:28px; }
 
+/* ── Reaction bar ── */
+.rxn-bar{display:flex;align-items:center;gap:5px;padding-top:11px;border-top:1px solid rgba(255,255,255,.055);margin-top:10px}
+.rxn-main{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 10px;border-radius:30px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;font-size:17px;line-height:1;transition:all .15s ease;flex-shrink:0}
+.rxn-main:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);transform:scale(1.04)}
+.rxn-main .rxn-ct{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.45)}
+.rxn-main.rxn-on{border-color:rgba(255,55,85,.65);background:rgba(255,55,85,.13)}
+.rxn-main.rxn-on .rxn-ct{color:#ff6080}
+.rxn-tog{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);cursor:pointer;font-size:16px;color:rgba(255,255,255,.3);transition:all .15s;flex-shrink:0}
+.rxn-tog:hover{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6);background:rgba(255,255,255,.07);transform:scale(1.06)}
+.rxn-tog.rxn-open{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.65)}
+.rxn-slide{display:flex;gap:5px;overflow:hidden;max-width:0;opacity:0;transition:max-width .3s cubic-bezier(.4,0,.2,1),opacity .22s ease}
+.rxn-slide.rxn-open{max-width:260px;opacity:1}
+.rxn-extra{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 10px;border-radius:30px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;font-size:17px;line-height:1;transition:all .15s ease;flex-shrink:0;white-space:nowrap}
+.rxn-extra:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);transform:scale(1.04)}
+.rxn-extra .rxn-ct{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.45)}
+.rxn-extra.rxn-fire{border-color:rgba(255,125,0,.6);background:rgba(255,125,0,.13)}
+.rxn-extra.rxn-fire .rxn-ct{color:#ff9020}
+.rxn-extra.rxn-skull{border-color:rgba(155,175,255,.5);background:rgba(155,175,255,.1)}
+.rxn-extra.rxn-skull .rxn-ct{color:#a0b4ff}
+.rxn-extra.rxn-ins{border-color:rgba(255,200,0,.55);background:rgba(255,200,0,.1)}
+.rxn-extra.rxn-ins .rxn-ct{color:#ffc400}
+
 @media(max-width:680px){
   .feed-wrap{ padding:72px 14px 100px; }
   .feed-grid{ grid-template-columns:1fr; }
@@ -213,6 +235,10 @@
   };
   const CLS_FALLBACK = '#c1272d';
 
+  const RXN_TYPES  = ['heart', 'fire', 'skull', 'ins'];
+  const RXN_EMOJI  = { heart: '❤️', fire: '🔥', skull: '💀', ins: '🤯' };
+  const RXN_CLASS  = { fire: 'rxn-fire', skull: 'rxn-skull', ins: 'rxn-ins' };
+
   /* Build a color map from a friend's settings doc */
   function clsColors(settings) {
     return {
@@ -282,6 +308,74 @@
     });
   }
 
+  /* Fetch reaction counts for all cards and apply active states */
+  async function loadReactions(myUid, container) {
+    const bars = container.querySelectorAll('.rxn-bar[data-frienduid]');
+    if (!bars.length) return;
+    const results = await Promise.all(Array.from(bars).map(bar =>
+      db.doc(`feedReactions/${bar.dataset.frienduid}_${bar.dataset.dateraw}`).get()
+        .then(snap => ({ bar, data: snap.exists ? snap.data() : {} }))
+    ));
+    results.forEach(({ bar, data }) => {
+      RXN_TYPES.forEach(type => {
+        const voters = data[type] || {};
+        const count  = Object.keys(voters).length;
+        const active = voters[myUid] === true;
+        const btn    = bar.querySelector(`[data-type="${type}"]`);
+        if (!btn) return;
+        const ct = btn.querySelector('.rxn-ct');
+        if (ct) ct.textContent = count > 0 ? count : '';
+        if (type === 'heart') {
+          btn.classList.toggle('rxn-on', active);
+        } else {
+          btn.classList.toggle(RXN_CLASS[type], active);
+        }
+      });
+    });
+  }
+
+  /* Toggle a reaction in Firestore with optimistic UI update */
+  async function handleReactionClick(e, myUid) {
+    const tog = e.target.closest('.rxn-tog');
+    if (tog) {
+      const slide = tog.nextElementSibling;
+      if (slide?.classList.contains('rxn-slide')) {
+        const open = slide.classList.toggle('rxn-open');
+        tog.textContent = open ? '×' : '+';
+        tog.classList.toggle('rxn-open', open);
+      }
+      return;
+    }
+    const btn = e.target.closest('[data-type]');
+    if (!btn) return;
+    const bar = btn.closest('.rxn-bar');
+    if (!bar) return;
+    const type     = btn.dataset.type;
+    const docRef   = db.doc(`feedReactions/${bar.dataset.frienduid}_${bar.dataset.dateraw}`);
+    const isActive = type === 'heart'
+      ? btn.classList.contains('rxn-on')
+      : btn.classList.contains(RXN_CLASS[type]);
+    const ct       = btn.querySelector('.rxn-ct');
+    const prev     = parseInt(ct?.textContent || '0') || 0;
+    const next     = isActive ? Math.max(0, prev - 1) : prev + 1;
+
+    if (ct) ct.textContent = next || '';
+    if (type === 'heart') btn.classList.toggle('rxn-on', !isActive);
+    else btn.classList.toggle(RXN_CLASS[type], !isActive);
+
+    try {
+      if (isActive) {
+        await docRef.update({ [`${type}.${myUid}`]: firebase.firestore.FieldValue.delete() });
+      } else {
+        await docRef.set({ [type]: { [myUid]: true } }, { merge: true });
+      }
+    } catch {
+      if (ct) ct.textContent = prev || '';
+      if (type === 'heart') btn.classList.toggle('rxn-on', isActive);
+      else btn.classList.toggle(RXN_CLASS[type], isActive);
+    }
+  }
+
   /* Determine which cls appears most in a group of sessions */
   function dominantCls(sessions) {
     const counts = {};
@@ -294,7 +388,7 @@
 
   /* Render one C3 card for a single friend on a single day.
      colors = viewer's own palette so the feed matches their settings. */
-  function renderFriendDayCard(username, settings, sessions, dateRaw, colors) {
+  function renderFriendDayCard(friendUid, username, settings, sessions, dateRaw, colors) {
     const avatar   = buildAvatarEl(settings, username);
     const dateStr  = formatFeedDate(dateRaw);
     const lifts    = sessions.filter(s => !s.isRestDay);
@@ -325,6 +419,16 @@
       liftRowsHtml = `<div class="c3-lifts">${rows.join('')}</div>`;
     }
 
+    const rxnBar = `<div class="rxn-bar" data-frienduid="${friendUid}" data-dateraw="${dateRaw}">
+      <button class="rxn-main" data-type="heart">${RXN_EMOJI.heart} <span class="rxn-ct"></span></button>
+      <button class="rxn-tog">+</button>
+      <div class="rxn-slide">
+        <button class="rxn-extra" data-type="fire">${RXN_EMOJI.fire} <span class="rxn-ct"></span></button>
+        <button class="rxn-extra" data-type="skull">${RXN_EMOJI.skull} <span class="rxn-ct"></span></button>
+        <button class="rxn-extra" data-type="ins">${RXN_EMOJI.ins} <span class="rxn-ct"></span></button>
+      </div>
+    </div>`;
+
     return `<div class="c3-card card">
       <div class="c3-bar" style="background:${barColor};"></div>
       <div class="c3-inner">
@@ -336,6 +440,7 @@
           </div>
         </div>
         ${liftRowsHtml}
+        ${rxnBar}
       </div>
     </div>`;
   }
@@ -407,13 +512,15 @@
         html += '<div class="feed-grid">';
         for (const uid of Object.keys(byDate[date])) {
           const { username, settings, sessions } = byDate[date][uid];
-          html += renderFriendDayCard(username, settings, sessions, date, viewerColors);
+          html += renderFriendDayCard(uid, username, settings, sessions, date, viewerColors);
         }
         html += '</div>';
       }
 
       container.innerHTML = html;
       applyPhotoAvatars();
+      loadReactions(myUid, container);
+      container.addEventListener('click', e => handleReactionClick(e, myUid));
 
     } catch (err) {
       container.innerHTML = `<p style="color:var(--down);font-family:var(--mono);font-size:13px;">Error: ${err.message}</p>`;
