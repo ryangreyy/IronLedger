@@ -184,14 +184,22 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .hero-link:hover{color:#fff; border-color:rgba(255,255,255,.3); background:rgba(255,255,255,.04); letter-spacing:.04em;}
 .goals-wrap{ max-width:1140px; margin:0 auto; padding:0 28px 56px; }
 
-/* Goals (left) + Personal Trackers / Challenges (right column) side by side */
-.goals-tracker-row{ display:flex; gap:20px; align-items:flex-start; }
-.goals-tracker-row > .goals-card{ flex:1.3 1 0; min-width:0; }
-.goals-tracker-row > .goals-tracker-col{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; gap:20px; }
+/* Goals (left) + Personal Trackers / Challenges (right column) side by side.
+   Both columns share one fixed height so their bottoms always line up;
+   any overflowing content scrolls inside its own area. */
+.goals-tracker-row{ display:flex; gap:20px; align-items:stretch; --gt-col-h:600px; }
+.goals-tracker-row > .goals-card{ flex:1.3 1 0; min-width:0; height:var(--gt-col-h); display:flex; flex-direction:column; }
+.goals-tracker-row > .goals-tracker-col{ flex:1 1 0; min-width:0; height:var(--gt-col-h); display:flex; flex-direction:column; gap:20px; }
+.goals-tracker-row > .goals-card .goals-scroll-wrap{ flex:1 1 auto; min-height:0; overflow-y:auto; }
+.goals-tracker-col > .tracker-card{ flex:0 1 auto; min-height:0; overflow-y:auto; }
+.goals-tracker-col > #challenges-section{ flex:1 1 auto; min-height:0; overflow-y:auto; }
 @media(max-width:860px){
   .goals-tracker-row{ flex-direction:column; }
   .goals-tracker-row > .goals-card,
-  .goals-tracker-row > .goals-tracker-col{ flex:none; width:100%; }
+  .goals-tracker-row > .goals-tracker-col{ flex:none; width:100%; height:auto; }
+  .goals-tracker-row > .goals-card .goals-scroll-wrap,
+  .goals-tracker-col > .tracker-card,
+  .goals-tracker-col > #challenges-section{ overflow-y:visible; }
 }
 
 /* ---------- GOALS CARD ---------- */
