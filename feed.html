@@ -364,12 +364,12 @@
     else btn.classList.toggle(RXN_CLASS[type], !isActive);
 
     try {
-      if (isActive) {
-        await docRef.update({ [`${type}.${myUid}`]: firebase.firestore.FieldValue.delete() });
-      } else {
-        await docRef.set({ [type]: { [myUid]: true } }, { merge: true });
-      }
-    } catch {
+      const val = isActive
+        ? firebase.firestore.FieldValue.delete()
+        : true;
+      await docRef.set({ [type]: { [myUid]: val } }, { merge: true });
+    } catch (err) {
+      console.error('Reaction write failed:', err);
       if (ct) ct.textContent = prev || '';
       if (type === 'heart') btn.classList.toggle('rxn-on', isActive);
       else btn.classList.toggle(RXN_CLASS[type], isActive);
