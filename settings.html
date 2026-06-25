@@ -206,7 +206,8 @@
             </div>
 
           </div>
-          <p id="colorMsg" class="settings-msg" style="margin-top:16px;"></p>
+          <button id="saveColorsBtn" class="btn btn-primary" style="margin-top:20px;">Save Colors</button>
+          <p id="colorMsg" class="settings-msg" style="margin-top:10px;"></p>
         </div>
       </div>
 
@@ -621,41 +622,56 @@
     saveAllColors(colors);
   }
 
-  /* One debounce timer PER group. A single shared timer caused each colour
-     pick to cancel the previous group's pending save, so only the last colour
-     touched was ever written to Firestore — the rest silently reverted to
-     defaults on other pages. */
+  /* Per-group debounce timers — one per field so picking multiple colors
+     in quick succession saves all of them independently. */
   const colorSaveTimers = {};
+
+  async function saveOneColor(field, val) {
+    const msg = document.getElementById('colorMsg');
+    try {
+      await settingsRef().set({ [field]: val }, { merge: true });
+      msg.style.color = 'var(--up)'; msg.textContent = '✓ Color saved.';
+      setTimeout(() => { if (msg.textContent === '✓ Color saved.') msg.textContent = ''; }, 2500);
+    } catch (err) {
+      msg.style.color = 'var(--down)'; msg.textContent = 'Could not save — check your connection.';
+    }
+  }
+
   COLOR_GROUPS.forEach(({ key, field }) => {
-    const saveColorNow = async val => {
-      const msg = document.getElementById('colorMsg');
-      try {
-        await settingsRef().set({ [field]: val }, { merge: true });
-      } catch (err) {
-        msg.style.color = 'var(--down)'; msg.textContent = 'Could not save color.';
-      }
-    };
-    document.getElementById(`color-${key}`).addEventListener('input', e => {
+    const inp = document.getElementById(`color-${key}`);
+
+    inp.addEventListener('input', e => {
       applyColorToPage(key, e.target.value);
       document.getElementById('colorHarmony').value = 'custom';
-    });
-    document.getElementById(`color-${key}`).addEventListener('change', e => {
-      const val = e.target.value;
-      applyColorToPage(key, val);
-      document.getElementById('colorHarmony').value = 'custom';
-      saveColorNow(val);
+      /* Debounce save on drag so we catch mid-drag pauses */
       clearTimeout(colorSaveTimers[field]);
-      colorSaveTimers[field] = setTimeout(async () => {
-        const msg = document.getElementById('colorMsg');
-        try {
-          await settingsRef().set({ [field]: val }, { merge: true });
-          msg.style.color = 'var(--up)'; msg.textContent = '✓ Color saved.';
-          setTimeout(() => { msg.textContent = ''; }, 2000);
-        } catch (err) {
-          msg.style.color = 'var(--down)'; msg.textContent = 'Could not save color.';
-        }
-      }, 400);
+      colorSaveTimers[field] = setTimeout(() => saveOneColor(field, e.target.value), 800);
     });
+
+    inp.addEventListener('change', e => {
+      /* Fires when picker is closed/confirmed — save immediately, no debounce */
+      clearTimeout(colorSaveTimers[field]);
+      applyColorToPage(key, e.target.value);
+      document.getElementById('colorHarmony').value = 'custom';
+      saveOneColor(field, e.target.value);
+    });
+  });
+
+  document.getElementById('saveColorsBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveColorsBtn');
+    const msg = document.getElementById('colorMsg');
+    btn.textContent = 'Saving…'; btn.disabled = true;
+    const update = {};
+    COLOR_GROUPS.forEach(({ key, field }) => {
+      update[field] = document.getElementById(`color-${key}`).value;
+    });
+    try {
+      await settingsRef().set(update, { merge: true });
+      msg.style.color = 'var(--up)'; msg.textContent = '✓ All colors saved to your account.';
+      setTimeout(() => { msg.textContent = ''; }, 3000);
+    } catch (err) {
+      msg.style.color = 'var(--down)'; msg.textContent = 'Could not save — check your connection.';
+    } finally { btn.textContent = 'Save Colors'; btn.disabled = false; }
   });
 
   let cachedPresets = [];
