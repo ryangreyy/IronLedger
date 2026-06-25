@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=103">
+<link rel="stylesheet" href="styles.css?v=105">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -120,7 +120,7 @@
       </div>
     </section>
 
-    <!-- ================= GOALS + PERSONAL TRACKERS ================= -->
+    <!-- ================= GOALS + CHALLENGES + PERSONAL TRACKERS ================= -->
     <div class="goals-wrap reveal">
       <div class="goals-tracker-row">
 
@@ -138,19 +138,17 @@
           </div>
         </div>
 
-        <!-- Right column: Personal Trackers + Challenges -->
-        <div class="goals-tracker-col">
-          <div class="card tracker-card">
-            <div class="tracker-header">
-              <div class="label">Personal Trackers</div>
-              <button id="trackerAddBtn" class="tracker-add-btn">+ Add</button>
-            </div>
-            <div id="trackerError" style="display:none;font-size:12px;color:var(--down);font-family:var(--mono);margin-bottom:8px;padding:6px 10px;background:rgba(255,80,80,.08);border-radius:6px;"></div>
-            <div id="trackerList" class="tracker-list"></div>
-          </div>
+        <!-- Challenges -->
+        <div id="challenges-section"></div>
 
-          <!-- Challenges (sit under Personal Trackers) -->
-          <div id="challenges-section"></div>
+        <!-- Personal Trackers -->
+        <div class="card tracker-card goals-tracker-full">
+          <div class="tracker-header">
+            <div class="label">Personal Trackers</div>
+            <button id="trackerAddBtn" class="tracker-add-btn">+ Add</button>
+          </div>
+          <div id="trackerError" style="display:none;font-size:12px;color:var(--down);font-family:var(--mono);margin-bottom:8px;padding:6px 10px;background:rgba(255,80,80,.08);border-radius:6px;"></div>
+          <div id="trackerList" class="tracker-list"></div>
         </div>
 
       </div>
