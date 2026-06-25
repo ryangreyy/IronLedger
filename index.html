@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=103">
+<link rel="stylesheet" href="styles.css?v=104">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -154,6 +154,10 @@
         </div>
 
       </div>
+
+      <div class="gt-showmore-wrap">
+        <button id="gtShowMore" class="btn btn-ghost" style="display:none;">Show more &#9662;</button>
+      </div>
     </div>
 
     <!-- ================= DASHBOARD / KPIs ================= -->
@@ -224,5 +228,62 @@
 <script src="data.js"></script>
 <script src="challenges.js?v=94"></script>
 <script src="app.js?v=98"></script>
+
+<!-- Dashboard "Show more" — fixed-height Goals / Trackers+Challenges columns -->
+<script>
+(function(){
+  function init(){
+    var row = document.querySelector('.goals-tracker-row');
+    var btn = document.getElementById('gtShowMore');
+    if(!row || !btn) return;
+    var goals = row.querySelector('.goals-card');
+    var col   = row.querySelector('.goals-tracker-col');
+    var goalsList = goals && goals.querySelector('.goals-list');
+    var chal  = document.getElementById('challenges-section');
+    var expanded = false;
+    var EPS = 6;
+
+    function isMobile(){ return window.matchMedia('(max-width:860px)').matches; }
+    function overflowing(){
+      return (goals && goals.scrollHeight > goals.clientHeight + EPS) ||
+             (col   && col.scrollHeight   > col.clientHeight   + EPS);
+    }
+    function update(){
+      if(isMobile()){ btn.style.display = 'none'; return; }
+      if(expanded){ btn.style.display = ''; btn.innerHTML = 'Show less &#9652;'; return; }
+      btn.style.display = overflowing() ? '' : 'none';
+      btn.innerHTML = 'Show more &#9662;';
+    }
+
+    btn.addEventListener('click', function(){
+      expanded = !expanded;
+      row.classList.toggle('gt-expanded', expanded);
+      update();
+    });
+
+    if('ResizeObserver' in window){
+      var ro = new ResizeObserver(update);
+      if(goalsList) ro.observe(goalsList);
+      if(chal)      ro.observe(chal);
+      ro.observe(row);
+    }
+    // Content fills in asynchronously (Firestore) — recheck on any DOM change
+    if('MutationObserver' in window){
+      var mo = new MutationObserver(update);
+      var moOpts = { childList:true, subtree:true, characterData:true };
+      if(goalsList) mo.observe(goalsList, moOpts);
+      if(chal)      mo.observe(chal, moOpts);
+    }
+    window.addEventListener('resize', update);
+    // Safety re-checks in case observers miss the first paint
+    setTimeout(update, 400);
+    setTimeout(update, 1500);
+    setTimeout(update, 3000);
+    update();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 </body>
 </html>
