@@ -939,15 +939,21 @@ function initApp(uid) {
    Shows what % of sets were spent on each lift for a selected day.
    Data comes from the user's logged sessions in Firebase. */
 
+  /* Single source of truth for muscle-group colors.
+     Reads the live CSS variable that applyColors() maintains — the SAME
+     variable the pills use in styles.css. This guarantees the donut, calendar,
+     popover and pills can never show different colors for the same group, and
+     that they always reflect the user's saved settings regardless of whether
+     the sessions listener or the settings listener rendered first. */
+  function clsColor(cls) {
+    const key = cls === 'arm' ? 'press' : cls;   // Arms share the 'press' color
+    const v = getComputedStyle(document.documentElement)
+                .getPropertyValue(`--${key}`).trim();
+    return v || '#9AA0AC';                        // 'other'/unknown → neutral grey
+  }
+
   function getDonutColor(cls) {
-    return {
-      squat: currentSettings?.colorSquat || '#D6FF3D',
-      bench: currentSettings?.colorBench || '#5BD6E6',
-      dead:  currentSettings?.colorDead  || '#FF8A4C',
-      press: currentSettings?.colorPress || '#B78BFF',
-      arm:   currentSettings?.colorPress || '#B78BFF',
-      other: '#9AA0AC',
-    }[cls] || '#9AA0AC';
+    return clsColor(cls);
   }
 
   function ptOnCircle(cx, cy, r, deg) {
@@ -2125,15 +2131,6 @@ function initApp(uid) {
     const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     label.textContent = `${MONTHS[month]} ${year}`;
 
-    const colors = {
-      squat: currentSettings?.colorSquat || '#D6FF3D',
-      bench: currentSettings?.colorBench || '#5BD6E6',
-      dead:  currentSettings?.colorDead  || '#FF8A4C',
-      press: currentSettings?.colorPress || '#B78BFF',
-      arm:   currentSettings?.colorPress || '#B78BFF',
-      other: '#9AA0AC',
-    };
-
     // Manual overrides stored in settings take priority over session-derived colors
     const calColors = currentSettings?.calendarColors || {};
 
@@ -2200,7 +2197,7 @@ function initApp(uid) {
           el.style.borderColor = rv ? `rgba(var(${rv}),0.5)`  : 'rgba(154,160,172,0.5)';
         } else {
           classes += ' has-session';
-          const base = colors[cls] || colors.other;
+          const base = clsColor(cls);
           const rv2 = rgbVarMap[cls];
           el.style.background = `linear-gradient(180deg,rgba(0,0,0,.35),rgba(255,255,255,.02)),${base}`;
           el.style.boxShadow  = `inset 0 4px 9px rgba(0,0,0,.58)`;
@@ -2228,7 +2225,7 @@ function initApp(uid) {
       if (c === 'rest') {
         return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(107,114,128,0.4)"></div>${lbls[c] || c}</div>`;
       }
-      const base = colors[c] || colors.other;
+      const base = clsColor(c);
       const rv3 = rgbVarMap[c];
       const dotBg = `linear-gradient(180deg,rgba(0,0,0,.35),rgba(255,255,255,.02)),${base}`;
       return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${dotBg}"></div>${lbls[c] || c}</div>`;
@@ -2244,17 +2241,11 @@ function initApp(uid) {
       document.body.appendChild(pop);
     }
 
-    const cols = {
-      squat: currentSettings?.colorSquat || '#D6FF3D',
-      bench: currentSettings?.colorBench || '#5BD6E6',
-      dead:  currentSettings?.colorDead  || '#FF8A4C',
-      arm:   currentSettings?.colorPress || '#B78BFF',
-    };
     const groups = [
-      { cls:'squat', label:'Legs',  color: cols.squat },
-      { cls:'bench', label:'Chest', color: cols.bench },
-      { cls:'dead',  label:'Back',  color: cols.dead  },
-      { cls:'arm',   label:'Arms',  color: cols.arm   },
+      { cls:'squat', label:'Legs',  color: clsColor('squat') },
+      { cls:'bench', label:'Chest', color: clsColor('bench') },
+      { cls:'dead',  label:'Back',  color: clsColor('dead')  },
+      { cls:'arm',   label:'Arms',  color: clsColor('arm')   },
     ];
 
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -2341,7 +2332,7 @@ function initApp(uid) {
       applyCustomLifts([]);
     }
     renderLog(currentSessions);
-    renderDonut(currentSessions);
+    renderDonut(currentSessions.filter(s => !s.isRestDay));
     updateKPIs();
     renderCalendar();
     renderTracker();
