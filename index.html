@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=99">
+<link rel="stylesheet" href="styles.css?v=100">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -120,31 +120,34 @@
       </div>
     </section>
 
-    <!-- ================= GOALS ================= -->
+    <!-- ================= GOALS + PERSONAL TRACKERS ================= -->
     <div class="goals-wrap reveal">
-      <div class="goals-card">
-        <div class="goals-header">
-          <span class="goals-eyebrow">My Goals</span>
-          <span class="goals-tally" id="goalsTally"></span>
-        </div>
-        <div class="goals-scroll-wrap"><div class="goals-list" id="goalsList"></div></div>
-        <div id="goals-done-pagination" class="log-pagination" style="display:none;">
-          <button id="goals-prev" class="btn-page">&#8592; Prev</button>
-          <span id="goals-page-info" class="page-info">Page 1 of 1</span>
-          <button id="goals-next" class="btn-page">Next &#8594;</button>
-        </div>
-      </div>
-    </div>
+      <div class="goals-tracker-row">
 
-    <!-- ================= PERSONAL TRACKERS ================= -->
-    <div class="goals-wrap reveal">
-      <div class="card tracker-card">
-        <div class="tracker-header">
-          <div class="label">Personal Trackers</div>
-          <button id="trackerAddBtn" class="tracker-add-btn">+ Add</button>
+        <!-- Goals -->
+        <div class="goals-card">
+          <div class="goals-header">
+            <span class="goals-eyebrow">My Goals</span>
+            <span class="goals-tally" id="goalsTally"></span>
+          </div>
+          <div class="goals-scroll-wrap"><div class="goals-list" id="goalsList"></div></div>
+          <div id="goals-done-pagination" class="log-pagination" style="display:none;">
+            <button id="goals-prev" class="btn-page">&#8592; Prev</button>
+            <span id="goals-page-info" class="page-info">Page 1 of 1</span>
+            <button id="goals-next" class="btn-page">Next &#8594;</button>
+          </div>
         </div>
-        <div id="trackerError" style="display:none;font-size:12px;color:var(--down);font-family:var(--mono);margin-bottom:8px;padding:6px 10px;background:rgba(255,80,80,.08);border-radius:6px;"></div>
-        <div id="trackerList" class="tracker-list"></div>
+
+        <!-- Personal Trackers -->
+        <div class="card tracker-card">
+          <div class="tracker-header">
+            <div class="label">Personal Trackers</div>
+            <button id="trackerAddBtn" class="tracker-add-btn">+ Add</button>
+          </div>
+          <div id="trackerError" style="display:none;font-size:12px;color:var(--down);font-family:var(--mono);margin-bottom:8px;padding:6px 10px;background:rgba(255,80,80,.08);border-radius:6px;"></div>
+          <div id="trackerList" class="tracker-list"></div>
+        </div>
+
       </div>
     </div>
 
