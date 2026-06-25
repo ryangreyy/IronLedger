@@ -748,7 +748,7 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
     return `
       <div class="ch-card${entry.completed ? ' ch-done' : ''}">
         <div class="ch-check${entry.completed ? ' ch-check-done' : ''}">
-          ${entry.completed ? '<svg width="13" height="10" viewBox="0 0 13 10" fill="none"><path d="M1.5 5L5 8.5L11.5 1.5" stroke="#0B0C0E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+          ${entry.completed ? '<svg width="13" height="10" viewBox="0 0 13 10" fill="none"><path d="M1.5 5L5 8.5L11.5 1.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
         </div>
         <div class="ch-body">
           <div class="ch-meta">
