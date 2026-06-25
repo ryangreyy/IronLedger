@@ -994,7 +994,7 @@ function initApp(uid) {
       const groups = {};
       day.forEach(s => {
         const key = s.lift || 'Other';
-        const cls = liftToCls(s.lift) || 'other';
+        const cls = s.cls || liftToCls(s.lift) || 'other';
         if (!groups[key]) groups[key] = { lift: key, cls, sets: 0 };
         groups[key].sets += (s.sets || 1);
       });
@@ -1356,7 +1356,7 @@ function initApp(uid) {
       if (!s.dateRaw || s.isRestDay) return;
       const [y, m, dayNum] = s.dateRaw.split('-').map(Number);
       if (y !== thisYear || m - 1 !== thisMonth) return;
-      if (!sessionMap[dayNum]) sessionMap[dayNum] = liftToCls(s.lift) || 'other';
+      if (!sessionMap[dayNum]) sessionMap[dayNum] = s.cls || liftToCls(s.lift) || 'other';
     });
 
     // Merge with manual calendar overrides — same priority as renderCalendar
@@ -1405,7 +1405,7 @@ function initApp(uid) {
           </tr>` : `
           <tr data-id="${s.id}">
             <td style="color:var(--text-dim);white-space:nowrap">${s.date}</td>
-            <td><span class="pill ${liftToCls(s.lift)}">${s.lift}</span></td>
+            <td><span class="pill ${s.cls || liftToCls(s.lift) || 'other'}">${s.lift}</span></td>
             <td>${s.sets} × ${s.reps}</td>
             <td>${s.wt} lbs</td>
             <td>${s.note
@@ -2144,7 +2144,7 @@ function initApp(uid) {
       const parts = s.dateRaw.split('-').map(Number);
       if (parts[0] === year && parts[1] - 1 === month) {
         const day = parts[2];
-        if (!sessionMap[day]) sessionMap[day] = s.isRestDay ? 'rest' : (liftToCls(s.lift) || 'other');
+        if (!sessionMap[day]) sessionMap[day] = s.isRestDay ? 'rest' : (s.cls || liftToCls(s.lift) || 'other');
       }
     });
 
