@@ -2316,6 +2316,8 @@ function initApp(uid) {
       const b = parseInt(hex.slice(5,7),16);
       root.style.setProperty(`--${key}`, hex);
       root.style.setProperty(`--${key}-rgb`, `${r},${g},${b}`);
+      root.style.setProperty(`--${key}-28`, `rgba(${r},${g},${b},0.28)`);
+      root.style.setProperty(`--${key}-55`, `rgba(${r},${g},${b},0.55)`);
     });
   }
 

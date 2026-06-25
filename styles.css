@@ -17,10 +17,10 @@
   --text-dimmer:#6B7280;
   --accent:#C1272D;          /* deep blood red — fills, buttons, active states */
   --accent-bright:#F0565B;   /* brighter blood red — small accent text on dark */
-  --squat:#D6FF3D;   --squat-rgb:214,255,61;
-  --bench:#5BD6E6;   --bench-rgb:91,214,230;
-  --dead:#FF8A4C;    --dead-rgb:255,138,76;
-  --press:#B78BFF;   --press-rgb:183,139,255;
+  --squat:#D6FF3D;   --squat-rgb:214,255,61;   --squat-28:rgba(214,255,61,0.28);  --squat-55:rgba(214,255,61,0.55);
+  --bench:#5BD6E6;   --bench-rgb:91,214,230;   --bench-28:rgba(91,214,230,0.28);  --bench-55:rgba(91,214,230,0.55);
+  --dead:#FF8A4C;    --dead-rgb:255,138,76;    --dead-28:rgba(255,138,76,0.28);   --dead-55:rgba(255,138,76,0.55);
+  --press:#B78BFF;   --press-rgb:183,139,255;  --press-28:rgba(183,139,255,0.28); --press-55:rgba(183,139,255,0.55);
   --up:#7CE38B;
   --down:#FF6B6B;
   --steel:linear-gradient(180deg,#ffffff 0%,#d2d5dd 44%,#9a9ea8 60%,#eef0f4 100%); /* brushed-metal text fill */
@@ -466,10 +466,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
 }
 .freq-track{ flex:1; height:10px; background:var(--surface-2); border-radius:5px; min-width:0; }
 .freq-fill{ height:100%; border-radius:5px; width:0; transition:width 0.5s ease; }
-.freq-fill.squat{ background:linear-gradient(90deg,rgba(var(--squat-rgb),0.55),var(--squat)); box-shadow:inset 0 1.5px 2px rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.28); }
-.freq-fill.bench{ background:linear-gradient(90deg,rgba(var(--bench-rgb),0.55),var(--bench)); box-shadow:inset 0 1.5px 2px rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.28); }
-.freq-fill.dead { background:linear-gradient(90deg,rgba(var(--dead-rgb),0.55),var(--dead));  box-shadow:inset 0 1.5px 2px rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.28); }
-.freq-fill.arm  { background:linear-gradient(90deg,rgba(var(--press-rgb),0.55),var(--press)); box-shadow:inset 0 1.5px 2px rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.28); }
+.freq-fill.squat{ background:linear-gradient(90deg,var(--squat-55),var(--squat)); box-shadow:inset 0 1.5px 2px rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.28); }
+.freq-fill.bench{ background:linear-gradient(90deg,var(--bench-55),var(--bench)); box-shadow:inset 0 1.5px 2px rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.28); }
+.freq-fill.dead { background:linear-gradient(90deg,var(--dead-55),var(--dead));   box-shadow:inset 0 1.5px 2px rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.28); }
+.freq-fill.arm  { background:linear-gradient(90deg,var(--press-55),var(--press)); box-shadow:inset 0 1.5px 2px rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.28); }
 .freq-count{ font-family:var(--mono); font-size:13px; font-weight:700; width:20px; text-align:right; flex-shrink:0; }
 .freq-count.squat{ color:var(--squat); }
 .freq-count.bench{ color:var(--bench); }
@@ -740,9 +740,9 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 .log-table tbody tr:hover td:first-child{ box-shadow:inset 3px 0 0 var(--accent); }
 .pill{display:inline-block; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:700;
   font-family:var(--body);}
-.pill.squat{ background:rgba(var(--squat-rgb),0.28); border:1px solid rgba(var(--squat-rgb),0.55); color:#fff; }
-.pill.bench{ background:rgba(var(--bench-rgb),0.28); border:1px solid rgba(var(--bench-rgb),0.55); color:#fff; }
-.pill.dead{  background:rgba(var(--dead-rgb),0.28);  border:1px solid rgba(var(--dead-rgb),0.55);  color:#fff; }
+.pill.squat{ background:var(--squat-28); border:1px solid var(--squat-55); color:#fff; }
+.pill.bench{ background:var(--bench-28); border:1px solid var(--bench-55); color:#fff; }
+.pill.dead{  background:var(--dead-28);  border:1px solid var(--dead-55);  color:#fff; }
 .pr-flag{color:var(--accent-bright); font-family:var(--body); font-weight:700; font-size:12px;}
 
 /* ---------- ATHLETE PROFILE (WHERE YOU STAND) ---------- */
@@ -868,8 +868,8 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .btn-delete:hover{ color:var(--down); background:rgba(255,107,107,0.10); }
 
 /* ---------- OVERHEAD PRESS PILL ---------- */
-.pill.press{ background:rgba(var(--press-rgb),0.28); border:1px solid rgba(var(--press-rgb),0.55); color:#fff; }
-.pill.arm{   background:rgba(var(--press-rgb),0.28); border:1px solid rgba(var(--press-rgb),0.55); color:#fff; }
+.pill.press{ background:var(--press-28); border:1px solid var(--press-55); color:#fff; }
+.pill.arm{   background:var(--press-28); border:1px solid var(--press-55); color:#fff; }
 .pill.other{ background:rgba(154,160,172,0.14); color:var(--text-dim); }
 .pill.rest{  background:rgba(107,114,128,0.15); color:var(--text-dimmer); font-style:italic; }
 
