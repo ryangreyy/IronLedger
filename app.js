@@ -1871,7 +1871,7 @@ function initApp(uid) {
       }).join('');
       const resetBtn = !isDone && !isMissed && steps > 1 && stepsChecked > 0 && g._i !== goalsEditIdx
         ? `<button class="goal-reset-btn" data-idx="${g._i}" title="Reset progress">↺</button>` : '';
-      const adjuster = !isDone && !isMissed && g._i !== goalsEditIdx ? `
+      const adjuster = !isDone && !isMissed && g._i === goalsEditIdx ? `
         <div class="goal-steps-adj">
           <button class="goal-step-btn goal-step-minus" data-idx="${g._i}">−</button>
           <span class="goal-step-count">${steps}</span>
@@ -1908,7 +1908,7 @@ function initApp(uid) {
         ? `<button class="goal-edit-btn" data-idx="${g._i}" title="Edit goal"><i class="ti ti-pencil" aria-hidden="true"></i></button>` : '';
 
       return `
-        <div class="goal-row${isDone ? ' goal-row-done' : ''}${isMissed ? ' goal-row-missed' : ''}">
+        <div class="goal-row${g._i === goalsEditIdx ? ' goal-row-editing' : ''}${isDone ? ' goal-row-done' : ''}${isMissed ? ' goal-row-missed' : ''}">
           <div class="goal-steps">${boxes}${resetBtn}</div>
           <div class="goal-main">${mainContent}</div>
           ${adjuster}

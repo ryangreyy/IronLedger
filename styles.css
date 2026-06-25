@@ -338,6 +338,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   opacity:0; transition:opacity .15s;
 }
 .goal-row:hover .goal-steps-adj{ opacity:1; }
+.goal-row-editing .goal-steps-adj{ opacity:1; }
 .goal-step-btn{
   background:transparent; border:1px solid var(--border-strong); color:var(--text-dim);
   width:18px; height:18px; font-size:13px; cursor:pointer; border-radius:4px;
