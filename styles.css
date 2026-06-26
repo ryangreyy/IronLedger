@@ -75,8 +75,12 @@ nav{
   position:fixed; top:0; left:0; right:0; z-index:50;
   backdrop-filter:blur(12px);
   background:rgba(11,12,14,0.72);
-  border-bottom:1px solid var(--border);
+  border-bottom:none;
   transition:transform 0.3s ease;
+}
+nav::after{
+  content:''; position:absolute; left:0; right:0; bottom:0; height:1px;
+  background:linear-gradient(90deg, transparent 0%, rgba(140,152,168,0.4) 8%, rgba(195,208,222,0.8) 28%, rgba(232,238,248,1) 50%, rgba(195,208,222,0.8) 72%, rgba(140,152,168,0.4) 92%, transparent 100%);
 }
 nav.nav-hidden{ transform:translateY(-100%); }
 .nav-inner{
@@ -151,11 +155,6 @@ nav.nav-hidden{ transform:translateY(-100%); }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
   .hero{ display:none; }
   /* Index-page mobile nav: hide logo, show avatar + username on left */
-  body.index-page nav{ border-bottom:none; }
-  body.index-page nav::after{
-    content:''; position:absolute; left:0; right:0; bottom:0; height:1px;
-    background:linear-gradient(90deg, transparent 0%, rgba(140,152,168,0.5) 10%, rgba(195,208,222,0.85) 30%, rgba(232,238,248,1) 50%, rgba(195,208,222,0.85) 70%, rgba(140,152,168,0.5) 90%, transparent 100%);
-  }
   body.index-page .brand{ display:none; }
   body.index-page .nav-inner{ position:relative; }
   body.index-page .nav-right{ margin-left:auto; }
@@ -173,8 +172,12 @@ nav.nav-hidden{ transform:translateY(-100%); }
     display:flex; align-items:center; gap:16px;
     padding:16px 20px 16px;
     background:#0a0c10;
-    border-bottom:2px solid var(--accent);
+    border-bottom:none;
     position:relative;
+  }
+  .mobile-brand-header::after{
+    content:''; position:absolute; left:0; right:0; bottom:0; height:2px;
+    background:linear-gradient(90deg, transparent 0%, rgba(150,20,25,0.45) 8%, rgba(193,39,45,0.85) 28%, rgba(240,80,85,1) 50%, rgba(193,39,45,0.85) 72%, rgba(150,20,25,0.45) 92%, transparent 100%);
   }
   .mobile-brand-header::before{
     content:''; position:absolute;
