@@ -1910,8 +1910,10 @@ function initApp(uid) {
 
       return `
         <div class="goal-row${g._i === goalsEditIdx ? ' goal-row-editing' : ''}${isDone ? ' goal-row-done' : ''}${isMissed ? ' goal-row-missed' : ''}">
-          <div class="goal-steps">${boxes}${resetBtn}</div>
-          <div class="goal-main">${mainContent}</div>
+          <div class="goal-main">
+            ${mainContent}
+            <div class="goal-steps">${boxes}${resetBtn}</div>
+          </div>
           ${adjuster}
           ${editBtn}
           <button class="btn-delete goal-delete" data-idx="${g._i}" title="Delete goal">✕</button>
@@ -1930,9 +1932,9 @@ function initApp(uid) {
 
     const addForm = goalsAddOpen ? `
       <div class="goal-row goal-row-new goal-row-editing">
-        <div class="goal-steps">${addBoxes}</div>
         <div class="goal-main">
           <input type="text" class="goal-input goal-add-input" maxlength="60" autocomplete="off" placeholder="Type your goal…">
+          <div class="goal-steps">${addBoxes}</div>
           <div class="goal-dates">
             <button class="goal-due-pill" type="button">+ Due date</button>
             <button class="goal-due-clear" type="button" style="display:none">✕</button>
@@ -1946,7 +1948,6 @@ function initApp(uid) {
         ${addAdjuster}
       </div>` : `
       <div class="goal-row goal-row-new">
-        <div class="goal-steps"><span class="goal-step-box" style="opacity:0.3"></span></div>
         <div class="goal-main"><button class="goal-add-btn">+ Set a goal</button></div>
       </div>`;
 
