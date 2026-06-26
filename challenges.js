@@ -814,7 +814,7 @@ async function igDoReroll() {
       return { id: pick.id, completed: false, completedAt: null };
     });
 
-    await dailyRef.update({ assigned: updated });
+    await dailyRef.update({ assigned: updated, rerolled: true });
     // onSnapshot in app.js will re-render automatically
   } catch(e) {
     console.error('Reroll failed:', e);
@@ -879,7 +879,7 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="ch-timer">resets in ${dH}h ${dM}m</div>
-        ${activeDaily.length ? `<button class="ch-reroll-toggle" onclick="igOpenRerollPanel()">↺ Reroll</button>` : ''}
+        ${activeDaily.length ? (dailyData?.rerolled ? `<span class="ch-reroll-used">↺ Rerolled</span>` : `<button class="ch-reroll-toggle" onclick="igOpenRerollPanel()">↺ Reroll</button>`) : ''}
       </div>
     </div>
 
