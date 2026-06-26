@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=113">
+<link rel="stylesheet" href="styles.css?v=114">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -118,29 +118,33 @@
         <!-- Days Lifted — editorial forged medallion -->
         <div class="card kpi forged kpi-forge">
           <div class="label">Days Lifted</div>
-          <svg class="kpi-plate" viewBox="0 0 120 120" aria-hidden="true">
-            <circle cx="60" cy="60" r="56" fill="url(#kplate)" stroke="#c9cdd6" stroke-width="1" stroke-opacity=".4"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#0a0c10" stroke-width="3" stroke-opacity=".7"/>
-            <circle cx="60" cy="60" r="37" fill="url(#kplate)" stroke="#3a3e46" stroke-width="1"/>
-            <g fill="#0c0e12" stroke="#2a2e36" stroke-width="0.8">
-              <circle cx="104" cy="60" r="3"/><circle cx="82" cy="98.1" r="3"/><circle cx="38" cy="98.1" r="3"/>
-              <circle cx="16" cy="60" r="3"/><circle cx="38" cy="21.9" r="3"/><circle cx="82" cy="21.9" r="3"/>
-            </g>
-          </svg>
-          <div class="forge-num" id="kpi-sessions">—</div>
+          <div class="forge-medallion">
+            <svg class="kpi-plate" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="56" fill="url(#kplate)" stroke="#c9cdd6" stroke-width="1" stroke-opacity=".4"/>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#0a0c10" stroke-width="3" stroke-opacity=".7"/>
+              <circle cx="60" cy="60" r="37" fill="url(#kplate)" stroke="#3a3e46" stroke-width="1"/>
+              <g fill="#0c0e12" stroke="#2a2e36" stroke-width="0.8">
+                <circle cx="104" cy="60" r="3"/><circle cx="82" cy="98.1" r="3"/><circle cx="38" cy="98.1" r="3"/>
+                <circle cx="16" cy="60" r="3"/><circle cx="38" cy="21.9" r="3"/><circle cx="82" cy="21.9" r="3"/>
+              </g>
+            </svg>
+            <div class="forge-num" id="kpi-sessions">—</div>
+          </div>
           <div class="forge-cap" id="kpi-sessions-delta">Loading…</div>
         </div>
 
         <!-- Current Streak — editorial forged medallion, red-hot -->
         <div class="card kpi forged kpi-forge">
           <div class="label">Current Streak 🔥</div>
-          <svg class="kpi-plate" viewBox="0 0 120 120" aria-hidden="true">
-            <circle cx="60" cy="60" r="58" fill="none" stroke="#f0565b" stroke-width="3" stroke-opacity=".2"/>
-            <circle cx="60" cy="60" r="56" fill="url(#kplate)" stroke="url(#khot)" stroke-width="1.4"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#c1272d" stroke-width="2.5" stroke-opacity=".5"/>
-            <circle cx="60" cy="60" r="37" fill="url(#kplate)" stroke="#7a4a30" stroke-width="1"/>
-          </svg>
-          <div class="forge-num hot" id="kpi-streak">—</div>
+          <div class="forge-medallion">
+            <svg class="kpi-plate" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="58" fill="none" stroke="#f0565b" stroke-width="3" stroke-opacity=".2"/>
+              <circle cx="60" cy="60" r="56" fill="url(#kplate)" stroke="url(#khot)" stroke-width="1.4"/>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#c1272d" stroke-width="2.5" stroke-opacity=".5"/>
+              <circle cx="60" cy="60" r="37" fill="url(#kplate)" stroke="#7a4a30" stroke-width="1"/>
+            </svg>
+            <div class="forge-num hot" id="kpi-streak">—</div>
+          </div>
           <div class="forge-cap" id="kpi-streak-delta">Loading…</div>
           <button id="restDayBtn" class="btn-rest-day forge-rest">Log Rest Day</button>
         </div>
