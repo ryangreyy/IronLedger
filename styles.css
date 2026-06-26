@@ -164,7 +164,6 @@ nav.nav-hidden{ transform:translateY(-100%); }
     display:block !important; font-size:13px;
     max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  body.index-page .mobile-brand-header{ margin-top:56px; }
 
   .mobile-brand-header{
     display:flex; align-items:center; gap:16px;
