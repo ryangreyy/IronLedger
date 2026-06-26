@@ -158,7 +158,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   }
   .mobile-brand-icon{ width:58px; height:58px; flex-shrink:0; }
   .mobile-brand-text{ display:flex; flex-direction:column; gap:5px; }
-  .goals-wrap{ padding-top:38px; }
+  .goals-wrap{ padding:56px 28px 56px !important; }
   .mobile-brand-title{
     font-family:var(--display); font-size:32px; font-weight:400;
     letter-spacing:2px; text-transform:uppercase;
