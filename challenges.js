@@ -660,6 +660,7 @@ function igAssignWeekly(recentIds, profile) {
    Returns { dailyRef, weeklyRef, xpRef }
    ============================================================ */
 async function igInitChallenges(uid, db) {
+  _igUid = uid; _igDb = db;
   const today     = _igLocalISO();
   const weekStart = _igWeekStart(today);
 
@@ -716,6 +717,7 @@ async function igInitChallenges(uid, db) {
    AUTO-CHECK — call after any data change (sessions, bw, goals)
    ============================================================ */
 let _igChecking = false; // prevent overlapping runs
+let _igUid = null, _igDb = null; // stored on init for reroll access
 
 async function igCheckChallenges(uid, db, sessions, bwEntries, goals) {
   if (!uid || _igChecking) return;
@@ -769,6 +771,58 @@ async function igCheckChallenges(uid, db, sessions, bwEntries, goals) {
 }
 
 /* ============================================================
+   REROLL
+   ============================================================ */
+function igOpenRerollPanel() {
+  const panel = document.getElementById('ig-reroll-panel');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+}
+
+async function igDoReroll() {
+  if (!_igUid || !_igDb) return;
+  const checked = [...document.querySelectorAll('.ig-reroll-cb:checked')].map(el => el.value);
+  if (!checked.length) return;
+
+  const btn = document.getElementById('ig-reroll-btn');
+  if (btn) { btn.textContent = 'Rerolling…'; btn.disabled = true; }
+
+  try {
+    const today    = _igLocalISO();
+    const dailyRef = _igDb.collection('users').doc(_igUid).collection('challenges').doc('daily_' + today);
+    const snap     = await dailyRef.get();
+    if (!snap.exists) return;
+
+    const assigned = snap.data().assigned || [];
+    const usedIds  = new Set(assigned.map(e => e.id));
+
+    const updated = assigned.map(entry => {
+      if (!checked.includes(entry.id) || entry.completed) return entry;
+      const orig = CHALLENGE_POOL.find(c => c.id === entry.id);
+      if (!orig) return entry;
+
+      usedIds.delete(entry.id);
+      let pool = CHALLENGE_POOL.filter(c =>
+        _CORE_CATS.includes(c.cat) && c.diff === orig.diff && !usedIds.has(c.id)
+      );
+      if (!pool.length) pool = CHALLENGE_POOL.filter(c => c.diff === orig.diff && !usedIds.has(c.id));
+      if (!pool.length) return entry;
+
+      const pick = _pickWeighted(pool, null);
+      usedIds.add(pick.id);
+      return { id: pick.id, completed: false, completedAt: null };
+    });
+
+    await dailyRef.update({ assigned: updated });
+    // onSnapshot in app.js will re-render automatically
+  } catch(e) {
+    console.error('Reroll failed:', e);
+    if (btn) { btn.textContent = 'Reroll Selected'; btn.disabled = false; }
+  }
+}
+
+/* ============================================================
    UI RENDER
    ============================================================ */
 function igRenderChallenges(dailyData, weeklyData, xpTotal) {
@@ -813,6 +867,7 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
 
   const dailyAssigned  = dailyData?.assigned  || [];
   const weeklyAssigned = weeklyData?.assigned || [];
+  const activeDaily    = dailyAssigned.filter(e => !e.completed);
 
   section.innerHTML = `
     <div class="eyebrow" style="margin-bottom:14px;">Challenges</div>
@@ -822,8 +877,30 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
         <div class="ch-dot ch-dot-daily"></div>
         <div class="ch-section-title">Daily Challenges</div>
       </div>
-      <div class="ch-timer">resets in ${dH}h ${dM}m</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="ch-timer">resets in ${dH}h ${dM}m</div>
+        ${activeDaily.length ? `<button class="ch-reroll-toggle" onclick="igOpenRerollPanel()">↺ Reroll</button>` : ''}
+      </div>
     </div>
+
+    ${activeDaily.length ? `
+    <div id="ig-reroll-panel" class="ch-reroll-panel" style="display:none;">
+      <div class="ch-reroll-label">Select challenges to replace:</div>
+      ${activeDaily.map(e => {
+        const c = CHALLENGE_POOL.find(x => x.id === e.id);
+        return c ? `<label class="ch-reroll-item">
+          <input type="checkbox" class="ig-reroll-cb" value="${e.id}" checked>
+          <span class="ch-reroll-text">
+            <span class="ch-reroll-name">${c.name}</span>
+            <span class="ch-reroll-desc">${c.desc}</span>
+          </span>
+        </label>` : '';
+      }).join('')}
+      <div class="ch-reroll-actions">
+        <button id="ig-reroll-btn" class="ch-reroll-confirm" onclick="igDoReroll()">Reroll Selected</button>
+        <button class="ch-reroll-cancel" onclick="igOpenRerollPanel()">Cancel</button>
+      </div>
+    </div>` : ''}
 
     ${dailyAssigned.length ? dailyAssigned.map(card).join('') : '<p class="ch-empty">No daily challenges assigned yet.</p>'}
 

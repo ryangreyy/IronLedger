@@ -1565,3 +1565,21 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .ch-name{ font-size:15px; font-weight:600; color:var(--text); margin-bottom:3px; }
 .ch-desc{ font-size:12px; color:var(--text-dim); line-height:1.45; margin-bottom:6px; }
 .ch-xp{ font-family:var(--mono); font-size:11px; color:var(--accent-bright); font-weight:600; }
+
+/* Reroll */
+.ch-reroll-toggle{ background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--text-dim); font-size:11px; font-family:var(--mono); padding:3px 9px; border-radius:6px; cursor:pointer; transition:background .15s,color .15s; }
+.ch-reroll-toggle:hover{ background:rgba(255,255,255,.12); color:var(--text); }
+.ch-reroll-panel{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px 12px; margin-bottom:14px; }
+.ch-reroll-label{ font-size:12px; color:var(--text-dim); margin-bottom:10px; font-weight:600; }
+.ch-reroll-item{ display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05); cursor:pointer; }
+.ch-reroll-item:last-of-type{ border-bottom:none; }
+.ch-reroll-item input[type=checkbox]{ margin-top:3px; accent-color:var(--accent-bright); flex-shrink:0; }
+.ch-reroll-text{ display:flex; flex-direction:column; gap:2px; }
+.ch-reroll-name{ font-size:13px; font-weight:600; color:var(--text); }
+.ch-reroll-desc{ font-size:11px; color:var(--text-dim); }
+.ch-reroll-actions{ display:flex; gap:10px; margin-top:12px; }
+.ch-reroll-confirm{ background:var(--accent); color:#000; border:none; font-size:12px; font-weight:700; padding:7px 16px; border-radius:8px; cursor:pointer; font-family:var(--mono); transition:opacity .15s; }
+.ch-reroll-confirm:hover{ opacity:.85; }
+.ch-reroll-confirm:disabled{ opacity:.45; cursor:not-allowed; }
+.ch-reroll-cancel{ background:transparent; border:1px solid var(--border); color:var(--text-dim); font-size:12px; padding:7px 14px; border-radius:8px; cursor:pointer; transition:background .15s; }
+.ch-reroll-cancel:hover{ background:rgba(255,255,255,.06); }
