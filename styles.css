@@ -148,6 +148,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   .brand img.mark{ height:42px; filter:none; }
   #nav-signed-out{ gap:8px; }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
+  .hero{ display:none; }
 }
 @media(max-width:380px){
   #nav-signed-out button{ padding:7px 10px !important; font-size:12px !important; }
