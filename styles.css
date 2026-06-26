@@ -151,7 +151,6 @@ nav.nav-hidden{ transform:translateY(-100%); }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
   .hero{ display:none; }
   /* Index-page mobile nav: hide logo, show avatar + username on left */
-  body.index-page { padding-top:0 !important; }
   body.index-page .brand{ display:none; }
   body.index-page .nav-inner{ position:relative; }
   body.index-page .nav-right{ margin-left:auto; }
