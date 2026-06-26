@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=112">
+<link rel="stylesheet" href="styles.css?v=120">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <style>
@@ -390,9 +390,30 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 
       <!-- ── Edit Profile ── -->
       <div class="edit-profile-section">
-        <button class="edit-profile-btn" id="editProfileToggle" title="Edit profile" aria-label="Edit profile">
-          <i class="ti ti-user-edit" aria-hidden="true"></i>
-        </button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button id="addFriendBtn" class="btn btn-primary" style="font-size:13px;padding:9px 18px;">Add Friend +</button>
+          <button class="edit-profile-btn" id="editProfileToggle" title="Edit profile" aria-label="Edit profile">
+            <i class="ti ti-user-edit" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <!-- Friends dropdown -->
+        <div id="addFriendDropdown" style="display:none;margin-top:10px;">
+          <div class="card" style="padding:20px 22px;">
+            <p class="friends-section-label" style="margin-top:0;margin-bottom:10px;">Find by username</p>
+            <div class="friend-search-wrap">
+              <div class="field"><input id="friendSearchInput" type="text" placeholder="@username" autocomplete="off" maxlength="30" spellcheck="false"></div>
+              <button id="friendSearchBtn" class="btn btn-primary" style="padding:10px 16px;font-size:13px;white-space:nowrap;">Find</button>
+            </div>
+            <div id="friendSearchResult"></div>
+            <div id="pendingRequestsList"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:8px;">
+              <p class="friends-section-label" style="margin:0;">Friends</p>
+              <span id="friendCount" class="friends-count"></span>
+            </div>
+            <div id="friendsList"><p class="friends-empty">No friends yet. Search by username to add someone.</p></div>
+          </div>
+        </div>
         <div class="edit-profile-panel" id="editProfilePanel">
           <div class="card" style="padding:20px 22px;">
             <div class="ep-row">
@@ -472,25 +493,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       <!-- ── Strength DNA ── -->
       <div class="card dna-card" id="dnaCard" style="margin-top:20px;display:none;"></div>
 
-      <!-- ── Friends ── -->
-      <div class="card" id="friendsSection" style="margin-top:20px;padding:24px 28px;">
-        <div class="friends-header">
-          <div>
-            <span class="friends-title">Friends</span>
-            <span id="friendCount" class="friends-count"></span>
-          </div>
-          <button id="addFriendBtn" class="btn btn-ghost" style="font-size:13px;padding:8px 14px;">+ Add Friend</button>
-        </div>
-        <div id="friendSearchRow" style="display:none;">
-          <div class="friend-search-wrap">
-            <div class="field"><input id="friendSearchInput" type="text" placeholder="@username" autocomplete="off" maxlength="30" spellcheck="false"></div>
-            <button id="friendSearchBtn" class="btn btn-primary" style="padding:10px 16px;font-size:13px;white-space:nowrap;">Find</button>
-          </div>
-          <div id="friendSearchResult"></div>
-        </div>
-        <div id="pendingRequestsList"></div>
-        <div id="friendsList"><p class="friends-empty">No friends yet. Search by username to add someone.</p></div>
-      </div>
 
       <!-- ── Edit stats ── -->
       <div style="margin-top:32px;">
@@ -1558,16 +1560,16 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     friendsInited = true;
 
     document.getElementById('addFriendBtn')?.addEventListener('click', () => {
-      const row = document.getElementById('friendSearchRow');
+      const dropdown = document.getElementById('addFriendDropdown');
       const btn = document.getElementById('addFriendBtn');
-      if (!row || !btn) return;
-      const isHidden = row.style.display === 'none';
-      row.style.display = isHidden ? '' : 'none';
+      if (!dropdown || !btn) return;
+      const isHidden = dropdown.style.display === 'none';
+      dropdown.style.display = isHidden ? '' : 'none';
       if (isHidden) {
         btn.textContent = '✕ Close';
         document.getElementById('friendSearchInput')?.focus();
       } else {
-        btn.textContent = '+ Add Friend';
+        btn.textContent = 'Add Friend +';
         const res = document.getElementById('friendSearchResult');
         if (res) res.innerHTML = '';
       }
