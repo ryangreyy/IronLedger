@@ -1,12 +1,10 @@
-﻿<!-- IRONGLADIATOR — Training Analytics Dashboard
-     Open this file in a browser to launch the app.
-     Styles → styles.css | Data → data.js | Logic → app.js -->
+<!-- IRONGLADIATOR — Dashboard -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>IRONGLADIATOR — Training Analytics</title>
+<title>IRONGLADIATOR — Dashboard</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,15 +22,15 @@
   <img class="bg-medallion m3" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="0.16" data-rot="0.025">
   <img class="bg-medallion m4" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="-0.13" data-rot="-0.016">
 
-  <!-- ================= NAV (always visible) ================= -->
+  <!-- ================= NAV ================= -->
   <nav>
     <div class="nav-inner">
-      <a href="#" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
+      <a href="index.html" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
       <div class="nav-links" id="nav-links">
         <a href="profile.html">Profile</a>
         <a href="feed.html">Feed</a>
         <a href="training.html">Training Log</a>
-        <a href="dashboard.html">Dashboard</a>
+        <a href="dashboard.html" class="nav-current">Dashboard</a>
         <a href="yoga.html">Yoga &amp; PT</a>
         <a href="guide.html">Workout Schedule Guide</a>
         <a href="running.html">Cardio and Endurance</a>
@@ -40,12 +38,10 @@
         <a href="settings.html">Settings</a>
       </div>
       <div class="nav-right">
-        <!-- Shown when signed out -->
         <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;opacity:0;">
           <button id="navSignUp" class="btn btn-ghost nav-signup-btn" style="padding:9px 16px;font-size:14px;">Create account</button>
           <button id="navSignIn" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</button>
         </div>
-        <!-- Shown when signed in -->
         <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
           <div id="nav-avatar" class="nav-avatar"></div>
           <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
@@ -62,7 +58,7 @@
     </div>
   </nav>
 
-  <!-- ================= AUTH MODAL (opened from nav) ================= -->
+  <!-- ================= AUTH MODAL ================= -->
   <div id="auth-screen" style="display:none;">
     <div class="auth-wrap">
       <div class="card auth-card">
@@ -103,77 +99,50 @@
   <div id="main-content">
   <div class="wrap">
 
-    <!-- ================= HERO ================= -->
-    <section class="hero reveal">
-      <div class="eyebrow">Training Analytics Platform</div>
-      <h1><span class="hero-top">Train hard.</span><span class="lime">Track everything.</span></h1>
-<div class="hero-cta">
-        <div class="hero-cta-top">
-          <a href="tools.html#calc" class="btn btn-primary hero-primary">Estimate my 1&#8209;rep max →</a>
-          <a href="dashboard.html" class="btn btn-solid">View dashboard</a>
-          <a href="training.html#log" class="btn btn-solid">Log a session</a>
+    <!-- ================= DASHBOARD / KPIs ================= -->
+    <section id="dashboard" class="reveal">
+      <div class="eyebrow">Overview</div>
+      <h2 class="title" id="glance-title">This month at a glance</h2>
+
+      <div class="grid-kpi" style="margin-top:16px;">
+        <div class="card kpi forged">
+          <div class="label">Days Lifted</div>
+          <div class="value"><span id="kpi-sessions">—</span><span class="unit">this month</span></div>
+          <div class="delta" id="kpi-sessions-delta">Loading…</div>
         </div>
-        <div class="hero-cta-links">
-          <a href="guide.html" class="hero-link">Workout guide</a>
-          <a href="yoga.html" class="hero-link">Yoga &amp; PT</a>
-          <a href="running.html" class="hero-link">Cardio and Endurance</a>
+        <div class="card kpi forged">
+          <div class="label">Current Streak 🔥</div>
+          <div class="value"><span id="kpi-streak">—</span><span class="unit">days</span></div>
+          <div class="delta" id="kpi-streak-delta">Loading…</div>
+          <button id="restDayBtn" class="btn-rest-day">Log Rest Day</button>
+        </div>
+        <div class="card kpi forged">
+          <div class="label">Neglected Lifts</div>
+          <div id="neglectList" class="neglect-list"><span class="neglect-loading">Loading…</span></div>
+        </div>
+      </div>
+
+      <!-- Calendar + Lift Frequency row -->
+      <div class="kpi-lower-row">
+        <div class="cal-card">
+          <div class="cal-header">
+            <span class="cal-eyebrow">Calendar</span>
+            <div class="cal-month-nav">
+              <button class="cal-nav-btn" id="calPrev">&#8592;</button>
+              <span class="cal-month-label" id="calMonthLabel"></span>
+              <button class="cal-nav-btn" id="calNext">&#8594;</button>
+            </div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-legend" id="calLegend"></div>
+        </div>
+        <div class="freq-card">
+          <div class="freq-eyebrow">Lift Frequency</div>
+          <div class="freq-sub">This month</div>
+          <div class="freq-bars" id="freqBars"></div>
         </div>
       </div>
     </section>
-
-    <!-- ================= GOALS + CHALLENGES + PERSONAL TRACKERS ================= -->
-    <div class="goals-wrap reveal">
-      <div class="goals-tracker-row">
-
-        <!-- Goals -->
-        <div class="goals-card">
-          <div class="goals-header">
-            <span class="goals-eyebrow">My Goals</span>
-            <span class="goals-tally" id="goalsTally"></span>
-          </div>
-          <div class="goals-scroll-wrap"><div class="goals-list" id="goalsList"></div></div>
-          <div id="goals-done-pagination" class="log-pagination" style="display:none;">
-            <button id="goals-prev" class="btn-page">&#8592; Prev</button>
-            <span id="goals-page-info" class="page-info">Page 1 of 1</span>
-            <button id="goals-next" class="btn-page">Next &#8594;</button>
-          </div>
-        </div>
-
-        <!-- Challenges -->
-        <div id="challenges-section" class="goals-card">
-          <div class="eyebrow" style="margin-bottom:14px;">Challenges</div>
-          <div class="ch-loading-card">
-            <div class="ch-loading-head">
-              <span class="ch-loading-dot"></span>
-              <span class="ch-loading-title"></span>
-              <span class="ch-loading-timer"></span>
-            </div>
-            <div class="ch-loading-row"></div>
-            <div class="ch-loading-row short"></div>
-          </div>
-          <div class="ch-loading-card">
-            <div class="ch-loading-head">
-              <span class="ch-loading-dot weekly"></span>
-              <span class="ch-loading-title"></span>
-              <span class="ch-loading-timer"></span>
-            </div>
-            <div class="ch-loading-row"></div>
-            <div class="ch-loading-row short"></div>
-          </div>
-        </div>
-
-        <!-- Personal Trackers -->
-        <div class="card tracker-card goals-tracker-full">
-          <div class="tracker-header">
-            <div class="label">Personal Trackers</div>
-            <button id="trackerAddBtn" class="tracker-add-btn">+ Add</button>
-          </div>
-          <div id="trackerError" style="display:none;font-size:12px;color:var(--down);font-family:var(--mono);margin-bottom:8px;padding:6px 10px;background:rgba(255,80,80,.08);border-radius:6px;"></div>
-          <div id="trackerList" class="tracker-list"></div>
-        </div>
-
-      </div>
-    </div>
 
     <!-- ================= FOOTER ================= -->
     <footer>
