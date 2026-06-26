@@ -1299,8 +1299,43 @@ function initApp(uid) {
     set('kpi-streak',   streak);
     set('kpi-big3',     big3 ? big3.toLocaleString() : '—');
 
-    set('kpi-sessions-delta', daysLifted ? 'days in the gym this month' : 'Add your first session below');
-    set('kpi-streak-delta',   streak ? `day${streak !== 1 ? 's' : ''} in a row` : 'Log a session to start a streak');
+    /* Editorial card captions — real month-over-month trend + best-ever streak */
+    const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+    const lmDate  = new Date(thisYear, thisMonth - 1, 1);
+    const lmYear  = lmDate.getFullYear(), lmMonth = lmDate.getMonth();
+    const lastMonthDays = new Set(
+      currentSessions.filter(ss => {
+        if (!ss.dateRaw || ss.isRestDay) return false;
+        const [y, m] = ss.dateRaw.split('-').map(Number);
+        return y === lmYear && (m - 1) === lmMonth;
+      }).map(ss => ss.dateRaw)
+    ).size;
+    const monthTrend = daysLifted - lastMonthDays;
+
+    let bestStreak = 0, run = 0, prevT = null;
+    [...activeDays].sort().forEach(iso => {
+      const t = new Date(iso + 'T12:00:00').getTime();
+      run = (prevT !== null && t - prevT === 86400000) ? run + 1 : 1;
+      if (run > bestStreak) bestStreak = run;
+      prevT = t;
+    });
+
+    if (daysLifted) {
+      const trendHtml = monthTrend > 0 ? ` · <span style="color:var(--up)">+${monthTrend}</span> on last month`
+        : monthTrend < 0 ? ` · <span style="color:var(--down)">${monthTrend}</span> on last month`
+        : ' · even with last month';
+      setHTML('kpi-sessions-delta', `days this month${trendHtml}`);
+    } else {
+      setHTML('kpi-sessions-delta', 'Add your first session below');
+    }
+
+    if (streak) {
+      const bestHtml = bestStreak > streak ? ` · best ${bestStreak}` : ' · personal best!';
+      setHTML('kpi-streak-delta', `day${streak !== 1 ? 's' : ''} unbroken${bestHtml}`);
+    } else {
+      setHTML('kpi-streak-delta', 'Log a session to start a streak');
+    }
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
 
     renderFreq();
