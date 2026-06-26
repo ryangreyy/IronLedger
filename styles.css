@@ -150,6 +150,19 @@ nav.nav-hidden{ transform:translateY(-100%); }
   #nav-signed-out{ gap:8px; }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
   .hero{ display:none; }
+  /* Index-page mobile nav: hide logo, show avatar + username on left */
+  body.index-page .brand{ display:none; }
+  body.index-page .nav-inner{ position:relative; }
+  body.index-page #nav-signed-in{
+    position:absolute; left:20px; top:50%; transform:translateY(-50%);
+    z-index:2;
+  }
+  body.index-page #nav-signed-in #signOut{ display:none; }
+  body.index-page #nav-user-name{
+    display:block !important; font-size:13px;
+    max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
   .mobile-brand-header{
     display:flex; align-items:center; gap:16px;
     padding:22px 20px 20px;
