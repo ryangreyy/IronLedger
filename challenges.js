@@ -334,6 +334,23 @@ const CHALLENGE_POOL = [
   { id:'goal_h_3',  name:'Get after it',   desc:'Complete 2+ goals today',             cat:'goals', diff:'hard', xp:150, check:{type:'goal_done',threshold:2} },
   { id:'goal_h_4',  name:'Clear the board',desc:'Complete 2+ goals today',             cat:'goals', diff:'hard', xp:150, check:{type:'goal_done',threshold:2} },
   { id:'goal_h_5',  name:'Goal crusher',   desc:'Complete 2+ goals today',             cat:'goals', diff:'hard', xp:150, check:{type:'goal_done',threshold:2} },
+
+  // ─────── PERFORMANCE — PR-based (daily only) ───────
+  { id:'perf_e_1', name:'New record',      desc:'Beat your previous best weight on any lift today', cat:'performance', diff:'easy',   xp:25,  check:{type:'pr_today',threshold:1} },
+  { id:'perf_e_2', name:'Personal best',   desc:'Log a new max weight on any lift today',           cat:'performance', diff:'easy',   xp:25,  check:{type:'pr_today',threshold:1} },
+  { id:'perf_e_3', name:'Raise the bar',   desc:'Hit a personal record on any lift today',          cat:'performance', diff:'easy',   xp:25,  check:{type:'pr_today',threshold:1} },
+  { id:'perf_e_4', name:'Break through',   desc:'Beat your all-time best on any lift today',        cat:'performance', diff:'easy',   xp:25,  check:{type:'pr_today',threshold:1} },
+  { id:'perf_e_5', name:'Push the limit',  desc:'Set a new PR on any lift today',                   cat:'performance', diff:'easy',   xp:25,  check:{type:'pr_today',threshold:1} },
+  { id:'perf_m_1', name:'PR day',          desc:'Beat your previous best weight on any lift today', cat:'performance', diff:'medium', xp:60,  check:{type:'pr_today',threshold:1} },
+  { id:'perf_m_2', name:'Top yourself',    desc:'Log a new all-time high weight on any lift today', cat:'performance', diff:'medium', xp:60,  check:{type:'pr_today',threshold:1} },
+  { id:'perf_m_3', name:'Shatter it',      desc:'Hit a new personal record on any lift today',      cat:'performance', diff:'medium', xp:60,  check:{type:'pr_today',threshold:1} },
+  { id:'perf_h_1', name:'Iron ceiling',    desc:'Set a personal record on any lift today',          cat:'performance', diff:'hard',   xp:150, check:{type:'pr_today',threshold:1} },
+  { id:'perf_h_2', name:'Untouchable',     desc:'Beat your all-time best weight on any lift today', cat:'performance', diff:'hard',   xp:150, check:{type:'pr_today',threshold:1} },
+
+  // ─────── VARIETY — Full rotation (weekly, mgroups_week) ───────
+  { id:'var_e_21', name:'Hit them all',    desc:'Train all 4 muscle groups before the week is out', cat:'variety', diff:'easy',   xp:25,  check:{type:'mgroups_week',threshold:4} },
+  { id:'var_m_21', name:'Full rotation',   desc:'Hit all 4 muscle groups this week',                cat:'variety', diff:'medium', xp:60,  check:{type:'mgroups_week',threshold:4} },
+  { id:'var_h_21', name:'Total coverage',  desc:'Train every muscle group at least once this week', cat:'variety', diff:'hard',   xp:150, check:{type:'mgroups_week',threshold:4} },
 ];
 
 /* ============================================================
@@ -393,6 +410,20 @@ function igComputeMetrics(sessions, bwEntries, goals) {
   const bwToday    = bwEntries.some(e => e.date === today);
   const bwDaysWeek = new Set(bwEntries.filter(e => e.date >= weekStart && e.date <= today).map(e => e.date)).size;
 
+  /* ── PR detection — true if today's max weight on any lift beats all prior sessions ── */
+  const allLiftMaxBefore = {};
+  sessions.filter(s => s.dateRaw < today && !s.isRestDay && parseFloat(s.wt) > 0).forEach(s => {
+    const w = parseFloat(s.wt);
+    if (!allLiftMaxBefore[s.lift] || w > allLiftMaxBefore[s.lift]) allLiftMaxBefore[s.lift] = w;
+  });
+  const prToday = todaySess.some(s => {
+    const w = parseFloat(s.wt);
+    return w > 0 && allLiftMaxBefore[s.lift] && w > allLiftMaxBefore[s.lift];
+  });
+
+  /* ── Weekly muscle group variety (distinct cls values across the whole week) ── */
+  const mGroupsWeek = new Set(weekSess.map(s => s.cls).filter(Boolean)).size;
+
   /* ── Goals ── */
   const todayMs = new Date(today + 'T00:00:00').getTime();
   const nextMs  = todayMs + 86400000;
@@ -405,6 +436,7 @@ function igComputeMetrics(sessions, bwEntries, goals) {
     streakDays: igComputeStreak(sessions),
     bwToday, bwDaysWeek,
     goalsDoneToday, goalsAddedToday,
+    prToday, mGroupsWeek,
   };
 }
 
@@ -424,6 +456,8 @@ function igEvalChallenge(challenge, metrics, scope) {
       case 'bw_days_week':  return metrics.bwDaysWeek      >= threshold;
       case 'goal_done':     return metrics.goalsDoneToday  >= threshold;
       case 'goal_added':    return metrics.goalsAddedToday >= threshold;
+      case 'pr_today':      return metrics.prToday;
+      case 'mgroups_week':  return metrics.mGroupsWeek     >= threshold;
       default: return false;
     }
   } else {
@@ -436,6 +470,7 @@ function igEvalChallenge(challenge, metrics, scope) {
       case 'reps':          return metrics.maxRepsInDayWeek    >= threshold;
       case 'streak':        return metrics.streakDays          >= threshold;
       case 'sessions_week': return metrics.sessionsWeek        >= threshold;
+      case 'mgroups_week':  return metrics.mGroupsWeek         >= threshold;
       default: return false;
     }
   }
@@ -536,6 +571,8 @@ function _scoreChallenge(c, profile) {
     }
     case 'goal_done':
     case 'goal_added':   return 0.5;
+    case 'pr_today':     return 0.5;
+    case 'mgroups_week': return threshold <= 4 ? 0.6 : 0.2;
     default:             return 0.5;
   }
 }
@@ -564,8 +601,8 @@ function igAssignDaily(recentIds, profile) {
   const usedCats = new Set();
   const usedIds  = new Set(recentIds);
 
-  /* 30% chance one slot becomes a bodyweight or goals challenge */
-  const specialCat  = Math.random() < 0.30 ? _pickRandom(['bodyweight','goals']) : null;
+  /* 35% chance one slot becomes a bodyweight, goals, or performance challenge */
+  const specialCat  = Math.random() < 0.35 ? _pickRandom(['bodyweight','goals','performance']) : null;
   let   specialUsed = false;
 
   combo.forEach((diff, i) => {
