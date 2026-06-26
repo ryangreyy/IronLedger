@@ -1297,6 +1297,7 @@ function initApp(uid) {
 
     set('kpi-sessions', daysLifted);
     set('kpi-streak',   streak);
+    set('nav-streak-count', streak || '0');
     set('kpi-big3',     big3 ? big3.toLocaleString() : '—');
 
     /* Editorial card captions — real month-over-month trend + best-ever streak */
