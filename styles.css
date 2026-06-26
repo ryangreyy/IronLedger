@@ -151,8 +151,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
   .hero{ display:none; }
   /* Index-page mobile nav: hide logo, show avatar + username on left */
+  body.index-page { padding-top:0 !important; }
   body.index-page .brand{ display:none; }
   body.index-page .nav-inner{ position:relative; }
+  body.index-page .nav-right{ margin-left:auto; }
   body.index-page #nav-signed-in{
     position:absolute; left:20px; top:50%; transform:translateY(-50%);
     z-index:2;
@@ -162,6 +164,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
     display:block !important; font-size:13px;
     max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
+  body.index-page .mobile-brand-header{ margin-top:56px; }
 
   .mobile-brand-header{
     display:flex; align-items:center; gap:16px;
