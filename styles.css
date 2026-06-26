@@ -151,15 +151,30 @@ nav.nav-hidden{ transform:translateY(-100%); }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
   .hero{ display:none; }
   .mobile-brand-header{
-    display:flex; align-items:center; gap:14px;
-    padding:24px 20px 20px;
+    display:flex; align-items:center; gap:16px;
+    padding:22px 20px 20px;
+    background:#0a0c10;
+    border-bottom:2px solid var(--accent);
+    position:relative; overflow:hidden;
   }
-  .mobile-brand-icon{ width:52px; height:52px; flex-shrink:0; }
+  .mobile-brand-header::after{
+    content:''; position:absolute; right:-28px; top:-28px;
+    width:110px; height:110px; border-radius:50%;
+    background:rgba(193,39,45,.08);
+    pointer-events:none;
+  }
+  .mobile-brand-icon{ width:58px; height:58px; flex-shrink:0; position:relative; z-index:1; }
+  .mobile-brand-text{ display:flex; flex-direction:column; gap:5px; position:relative; z-index:1; }
   .mobile-brand-title{
-    font-family:var(--display); font-size:36px; font-weight:400;
+    font-family:var(--display); font-size:32px; font-weight:400;
     letter-spacing:2px; text-transform:uppercase;
     background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent;
     line-height:1;
+  }
+  .mobile-brand-tag{
+    font-family:var(--mono); font-size:10px; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase;
+    color:var(--accent);
   }
 }
 @media(max-width:380px){
