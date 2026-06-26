@@ -685,7 +685,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 /* ---------- EDITORIAL FORGED KPI CARDS (Days Lifted / Current Streak) ---------- */
 .kpi-forge{ display:flex; flex-direction:column; min-height:188px; position:relative; overflow:hidden; }
 .kpi-forge .label{ position:relative; z-index:2; }
-.kpi-forge .forge-medallion{ position:absolute; left:-6px; top:50%; transform:translateY(-50%);
+.kpi-forge .forge-medallion{ position:absolute; left:-6px; top:64%; transform:translateY(-50%);
   width:140px; height:140px; z-index:1; pointer-events:none; }
 .kpi-forge .kpi-plate{ position:absolute; inset:0; width:100%; height:100%; opacity:.55; }
 .kpi-forge .forge-num{ position:absolute; inset:0; z-index:1;

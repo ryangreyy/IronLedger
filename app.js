@@ -1524,6 +1524,23 @@ function initApp(uid) {
     .orderBy('createdAt', 'desc')
     .onSnapshot(snap => {
       currentSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      /* Nav streak — runs first, before any dashboard renders that may throw on other pages */
+      (function() {
+        const sd = new Set(currentSessions.map(s => s.dateRaw).filter(Boolean));
+        const rd = new Set(Array.isArray(currentSettings?.restDays) ? currentSettings.restDays : []);
+        const ad = new Set([...sd, ...rd]);
+        let n = 0; const c = new Date(); c.setHours(12,0,0,0);
+        for (let i = 0; i < 366; i++) {
+          const iso = localDateISO(c);
+          if (ad.has(iso)) { n++; c.setDate(c.getDate()-1); }
+          else if (i === 0) { c.setDate(c.getDate()-1); }
+          else { break; }
+        }
+        const el = document.getElementById('nav-streak-count');
+        const wrap = document.getElementById('nav-streak');
+        if (el) el.textContent = n || '0';
+        if (wrap) wrap.style.display = n > 0 ? 'flex' : 'none';
+      })();
       const liftSessions = currentSessions.filter(s => !s.isRestDay);
       renderLog(currentSessions);
       renderDonut(liftSessions);
