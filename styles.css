@@ -151,6 +151,11 @@ nav.nav-hidden{ transform:translateY(-100%); }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
   .hero{ display:none; }
   /* Index-page mobile nav: hide logo, show avatar + username on left */
+  body.index-page nav{ border-bottom:none; }
+  body.index-page nav::after{
+    content:''; position:absolute; left:0; right:0; bottom:0; height:1px;
+    background:linear-gradient(90deg, transparent 0%, rgba(140,152,168,0.5) 10%, rgba(195,208,222,0.85) 30%, rgba(232,238,248,1) 50%, rgba(195,208,222,0.85) 70%, rgba(140,152,168,0.5) 90%, transparent 100%);
+  }
   body.index-page .brand{ display:none; }
   body.index-page .nav-inner{ position:relative; }
   body.index-page .nav-right{ margin-left:auto; }
@@ -178,7 +183,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
     background:#0a0c10;
     pointer-events:none;
   }
-  .mobile-brand-icon{ width:58px; height:58px; flex-shrink:0; }
+  .mobile-brand-icon{ width:58px; height:58px; flex-shrink:0; display:block; margin-top:-6px; }
   .mobile-brand-text{ display:flex; flex-direction:column; gap:5px; }
   .goals-wrap{ padding:56px 28px 56px !important; }
   .mobile-brand-title{
