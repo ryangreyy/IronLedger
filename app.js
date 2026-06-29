@@ -1362,10 +1362,9 @@ function initApp(uid) {
   /* ---- MUSCLE RECOVERY CARD ------------------------------------------------ */
 
   function mrDaysColor(days) {
-    if (days === 0) return '#c1272d';
-    if (days <= 3)  return '#b84020';
-    if (days <= 6)  return '#8a4520';
-    if (days <= 10) return '#3a4455';
+    if (days <= 1) return '#c1272d';
+    if (days <= 3) return '#e07020';
+    if (days <= 6) return '#c8a800';
     return null;
   }
 
