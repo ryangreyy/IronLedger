@@ -1323,10 +1323,10 @@ function initApp(uid) {
     });
 
     if (daysLifted) {
-      const trendHtml = monthTrend > 0 ? ` · <span style="color:var(--up)">+${monthTrend}</span> on last month`
-        : monthTrend < 0 ? ` · <span style="color:var(--down)">${monthTrend}</span> on last month`
-        : ' · even with last month';
-      setHTML('kpi-sessions-delta', `days this month${trendHtml}`);
+      const trendHtml = monthTrend > 0 ? `<span style="color:var(--up)">+${monthTrend}</span> days on last month`
+        : monthTrend < 0 ? `<span style="color:var(--down)">${monthTrend}</span> days on last month`
+        : 'even with last month';
+      setHTML('kpi-sessions-delta', trendHtml);
     } else {
       setHTML('kpi-sessions-delta', 'Add your first session below');
     }
