@@ -164,12 +164,35 @@ function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPho
   if (doReveal) navAvatar.style.opacity = '1';
 }
 
+function compressImage(file, maxW, maxH, quality) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(maxW / img.width, maxH / img.height);
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function showOnboardingModal(user) {
   let obName = user.displayName || '';
-  let obId   = null;
-  let obRing = '#d4af37';
-  let obBg   = '#8b1c1c';
-  let obIcon = '#ffffff';
+  let obAvatarDataUrl = null;
+  let obAvatarZoom = 1;
+  let obAvatarX = 50;
+  let obAvatarY = 50;
+  let obBannerDataUrl = null;
+  let obBannerZoom = 1;
+  let obBannerX = 50;
+  let obBannerY = 50;
 
   authScreen.style.display = 'none';
 
@@ -203,103 +226,216 @@ function showOnboardingModal(user) {
         try { await user.updateProfile({ displayName: name }); } catch(e) {}
         navUserName.textContent = name;
       }
-      renderStepAvatar();
+      renderStepPhoto();
     }
 
     input.addEventListener('keydown', e => { if (e.key === 'Enter') advanceName(); });
     document.getElementById('ob-name-continue').addEventListener('click', advanceName);
-    document.getElementById('ob-skip-name').addEventListener('click', renderStepAvatar);
+    document.getElementById('ob-skip-name').addEventListener('click', renderStepPhoto);
   }
 
-  /* ---- Step 2: Emblem picker ---- */
-  function renderStepAvatar() {
+  /* ---- Step 2: Profile photo ---- */
+  function renderStepPhoto() {
     card.innerHTML = `
-      <div class="eyebrow">Pick your emblem</div>
-      <h2 class="title" style="margin:6px 0 6px;">Choose your Iron Emblem</h2>
-      <p class="sub" style="margin-bottom:22px;">You can customize colors in Settings.</p>
-      <div id="ob-emblem-grid" class="avatar-grid" style="margin-bottom:20px;"></div>
-      <button id="ob-random" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Randomize for me</button>
-      <button id="ob-skip-av" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
-      <button id="ob-back-av" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+      <div class="eyebrow">Step 2 of 3</div>
+      <h2 class="title" style="margin:6px 0 6px;">Set your profile photo</h2>
+      <p class="sub" style="margin-bottom:20px;">Appears next to your name across the site.</p>
+      <div style="display:flex;justify-content:center;margin-bottom:16px;">
+        <div id="ob-av-circle" class="ob-av-circle">
+          <div id="ob-av-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);">
+            <i class="ti ti-user" style="font-size:36px;opacity:.3;"></i>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="ob-av-file" accept="image/*" style="display:none">
+      <button id="ob-av-btn" class="btn btn-ghost" style="width:100%;margin-bottom:8px;">
+        <i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>${obAvatarDataUrl ? 'Change photo' : 'Upload photo'}
+      </button>
+      <div id="ob-av-sliders" style="${obAvatarDataUrl ? '' : 'display:none;'}margin-bottom:12px;">
+        <div class="ob-range-row">
+          <label class="ob-range-label">Zoom</label>
+          <input type="range" id="ob-av-zoom" class="ob-range" min="1" max="3" step="0.01" value="${obAvatarZoom}">
+        </div>
+        <div class="ob-range-row">
+          <label class="ob-range-label">Horizontal</label>
+          <input type="range" id="ob-av-x" class="ob-range" min="0" max="100" step="1" value="${obAvatarX}">
+        </div>
+        <div class="ob-range-row">
+          <label class="ob-range-label">Vertical</label>
+          <input type="range" id="ob-av-y" class="ob-range" min="0" max="100" step="1" value="${obAvatarY}">
+        </div>
+      </div>
+      <button id="ob-av-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+      <button id="ob-av-skip" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
+      <button id="ob-av-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
     `;
-    const grid = document.getElementById('ob-emblem-grid');
-    grid.innerHTML = EMBLEMS.map(e =>
-      `<button class="avatar-option${obId === e.id ? ' av-selected' : ''}" data-id="${e.id}" title="${e.label}" style="background:${obBg};box-shadow:inset 0 0 0 2.5px ${obRing};">
-        <i class="ti ${e.icon}" style="font-size:22px;color:${obIcon};line-height:1;" aria-hidden="true"></i>
-      </button>`
-    ).join('');
-    grid.querySelectorAll('.avatar-option').forEach(btn => {
-      btn.addEventListener('click', () => { obId = btn.dataset.id; renderStepColor(); });
+
+    if (obAvatarDataUrl) applyAvPreview();
+
+    function applyAvPreview() {
+      const circle = document.getElementById('ob-av-circle');
+      if (!circle || !obAvatarDataUrl) return;
+      const ph = document.getElementById('ob-av-placeholder');
+      if (ph) ph.style.display = 'none';
+      let img = circle.querySelector('img.ob-av-img');
+      if (!img) {
+        img = document.createElement('img');
+        img.className = 'ob-av-img';
+        img.alt = '';
+        img.style.cssText = 'position:absolute;object-fit:fill;';
+        circle.appendChild(img);
+      }
+      img.onload = () => updateAvPreview(img);
+      img.src = obAvatarDataUrl;
+    }
+
+    function updateAvPreview(imgEl) {
+      const circle = document.getElementById('ob-av-circle');
+      const img = imgEl || circle?.querySelector('img.ob-av-img');
+      if (!img || !img.naturalWidth) return;
+      const cW = 128, cH = 128;
+      const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+      const dW = img.naturalWidth  * base * obAvatarZoom;
+      const dH = img.naturalHeight * base * obAvatarZoom;
+      img.style.width  = dW + 'px';
+      img.style.height = dH + 'px';
+      img.style.left   = -((dW - cW) * obAvatarX / 100) + 'px';
+      img.style.top    = -((dH - cH) * obAvatarY / 100) + 'px';
+    }
+
+    document.getElementById('ob-av-file').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      obAvatarDataUrl = await compressImage(file, 400, 400, 0.85);
+      applyAvPreview();
+      document.getElementById('ob-av-sliders').style.display = '';
+      const btn = document.getElementById('ob-av-btn');
+      if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change photo';
     });
-    document.getElementById('ob-random').addEventListener('click', () => {
-      obId   = EMBLEMS[Math.floor(Math.random() * EMBLEMS.length)].id;
-      obRing = RING_COLORS[Math.floor(Math.random() * RING_COLORS.length)];
-      obBg   = BG_COLORS[Math.floor(Math.random() * BG_COLORS.length)];
-      obIcon = ICON_COLORS[Math.floor(Math.random() * ICON_COLORS.length)];
-      renderStepColor();
-    });
-    document.getElementById('ob-skip-av').addEventListener('click', () => finishOnboarding(false));
-    document.getElementById('ob-back-av').addEventListener('click', renderStepName);
+    document.getElementById('ob-av-btn').addEventListener('click', () => document.getElementById('ob-av-file').click());
+
+    document.getElementById('ob-av-zoom')?.addEventListener('input', e => { obAvatarZoom = parseFloat(e.target.value); updateAvPreview(); });
+    document.getElementById('ob-av-x')?.addEventListener('input',    e => { obAvatarX    = parseFloat(e.target.value); updateAvPreview(); });
+    document.getElementById('ob-av-y')?.addEventListener('input',    e => { obAvatarY    = parseFloat(e.target.value); updateAvPreview(); });
+
+    document.getElementById('ob-av-continue').addEventListener('click', renderStepBanner);
+    document.getElementById('ob-av-skip').addEventListener('click', renderStepBanner);
+    document.getElementById('ob-av-back').addEventListener('click', renderStepName);
   }
 
-  /* ---- Step 3: Color customization ---- */
-  function renderStepColor() {
-    const emb = EMBLEMS.find(e => e.id === obId);
-    function previewHTML() {
-      return `<div id="ob-preview" style="width:72px;height:72px;border-radius:50%;background:${obBg};box-shadow:inset 0 0 0 4px ${obRing};display:flex;align-items:center;justify-content:center;transition:background .15s,box-shadow .15s;">
-        <i class="ti ${emb?.icon||'ti-sword'}" style="font-size:30px;color:${obIcon};line-height:1;" aria-hidden="true"></i>
-      </div>`;
-    }
-    function swatchRow(id, colors, selected) {
-      return colors.map(c =>
-        `<div class="avatar-bg-swatch${selected === c ? ' bg-selected' : ''}" data-color="${c}" data-picker="${id}" style="background:${c};"></div>`
-      ).join('');
-    }
+  /* ---- Step 3: Profile banner ---- */
+  function renderStepBanner() {
     card.innerHTML = `
-      <div class="eyebrow">Almost there</div>
-      <h2 class="title" style="margin:6px 0 6px;">Customize your colors</h2>
-      <div style="display:flex;justify-content:center;margin-bottom:20px;" id="ob-preview-wrap">${previewHTML()}</div>
-      <p class="ob-group-label" style="margin-bottom:8px;">Ring color</p>
-      <div class="avatar-bg-grid" style="margin-bottom:14px;" id="ob-ring-picker">${swatchRow('ring', RING_COLORS, obRing)}</div>
-      <p class="ob-group-label" style="margin-bottom:8px;">Background color</p>
-      <div class="avatar-bg-grid" style="margin-bottom:14px;" id="ob-bg-picker">${swatchRow('bg', BG_COLORS, obBg)}</div>
-      <p class="ob-group-label" style="margin-bottom:8px;">Icon color</p>
-      <div class="avatar-bg-grid" style="margin-bottom:24px;" id="ob-icon-picker">${swatchRow('icon', ICON_COLORS, obIcon)}</div>
-      <button id="ob-done" class="btn btn-primary" style="width:100%;margin-bottom:10px;">Done</button>
-      <button id="ob-back-color" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;">← Back</button>
+      <div class="eyebrow">Step 3 of 3</div>
+      <h2 class="title" style="margin:6px 0 6px;">Set your profile banner</h2>
+      <p class="sub" style="margin-bottom:16px;">The banner appears at the top of your profile page.</p>
+      <div id="ob-banner-preview" class="ob-banner-preview">
+        <div id="ob-banner-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);padding:20px;">
+          <i class="ti ti-photo" style="font-size:28px;opacity:.3;"></i>
+          <span style="font-size:12px;font-family:var(--mono);">No banner</span>
+        </div>
+      </div>
+      <input type="file" id="ob-banner-file" accept="image/*" style="display:none">
+      <button id="ob-banner-btn" class="btn btn-ghost" style="width:100%;margin-top:12px;margin-bottom:8px;">
+        <i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>${obBannerDataUrl ? 'Change banner' : 'Upload banner'}
+      </button>
+      <div id="ob-banner-sliders" style="${obBannerDataUrl ? '' : 'display:none;'}margin-bottom:12px;">
+        <div class="ob-range-row">
+          <label class="ob-range-label">Zoom</label>
+          <input type="range" id="ob-banner-zoom" class="ob-range" min="1" max="3" step="0.01" value="${obBannerZoom}">
+        </div>
+        <div class="ob-range-row">
+          <label class="ob-range-label">Horizontal</label>
+          <input type="range" id="ob-banner-x" class="ob-range" min="0" max="100" step="1" value="${obBannerX}">
+        </div>
+        <div class="ob-range-row">
+          <label class="ob-range-label">Vertical</label>
+          <input type="range" id="ob-banner-y" class="ob-range" min="0" max="100" step="1" value="${obBannerY}">
+        </div>
+      </div>
+      <button id="ob-banner-done" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Finish setup</button>
+      <button id="ob-banner-skip" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
+      <button id="ob-banner-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
     `;
-    card.querySelectorAll('.avatar-bg-swatch').forEach(sw => {
-      sw.addEventListener('click', () => {
-        const which = sw.dataset.picker;
-        if (which === 'ring') obRing = sw.dataset.color;
-        else if (which === 'bg') obBg = sw.dataset.color;
-        else obIcon = sw.dataset.color;
-        card.querySelectorAll(`[data-picker="${which}"]`).forEach(s => s.classList.remove('bg-selected'));
-        sw.classList.add('bg-selected');
-        const prev = document.getElementById('ob-preview');
-        if (prev) {
-          prev.style.background = obBg;
-          prev.style.boxShadow = `inset 0 0 0 4px ${obRing}`;
-          const ico = prev.querySelector('i');
-          if (ico) ico.style.color = obIcon;
-        }
-      });
+
+    if (obBannerDataUrl) applyBannerPreview();
+
+    function applyBannerPreview() {
+      const preview = document.getElementById('ob-banner-preview');
+      if (!preview || !obBannerDataUrl) return;
+      const ph = document.getElementById('ob-banner-placeholder');
+      if (ph) ph.style.display = 'none';
+      let img = preview.querySelector('img.ob-banner-img');
+      if (!img) {
+        img = document.createElement('img');
+        img.className = 'ob-banner-img';
+        img.alt = '';
+        img.style.cssText = 'position:absolute;object-fit:fill;';
+        preview.appendChild(img);
+      }
+      img.onload = () => updateBannerPreview(img);
+      img.src = obBannerDataUrl;
+    }
+
+    function updateBannerPreview(imgEl) {
+      const preview = document.getElementById('ob-banner-preview');
+      const img = imgEl || preview?.querySelector('img.ob-banner-img');
+      if (!img || !img.naturalWidth) return;
+      const cW = preview.offsetWidth || 400;
+      const cH = preview.offsetHeight || 120;
+      const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+      const dW = img.naturalWidth  * base * obBannerZoom;
+      const dH = img.naturalHeight * base * obBannerZoom;
+      img.style.width  = dW + 'px';
+      img.style.height = dH + 'px';
+      img.style.left   = -((dW - cW) * obBannerX / 100) + 'px';
+      img.style.top    = -((dH - cH) * obBannerY / 100) + 'px';
+    }
+
+    document.getElementById('ob-banner-file').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      obBannerDataUrl = await compressImage(file, 1200, 400, 0.85);
+      applyBannerPreview();
+      document.getElementById('ob-banner-sliders').style.display = '';
+      const btn = document.getElementById('ob-banner-btn');
+      if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change banner';
     });
-    document.getElementById('ob-done').addEventListener('click', () => finishOnboarding(true));
-    document.getElementById('ob-back-color').addEventListener('click', renderStepAvatar);
+    document.getElementById('ob-banner-btn').addEventListener('click', () => document.getElementById('ob-banner-file').click());
+
+    document.getElementById('ob-banner-zoom')?.addEventListener('input', e => { obBannerZoom = parseFloat(e.target.value); updateBannerPreview(); });
+    document.getElementById('ob-banner-x')?.addEventListener('input',    e => { obBannerX    = parseFloat(e.target.value); updateBannerPreview(); });
+    document.getElementById('ob-banner-y')?.addEventListener('input',    e => { obBannerY    = parseFloat(e.target.value); updateBannerPreview(); });
+
+    document.getElementById('ob-banner-done').addEventListener('click', () => finishOnboarding(true));
+    document.getElementById('ob-banner-skip').addEventListener('click', () => finishOnboarding(obAvatarDataUrl != null));
+    document.getElementById('ob-banner-back').addEventListener('click', renderStepPhoto);
   }
 
   /* ---- Finish ---- */
   async function finishOnboarding(save) {
     overlay.remove();
-    if (save && obId) {
-      try {
-        await db.collection('users').doc(user.uid).collection('settings').doc('main').set(
-          { avatarId: obId, avatarRingColor: obRing, avatarBgColor: obBg, avatarIconColor: obIcon },
-          { merge: true }
-        );
-      } catch(e) {}
-      applyNavAvatar(user, obId, obRing, obBg, obIcon);
+    if (!save) return;
+    try {
+      const data = {};
+      if (obAvatarDataUrl) {
+        data.avatarPhotoUrl = obAvatarDataUrl;
+        data.avatarZoom = obAvatarZoom;
+        data.avatarPosX = obAvatarX;
+        data.avatarPosY = obAvatarY;
+      }
+      if (obBannerDataUrl) {
+        data.bannerUrl  = obBannerDataUrl;
+        data.bannerZoom = obBannerZoom;
+        data.bannerPosX = obBannerX;
+        data.bannerPosY = obBannerY;
+      }
+      if (Object.keys(data).length) {
+        await db.collection('users').doc(user.uid).collection('settings').doc('main').set(data, { merge: true });
+      }
+    } catch(e) {}
+    if (obAvatarDataUrl) {
+      applyNavAvatar(user, null, null, null, null, obAvatarDataUrl, obAvatarZoom, obAvatarX, obAvatarY);
     }
   }
 
@@ -1223,9 +1359,13 @@ function initApp(uid) {
   let mrWidgetBack  = null;
   let mrGender = 'male';
   let mrSkin   = 0;
+  let mrHairColor = 'rgb(26,18,8)';
   let mrHighlights = {};
   const MR_SKIN_TONES = [
     'rgb(245,201,160)', 'rgb(212,149,106)', 'rgb(156,100,64)', 'rgb(92,51,32)',
+  ];
+  const MR_HAIR_COLORS = [
+    'rgb(26,18,8)', 'rgb(74,44,26)', 'rgb(196,152,40)', 'rgb(224,219,212)',
   ];
   const LIFT_CLS_TO_MUSCLES = {
     squat: ['quadriceps', 'gluteal', 'hamstring', 'calves'],
@@ -1376,7 +1516,7 @@ function initApp(uid) {
       defaultFillColor: 'rgb(52,58,68)',
       strokeColor: 'rgb(30,34,42)', strokeWidth: 0.4,
       selectionColor: '#c1272d', selectionStrokeColor: '#f0565b', selectionStrokeWidth: 2,
-      headColor: hc, hairColor: hc,
+      headColor: hc, hairColor: mrHairColor,
       shadowColor: 'transparent', shadowRadius: 0, shadowOffsetX: 0, shadowOffsetY: 0,
     };
   }
@@ -1401,15 +1541,25 @@ function initApp(uid) {
 
   function mrSetSkin(idx) {
     mrSkin = idx;
-    document.querySelectorAll('.mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.querySelectorAll('#mr-skin-swatches .mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
+    const style = mrBuildStyle();
+    [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) w.setStyle(style); });
+  }
+
+  function mrSetHairColor(idx) {
+    mrHairColor = MR_HAIR_COLORS[idx];
+    document.querySelectorAll('#mr-hair-swatches .mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
     const style = mrBuildStyle();
     [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) w.setStyle(style); });
   }
 
   document.getElementById('mr-btn-male')?.addEventListener('click', () => mrSetGender('male'));
   document.getElementById('mr-btn-female')?.addEventListener('click', () => mrSetGender('female'));
-  document.querySelectorAll('.mr-swatch').forEach((el, i) => {
+  document.querySelectorAll('#mr-skin-swatches .mr-swatch').forEach((el, i) => {
     el.addEventListener('click', () => mrSetSkin(i));
+  });
+  document.querySelectorAll('#mr-hair-swatches .mr-swatch').forEach((el, i) => {
+    el.addEventListener('click', () => mrSetHairColor(i));
   });
 
   function mrInitWidget(containerId, side) {
