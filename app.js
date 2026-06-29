@@ -175,7 +175,7 @@ function compressImage(file, maxW, maxH, quality) {
         canvas.width  = Math.round(img.width  * ratio);
         canvas.height = Math.round(img.height * ratio);
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        resolve(canvas.toDataURL('image/webp', quality));
       };
       img.src = e.target.result;
     };
@@ -306,7 +306,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-av-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obAvatarDataUrl = await compressImage(file, 400, 400, 0.85);
+      obAvatarDataUrl = await compressImage(file, 800, 800, 0.95);
       applyAvPreview();
       document.getElementById('ob-av-sliders').style.display = '';
       const btn = document.getElementById('ob-av-btn');
@@ -395,7 +395,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obBannerDataUrl = await compressImage(file, 1920, 9000, 0.90);
+      obBannerDataUrl = await compressImage(file, 1920, 9000, 0.95);
       applyBannerPreview();
       document.getElementById('ob-banner-sliders').style.display = '';
       const btn = document.getElementById('ob-banner-btn');
