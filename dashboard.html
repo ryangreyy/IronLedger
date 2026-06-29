@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=132">
+<link rel="stylesheet" href="styles.css?v=133">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -113,6 +113,36 @@
           <stop offset="0" stop-color="#ffc06b"/><stop offset="0.5" stop-color="#f0565b"/><stop offset="1" stop-color="#c1272d"/>
         </linearGradient>
       </defs></svg>
+
+      <!-- Welcome banner — shown only for new users with no sessions -->
+      <div id="welcome-banner" style="display:none">
+        <div class="welcome-inner">
+          <div class="welcome-text">
+            <div class="welcome-title">Welcome to IronGladiator</div>
+            <div class="welcome-sub">Your dashboard fills in as you train. Three things to do first:</div>
+          </div>
+          <div class="welcome-steps">
+            <a href="training.html#log" class="welcome-step">
+              <div class="welcome-step-num">01</div>
+              <div class="welcome-step-title">Log a Session</div>
+              <div class="welcome-step-desc">Record your first workout to start building your history</div>
+              <div class="welcome-step-cta">Go to Training Log →</div>
+            </a>
+            <a href="settings.html" class="welcome-step">
+              <div class="welcome-step-num">02</div>
+              <div class="welcome-step-title">Set Your 1RM Standards</div>
+              <div class="welcome-step-desc">Enter your maxes to unlock strength benchmarks and tracking</div>
+              <div class="welcome-step-cta">Open Settings →</div>
+            </a>
+            <a href="settings.html" class="welcome-step">
+              <div class="welcome-step-num">03</div>
+              <div class="welcome-step-title">Add a Goal</div>
+              <div class="welcome-step-desc">Set a target to keep your training focused and motivated</div>
+              <div class="welcome-step-cta">Open Settings →</div>
+            </a>
+          </div>
+        </div>
+      </div>
 
       <div class="grid-kpi" style="margin-top:16px;">
         <!-- Days Lifted — editorial forged medallion -->
@@ -240,6 +270,6 @@
 <script src="data.js"></script>
 <script src="challenges.js?v=98"></script>
 <script src="musclemap.js?v=1"></script>
-<script src="app.js?v=106"></script>
+<script src="app.js?v=107"></script>
 </body>
 </html>

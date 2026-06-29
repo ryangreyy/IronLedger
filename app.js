@@ -1355,6 +1355,8 @@ function initApp(uid) {
     }
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
 
+    const banner = document.getElementById('welcome-banner');
+    if (banner) banner.style.display = currentSessions.filter(s => !s.isRestDay).length === 0 ? 'block' : 'none';
     renderFreq();
     renderMuscleMap();
   }
@@ -1452,6 +1454,11 @@ function initApp(uid) {
     if (!mrWidgetFront) mrWidgetFront = mrInitWidget('muscle-map-front', 'front');
     if (!mrWidgetBack)  mrWidgetBack  = mrInitWidget('muscle-map-back',  'back');
     mrApplyHighlights();
+
+    const labelEl = document.getElementById('mr-muscle-label');
+    if (labelEl && Object.keys(mrHighlights).length === 0) {
+      labelEl.textContent = 'Train to see your recovery heat map';
+    }
   }
 
   function renderFreq() {
@@ -1481,6 +1488,12 @@ function initApp(uid) {
       const dateStr = `${thisYear}-${monthPad}-${String(d).padStart(2, '0')}`;
       const cls     = normalizeLiftCls(calColors[dateStr] || sessionMap[d]);
       if (cls && cls !== 'rest' && cls !== 'other' && cls in counts) counts[cls]++;
+    }
+
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    if (total === 0) {
+      container.innerHTML = `<div class="freq-empty">Log a session to see your lift breakdown</div>`;
+      return;
     }
 
     const maxCount = Math.max(1, ...Object.values(counts));
@@ -1529,8 +1542,11 @@ function initApp(uid) {
               <button class="btn-delete"   data-id="${s.id}" title="Remove this session">✕</button>
             </td>
           </tr>`).join('')
-      : `<tr><td colspan="7" style="color:var(--text-dimmer);text-align:center;padding:32px 0;">
-           No sessions yet — add one above.
+      : `<tr><td colspan="7" class="log-empty-cell">
+           <div class="log-empty-icon">🏋️</div>
+           <div class="log-empty-title">No sessions logged yet</div>
+           <div class="log-empty-sub">Your training history will appear here</div>
+           <a href="training.html#log" class="log-empty-link">Log your first session →</a>
          </td></tr>`;
 
     const pag = document.getElementById('log-pagination');
