@@ -170,7 +170,7 @@ function compressImage(file, maxW, maxH, quality) {
     reader.onload = e => {
       const img = new Image();
       img.onload = () => {
-        const ratio = Math.min(maxW / img.width, maxH / img.height);
+        const ratio = Math.min(1, maxW / img.width, maxH / img.height);
         const canvas = document.createElement('canvas');
         canvas.width  = Math.round(img.width  * ratio);
         canvas.height = Math.round(img.height * ratio);
@@ -395,7 +395,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obBannerDataUrl = await compressImage(file, 1200, 400, 0.85);
+      obBannerDataUrl = await compressImage(file, 1920, 9000, 0.90);
       applyBannerPreview();
       document.getElementById('ob-banner-sliders').style.display = '';
       const btn = document.getElementById('ob-banner-btn');
