@@ -873,11 +873,11 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
     <div class="eyebrow" style="margin-bottom:14px;">Challenges</div>
 
     <div class="ch-section-head">
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div class="ch-section-label">
         <div class="ch-dot ch-dot-daily"></div>
         <div class="ch-section-title">Daily Challenges</div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div class="ch-section-actions">
         <div class="ch-timer">resets in ${dH}h ${dM}m</div>
         ${activeDaily.length ? (dailyData?.rerolled ? `<span class="ch-reroll-used">↺ Rerolled</span>` : `<button class="ch-reroll-toggle" onclick="igOpenRerollPanel()">↺ Reroll</button>`) : ''}
       </div>
@@ -907,7 +907,7 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
     <div class="ch-divider"></div>
 
     <div class="ch-section-head">
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div class="ch-section-label">
         <div class="ch-dot ch-dot-weekly"></div>
         <div class="ch-section-title">Weekly Challenges</div>
       </div>
