@@ -1335,7 +1335,7 @@ function initApp(uid) {
       const bestHtml = bestStreak > streak ? ` · best ${bestStreak}` : ' · personal best!';
       setHTML('kpi-streak-delta', `day${streak !== 1 ? 's' : ''} unbroken${bestHtml}`);
     } else {
-      setHTML('kpi-streak-delta', 'Log a session to start a streak');
+      setHTML('kpi-streak-delta', '');
     }
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
 
