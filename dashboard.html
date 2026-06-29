@@ -154,36 +154,43 @@
         <div class="card kpi forged muscle-recovery-card">
           <div class="mr-header">
             <div class="label">Muscle Recovery</div>
-            <div class="mr-toggle">
-              <button id="mr-btn-front" class="active">Front</button>
-              <button id="mr-btn-back">Back</button>
-            </div>
-          </div>
-          <div class="mr-controls">
-            <div class="mr-ctrl-col">
-              <div class="mr-ctrl-label">Body</div>
-              <div class="mr-toggle">
-                <button id="mr-btn-male" class="active">Male</button>
-                <button id="mr-btn-female">Female</button>
+            <div class="mr-header-right">
+              <div class="mr-ctrl-col">
+                <div class="mr-ctrl-label">Body</div>
+                <div class="mr-toggle">
+                  <button id="mr-btn-male" class="active">Male</button>
+                  <button id="mr-btn-female">Female</button>
+                </div>
               </div>
-            </div>
-            <div class="mr-ctrl-col">
-              <div class="mr-ctrl-label">Skin</div>
-              <div class="mr-swatch-row">
-                <div class="mr-swatch active" style="background:#f5c9a0"></div>
-                <div class="mr-swatch" style="background:#d4956a"></div>
-                <div class="mr-swatch" style="background:#9c6440"></div>
-                <div class="mr-swatch" style="background:#5c3320"></div>
+              <div class="mr-ctrl-col">
+                <div class="mr-ctrl-label">Skin</div>
+                <div class="mr-swatch-row">
+                  <div class="mr-swatch active" style="background:#f5c9a0"></div>
+                  <div class="mr-swatch" style="background:#d4956a"></div>
+                  <div class="mr-swatch" style="background:#9c6440"></div>
+                  <div class="mr-swatch" style="background:#5c3320"></div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="mr-map-wrap"><div id="muscle-map-canvas"></div></div>
-          <div class="mr-muscle-label" id="mr-muscle-label">Hover a muscle</div>
-          <div class="mr-legend">
-            <div class="mr-legend-item"><div class="mr-dot mr-dot-today"></div>Today</div>
-            <div class="mr-legend-item"><div class="mr-dot mr-dot-recent"></div>2–3 days</div>
-            <div class="mr-legend-item"><div class="mr-dot mr-dot-cooling"></div>4–6 days</div>
-            <div class="mr-legend-item"><div class="mr-dot mr-dot-rested"></div>Rested</div>
+          <div class="mr-maps">
+            <div class="mr-map-panel">
+              <div class="mr-panel-label">Front</div>
+              <div id="muscle-map-front" class="mr-map-wrap"></div>
+            </div>
+            <div class="mr-map-panel">
+              <div class="mr-panel-label">Back</div>
+              <div id="muscle-map-back" class="mr-map-wrap"></div>
+            </div>
+          </div>
+          <div class="mr-footer">
+            <div class="mr-muscle-label" id="mr-muscle-label">Hover a muscle</div>
+            <div class="mr-legend">
+              <div class="mr-legend-item"><div class="mr-dot mr-dot-today"></div>Today</div>
+              <div class="mr-legend-item"><div class="mr-dot mr-dot-recent"></div>2–3 days</div>
+              <div class="mr-legend-item"><div class="mr-dot mr-dot-cooling"></div>4–6 days</div>
+              <div class="mr-legend-item"><div class="mr-dot mr-dot-rested"></div>Rested</div>
+            </div>
           </div>
         </div>
       </div>

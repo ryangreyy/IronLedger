@@ -1219,9 +1219,9 @@ function initApp(uid) {
   const PAGE_SIZE = 6;
 
   /* Muscle recovery card state (declared here so guest-mode renderMuscleMap() can access them) */
-  let mrWidget = null;
+  let mrWidgetFront = null;
+  let mrWidgetBack  = null;
   let mrGender = 'male';
-  let mrSide   = 'front';
   let mrSkin   = 0;
   let mrHighlights = {};
   const MR_SKIN_TONES = [
@@ -1381,44 +1381,54 @@ function initApp(uid) {
   }
 
   function mrApplyHighlights() {
-    if (!mrWidget) return;
-    mrWidget.clearHighlights();
-    Object.entries(mrHighlights).forEach(([muscle, color]) => {
-      try { mrWidget.highlight(muscle, color, 0.92); } catch (_) {}
+    [mrWidgetFront, mrWidgetBack].forEach(w => {
+      if (!w) return;
+      w.clearHighlights();
+      Object.entries(mrHighlights).forEach(([muscle, color]) => {
+        try { w.highlight(muscle, color, 0.92); } catch (_) {}
+      });
     });
-  }
-
-  function mrSetView(side) {
-    mrSide = side;
-    document.getElementById('mr-btn-front')?.classList.toggle('active', side === 'front');
-    document.getElementById('mr-btn-back')?.classList.toggle('active', side === 'back');
-    if (mrWidget) { mrWidget.setSide(side); mrApplyHighlights(); }
   }
 
   function mrSetGender(gender) {
     mrGender = gender;
     document.getElementById('mr-btn-male')?.classList.toggle('active', gender === 'male');
     document.getElementById('mr-btn-female')?.classList.toggle('active', gender === 'female');
-    if (mrWidget) { mrWidget.setGender(gender); mrApplyHighlights(); }
+    [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) { w.setGender(gender); } });
+    mrApplyHighlights();
   }
 
   function mrSetSkin(idx) {
     mrSkin = idx;
     document.querySelectorAll('.mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
-    if (mrWidget) mrWidget.setStyle(mrBuildStyle());
+    const style = mrBuildStyle();
+    [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) w.setStyle(style); });
   }
 
-  document.getElementById('mr-btn-front')?.addEventListener('click', () => mrSetView('front'));
-  document.getElementById('mr-btn-back')?.addEventListener('click', () => mrSetView('back'));
   document.getElementById('mr-btn-male')?.addEventListener('click', () => mrSetGender('male'));
   document.getElementById('mr-btn-female')?.addEventListener('click', () => mrSetGender('female'));
   document.querySelectorAll('.mr-swatch').forEach((el, i) => {
     el.addEventListener('click', () => mrSetSkin(i));
   });
 
+  function mrInitWidget(containerId, side) {
+    const container = document.getElementById(containerId);
+    if (!container) return null;
+    const w = new MuscleMapJS.MuscleMapWidget(container, { gender: mrGender, side });
+    w.setStyle(mrBuildStyle());
+    w.on('muscleEnter', e => {
+      const el = document.getElementById('mr-muscle-label');
+      if (el) el.textContent = e.displayName || e.muscle;
+    });
+    w.on('muscleLeave', () => {
+      const el = document.getElementById('mr-muscle-label');
+      if (el) el.textContent = 'Hover a muscle';
+    });
+    return w;
+  }
+
   function renderMuscleMap() {
-    const container = document.getElementById('muscle-map-canvas');
-    if (!container || typeof MuscleMapJS === 'undefined') return;
+    if (typeof MuscleMapJS === 'undefined') return;
 
     const today = new Date(); today.setHours(12, 0, 0, 0);
     const lastSeenCls = {};
@@ -1440,18 +1450,8 @@ function initApp(uid) {
     });
     mrHighlights = Object.fromEntries(Object.entries(muscleData).map(([m, { color }]) => [m, color]));
 
-    if (!mrWidget) {
-      mrWidget = new MuscleMapJS.MuscleMapWidget(container, { gender: mrGender, side: mrSide });
-      mrWidget.setStyle(mrBuildStyle());
-      mrWidget.on('muscleEnter', e => {
-        const el = document.getElementById('mr-muscle-label');
-        if (el) el.textContent = e.displayName || e.muscle;
-      });
-      mrWidget.on('muscleLeave', () => {
-        const el = document.getElementById('mr-muscle-label');
-        if (el) el.textContent = 'Hover a muscle';
-      });
-    }
+    if (!mrWidgetFront) mrWidgetFront = mrInitWidget('muscle-map-front', 'front');
+    if (!mrWidgetBack)  mrWidgetBack  = mrInitWidget('muscle-map-back',  'back');
     mrApplyHighlights();
   }
 
