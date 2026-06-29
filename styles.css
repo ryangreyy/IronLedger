@@ -623,9 +623,9 @@ nav.nav-hidden{ transform:translateY(-100%); }
   letter-spacing:0.12em; margin-top:4px;}
 
 /* ---------- KPI CARDS ---------- */
-.grid-kpi{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:8px;}
+.grid-kpi{display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:8px;}
 /* ---------- MUSCLE RECOVERY CARD ---------- */
-.muscle-recovery-card{ grid-column:1 / -1; padding:18px 20px 18px !important; display:flex; flex-direction:column; gap:12px; }
+.muscle-recovery-card{ margin-top:18px; padding:18px 20px 18px !important; display:flex; flex-direction:column; gap:12px; }
 .mr-header{ display:flex; align-items:center; justify-content:space-between; }
 .mr-header-right{ display:flex; align-items:center; gap:20px; }
 .mr-ctrl-col{ display:flex; flex-direction:column; align-items:center; gap:3px; }
@@ -641,7 +641,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .mr-map-panel{ flex:1; display:flex; flex-direction:column; gap:6px; }
 .mr-panel-label{ font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dimmer); text-align:center; }
 .mr-map-wrap{ width:100%; height:460px; border-radius:8px; overflow:hidden; position:relative; }
-.mr-map-wrap canvas{ display:block; width:100% !important; height:100% !important; }
+.mr-map-wrap canvas{ display:block; width:100% !important; height:100% !important; touch-action:pan-y !important; }
 .mr-footer{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .mr-muscle-label{ font-family:var(--mono); font-size:10px; color:var(--text-dim); min-height:14px; }
 .mr-legend{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -657,7 +657,6 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .cal-legend-dot.dead { background:radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),var(--dead);  box-shadow:inset 0 1px 2px rgba(255,255,255,.4),inset 0 -1px 2px rgba(0,0,0,.35); }
 .cal-legend-dot.arm  { background:radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),var(--press); box-shadow:inset 0 1px 2px rgba(255,255,255,.4),inset 0 -1px 2px rgba(0,0,0,.35); }
 @media(max-width:860px){
-  .grid-kpi{grid-template-columns:repeat(2,1fr);}
   .grid-kpi .card{ padding-top:14px; }
   .kpi-forge .forge-medallion{ top:60%; }
 }
