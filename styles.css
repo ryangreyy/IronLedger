@@ -637,8 +637,8 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .mr-swatch{ width:18px; height:18px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:border-color .15s,transform .15s; }
 .mr-swatch:hover{ transform:scale(1.18); }
 .mr-swatch.active{ border-color:var(--accent-bright); }
-.mr-map-wrap{ width:100%; height:260px; border-radius:8px; overflow:hidden; position:relative; }
-.mr-map-wrap canvas{ width:100% !important; height:100% !important; }
+.mr-map-wrap{ width:100%; height:380px; border-radius:8px; overflow:hidden; position:relative; }
+.mr-map-wrap canvas{ display:block; width:100% !important; height:100% !important; }
 .mr-muscle-label{ font-family:var(--mono); font-size:10px; color:var(--text-dim); text-align:center; min-height:14px; }
 .mr-legend{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .mr-legend-item{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
