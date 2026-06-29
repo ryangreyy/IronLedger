@@ -1618,6 +1618,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .ch-section-label{ display:flex; align-items:center; gap:10px; min-width:0; }
 .ch-section-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; flex:0 0 auto; white-space:nowrap; }
 .ch-section-title{ font-family:var(--mono); font-size:13px; font-weight:600; color:var(--text-dim); letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ch-section-title-stack{ display:flex; flex-direction:column; gap:1px; line-height:1.05; white-space:normal; overflow:visible; text-overflow:clip; }
 .ch-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 .ch-dot-daily{ background:var(--accent-bright); box-shadow:0 0 8px var(--accent-bright); }
 .ch-dot-weekly{ background:#7CE38B; box-shadow:0 0 8px rgba(124,227,139,.6); }

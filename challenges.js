@@ -875,7 +875,7 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
     <div class="ch-section-head">
       <div class="ch-section-label">
         <div class="ch-dot ch-dot-daily"></div>
-        <div class="ch-section-title">Daily Challenges</div>
+        <div class="ch-section-title ch-section-title-stack"><span>Daily</span><span>Challenges</span></div>
       </div>
       <div class="ch-section-actions">
         <div class="ch-timer">resets in ${dH}h ${dM}m</div>
