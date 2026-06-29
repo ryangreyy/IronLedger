@@ -1607,7 +1607,7 @@ function initApp(uid) {
 
     const labelEl = document.getElementById('mr-muscle-label');
     if (labelEl && Object.keys(mrHighlights).length === 0) {
-      labelEl.textContent = 'Train to see your recovery heat map';
+      labelEl.textContent = '';
     }
   }
 

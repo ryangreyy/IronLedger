@@ -667,6 +667,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .grid-kpi{display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:8px;}
 /* ---------- MUSCLE RECOVERY CARD ---------- */
 .muscle-recovery-card{ margin-top:18px; padding:18px 20px 18px !important; display:flex; flex-direction:column; gap:12px; }
+.muscle-recovery-card .label{ color:var(--accent-bright); }
 .mr-header{ display:flex; align-items:center; justify-content:space-between; }
 .mr-header-right{ display:flex; align-items:center; gap:20px; }
 .mr-ctrl-col{ display:flex; flex-direction:column; align-items:center; gap:3px; }
