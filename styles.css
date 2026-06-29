@@ -684,8 +684,8 @@ nav.nav-hidden{ transform:translateY(-100%); }
 
 /* ---------- EDITORIAL FORGED KPI CARDS (Days Lifted / Current Streak) ---------- */
 .kpi-forge{ display:flex; flex-direction:column; min-height:188px; position:relative; overflow:hidden; }
-.kpi-forge .label{ position:relative; z-index:2; }
-.kpi-forge .forge-medallion{ position:absolute; left:-6px; top:64%; transform:translateY(-50%);
+.kpi-forge .label{ position:relative; z-index:2; align-self:flex-end; text-align:right; }
+.kpi-forge .forge-medallion{ position:absolute; left:-6px; top:50%; transform:translateY(-50%);
   width:140px; height:140px; z-index:1; pointer-events:none; }
 .kpi-forge .kpi-plate{ position:absolute; inset:0; width:100%; height:100%; opacity:.55; }
 .kpi-forge .forge-num{ position:absolute; inset:0; z-index:1;
@@ -698,7 +698,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   -webkit-background-clip:text; background-clip:text; text-shadow:0 1px 2px rgba(193,39,45,.4); }
 .kpi-forge .forge-cap{ position:relative; z-index:2; margin-top:auto;
   font-family:var(--mono); font-size:11px; color:var(--text-dimmer); font-weight:500; }
-.kpi-forge .forge-rest{ position:absolute; right:16px; top:18px; bottom:auto; z-index:2; margin-top:0; }
+.kpi-forge .forge-rest{ position:absolute; right:16px; top:44px; bottom:auto; z-index:2; margin-top:0; }
 
 /* ---------- CHART ---------- */
 .chart-card{margin-top:32px; padding:28px;}
