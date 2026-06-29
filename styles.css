@@ -349,8 +349,11 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .goal-date-label{ font-size:10px; color:var(--text-dimmer); display:flex; align-items:center; gap:3px; cursor:pointer; }
 .goal-finish-input{ font-size:10px; color:var(--text-dimmer); background:transparent; border:none; outline:none; cursor:pointer; font-family:var(--body); padding:0; color-scheme:dark; }
 .goal-finish-input::-webkit-calendar-picker-indicator{ filter:invert(1) opacity(.8); cursor:pointer; }
+.goal-due-control{ position:relative; display:inline-flex; align-items:center; cursor:pointer; }
 .goal-due-pill{ display:inline-flex; align-items:center; padding:2px 9px; border:1px solid rgba(255,255,255,0.22); border-radius:20px; background:transparent; color:var(--text-dimmer); font-size:11px; font-family:var(--body); cursor:pointer; transition:border-color .15s,color .15s; line-height:1.6; }
 .goal-due-pill:hover,.goal-due-pill.has-date{ border-color:rgba(255,255,255,0.5); color:var(--text); }
+.goal-add-due{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; color-scheme:dark; }
+.goal-add-due::-webkit-calendar-picker-indicator{ cursor:pointer; }
 .goal-due-clear{ background:none; border:none; color:var(--text-dimmer); font-size:11px; cursor:pointer; padding:0 2px; line-height:1; }
 .goal-due-clear:hover{ color:var(--text); }
 .goal-row-missed .goal-input{ color:var(--text-dimmer); text-decoration:line-through; }
@@ -396,7 +399,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 /* step count adjuster — visible on row hover */
 .goal-steps-adj{
   display:flex; align-items:center; gap:3px; flex-shrink:0;
-  opacity:0; transition:opacity .15s;
+  opacity:0; transition:opacity .15s; margin-top:1px;
 }
 .goal-row:hover .goal-steps-adj{ opacity:1; }
 .goal-row-editing .goal-steps-adj{ opacity:1; }

@@ -2021,8 +2021,8 @@ function initApp(uid) {
           <div class="goal-main">
             ${mainContent}
             <div class="goal-steps">${boxes}${resetBtn}</div>
+            ${adjuster}
           </div>
-          ${adjuster}
           ${editBtn}
           <button class="btn-delete goal-delete" data-idx="${g._i}" title="Delete goal">✕</button>
         </div>`;
@@ -2043,17 +2043,16 @@ function initApp(uid) {
         <div class="goal-main">
           <input type="text" class="goal-input goal-add-input" maxlength="60" autocomplete="off" placeholder="Type your goal…">
           <div class="goal-steps">${addBoxes}</div>
+          ${addAdjuster}
           <div class="goal-dates">
-            <button class="goal-due-pill" type="button">+ Due date</button>
+            <label class="goal-due-control"><span class="goal-due-pill">+ Due date</span><input type="date" class="goal-add-due"></label>
             <button class="goal-due-clear" type="button" style="display:none">✕</button>
-            <input type="date" class="goal-add-due" style="position:absolute;visibility:hidden;width:0;height:0;pointer-events:none;">
           </div>
           <div class="goal-edit-actions">
             <button class="goal-add-done btn-goal-act">Done</button>
             <button class="goal-add-cancel btn-goal-cancel">Cancel</button>
           </div>
         </div>
-        ${addAdjuster}
       </div>` : `
       <div class="goal-row goal-row-new">
         <div class="goal-main"><button class="goal-add-btn">+ Set a goal</button></div>
@@ -2231,9 +2230,6 @@ function initApp(uid) {
     const dueClear = list.querySelector('.goal-due-clear');
     const dueHidden = list.querySelector('.goal-add-due');
     if (duePill && dueHidden) {
-      duePill.addEventListener('click', () => {
-        try { dueHidden.showPicker(); } catch(e) { dueHidden.click(); }
-      });
       dueHidden.addEventListener('change', () => {
         if (dueHidden.value) {
           duePill.textContent = fmtDs(dueHidden.value);
