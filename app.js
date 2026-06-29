@@ -1218,6 +1218,22 @@ function initApp(uid) {
   let currentPage = 1;
   const PAGE_SIZE = 6;
 
+  /* Muscle recovery card state (declared here so guest-mode renderMuscleMap() can access them) */
+  let mrWidget = null;
+  let mrGender = 'male';
+  let mrSide   = 'front';
+  let mrSkin   = 0;
+  let mrHighlights = {};
+  const MR_SKIN_TONES = [
+    'rgb(245,201,160)', 'rgb(212,149,106)', 'rgb(156,100,64)', 'rgb(92,51,32)',
+  ];
+  const LIFT_CLS_TO_MUSCLES = {
+    squat: ['quadriceps', 'gluteal', 'hamstring', 'calves'],
+    bench: ['chest', 'deltoids', 'triceps'],
+    dead:  ['upper-back', 'lower-back', 'trapezius', 'hamstring'],
+    arm:   ['biceps', 'triceps', 'deltoids', 'forearm'],
+  };
+
   /* ---- Guest mode: render empty card shells for signed-out visitors ----
      All render functions below are function declarations so they're
      hoisted and safe to call here before their definition sites.    */
@@ -1227,7 +1243,7 @@ function initApp(uid) {
     updateKPIs();
     renderCalendar();
     renderFreq();
-    renderNeglect();
+    renderMuscleMap();
     renderTracker();
     renderLog([]);
     if (typeof igRenderChallenges === 'function') igRenderChallenges(null, null, 0);
@@ -1340,63 +1356,103 @@ function initApp(uid) {
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
 
     renderFreq();
-    renderNeglect();
+    renderMuscleMap();
   }
 
-  function renderNeglect() {
-    const container = document.getElementById('neglectList');
-    if (!container) return;
+  /* ---- MUSCLE RECOVERY CARD ------------------------------------------------ */
+
+  function mrDaysColor(days) {
+    if (days === 0) return '#c1272d';
+    if (days <= 3)  return '#b84020';
+    if (days <= 6)  return '#8a4520';
+    if (days <= 10) return '#3a4455';
+    return null;
+  }
+
+  function mrBuildStyle() {
+    const hc = MR_SKIN_TONES[mrSkin];
+    return {
+      defaultFillColor: 'rgb(52,58,68)',
+      strokeColor: 'rgb(30,34,42)', strokeWidth: 0.4,
+      selectionColor: '#c1272d', selectionStrokeColor: '#f0565b', selectionStrokeWidth: 2,
+      headColor: hc, hairColor: hc,
+      shadowColor: 'transparent', shadowRadius: 0, shadowOffsetX: 0, shadowOffsetY: 0,
+    };
+  }
+
+  function mrApplyHighlights() {
+    if (!mrWidget) return;
+    mrWidget.clearHighlights();
+    Object.entries(mrHighlights).forEach(([muscle, color]) => {
+      try { mrWidget.highlight(muscle, color, 0.92); } catch (_) {}
+    });
+  }
+
+  function mrSetView(side) {
+    mrSide = side;
+    document.getElementById('mr-btn-front')?.classList.toggle('active', side === 'front');
+    document.getElementById('mr-btn-back')?.classList.toggle('active', side === 'back');
+    if (mrWidget) { mrWidget.setSide(side); mrApplyHighlights(); }
+  }
+
+  function mrSetGender(gender) {
+    mrGender = gender;
+    document.getElementById('mr-btn-male')?.classList.toggle('active', gender === 'male');
+    document.getElementById('mr-btn-female')?.classList.toggle('active', gender === 'female');
+    if (mrWidget) { mrWidget.setGender(gender); mrApplyHighlights(); }
+  }
+
+  function mrSetSkin(idx) {
+    mrSkin = idx;
+    document.querySelectorAll('.mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
+    if (mrWidget) mrWidget.setStyle(mrBuildStyle());
+  }
+
+  document.getElementById('mr-btn-front')?.addEventListener('click', () => mrSetView('front'));
+  document.getElementById('mr-btn-back')?.addEventListener('click', () => mrSetView('back'));
+  document.getElementById('mr-btn-male')?.addEventListener('click', () => mrSetGender('male'));
+  document.getElementById('mr-btn-female')?.addEventListener('click', () => mrSetGender('female'));
+  document.querySelectorAll('.mr-swatch').forEach((el, i) => {
+    el.addEventListener('click', () => mrSetSkin(i));
+  });
+
+  function renderMuscleMap() {
+    const container = document.getElementById('muscle-map-canvas');
+    if (!container || typeof MuscleMapJS === 'undefined') return;
 
     const today = new Date(); today.setHours(12, 0, 0, 0);
-
-    // Last logged date per lift (skip rest days)
-    const lastSeen = {};
+    const lastSeenCls = {};
     (currentSessions || []).forEach(s => {
       if (!s.dateRaw || s.isRestDay) return;
-      if (!lastSeen[s.lift] || s.dateRaw > lastSeen[s.lift]) lastSeen[s.lift] = s.dateRaw;
+      const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+      if (!cls || cls === 'other' || cls === 'rest') return;
+      if (!lastSeenCls[cls] || s.dateRaw > lastSeenCls[cls]) lastSeenCls[cls] = s.dateRaw;
     });
 
-    // Only consider lifts touched in the last 60 days
-    const cutoff = new Date(today);
-    cutoff.setDate(cutoff.getDate() - 60);
-    const cutoffISO = localDateISO(cutoff);
-
-    // For each group, pick the single most neglected lift
-    const groups = ['squat', 'bench', 'dead', 'arm'];
-    const groupLabels = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms' };
-    const picks = [];
-
-    groups.forEach(cls => {
-      const best = Object.entries(lastSeen)
-        .filter(([lift, date]) => normalizeLiftCls(liftToCls(lift)) === cls && date >= cutoffISO)
-        .map(([lift, date]) => ({
-          lift, cls,
-          days: Math.round((today - new Date(date + 'T12:00:00')) / 86400000)
-        }))
-        .filter(x => x.days >= 1)
-        .sort((a, b) => b.days - a.days)[0];
-      if (best) picks.push(best);
+    const muscleData = {};
+    Object.entries(lastSeenCls).forEach(([cls, dateRaw]) => {
+      const days = Math.round((today - new Date(dateRaw + 'T12:00:00')) / 86400000);
+      const color = mrDaysColor(days);
+      if (!color) return;
+      (LIFT_CLS_TO_MUSCLES[cls] || []).forEach(m => {
+        if (!muscleData[m] || days < muscleData[m].days) muscleData[m] = { color, days };
+      });
     });
+    mrHighlights = Object.fromEntries(Object.entries(muscleData).map(([m, { color }]) => [m, color]));
 
-    if (!picks.length) {
-      container.innerHTML = `<div class="neglect-good">Nothing falling behind — you're staying balanced!</div>`;
-      return;
+    if (!mrWidget) {
+      mrWidget = new MuscleMapJS.MuscleMapWidget(container, { gender: mrGender, side: mrSide });
+      mrWidget.setStyle(mrBuildStyle());
+      mrWidget.on('muscleEnter', e => {
+        const el = document.getElementById('mr-muscle-label');
+        if (el) el.textContent = e.displayName || e.muscle;
+      });
+      mrWidget.on('muscleLeave', () => {
+        const el = document.getElementById('mr-muscle-label');
+        if (el) el.textContent = 'Hover a muscle';
+      });
     }
-
-    const rows = picks.map(x => `
-      <div class="neglect-row">
-        <span class="pill ${x.cls}">${x.lift}</span>
-        <span class="neglect-days">${x.days}d ago</span>
-      </div>
-    `).join('');
-
-    const legend = picks.map(x => `
-      <div class="cal-legend-item">
-        <div class="cal-legend-dot ${x.cls}"></div>${groupLabels[x.cls]}
-      </div>
-    `).join('');
-
-    container.innerHTML = rows + `<div class="neglect-legend">${legend}</div>`;
+    mrApplyHighlights();
   }
 
   function renderFreq() {

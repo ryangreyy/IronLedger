@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IronGladiator — Muscle Heat Map Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0c10; --surface: #12141a; --bg-2: #0e1014;
+      --border: rgba(255,255,255,0.07); --border-strong: rgba(255,255,255,0.14);
+      --text: #e8eaf0; --text-dim: #8c9aaa; --text-dimmer: #525c68;
+      --accent: #c1272d; --accent-bright: #f0565b;
+      --mono: 'JetBrains Mono', monospace; --shadow: 0 4px 24px rgba(0,0,0,0.5);
+      --heat-fresh: #c1272d; --heat-warm: #d4621a; --heat-cool: #4a5568;
+    }
+    body {
+      background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 32px 20px; gap: 20px;
+    }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--text-dimmer); text-align: center; }
+    .page-label span { color: var(--accent-bright); }
+
+    .card {
+      background: linear-gradient(180deg, var(--surface), var(--bg-2));
+      border-radius: 16px; box-shadow: var(--shadow); position: relative;
+      overflow: hidden; border: 1px solid transparent; background-clip: padding-box;
+    }
+    .card::before {
+      content: ''; position: absolute; inset: -1px; border-radius: 17px; padding: 1px;
+      background: linear-gradient(155deg,rgba(238,240,244,.55) 0%,rgba(120,126,138,.2) 40%,rgba(80,86,94,.12) 60%,rgba(200,205,214,.35) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+    }
+    .muscle-card { width: 380px; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; }
+    .card-eyebrow { font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--accent-bright); }
+
+    .toggle-group { display: flex; gap: 2px; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+    .toggle-group button { background: none; border: none; color: var(--text-dimmer);
+      font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      padding: 4px 10px; border-radius: 5px; cursor: pointer; text-transform: uppercase; transition: all .15s; }
+    .toggle-group button.active { background: rgba(193,39,45,0.18); color: var(--accent-bright); }
+
+    .controls-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .control-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .ctrl-label { font-family: var(--mono); font-size: 9px; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--text-dimmer); }
+
+    .swatch-row { display: flex; align-items: center; gap: 6px; }
+    .swatch { width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: border-color .15s, transform .15s; }
+    .swatch:hover { transform: scale(1.18); }
+    .swatch.active { border-color: var(--accent-bright); }
+
+    .map-wrap { width: 100%; height: 340px; border-radius: 10px; overflow: hidden; position: relative; }
+    #muscle-map, #hair-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #hair-svg { pointer-events: none; }
+
+    .legend-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-family: var(--mono);
+      font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-dimmer); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-today  { background: var(--heat-fresh); box-shadow: 0 0 6px var(--heat-fresh); }
+    .dot-recent { background: var(--heat-warm);  box-shadow: 0 0 6px var(--heat-warm); }
+    .dot-cooling{ background: var(--heat-cool); }
+    .dot-rested { background: #2a3040; border: 1px solid var(--border-strong); }
+
+    .muscle-name { font-family: var(--mono); font-size: 10px; color: var(--text-dim);
+      min-height: 16px; text-align: center; }
+    .card-footer { font-family: var(--mono); font-size: 9px; color: var(--text-dimmer);
+      text-align: center; letter-spacing: .06em; }
+    .context { font-family: var(--mono); font-size: 10px; color: var(--text-dimmer);
+      text-align: center; line-height: 1.7; }
+    .context strong { color: var(--text-dim); }
+  </style>
+  <script type="module" crossorigin src="/muscle-preview/assets/ig-preview-8xLgnacy.js"></script>
+</head>
+<body>
+
+  <div class="page-label">IronGladiator — <span>Dashboard Card Preview</span></div>
+
+  <div class="card muscle-card">
+    <div class="card-header">
+      <div class="card-eyebrow">Muscle Recovery</div>
+      <div class="toggle-group">
+        <button id="btn-front" class="active" onclick="setView('front')">Front</button>
+        <button id="btn-back"  onclick="setView('back')">Back</button>
+      </div>
+    </div>
+
+    <!-- Row 1: Body + Skin -->
+    <div class="controls-row">
+      <div class="control-col">
+        <div class="ctrl-label">Body</div>
+        <div class="toggle-group">
+          <button id="btn-male"   class="active" onclick="setGender('male')">Male</button>
+          <button id="btn-female" onclick="setGender('female')">Female</button>
+        </div>
+      </div>
+      <div class="control-col">
+        <div class="ctrl-label">Skin</div>
+        <div class="swatch-row" id="skin-swatches">
+          <div class="swatch active" style="background:#f5c9a0" title="Light"  onclick="setSkin(0,this)"></div>
+          <div class="swatch"        style="background:#d4956a" title="Medium" onclick="setSkin(1,this)"></div>
+          <div class="swatch"        style="background:#9c6440" title="Tan"    onclick="setSkin(2,this)"></div>
+          <div class="swatch"        style="background:#5c3320" title="Deep"   onclick="setSkin(3,this)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Hair style + Hair color -->
+    <div class="controls-row">
+      <div class="control-col">
+        <div class="ctrl-label">Hair Style</div>
+        <div class="toggle-group">
+          <button id="hs-0" class="active" onclick="setHairStyle(0)">Short</button>
+          <button id="hs-1"               onclick="setHairStyle(1)">Med</button>
+          <button id="hs-2"               onclick="setHairStyle(2)">Long</button>
+          <button id="hs-3"               onclick="setHairStyle(3)">Bald</button>
+        </div>
+      </div>
+      <div class="control-col">
+        <div class="ctrl-label">Hair Color</div>
+        <div class="swatch-row" id="hair-color-swatches">
+          <div class="swatch active" style="background:#1a1008" title="Black"  onclick="setHairColor(0,this)"></div>
+          <div class="swatch"        style="background:#3c2010" title="Brown"  onclick="setHairColor(1,this)"></div>
+          <div class="swatch"        style="background:#c49828" title="Blonde" onclick="setHairColor(2,this)"></div>
+          <div class="swatch"        style="background:#8c2808" title="Auburn" onclick="setHairColor(3,this)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-wrap">
+      <div id="muscle-map"></div>
+      <!-- SVG hair overlay — viewBox updated per gender+side -->
+      <svg id="hair-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <path id="hair-path" fill="#1a1008"/>
+      </svg>
+    </div>
+
+    <div class="muscle-name" id="muscle-label">Hover a muscle to see its name</div>
+
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot dot-today"></div>Worked today</div>
+      <div class="legend-item"><div class="legend-dot dot-recent"></div>2–3 days</div>
+      <div class="legend-item"><div class="legend-dot dot-cooling"></div>4–6 days</div>
+      <div class="legend-item"><div class="legend-dot dot-rested"></div>Rested</div>
+    </div>
+    <div class="card-footer">Based on your last 7 days of sessions</div>
+  </div>
+
+  <div class="context">
+    <strong>Mock data:</strong> Chest + Quads trained today · Back trained 2 days ago<br>
+    Biceps 3 days · Triceps 6 days · Abs untrained this week
+  </div>
+
+</body>
+</html>
