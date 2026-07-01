@@ -151,6 +151,19 @@
 .rxn-extra.rxn-skull .rxn-ct{color:#a0b4ff}
 .rxn-extra.rxn-ins{border-color:rgba(255,200,0,.55);background:rgba(255,200,0,.1)}
 .rxn-extra.rxn-ins .rxn-ct{color:#ffc400}
+.rxn-ct[data-count]{cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+
+/* ── Reactor bottom sheet ── */
+.rxn-sheet-overlay{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.55);}
+.rxn-sheet{position:fixed;bottom:0;left:0;right:0;z-index:1101;background:#14171c;border-radius:16px 16px 0 0;padding:20px 20px calc(68px + env(safe-area-inset-bottom,0px));max-height:65vh;overflow-y:auto;animation:rxnSlideUp .22s cubic-bezier(.4,0,.2,1);}
+@keyframes rxnSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.rxn-sheet-handle{width:36px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:0 auto 18px;}
+.rxn-sheet-title{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:14px;}
+.rxn-sheet-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.055);}
+.rxn-sheet-row:last-child{border-bottom:none;}
+.rxn-sheet-emoji{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+.rxn-sheet-name{flex:1;font-size:14px;color:#fff;font-weight:600;}
+.rxn-sheet-empty{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.3);text-align:center;padding:16px 0;}
 
 @media(max-width:680px){
   .feed-wrap{ padding:72px 14px 100px; }
@@ -309,6 +322,9 @@
     });
   }
 
+  const reactionCache = {};
+  const uidToName = {};
+
   /* Fetch reaction counts for all cards and apply active states */
   async function loadReactions(myUid, container) {
     const bars = container.querySelectorAll('.rxn-bar[data-frienduid]');
@@ -318,6 +334,8 @@
         .then(snap => ({ bar, data: snap.exists ? snap.data() : {} }))
     ));
     results.forEach(({ bar, data }) => {
+      const key = `${bar.dataset.frienduid}_${bar.dataset.dateraw}`;
+      reactionCache[key] = data;
       RXN_TYPES.forEach(type => {
         const voters = data[type] || {};
         const count  = Object.keys(voters).length;
@@ -325,7 +343,11 @@
         const btn    = bar.querySelector(`[data-type="${type}"]`);
         if (!btn) return;
         const ct = btn.querySelector('.rxn-ct');
-        if (ct) ct.textContent = count > 0 ? count : '';
+        if (ct) {
+          ct.textContent = count > 0 ? count : '';
+          if (count > 0) ct.setAttribute('data-count', count);
+          else ct.removeAttribute('data-count');
+        }
         if (type === 'heart') {
           btn.classList.toggle('rxn-on', active);
         } else {
@@ -335,8 +357,56 @@
     });
   }
 
+  /* Show bottom sheet listing everyone who reacted to a post */
+  async function showReactorSheet(friendUid, dateRaw) {
+    document.querySelector('.rxn-sheet-overlay')?.remove();
+    document.querySelector('.rxn-sheet')?.remove();
+
+    const key  = `${friendUid}_${dateRaw}`;
+    const data = reactionCache[key] || {};
+
+    const allReactors = RXN_TYPES.flatMap(type =>
+      Object.keys(data[type] || {}).map(uid => ({ uid, type }))
+    );
+    if (!allReactors.length) return;
+
+    const unknownUids = [...new Set(allReactors.map(r => r.uid).filter(uid => !uidToName[uid]))];
+    if (unknownUids.length) {
+      await Promise.all(unknownUids.map(uid =>
+        db.doc(`users/${uid}/settings/main`).get()
+          .then(snap => { uidToName[uid] = (snap.exists && snap.data().username) || 'Athlete'; })
+          .catch(() => { uidToName[uid] = 'Athlete'; })
+      ));
+    }
+
+    const rows = allReactors.map(({ uid, type }) => `
+      <div class="rxn-sheet-row">
+        <span class="rxn-sheet-emoji">${RXN_EMOJI[type]}</span>
+        <span class="rxn-sheet-name">${uidToName[uid] || 'Athlete'}</span>
+      </div>`).join('');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'rxn-sheet-overlay';
+    const sheet = document.createElement('div');
+    sheet.className = 'rxn-sheet';
+    sheet.innerHTML = `<div class="rxn-sheet-handle"></div><div class="rxn-sheet-title">Reactions</div>${rows}`;
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(sheet);
+
+    const close = () => { overlay.remove(); sheet.remove(); };
+    overlay.addEventListener('click', close);
+    sheet.addEventListener('click', e => e.stopPropagation());
+  }
+
   /* Toggle a reaction in Firestore with optimistic UI update */
   async function handleReactionClick(e, myUid) {
+    const ctSpan = e.target.closest('.rxn-ct[data-count]');
+    if (ctSpan) {
+      const bar = ctSpan.closest('.rxn-bar');
+      if (bar) showReactorSheet(bar.dataset.frienduid, bar.dataset.dateraw);
+      return;
+    }
     const tog = e.target.closest('.rxn-tog');
     if (tog) {
       const slide = tog.nextElementSibling;
@@ -488,6 +558,7 @@
         ]);
         const settings = settingsSnap.exists ? settingsSnap.data() : {};
         const username = settings.username || f.username;
+        uidToName[f.uid] = username;
         return { uid: f.uid, username, settings, sessions: sessSnap.docs.map(d => ({ ...d.data(), id: d.id })) };
       }));
 
