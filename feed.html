@@ -345,8 +345,18 @@
         const ct = btn.querySelector('.rxn-ct');
         if (ct) {
           ct.textContent = count > 0 ? count : '';
-          if (count > 0) ct.setAttribute('data-count', count);
-          else ct.removeAttribute('data-count');
+          if (count > 0) {
+            ct.setAttribute('data-count', count);
+            ct.style.cssText = 'cursor:pointer;text-decoration:underline;text-underline-offset:2px;';
+            ct.onclick = e => {
+              e.stopPropagation();
+              showReactorSheet(bar.dataset.frienduid, bar.dataset.dateraw);
+            };
+          } else {
+            ct.removeAttribute('data-count');
+            ct.style.cssText = '';
+            ct.onclick = null;
+          }
         }
         if (type === 'heart') {
           btn.classList.toggle('rxn-on', active);
@@ -374,7 +384,10 @@
     if (unknownUids.length) {
       await Promise.all(unknownUids.map(uid =>
         db.doc(`users/${uid}/settings/main`).get()
-          .then(snap => { uidToName[uid] = (snap.exists && snap.data().username) || 'Athlete'; })
+          .then(snap => {
+            const d = snap.exists ? snap.data() : {};
+            uidToName[uid] = d.username || d.displayName || 'Athlete';
+          })
           .catch(() => { uidToName[uid] = 'Athlete'; })
       ));
     }
@@ -401,12 +414,6 @@
 
   /* Toggle a reaction in Firestore with optimistic UI update */
   async function handleReactionClick(e, myUid) {
-    const ctSpan = e.target.closest('.rxn-ct[data-count]');
-    if (ctSpan) {
-      const bar = ctSpan.closest('.rxn-bar');
-      if (bar) showReactorSheet(bar.dataset.frienduid, bar.dataset.dateraw);
-      return;
-    }
     const tog = e.target.closest('.rxn-tog');
     if (tog) {
       const slide = tog.nextElementSibling;
@@ -557,7 +564,7 @@
           db.doc(`users/${f.uid}/settings/main`).get()
         ]);
         const settings = settingsSnap.exists ? settingsSnap.data() : {};
-        const username = settings.username || f.username;
+        const username = settings.username || settings.displayName || f.username || 'Athlete';
         uidToName[f.uid] = username;
         return { uid: f.uid, username, settings, sessions: sessSnap.docs.map(d => ({ ...d.data(), id: d.id })) };
       }));
