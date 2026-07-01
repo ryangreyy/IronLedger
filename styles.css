@@ -906,6 +906,7 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 .log-table td{padding:15px 16px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:14px;}
 .log-main-cell{ width:100%; }
 .log-meta-line{ font-size:12px; color:var(--text-dimmer); margin-top:5px; }
+.log-note-line{ font-size:12px; margin-top:3px; }
 .log-edit-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-top:6px; }
 .log-table tbody tr{ transition:background .15s; }
 .log-table tbody tr:hover td{ background:rgba(193,39,45,.05); color:#fff; }

@@ -1681,7 +1681,7 @@ function initApp(uid) {
           <tr data-id="${s.id}">
             <td class="log-main-cell">
               <span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${s.lift}</span>
-              <div class="log-meta-line">${s.date} · ${s.sets}×${s.reps} · ${s.wt} lbs${s.note ? ' · <span class="pr-flag">★ ' + s.note + '</span>' : ''}</div>
+              <div class="log-meta-line">${s.date} · ${s.sets}×${s.reps} · ${s.wt} lbs</div>${s.note ? '<div class="log-note-line"><span class="pr-flag">★ ' + s.note + '</span></div>' : ''}
             </td>
             <td class="row-actions">
               <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
