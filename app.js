@@ -1670,29 +1670,25 @@ function initApp(uid) {
     logBodyEl.innerHTML = sessions.length
       ? page.map(s => s.isRestDay ? `
           <tr data-id="${s.id}" class="rest-day-row">
-            <td style="color:var(--text-dim);white-space:nowrap">${s.date}</td>
-            <td><span class="pill rest">Rest Day</span></td>
-            <td style="color:var(--text-dimmer)">—</td>
-            <td style="color:var(--text-dimmer)">—</td>
-            <td style="color:var(--text-dimmer)">—</td>
+            <td class="log-main-cell">
+              <span class="pill rest">Rest Day</span>
+              <div class="log-meta-line">${s.date}</div>
+            </td>
             <td class="row-actions">
               <button class="btn-delete" data-id="${s.id}" title="Remove">✕</button>
             </td>
           </tr>` : `
           <tr data-id="${s.id}">
-            <td style="color:var(--text-dim);white-space:nowrap">${s.date}</td>
-            <td><span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${s.lift}</span></td>
-            <td>${s.sets} × ${s.reps}</td>
-            <td>${s.wt} lbs</td>
-            <td>${s.note
-              ? '<span class="pr-flag">★ ' + s.note + '</span>'
-              : '<span style="color:var(--text-dimmer)">—</span>'}</td>
+            <td class="log-main-cell">
+              <span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${s.lift}</span>
+              <div class="log-meta-line">${s.date} · ${s.sets}×${s.reps} · ${s.wt} lbs${s.note ? ' · <span class="pr-flag">★ ' + s.note + '</span>' : ''}</div>
+            </td>
             <td class="row-actions">
               <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
               <button class="btn-delete"   data-id="${s.id}" title="Remove this session">✕</button>
             </td>
           </tr>`).join('')
-      : `<tr><td colspan="7" class="log-empty-cell">
+      : `<tr><td colspan="2" class="log-empty-cell">
            <div class="log-empty-icon">🏋️</div>
            <div class="log-empty-title">No sessions logged yet</div>
            <div class="log-empty-sub">Your training history will appear here</div>
@@ -1720,16 +1716,20 @@ function initApp(uid) {
     const dateVal = s.dateRaw || localDateISO();
     return `
       <tr data-id="${s.id}" class="editing-row">
-        <td><input id="ed-date" type="hidden" value="${dateVal}"></td>
-        <td><input class="edit-field edit-wide" id="ed-lift" list="lift-options"
-                   value="${s.lift}" autocomplete="off"></td>
-        <td class="sets-reps-cell">
-          <input class="edit-field edit-num" id="ed-sets" type="number" value="${s.sets}" min="1">
-          <span style="color:var(--text-dimmer)">×</span>
-          <input class="edit-field edit-num" id="ed-reps" type="number" value="${s.reps}" min="1">
+        <td class="log-main-cell">
+          <input id="ed-date" type="hidden" value="${dateVal}">
+          <input class="edit-field edit-wide" id="ed-lift" list="lift-options"
+                 value="${s.lift}" autocomplete="off">
+          <div class="log-edit-meta">
+            <input class="edit-field edit-num" id="ed-sets" type="number" value="${s.sets}" min="1">
+            <span style="color:var(--text-dimmer)">×</span>
+            <input class="edit-field edit-num" id="ed-reps" type="number" value="${s.reps}" min="1">
+            <span style="color:var(--text-dimmer)">·</span>
+            <input class="edit-field edit-num" id="ed-wt" type="number" value="${s.wt}" step="5" min="1">
+            <span style="color:var(--text-dimmer)">lbs ·</span>
+            <input class="edit-field" id="ed-note" type="text" value="${s.note}" placeholder="PR…" style="width:90px">
+          </div>
         </td>
-        <td><input class="edit-field edit-num" id="ed-wt" type="number" value="${s.wt}" step="5" min="1"></td>
-        <td><input class="edit-field edit-wide" id="ed-note" type="text" value="${s.note}" placeholder="PR…"></td>
         <td class="row-actions">
           <button class="btn-save-edit" data-id="${s.id}" title="Save changes">Save</button>
           <button class="btn-cancel-edit btn-delete" data-id="${s.id}" title="Cancel">✕</button>
