@@ -533,9 +533,10 @@
     if (!myUid) return;
     unsubEntries = db.collection(`users/${myUid}/macroEntries`)
       .where('dateRaw', '==', currentDate)
-      .orderBy('ts', 'asc')
       .onSnapshot(snap => {
-        entries = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        entries = snap.docs
+          .map(d => ({ ...d.data(), id: d.id }))
+          .sort((a, b) => (a.ts?.seconds || 0) - (b.ts?.seconds || 0));
         renderProgress();
         renderLog();
       }, err => console.error('macroEntries snapshot error:', err));
