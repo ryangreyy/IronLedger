@@ -1106,10 +1106,24 @@
   document.querySelectorAll('.mac-preset-btn').forEach(btn =>
     btn.addEventListener('click', () => applyPreset(btn.dataset.preset)));
 
-  /* Calorie goal: recalc macros from preset if one is active */
+  /* Calorie goal: recalc macros from preset, or scale proportionally in custom mode */
   document.getElementById('goalCalInput').addEventListener('input', function() {
-    if (activePreset !== 'custom') applyPreset(activePreset);
-    else updateGoalMath();
+    const newCals = parseInt(this.value) || 0;
+    if (activePreset !== 'custom') {
+      applyPreset(activePreset);
+    } else {
+      const prot = parseInt(document.getElementById('goalProtInput').value) || 0;
+      const carb = parseInt(document.getElementById('goalCarbInput').value) || 0;
+      const fat  = parseInt(document.getElementById('goalFatInput').value)  || 0;
+      const curCals = prot * 4 + carb * 4 + fat * 9;
+      if (curCals > 0 && newCals > 0) {
+        const scale = newCals / curCals;
+        document.getElementById('goalProtInput').value = Math.round(prot * scale);
+        document.getElementById('goalCarbInput').value = Math.round(carb * scale);
+        document.getElementById('goalFatInput').value  = Math.round(fat  * scale);
+      }
+      updateGoalMath();
+    }
   });
 
   /* Protein / Carbs: auto-adjust fat, switch to Custom */
