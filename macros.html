@@ -773,6 +773,15 @@
     updateGoalMath();
   }
 
+  function autoAdjustCarbs() {
+    const cals = parseInt(document.getElementById('goalCalInput').value) || 0;
+    const prot = parseInt(document.getElementById('goalProtInput').value) || 0;
+    const fat  = parseInt(document.getElementById('goalFatInput').value)  || 0;
+    const carb = Math.max(0, Math.round((cals - prot * 4 - fat * 9) / 4));
+    document.getElementById('goalCarbInput').value = carb;
+    updateGoalMath();
+  }
+
   function updateGoalMath() {
     const cals     = parseInt(document.getElementById('goalCalInput').value)  || 0;
     const prot     = parseInt(document.getElementById('goalProtInput').value) || 0;
@@ -1136,7 +1145,7 @@
   }
   document.getElementById('goalProtInput').addEventListener('input', function() { switchToCustom(); autoAdjustFat(); });
   document.getElementById('goalCarbInput').addEventListener('input', function() { switchToCustom(); autoAdjustFat(); });
-  document.getElementById('goalFatInput').addEventListener('input', updateGoalMath);
+  document.getElementById('goalFatInput').addEventListener('input', function() { switchToCustom(); autoAdjustCarbs(); });
 
   document.getElementById('macAddBtn').onclick = () => {
     const form = document.getElementById('macFormCard');
