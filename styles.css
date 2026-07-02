@@ -628,7 +628,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 /* ---------- WELCOME BANNER ---------- */
 #welcome-banner{ margin-bottom:20px; border-radius:16px; overflow:hidden;
   background:radial-gradient(120% 120% at 30% 12%,#16191f 0%,#0c0d10 80%) padding-box,
-    linear-gradient(155deg,#eef0f4 0%,#9a9ea8 36%,#6f7178 58%,#cfd2da 100%) border-box;
+    linear-gradient(155deg,#6a6e78 0%,#3e4249 36%,#2e3138 58%,#5a5e68 100%) border-box;
   border:1px solid transparent; }
 .welcome-inner{ padding:24px 26px; }
 .welcome-text{ margin-bottom:18px; }
