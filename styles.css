@@ -112,6 +112,12 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .nav-links a:hover::before{ transform:scaleY(1); }
 .nav-links a.nav-current{ color:var(--accent-bright); }
 .nav-links a.nav-current::before{ transform:scaleY(1); }
+@media(max-width:700px){
+  .nav-links a[href="profile.html"],
+  .nav-links a[href="feed.html"],
+  .nav-links a[href="training.html"],
+  .nav-links a[href="dashboard.html"]{ display:none; }
+}
 .nav-avatar{
   width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0;
   background:var(--accent); display:flex; align-items:center; justify-content:center;
