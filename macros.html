@@ -1,0 +1,577 @@
+<!-- IRONGLADIATOR — Nutrition / Macro Tracker -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>IRONGLADIATOR — Nutrition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=139">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
+<style>
+.mac-wrap{ max-width:640px; margin:0 auto; padding:80px 20px 120px; }
+
+/* Date nav */
+.mac-date-nav{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:24px;
+}
+.mac-date-btn{
+  background:var(--surface); border:1px solid var(--border-strong); color:var(--text);
+  width:36px; height:36px; border-radius:8px; font-size:16px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:background .15s;
+}
+.mac-date-btn:active{ background:var(--surface-2); }
+.mac-date-label{
+  font-family:var(--mono); font-size:12px; font-weight:700;
+  letter-spacing:0.16em; text-transform:uppercase; color:var(--text-dim);
+}
+
+/* Goals / progress card */
+.mac-goals-card{
+  background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:14px; padding:18px 20px 20px; margin-bottom:18px;
+}
+.mac-goals-header{
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;
+}
+.mac-goals-title{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:0.18em; text-transform:uppercase; color:var(--accent-bright);
+}
+.mac-edit-goals-btn{
+  font-family:var(--mono); font-size:10px; color:var(--text-dimmer);
+  background:none; border:none; cursor:pointer; letter-spacing:0.1em;
+  text-transform:uppercase; padding:4px 8px; border-radius:6px;
+  transition:color .15s, background .15s;
+}
+.mac-edit-goals-btn:hover{ color:var(--text); background:var(--surface-2); }
+
+/* Calorie bar */
+.mac-cal-row{ margin-bottom:14px; }
+.mac-cal-label{
+  display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;
+}
+.mac-cal-name{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim);
+}
+.mac-cal-nums{ font-size:13px; color:var(--text); font-weight:700; }
+.mac-cal-nums .dim{ color:var(--text-dimmer); font-weight:400; }
+.mac-bar-track{
+  height:8px; background:var(--surface-2); border-radius:99px; overflow:hidden;
+  border:1px solid var(--border);
+}
+.mac-bar-fill{
+  height:100%; border-radius:99px;
+  background:linear-gradient(90deg, #c1272d 0%, #f0565b 100%);
+  transition:width .4s cubic-bezier(.4,0,.2,1); max-width:100%;
+}
+.mac-bar-fill.over{ background:linear-gradient(90deg, #f0565b 0%, #ff8a4c 100%); }
+
+/* Macro trio */
+.mac-trio{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.mac-trio-name{
+  font-family:var(--mono); font-size:9px; font-weight:700;
+  letter-spacing:0.15em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:4px;
+}
+.mac-trio-nums{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; }
+.mac-trio-nums .dim{ color:var(--text-dimmer); font-weight:400; font-size:11px; }
+.mac-bar-track.thin{ height:5px; }
+.mac-bar-fill.protein{ background:linear-gradient(90deg,#5bd6e6 0%,#80e8f5 100%); }
+.mac-bar-fill.carbs{ background:linear-gradient(90deg,#d6ff3d 0%,#e8ff70 100%); }
+.mac-bar-fill.fat{ background:linear-gradient(90deg,#ff8a4c 0%,#ffb380 100%); }
+
+/* Edit goals panel */
+.mac-goals-edit{
+  margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:none;
+}
+.mac-goals-edit.open{ display:block; }
+.mac-goals-edit-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;
+}
+.mac-goal-field label{
+  display:block; font-family:var(--mono); font-size:9px;
+  letter-spacing:0.15em; text-transform:uppercase; color:var(--text-dimmer);
+  margin-bottom:4px; font-weight:700;
+}
+.mac-goal-field input{
+  width:100%; background:var(--bg); border:1px solid var(--border-strong);
+  border-radius:8px; padding:8px 10px; color:var(--text); font-family:var(--mono);
+  font-size:13px; font-weight:700; outline:none; transition:border-color .15s;
+}
+.mac-goal-field input:focus{ border-color:var(--accent); }
+.mac-goals-save-btn{
+  width:100%; padding:10px; background:var(--accent); color:#fff; border:none;
+  border-radius:8px; font-family:var(--mono); font-size:12px; font-weight:700;
+  letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background .15s;
+}
+.mac-goals-save-btn:hover{ background:#a01f24; }
+
+/* Add food button */
+.mac-add-btn{
+  width:100%; padding:13px; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:12px; color:var(--text-dim); font-family:var(--mono); font-size:12px;
+  font-weight:700; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer;
+  transition:background .15s, color .15s, border-color .15s;
+  display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;
+}
+.mac-add-btn:hover{ background:var(--surface-2); color:var(--text); border-color:var(--accent); }
+
+/* Add food form */
+.mac-form-card{
+  background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:14px; padding:18px 20px; margin-bottom:18px; display:none;
+}
+.mac-form-card.open{ display:block; }
+.mac-form-title{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:0.18em; text-transform:uppercase; color:var(--text-dim); margin-bottom:14px;
+}
+.mac-form-row{ margin-bottom:12px; }
+.mac-form-row label{
+  display:block; font-family:var(--mono); font-size:9px;
+  letter-spacing:0.15em; text-transform:uppercase; color:var(--text-dimmer);
+  margin-bottom:4px; font-weight:700;
+}
+.mac-form-row input{
+  width:100%; background:var(--bg); border:1px solid var(--border-strong);
+  border-radius:8px; padding:9px 12px; color:var(--text); font-family:var(--body);
+  font-size:14px; outline:none; transition:border-color .15s;
+}
+.mac-form-row input:focus{ border-color:var(--accent); }
+.mac-form-nums{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; }
+@media(max-width:480px){ .mac-form-nums{ grid-template-columns:1fr 1fr; } }
+.mac-form-actions{ display:flex; gap:8px; margin-top:14px; }
+.mac-form-submit{
+  flex:1; padding:10px; background:var(--accent); color:#fff; border:none;
+  border-radius:8px; font-family:var(--mono); font-size:12px; font-weight:700;
+  letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background .15s;
+}
+.mac-form-submit:hover{ background:#a01f24; }
+.mac-form-cancel{
+  padding:10px 14px; background:var(--surface-2); color:var(--text-dim);
+  border:1px solid var(--border); border-radius:8px; font-family:var(--mono);
+  font-size:12px; font-weight:700; cursor:pointer; transition:background .15s;
+}
+.mac-form-cancel:hover{ background:var(--bg); }
+
+/* Log */
+.mac-log-header{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:0.18em; text-transform:uppercase; color:var(--text-dimmer);
+  margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);
+}
+.mac-empty{
+  font-family:var(--mono); font-size:13px; color:var(--text-dimmer);
+  padding:20px 0; text-align:center;
+}
+.mac-entry{
+  display:flex; align-items:center; gap:12px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.mac-entry:last-child{ border-bottom:none; }
+.mac-entry-main{ flex:1; min-width:0; }
+.mac-entry-name{
+  font-size:14px; font-weight:600; color:var(--text);
+  margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.mac-entry-meta{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); letter-spacing:0.06em; }
+.mac-entry-cals{ font-family:var(--mono); font-size:14px; font-weight:700; color:var(--text); white-space:nowrap; }
+.mac-entry-del{
+  background:none; border:none; color:var(--text-dimmer); font-size:15px;
+  cursor:pointer; padding:4px 6px; border-radius:4px; transition:color .15s; flex-shrink:0;
+}
+.mac-entry-del:hover{ color:var(--down); }
+</style>
+</head>
+<body>
+
+  <!-- LIVING BACKGROUND MEDALLIONS -->
+  <img class="bg-medallion m1" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="-0.18" data-rot="0.012">
+  <img class="bg-medallion m2" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="0.10" data-rot="-0.02">
+  <img class="bg-medallion m3" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="0.16" data-rot="0.025">
+  <img class="bg-medallion m4" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="-0.13" data-rot="-0.016">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><img class="mark" src="favicon.svg?v=5" alt=""> <span class="brand-text">IRONGLADIATOR</span></a>
+      <div class="nav-links" id="nav-links">
+        <a href="profile.html">Profile</a>
+        <a href="feed.html">Feed</a>
+        <a href="training.html">Training Log</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="macros.html" class="nav-current">Nutrition</a>
+        <a href="yoga.html">Yoga &amp; PT</a>
+        <a href="guide.html">Workout Schedule Guide</a>
+        <a href="running.html">Cardio and Endurance</a>
+        <a href="tools.html">Tools</a>
+        <a href="settings.html">Settings</a>
+      </div>
+      <div class="nav-right">
+        <div id="nav-signed-out" style="display:flex;align-items:center;gap:10px;opacity:0;">
+          <a href="index.html" class="btn btn-primary" style="padding:10px 18px;font-size:14px;">Sign in</a>
+        </div>
+        <div id="nav-signed-in" style="display:none;align-items:center;gap:10px;">
+          <div id="nav-avatar" class="nav-avatar"></div>
+          <span id="nav-user-name" style="font-size:13px;color:var(--text-dim);font-weight:600;"></span>
+          <button id="signOut" class="btn btn-ghost" style="padding:9px 16px;font-size:13px;">Sign out</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <rect width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="7" width="22" height="2" rx="1" fill="currentColor"/>
+            <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- AUTH GATE -->
+  <div id="mac-gate" style="display:none;">
+    <div class="mac-wrap">
+      <div class="eyebrow">Nutrition</div>
+      <h2 class="title">MACRO TRACKER</h2>
+      <p class="sub" style="margin-top:12px;margin-bottom:24px;">Sign in to track your daily calories and macros.</p>
+      <a href="index.html" class="btn btn-primary">Sign in</a>
+    </div>
+  </div>
+
+  <!-- MACRO PAGE -->
+  <div id="mac-page" style="display:none;">
+    <div class="mac-wrap">
+
+      <div class="eyebrow">Nutrition</div>
+      <h2 class="title" style="margin-bottom:24px;">Macro Tracker</h2>
+
+      <!-- Date nav -->
+      <div class="mac-date-nav">
+        <button class="mac-date-btn" id="macDatePrev" aria-label="Previous day">&#8592;</button>
+        <div class="mac-date-label" id="macDateLabel">Today</div>
+        <button class="mac-date-btn" id="macDateNext" aria-label="Next day">&#8594;</button>
+      </div>
+
+      <!-- Goals / Progress card -->
+      <div class="mac-goals-card">
+        <div class="mac-goals-header">
+          <div class="mac-goals-title">Daily Progress</div>
+          <button class="mac-edit-goals-btn" id="macEditGoalsBtn">Edit Goals</button>
+        </div>
+
+        <!-- Calories -->
+        <div class="mac-cal-row">
+          <div class="mac-cal-label">
+            <div class="mac-cal-name">Calories</div>
+            <div class="mac-cal-nums"><span id="macCalIn">0</span> <span class="dim">/ <span id="macCalGoal">2000</span> kcal</span></div>
+          </div>
+          <div class="mac-bar-track">
+            <div class="mac-bar-fill" id="macCalBar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Protein / Carbs / Fat -->
+        <div class="mac-trio">
+          <div>
+            <div class="mac-trio-name">Protein</div>
+            <div class="mac-trio-nums"><span id="macProtIn">0</span><span class="dim">/<span id="macProtGoal">150</span>g</span></div>
+            <div class="mac-bar-track thin"><div class="mac-bar-fill protein" id="macProtBar" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="mac-trio-name">Carbs</div>
+            <div class="mac-trio-nums"><span id="macCarbIn">0</span><span class="dim">/<span id="macCarbGoal">200</span>g</span></div>
+            <div class="mac-bar-track thin"><div class="mac-bar-fill carbs" id="macCarbBar" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="mac-trio-name">Fat</div>
+            <div class="mac-trio-nums"><span id="macFatIn">0</span><span class="dim">/<span id="macFatGoal">65</span>g</span></div>
+            <div class="mac-bar-track thin"><div class="mac-bar-fill fat" id="macFatBar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <!-- Edit Goals panel -->
+        <div class="mac-goals-edit" id="macGoalsEdit">
+          <div class="mac-goals-edit-grid">
+            <div class="mac-goal-field">
+              <label>Calories (kcal)</label>
+              <input type="number" id="goalCalInput" min="0" placeholder="2000">
+            </div>
+            <div class="mac-goal-field">
+              <label>Protein (g)</label>
+              <input type="number" id="goalProtInput" min="0" placeholder="150">
+            </div>
+            <div class="mac-goal-field">
+              <label>Carbs (g)</label>
+              <input type="number" id="goalCarbInput" min="0" placeholder="200">
+            </div>
+            <div class="mac-goal-field">
+              <label>Fat (g)</label>
+              <input type="number" id="goalFatInput" min="0" placeholder="65">
+            </div>
+          </div>
+          <button class="mac-goals-save-btn" id="macGoalsSaveBtn">Save Goals</button>
+        </div>
+      </div>
+
+      <!-- Add food button -->
+      <button class="mac-add-btn" id="macAddBtn">
+        <span style="font-size:18px;line-height:1;">+</span> Add Food
+      </button>
+
+      <!-- Add food form -->
+      <div class="mac-form-card" id="macFormCard">
+        <div class="mac-form-title">Add Food Entry</div>
+        <div class="mac-form-row">
+          <label>Food Name</label>
+          <input type="text" id="fName" placeholder="e.g. Chicken Breast" autocomplete="off">
+        </div>
+        <div class="mac-form-nums">
+          <div class="mac-form-row">
+            <label>Calories</label>
+            <input type="number" id="fCals" min="0" placeholder="0">
+          </div>
+          <div class="mac-form-row">
+            <label>Protein (g)</label>
+            <input type="number" id="fProt" min="0" placeholder="0">
+          </div>
+          <div class="mac-form-row">
+            <label>Carbs (g)</label>
+            <input type="number" id="fCarb" min="0" placeholder="0">
+          </div>
+          <div class="mac-form-row">
+            <label>Fat (g)</label>
+            <input type="number" id="fFat" min="0" placeholder="0">
+          </div>
+        </div>
+        <div class="mac-form-actions">
+          <button class="mac-form-submit" id="macFormSubmit">Log Food</button>
+          <button class="mac-form-cancel" id="macFormCancel">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="mac-log-header">Food Log</div>
+      <div id="macLog"><p class="mac-empty">No entries yet. Add your first food above.</p></div>
+
+    </div>
+  </div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  /* ── Helpers ── */
+  function localDateISO() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function formatDateLabel(iso) {
+    if (iso === localDateISO()) return 'Today';
+    const [y, m, day] = iso.split('-').map(Number);
+    const d = new Date(y, m - 1, day);
+    return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  }
+
+  function pct(val, goal) {
+    return goal ? Math.min(100, Math.round(val / goal * 100)) : 0;
+  }
+
+  /* ── State ── */
+  let currentDate  = localDateISO();
+  let goals        = { cals: 2000, prot: 150, carb: 200, fat: 65 };
+  let myUid        = null;
+  let entries      = [];
+  let unsubEntries = null;
+
+  /* ── Render progress bars ── */
+  function renderProgress() {
+    const totCals = entries.reduce((s, e) => s + (e.cals || 0), 0);
+    const totProt = entries.reduce((s, e) => s + (e.prot || 0), 0);
+    const totCarb = entries.reduce((s, e) => s + (e.carb || 0), 0);
+    const totFat  = entries.reduce((s, e) => s + (e.fat  || 0), 0);
+
+    document.getElementById('macCalIn').textContent  = totCals;
+    document.getElementById('macProtIn').textContent = totProt;
+    document.getElementById('macCarbIn').textContent = totCarb;
+    document.getElementById('macFatIn').textContent  = totFat;
+
+    const calBar = document.getElementById('macCalBar');
+    calBar.style.width = pct(totCals, goals.cals) + '%';
+    calBar.classList.toggle('over', totCals > goals.cals);
+
+    document.getElementById('macProtBar').style.width = pct(totProt, goals.prot) + '%';
+    document.getElementById('macCarbBar').style.width = pct(totCarb, goals.carb) + '%';
+    document.getElementById('macFatBar').style.width  = pct(totFat,  goals.fat)  + '%';
+  }
+
+  /* ── Render food log ── */
+  function renderLog() {
+    const el = document.getElementById('macLog');
+    if (!entries.length) {
+      el.innerHTML = '<p class="mac-empty">No entries yet. Add your first food above.</p>';
+      return;
+    }
+    el.innerHTML = entries.map(e => `
+      <div class="mac-entry">
+        <div class="mac-entry-main">
+          <div class="mac-entry-name">${e.name}</div>
+          <div class="mac-entry-meta">P ${e.prot || 0}g · C ${e.carb || 0}g · F ${e.fat || 0}g</div>
+        </div>
+        <div class="mac-entry-cals">${e.cals || 0} kcal</div>
+        <button class="mac-entry-del" data-id="${e.id}" title="Remove">✕</button>
+      </div>`).join('');
+
+    el.querySelectorAll('.mac-entry-del').forEach(btn => {
+      btn.onclick = () => deleteEntry(btn.dataset.id);
+    });
+  }
+
+  /* ── Real-time listener for entries ── */
+  function subscribeEntries() {
+    if (unsubEntries) { unsubEntries(); unsubEntries = null; }
+    if (!myUid) return;
+    unsubEntries = db.collection(`users/${myUid}/macroEntries`)
+      .where('dateRaw', '==', currentDate)
+      .orderBy('ts', 'asc')
+      .onSnapshot(snap => {
+        entries = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        renderProgress();
+        renderLog();
+      }, err => console.error('macroEntries snapshot error:', err));
+  }
+
+  /* ── Load goals from settings ── */
+  async function loadGoals() {
+    try {
+      const snap = await db.doc(`users/${myUid}/settings/main`).get();
+      const d = snap.data() || {};
+      goals = {
+        cals: d.macroCals || 2000,
+        prot: d.macroProt || 150,
+        carb: d.macroCarb || 200,
+        fat:  d.macroFat  || 65,
+      };
+      document.getElementById('macCalGoal').textContent  = goals.cals;
+      document.getElementById('macProtGoal').textContent = goals.prot;
+      document.getElementById('macCarbGoal').textContent = goals.carb;
+      document.getElementById('macFatGoal').textContent  = goals.fat;
+      document.getElementById('goalCalInput').value  = goals.cals;
+      document.getElementById('goalProtInput').value = goals.prot;
+      document.getElementById('goalCarbInput').value = goals.carb;
+      document.getElementById('goalFatInput').value  = goals.fat;
+      renderProgress();
+    } catch (_) {}
+  }
+
+  /* ── Save goals to settings ── */
+  async function saveGoals() {
+    const cals = parseInt(document.getElementById('goalCalInput').value)  || 2000;
+    const prot = parseInt(document.getElementById('goalProtInput').value) || 150;
+    const carb = parseInt(document.getElementById('goalCarbInput').value) || 200;
+    const fat  = parseInt(document.getElementById('goalFatInput').value)  || 65;
+    goals = { cals, prot, carb, fat };
+    document.getElementById('macCalGoal').textContent  = cals;
+    document.getElementById('macProtGoal').textContent = prot;
+    document.getElementById('macCarbGoal').textContent = carb;
+    document.getElementById('macFatGoal').textContent  = fat;
+    renderProgress();
+    document.getElementById('macGoalsEdit').classList.remove('open');
+    try {
+      await db.doc(`users/${myUid}/settings/main`).set(
+        { macroCals: cals, macroProt: prot, macroCarb: carb, macroFat: fat },
+        { merge: true }
+      );
+    } catch (_) {}
+  }
+
+  /* ── Add food entry ── */
+  async function addEntry() {
+    const name = document.getElementById('fName').value.trim();
+    if (!name) { document.getElementById('fName').focus(); return; }
+    const cals = parseInt(document.getElementById('fCals').value) || 0;
+    const prot = parseInt(document.getElementById('fProt').value) || 0;
+    const carb = parseInt(document.getElementById('fCarb').value) || 0;
+    const fat  = parseInt(document.getElementById('fFat').value)  || 0;
+    try {
+      await db.collection(`users/${myUid}/macroEntries`).add({
+        dateRaw: currentDate, name, cals, prot, carb, fat,
+        ts: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      ['fName','fCals','fProt','fCarb','fFat'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('macFormCard').classList.remove('open');
+    } catch (err) { console.error('addEntry failed:', err); }
+  }
+
+  /* ── Delete food entry ── */
+  async function deleteEntry(id) {
+    try { await db.doc(`users/${myUid}/macroEntries/${id}`).delete(); } catch (_) {}
+  }
+
+  /* ── Date navigation ── */
+  function offsetDate(delta) {
+    const [y, m, day] = currentDate.split('-').map(Number);
+    const d = new Date(y, m - 1, day);
+    d.setDate(d.getDate() + delta);
+    currentDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    document.getElementById('macDateLabel').textContent = formatDateLabel(currentDate);
+    subscribeEntries();
+  }
+
+  /* ── Wire up UI events ── */
+  document.getElementById('macDatePrev').onclick   = () => offsetDate(-1);
+  document.getElementById('macDateNext').onclick   = () => offsetDate(1);
+  document.getElementById('macDateLabel').textContent = formatDateLabel(currentDate);
+
+  document.getElementById('macEditGoalsBtn').onclick = () =>
+    document.getElementById('macGoalsEdit').classList.toggle('open');
+
+  document.getElementById('macGoalsSaveBtn').onclick = saveGoals;
+
+  document.getElementById('macAddBtn').onclick = () => {
+    const form = document.getElementById('macFormCard');
+    form.classList.toggle('open');
+    if (form.classList.contains('open')) document.getElementById('fName').focus();
+  };
+
+  document.getElementById('macFormCancel').onclick  = () =>
+    document.getElementById('macFormCard').classList.remove('open');
+
+  document.getElementById('macFormSubmit').onclick  = addEntry;
+
+  document.getElementById('fName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addEntry();
+  });
+
+  /* ── Auth state ── */
+  auth.onAuthStateChanged(user => {
+    const gate = document.getElementById('mac-gate');
+    const page = document.getElementById('mac-page');
+    if (user) {
+      myUid = user.uid;
+      if (gate) gate.style.display = 'none';
+      if (page) page.style.display = '';
+      loadGoals();
+      subscribeEntries();
+    } else {
+      myUid = null;
+      if (unsubEntries) { unsubEntries(); unsubEntries = null; }
+      if (gate) gate.style.display = '';
+      if (page) page.style.display = 'none';
+    }
+  });
+</script>
+<script src="nav-auth.js"></script>
+<script src="nav.js?v=1"></script>
+</body>
+</html>
