@@ -159,6 +159,56 @@
 }
 .mac-form-cancel:hover{ background:var(--bg); }
 
+/* Search results dropdown */
+.mac-search-wrap{ position:relative; }
+.mac-search-results{
+  position:absolute; top:100%; left:0; right:0; z-index:200;
+  background:var(--surface-2); border:1px solid var(--border-strong);
+  border-radius:10px; margin-top:4px; overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.mac-search-item{
+  padding:10px 14px; cursor:pointer; font-size:13px; color:var(--text);
+  border-bottom:1px solid var(--border); transition:background .1s;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.mac-search-item:last-child{ border-bottom:none; }
+.mac-search-item:hover{ background:var(--surface); }
+.mac-search-meta{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); flex-shrink:0; margin-left:8px; }
+.mac-search-status{ padding:10px 14px; font-family:var(--mono); font-size:11px; color:var(--text-dimmer); }
+
+/* Amount + unit row */
+.mac-amount-row{ display:flex; gap:8px; margin-bottom:12px; }
+.mac-amount-row input{
+  flex:1; background:var(--bg); border:1px solid var(--border-strong);
+  border-radius:8px; padding:9px 12px; color:var(--text); font-family:var(--body);
+  font-size:14px; outline:none; transition:border-color .15s;
+}
+.mac-amount-row input:focus{ border-color:var(--accent); }
+.mac-amount-row select{
+  background:var(--bg); border:1px solid var(--border-strong); border-radius:8px;
+  padding:9px 10px; color:var(--text); font-family:var(--mono); font-size:13px;
+  font-weight:700; outline:none; cursor:pointer; width:76px;
+}
+
+/* Calc preview */
+.mac-calc-preview{
+  display:flex; gap:16px; padding:10px 14px; background:var(--bg);
+  border-radius:8px; border:1px solid var(--border); margin-bottom:12px;
+  font-family:var(--mono); font-size:11px; color:var(--text-dimmer);
+  flex-wrap:wrap;
+}
+.mac-calc-preview b{ color:var(--text); font-weight:700; }
+
+/* Manual toggle link */
+.mac-manual-toggle{
+  background:none; border:none; color:var(--text-dimmer); font-family:var(--mono);
+  font-size:10px; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
+  padding:0; margin-bottom:14px; text-decoration:underline; text-underline-offset:3px;
+  transition:color .15s;
+}
+.mac-manual-toggle:hover{ color:var(--text); }
+
 /* Log */
 .mac-log-header{
   font-family:var(--mono); font-size:11px; font-weight:700;
@@ -325,28 +375,68 @@
       <!-- Add food form -->
       <div class="mac-form-card" id="macFormCard">
         <div class="mac-form-title">Add Food Entry</div>
-        <div class="mac-form-row">
-          <label>Food Name</label>
-          <input type="text" id="fName" placeholder="e.g. Chicken Breast" autocomplete="off">
+
+        <!-- Search mode -->
+        <div id="macSearchMode">
+          <div class="mac-form-row mac-search-wrap">
+            <label>Search Food</label>
+            <input type="text" id="fSearch" placeholder="e.g. Chicken Breast, Banana…" autocomplete="off">
+            <div class="mac-search-results" id="macSearchResults" style="display:none;"></div>
+          </div>
+          <div id="macAmountSection" style="display:none;">
+            <div class="mac-form-row" style="margin-bottom:6px;">
+              <label>Amount</label>
+            </div>
+            <div class="mac-amount-row">
+              <input type="number" id="fAmount" min="0" placeholder="100">
+              <select id="fUnit">
+                <option value="g">g</option>
+                <option value="oz">oz</option>
+                <option value="lb">lb</option>
+                <option value="ml">ml</option>
+                <option value="L">L</option>
+                <option value="cup">cup</option>
+                <option value="tbsp">tbsp</option>
+                <option value="tsp">tsp</option>
+              </select>
+            </div>
+            <div class="mac-calc-preview" id="macCalcPreview">
+              <span>Cals: <b id="calcCals">0</b></span>
+              <span>Protein: <b id="calcProt">0</b>g</span>
+              <span>Carbs: <b id="calcCarb">0</b>g</span>
+              <span>Fat: <b id="calcFat">0</b>g</span>
+            </div>
+          </div>
+          <button class="mac-manual-toggle" id="macManualToggle">Enter macros manually instead</button>
         </div>
-        <div class="mac-form-nums">
+
+        <!-- Manual mode -->
+        <div id="macManualMode" style="display:none;">
           <div class="mac-form-row">
-            <label>Calories</label>
-            <input type="number" id="fCals" min="0" placeholder="0">
+            <label>Food Name</label>
+            <input type="text" id="fName" placeholder="e.g. Homemade Oatmeal" autocomplete="off">
           </div>
-          <div class="mac-form-row">
-            <label>Protein (g)</label>
-            <input type="number" id="fProt" min="0" placeholder="0">
+          <div class="mac-form-nums">
+            <div class="mac-form-row">
+              <label>Calories</label>
+              <input type="number" id="fCals" min="0" placeholder="0">
+            </div>
+            <div class="mac-form-row">
+              <label>Protein (g)</label>
+              <input type="number" id="fProt" min="0" placeholder="0">
+            </div>
+            <div class="mac-form-row">
+              <label>Carbs (g)</label>
+              <input type="number" id="fCarb" min="0" placeholder="0">
+            </div>
+            <div class="mac-form-row">
+              <label>Fat (g)</label>
+              <input type="number" id="fFat" min="0" placeholder="0">
+            </div>
           </div>
-          <div class="mac-form-row">
-            <label>Carbs (g)</label>
-            <input type="number" id="fCarb" min="0" placeholder="0">
-          </div>
-          <div class="mac-form-row">
-            <label>Fat (g)</label>
-            <input type="number" id="fFat" min="0" placeholder="0">
-          </div>
+          <button class="mac-manual-toggle" id="macSearchToggle">Search food database instead</button>
         </div>
+
         <div class="mac-form-actions">
           <button class="mac-form-submit" id="macFormSubmit">Log Food</button>
           <button class="mac-form-cancel" id="macFormCancel">Cancel</button>
@@ -495,22 +585,138 @@
     } catch (_) {}
   }
 
+  /* ── Food search ── */
+  const UNIT_TO_G = { g:1, oz:28.3495, lb:453.592, ml:1, L:1000, cup:240, tbsp:15, tsp:5 };
+  let selectedFood  = null; // { name, cals100, prot100, carb100, fat100 }
+  let searchTimer   = null;
+  let searchMode    = true; // true = search, false = manual
+
+  function updateCalcPreview() {
+    if (!selectedFood) return;
+    const amount = parseFloat(document.getElementById('fAmount').value) || 0;
+    const unit   = document.getElementById('fUnit').value;
+    const factor = amount * (UNIT_TO_G[unit] || 1) / 100;
+    document.getElementById('calcCals').textContent = Math.round(selectedFood.cals100 * factor);
+    document.getElementById('calcProt').textContent = Math.round(selectedFood.prot100 * factor);
+    document.getElementById('calcCarb').textContent = Math.round(selectedFood.carb100 * factor);
+    document.getElementById('calcFat').textContent  = Math.round(selectedFood.fat100  * factor);
+  }
+
+  function selectFood(product) {
+    const n = product.nutriments;
+    selectedFood = {
+      name:     product.product_name,
+      cals100:  parseFloat(n['energy-kcal_100g']    || n['energy-kcal_serving'] || 0),
+      prot100:  parseFloat(n['proteins_100g']        || 0),
+      carb100:  parseFloat(n['carbohydrates_100g']   || 0),
+      fat100:   parseFloat(n['fat_100g']             || 0),
+    };
+    document.getElementById('fSearch').value = selectedFood.name;
+    document.getElementById('macSearchResults').style.display = 'none';
+    document.getElementById('macAmountSection').style.display = '';
+    document.getElementById('fAmount').value = '100';
+    document.getElementById('fUnit').value   = 'g';
+    updateCalcPreview();
+    document.getElementById('fAmount').focus();
+  }
+
+  async function searchFood(q) {
+    const res = document.getElementById('macSearchResults');
+    res.style.display = '';
+    res.innerHTML = '<div class="mac-search-status">Searching…</div>';
+    try {
+      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&json=1&action=process&page_size=7&fields=product_name,nutriments&search_simple=1`;
+      const data = await fetch(url).then(r => r.json());
+      const products = (data.products || [])
+        .filter(p => p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null)
+        .slice(0, 6);
+      if (!products.length) {
+        res.innerHTML = '<div class="mac-search-status">No results — try entering manually</div>';
+        return;
+      }
+      window._srProducts = products;
+      res.innerHTML = products.map((p, i) => {
+        const kcal = Math.round(p.nutriments['energy-kcal_100g'] || 0);
+        const name = p.product_name.length > 50 ? p.product_name.slice(0, 50) + '…' : p.product_name;
+        return `<div class="mac-search-item" data-i="${i}"><span>${name}</span><span class="mac-search-meta">${kcal} kcal/100g</span></div>`;
+      }).join('');
+      res.querySelectorAll('.mac-search-item').forEach(el =>
+        el.addEventListener('mousedown', e => { e.preventDefault(); selectFood(window._srProducts[+el.dataset.i]); })
+      );
+    } catch (_) {
+      res.innerHTML = '<div class="mac-search-status">Search unavailable — enter manually</div>';
+    }
+  }
+
+  document.getElementById('fSearch').addEventListener('input', function () {
+    selectedFood = null;
+    document.getElementById('macAmountSection').style.display = 'none';
+    const q = this.value.trim();
+    clearTimeout(searchTimer);
+    if (q.length < 2) { document.getElementById('macSearchResults').style.display = 'none'; return; }
+    searchTimer = setTimeout(() => searchFood(q), 350);
+  });
+  document.getElementById('fSearch').addEventListener('blur', () => {
+    setTimeout(() => { document.getElementById('macSearchResults').style.display = 'none'; }, 150);
+  });
+  document.getElementById('fAmount').addEventListener('input', updateCalcPreview);
+  document.getElementById('fUnit').addEventListener('change', updateCalcPreview);
+
+  document.getElementById('macManualToggle').onclick = () => {
+    searchMode = false;
+    document.getElementById('macSearchMode').style.display = 'none';
+    document.getElementById('macManualMode').style.display = '';
+    document.getElementById('fName').focus();
+  };
+  document.getElementById('macSearchToggle').onclick = () => {
+    searchMode = true;
+    document.getElementById('macManualMode').style.display = 'none';
+    document.getElementById('macSearchMode').style.display = '';
+    selectedFood = null;
+    document.getElementById('macAmountSection').style.display = 'none';
+    document.getElementById('fSearch').value = '';
+    document.getElementById('fSearch').focus();
+  };
+
   /* ── Add food entry ── */
   async function addEntry() {
-    const name = document.getElementById('fName').value.trim();
-    if (!name) { document.getElementById('fName').focus(); return; }
-    const cals = parseInt(document.getElementById('fCals').value) || 0;
-    const prot = parseInt(document.getElementById('fProt').value) || 0;
-    const carb = parseInt(document.getElementById('fCarb').value) || 0;
-    const fat  = parseInt(document.getElementById('fFat').value)  || 0;
+    let name, cals, prot, carb, fat;
+    if (searchMode) {
+      if (!selectedFood) { document.getElementById('fSearch').focus(); return; }
+      const amount = parseFloat(document.getElementById('fAmount').value) || 0;
+      const unit   = document.getElementById('fUnit').value;
+      const factor = amount * (UNIT_TO_G[unit] || 1) / 100;
+      name = selectedFood.name;
+      cals = Math.round(selectedFood.cals100 * factor);
+      prot = Math.round(selectedFood.prot100 * factor);
+      carb = Math.round(selectedFood.carb100 * factor);
+      fat  = Math.round(selectedFood.fat100  * factor);
+    } else {
+      name = document.getElementById('fName').value.trim();
+      if (!name) { document.getElementById('fName').focus(); return; }
+      cals = parseInt(document.getElementById('fCals').value) || 0;
+      prot = parseInt(document.getElementById('fProt').value) || 0;
+      carb = parseInt(document.getElementById('fCarb').value) || 0;
+      fat  = parseInt(document.getElementById('fFat').value)  || 0;
+    }
     try {
       await db.collection(`users/${myUid}/macroEntries`).add({
         dateRaw: currentDate, name, cals, prot, carb, fat,
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      ['fName','fCals','fProt','fCarb','fFat'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('macFormCard').classList.remove('open');
+      resetForm();
     } catch (err) { console.error('addEntry failed:', err); }
+  }
+
+  function resetForm() {
+    selectedFood = null; searchMode = true;
+    document.getElementById('fSearch').value = '';
+    document.getElementById('macSearchResults').style.display = 'none';
+    document.getElementById('macAmountSection').style.display = 'none';
+    document.getElementById('macSearchMode').style.display = '';
+    document.getElementById('macManualMode').style.display = 'none';
+    ['fName','fCals','fProt','fCarb','fFat'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('macFormCard').classList.remove('open');
   }
 
   /* ── Delete food entry ── */
@@ -541,17 +747,11 @@
   document.getElementById('macAddBtn').onclick = () => {
     const form = document.getElementById('macFormCard');
     form.classList.toggle('open');
-    if (form.classList.contains('open')) document.getElementById('fName').focus();
+    if (form.classList.contains('open')) document.getElementById('fSearch').focus();
   };
 
-  document.getElementById('macFormCancel').onclick  = () =>
-    document.getElementById('macFormCard').classList.remove('open');
-
-  document.getElementById('macFormSubmit').onclick  = addEntry;
-
-  document.getElementById('fName').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addEntry();
-  });
+  document.getElementById('macFormCancel').onclick = resetForm;
+  document.getElementById('macFormSubmit').onclick = addEntry;
 
   /* ── Auth state ── */
   auth.onAuthStateChanged(user => {
