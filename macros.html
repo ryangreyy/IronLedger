@@ -239,6 +239,75 @@
   cursor:pointer; padding:4px 6px; border-radius:4px; transition:color .15s; flex-shrink:0;
 }
 .mac-entry-del:hover{ color:var(--down); }
+
+/* Goals setup card */
+.mac-setup-card{
+  background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:14px; padding:20px 22px 22px; margin-bottom:18px;
+}
+.mac-setup-title{
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:0.18em; text-transform:uppercase; color:var(--accent-bright); margin-bottom:16px;
+}
+.mac-field-label{
+  font-family:var(--mono); font-size:9px; font-weight:700;
+  letter-spacing:0.15em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:6px;
+}
+.mac-cal-target-row{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px;
+}
+.mac-cal-target-input{
+  background:var(--bg); border:1px solid var(--border-strong); border-radius:10px;
+  padding:10px 14px; color:var(--text); font-family:var(--mono); font-size:26px;
+  font-weight:700; outline:none; transition:border-color .15s; width:150px;
+}
+.mac-cal-target-input:focus{ border-color:var(--accent); }
+.mac-kcal-unit{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); white-space:nowrap; }
+.mac-presets-label{
+  font-family:var(--mono); font-size:9px; font-weight:700;
+  letter-spacing:0.15em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:8px;
+}
+.mac-presets{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px; }
+.mac-preset-btn{
+  padding:9px 4px; background:var(--surface-2); border:1px solid var(--border);
+  border-radius:8px; color:var(--text-dim); font-family:var(--mono); font-size:11px;
+  font-weight:700; letter-spacing:0.08em; cursor:pointer; transition:all .15s; text-transform:uppercase;
+}
+.mac-preset-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.mac-preset-btn:hover:not(.active){ background:var(--bg); color:var(--text); border-color:var(--accent); }
+.mac-preset-hint{
+  font-family:var(--mono); font-size:10px; color:var(--text-dimmer); line-height:1.6;
+  margin-bottom:16px; min-height:14px;
+}
+.mac-macro-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px; }
+.mac-macro-goal-field label{
+  display:flex; align-items:center; justify-content:space-between;
+  font-family:var(--mono); font-size:9px; letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--text-dimmer); margin-bottom:4px; font-weight:700;
+}
+.mac-auto-badge{
+  font-size:8px; background:rgba(193,39,45,.15); border:1px solid rgba(193,39,45,.3);
+  border-radius:4px; padding:1px 5px; color:var(--accent); font-weight:700;
+  letter-spacing:0.05em; text-transform:uppercase;
+}
+.mac-macro-goal-field input{
+  width:100%; background:var(--bg); border:1px solid var(--border-strong);
+  border-radius:8px; padding:8px 10px; color:var(--text); font-family:var(--mono);
+  font-size:16px; font-weight:700; outline:none; transition:border-color .15s;
+}
+.mac-macro-goal-field input:focus{ border-color:var(--accent); }
+.mac-macro-goal-field .mac-bar-track{ margin-top:6px; }
+.mac-cal-math{
+  display:flex; align-items:center; gap:8px; padding:10px 12px;
+  background:var(--bg); border-radius:8px; border:1px solid var(--border);
+  font-family:var(--mono); font-size:11px; color:var(--text-dimmer);
+  margin-bottom:14px; flex-wrap:wrap;
+}
+.mac-cal-math b{ color:var(--text); font-weight:700; }
+.mac-cal-math .op{ color:var(--border-strong); }
+.mac-cal-math .mac-math-total{ margin-left:auto; white-space:nowrap; }
+.mac-math-ok{ color:#4ade80 !important; }
+.mac-math-over{ color:#ff8a4c !important; }
 </style>
 </head>
 <body>
@@ -313,7 +382,6 @@
       <div class="mac-goals-card">
         <div class="mac-goals-header">
           <div class="mac-goals-title">Daily Progress</div>
-          <button class="mac-edit-goals-btn" id="macEditGoalsBtn">Edit Goals</button>
         </div>
 
         <!-- Calories -->
@@ -359,36 +427,72 @@
           </div>
         </div>
 
-        <!-- Edit Goals panel -->
-        <div class="mac-goals-edit" id="macGoalsEdit">
-          <div class="mac-goals-edit-grid">
-            <div class="mac-goal-field">
-              <label>Calories (kcal)</label>
-              <input type="number" id="goalCalInput" min="0" placeholder="2000">
-            </div>
-            <div class="mac-goal-field">
-              <label>Protein (g)</label>
-              <input type="number" id="goalProtInput" min="0" placeholder="150">
-            </div>
-            <div class="mac-goal-field">
-              <label>Carbs (g)</label>
-              <input type="number" id="goalCarbInput" min="0" placeholder="200">
-            </div>
-            <div class="mac-goal-field">
-              <label>Fat (g)</label>
-              <input type="number" id="goalFatInput" min="0" placeholder="65">
-            </div>
-            <div class="mac-goal-field">
-              <label>Sugar (g)</label>
-              <input type="number" id="goalSugarInput" min="0" placeholder="50">
-            </div>
-            <div class="mac-goal-field">
-              <label>Sodium (mg)</label>
-              <input type="number" id="goalSodiumInput" min="0" placeholder="2300">
-            </div>
-          </div>
-          <button class="mac-goals-save-btn" id="macGoalsSaveBtn">Save Goals</button>
+      </div>
+
+      <!-- Goals Setup Card -->
+      <div class="mac-setup-card">
+        <div class="mac-setup-title">Set Your Goals</div>
+
+        <!-- Calorie target -->
+        <div class="mac-field-label">Daily Calorie Target</div>
+        <div class="mac-cal-target-row">
+          <input type="number" id="goalCalInput" class="mac-cal-target-input" min="500" max="10000" placeholder="2000">
+          <span class="mac-kcal-unit">kcal / day</span>
         </div>
+
+        <!-- Goal type presets -->
+        <div class="mac-presets-label">Goal Type</div>
+        <div class="mac-presets">
+          <button class="mac-preset-btn" data-preset="cut">Cut</button>
+          <button class="mac-preset-btn" data-preset="maintain">Maintain</button>
+          <button class="mac-preset-btn" data-preset="build">Build</button>
+          <button class="mac-preset-btn" data-preset="custom">Custom</button>
+        </div>
+        <div class="mac-preset-hint" id="macPresetHint">Pick a goal type to auto-fill your macro split, or adjust them manually below.</div>
+
+        <!-- Macro inputs -->
+        <div class="mac-macro-grid">
+          <div class="mac-macro-goal-field">
+            <label>Protein (g)</label>
+            <input type="number" id="goalProtInput" min="0" placeholder="150">
+            <div class="mac-bar-track thin"><div class="mac-bar-fill protein" id="goalProtBar" style="width:0%"></div></div>
+          </div>
+          <div class="mac-macro-goal-field">
+            <label>Carbs (g)</label>
+            <input type="number" id="goalCarbInput" min="0" placeholder="200">
+            <div class="mac-bar-track thin"><div class="mac-bar-fill carbs" id="goalCarbBar" style="width:0%"></div></div>
+          </div>
+          <div class="mac-macro-goal-field">
+            <label>Fat (g) <span class="mac-auto-badge">auto</span></label>
+            <input type="number" id="goalFatInput" min="0" placeholder="65">
+            <div class="mac-bar-track thin"><div class="mac-bar-fill fat" id="goalFatBar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <!-- Calorie math breakdown -->
+        <div class="mac-cal-math">
+          <span>P <b id="gmathProt">0</b></span>
+          <span class="op">+</span>
+          <span>C <b id="gmathCarb">0</b></span>
+          <span class="op">+</span>
+          <span>F <b id="gmathFat">0</b></span>
+          <span class="op">=</span>
+          <span class="mac-math-total"><b id="gmathTotal">0</b> / <b id="gmathGoal">2000</b> kcal</span>
+        </div>
+
+        <!-- Sugar / Sodium limits -->
+        <div class="mac-duo">
+          <div class="mac-macro-goal-field">
+            <label>Sugar limit (g)</label>
+            <input type="number" id="goalSugarInput" min="0" placeholder="50">
+          </div>
+          <div class="mac-macro-goal-field">
+            <label>Sodium limit (mg)</label>
+            <input type="number" id="goalSodiumInput" min="0" placeholder="2300">
+          </div>
+        </div>
+
+        <button class="mac-goals-save-btn" id="macGoalsSaveBtn" style="margin-top:16px;">Save Goals</button>
       </div>
 
       <!-- Add food button -->
@@ -607,6 +711,7 @@
       document.getElementById('goalFatInput').value    = goals.fat;
       document.getElementById('goalSugarInput').value  = goals.sugar;
       document.getElementById('goalSodiumInput').value = goals.sodium;
+      updateGoalMath();
       renderProgress();
     } catch (_) {}
   }
@@ -626,14 +731,70 @@
     document.getElementById('macFatGoal').textContent    = fat;
     document.getElementById('macSugarGoal').textContent  = sugar;
     document.getElementById('macSodiumGoal').textContent = sodium;
+    updateGoalMath();
     renderProgress();
-    document.getElementById('macGoalsEdit').classList.remove('open');
     try {
       await db.doc(`users/${myUid}/settings/main`).set(
         { macroCals: cals, macroProt: prot, macroCarb: carb, macroFat: fat, macroSugar: sugar, macroSodium: sodium },
         { merge: true }
       );
     } catch (_) {}
+  }
+
+  /* ── Goal presets ── */
+  const PRESETS = {
+    cut:      { hint:'High protein, lower carbs — burns fat while preserving muscle. Best for a deficit.',  pPct:0.40, cPct:0.30, fPct:0.30 },
+    maintain: { hint:'Balanced split for maintaining your current weight and body composition.',             pPct:0.30, cPct:0.40, fPct:0.30 },
+    build:    { hint:'Higher carbs fuel your training and drive muscle growth.',                             pPct:0.30, cPct:0.50, fPct:0.20 },
+    custom:   { hint:'Adjust protein or carbs freely — fat auto-adjusts to keep you at your calorie goal.', pPct:null, cPct:null, fPct:null },
+  };
+  let activePreset = 'custom';
+
+  function applyPreset(type) {
+    activePreset = type;
+    document.querySelectorAll('.mac-preset-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.preset === type));
+    document.getElementById('macPresetHint').textContent = PRESETS[type].hint;
+    if (PRESETS[type].pPct !== null) {
+      const cals = parseInt(document.getElementById('goalCalInput').value) || 2000;
+      document.getElementById('goalProtInput').value = Math.round(cals * PRESETS[type].pPct / 4);
+      document.getElementById('goalCarbInput').value = Math.round(cals * PRESETS[type].cPct / 4);
+      document.getElementById('goalFatInput').value  = Math.round(cals * PRESETS[type].fPct / 9);
+    }
+    updateGoalMath();
+  }
+
+  function autoAdjustFat() {
+    const cals = parseInt(document.getElementById('goalCalInput').value) || 0;
+    const prot = parseInt(document.getElementById('goalProtInput').value) || 0;
+    const carb = parseInt(document.getElementById('goalCarbInput').value) || 0;
+    const fat  = Math.max(0, Math.round((cals - prot * 4 - carb * 4) / 9));
+    document.getElementById('goalFatInput').value = fat;
+    updateGoalMath();
+  }
+
+  function updateGoalMath() {
+    const cals     = parseInt(document.getElementById('goalCalInput').value)  || 0;
+    const prot     = parseInt(document.getElementById('goalProtInput').value) || 0;
+    const carb     = parseInt(document.getElementById('goalCarbInput').value) || 0;
+    const fat      = parseInt(document.getElementById('goalFatInput').value)  || 0;
+    const fromProt = prot * 4;
+    const fromCarb = carb * 4;
+    const fromFat  = fat  * 9;
+    const total    = fromProt + fromCarb + fromFat;
+    document.getElementById('gmathProt').textContent  = fromProt;
+    document.getElementById('gmathCarb').textContent  = fromCarb;
+    document.getElementById('gmathFat').textContent   = fromFat;
+    document.getElementById('gmathTotal').textContent = total;
+    document.getElementById('gmathGoal').textContent  = cals;
+    const el = document.getElementById('gmathTotal');
+    el.className = Math.abs(total - cals) <= 25 ? 'mac-math-ok' : (total > cals ? 'mac-math-over' : '');
+    const pPct = cals ? Math.min(100, Math.round(fromProt / cals * 100)) : 0;
+    const cPct = cals ? Math.min(100, Math.round(fromCarb / cals * 100)) : 0;
+    const fPct = cals ? Math.min(100, Math.round(fromFat  / cals * 100)) : 0;
+    document.getElementById('goalProtBar').style.width = pPct + '%';
+    document.getElementById('goalCarbBar').style.width = cPct + '%';
+    document.getElementById('goalFatBar').style.width  = fPct + '%';
   }
 
   /* ── Food search ── */
@@ -939,10 +1100,28 @@
   document.getElementById('macDateNext').onclick   = () => offsetDate(1);
   document.getElementById('macDateLabel').textContent = formatDateLabel(currentDate);
 
-  document.getElementById('macEditGoalsBtn').onclick = () =>
-    document.getElementById('macGoalsEdit').classList.toggle('open');
-
   document.getElementById('macGoalsSaveBtn').onclick = saveGoals;
+
+  /* Preset buttons */
+  document.querySelectorAll('.mac-preset-btn').forEach(btn =>
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset)));
+
+  /* Calorie goal: recalc macros from preset if one is active */
+  document.getElementById('goalCalInput').addEventListener('input', function() {
+    if (activePreset !== 'custom') applyPreset(activePreset);
+    else updateGoalMath();
+  });
+
+  /* Protein / Carbs: auto-adjust fat, switch to Custom */
+  function switchToCustom() {
+    activePreset = 'custom';
+    document.querySelectorAll('.mac-preset-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.preset === 'custom'));
+    document.getElementById('macPresetHint').textContent = PRESETS.custom.hint;
+  }
+  document.getElementById('goalProtInput').addEventListener('input', function() { switchToCustom(); autoAdjustFat(); });
+  document.getElementById('goalCarbInput').addEventListener('input', function() { switchToCustom(); autoAdjustFat(); });
+  document.getElementById('goalFatInput').addEventListener('input', updateGoalMath);
 
   document.getElementById('macAddBtn').onclick = () => {
     const form = document.getElementById('macFormCard');
