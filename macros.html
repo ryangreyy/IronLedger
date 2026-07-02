@@ -602,14 +602,51 @@
     document.getElementById('calcFat').textContent  = Math.round(selectedFood.fat100  * factor);
   }
 
-  function selectFood(product) {
-    const n = product.nutriments;
+
+  const USDA_KEY = 'gEkXUbeZOod2Cl76M0kijEqJu8v1PCdoGzGG5Whq';
+
+  async function searchFood(q) {
+    const res = document.getElementById('macSearchResults');
+    res.style.display = '';
+    res.innerHTML = '<div class="mac-search-status">Searching…</div>';
+    try {
+      const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${USDA_KEY}&query=${encodeURIComponent(q)}&dataType=Foundation,SR%20Legacy&pageSize=6`;
+      const data = await fetch(url).then(r => r.json());
+      const foods = (data.foods || []).filter(f => {
+        const n = f.foodNutrients || [];
+        return n.some(x => x.nutrientName === 'Energy' && x.value != null);
+      }).slice(0, 5);
+      if (!foods.length) {
+        res.innerHTML = '<div class="mac-search-status">No results — try entering manually</div>';
+        return;
+      }
+      window._srProducts = foods;
+      res.innerHTML = foods.map((f, i) => {
+        const energy = f.foodNutrients.find(x => x.nutrientName === 'Energy');
+        const kcal = Math.round(energy ? energy.value : 0);
+        const name = f.description.length > 52 ? f.description.slice(0, 52) + '…' : f.description;
+        return `<div class="mac-search-item" data-i="${i}"><span>${name}</span><span class="mac-search-meta">${kcal} kcal/100g</span></div>`;
+      }).join('');
+      res.querySelectorAll('.mac-search-item').forEach(el =>
+        el.addEventListener('mousedown', e => { e.preventDefault(); selectFoodUSDA(window._srProducts[+el.dataset.i]); })
+      );
+    } catch (_) {
+      res.innerHTML = '<div class="mac-search-status">Search unavailable — enter manually</div>';
+    }
+  }
+
+  function selectFoodUSDA(food) {
+    const n = food.foodNutrients || [];
+    const get = name => {
+      const match = n.find(x => x.nutrientName === name);
+      return match ? parseFloat(match.value) : 0;
+    };
     selectedFood = {
-      name:     product.product_name,
-      cals100:  parseFloat(n['energy-kcal_100g']    || n['energy-kcal_serving'] || 0),
-      prot100:  parseFloat(n['proteins_100g']        || 0),
-      carb100:  parseFloat(n['carbohydrates_100g']   || 0),
-      fat100:   parseFloat(n['fat_100g']             || 0),
+      name:    food.description,
+      cals100: get('Energy'),
+      prot100: get('Protein'),
+      carb100: get('Carbohydrate, by difference'),
+      fat100:  get('Total lipid (fat)'),
     };
     document.getElementById('fSearch').value = selectedFood.name;
     document.getElementById('macSearchResults').style.display = 'none';
@@ -618,34 +655,6 @@
     document.getElementById('fUnit').value   = 'g';
     updateCalcPreview();
     document.getElementById('fAmount').focus();
-  }
-
-  async function searchFood(q) {
-    const res = document.getElementById('macSearchResults');
-    res.style.display = '';
-    res.innerHTML = '<div class="mac-search-status">Searching…</div>';
-    try {
-      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&json=1&action=process&page_size=7&fields=product_name,nutriments&search_simple=1`;
-      const data = await fetch(url).then(r => r.json());
-      const products = (data.products || [])
-        .filter(p => p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null)
-        .slice(0, 6);
-      if (!products.length) {
-        res.innerHTML = '<div class="mac-search-status">No results — try entering manually</div>';
-        return;
-      }
-      window._srProducts = products;
-      res.innerHTML = products.map((p, i) => {
-        const kcal = Math.round(p.nutriments['energy-kcal_100g'] || 0);
-        const name = p.product_name.length > 50 ? p.product_name.slice(0, 50) + '…' : p.product_name;
-        return `<div class="mac-search-item" data-i="${i}"><span>${name}</span><span class="mac-search-meta">${kcal} kcal/100g</span></div>`;
-      }).join('');
-      res.querySelectorAll('.mac-search-item').forEach(el =>
-        el.addEventListener('mousedown', e => { e.preventDefault(); selectFood(window._srProducts[+el.dataset.i]); })
-      );
-    } catch (_) {
-      res.innerHTML = '<div class="mac-search-status">Search unavailable — enter manually</div>';
-    }
   }
 
   document.getElementById('fSearch').addEventListener('input', function () {
