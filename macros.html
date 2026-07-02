@@ -1100,29 +1100,30 @@
   document.getElementById('macDateNext').onclick   = () => offsetDate(1);
   document.getElementById('macDateLabel').textContent = formatDateLabel(currentDate);
 
+  /* Pre-populate goal inputs with defaults so they're never empty */
+  document.getElementById('goalCalInput').value    = goals.cals;
+  document.getElementById('goalProtInput').value   = goals.prot;
+  document.getElementById('goalCarbInput').value   = goals.carb;
+  document.getElementById('goalFatInput').value    = goals.fat;
+  document.getElementById('goalSugarInput').value  = goals.sugar;
+  document.getElementById('goalSodiumInput').value = goals.sodium;
+  updateGoalMath();
+
   document.getElementById('macGoalsSaveBtn').onclick = saveGoals;
 
   /* Preset buttons */
   document.querySelectorAll('.mac-preset-btn').forEach(btn =>
     btn.addEventListener('click', () => applyPreset(btn.dataset.preset)));
 
-  /* Calorie goal: recalc macros from preset, or scale proportionally in custom mode */
+  /* Calorie goal: preset = debounce then recalc all; custom = adjust fat live */
+  let _calTimer = null;
   document.getElementById('goalCalInput').addEventListener('input', function() {
-    const newCals = parseInt(this.value) || 0;
+    updateGoalMath();
+    clearTimeout(_calTimer);
     if (activePreset !== 'custom') {
-      applyPreset(activePreset);
+      _calTimer = setTimeout(() => applyPreset(activePreset), 500);
     } else {
-      const prot = parseInt(document.getElementById('goalProtInput').value) || 0;
-      const carb = parseInt(document.getElementById('goalCarbInput').value) || 0;
-      const fat  = parseInt(document.getElementById('goalFatInput').value)  || 0;
-      const curCals = prot * 4 + carb * 4 + fat * 9;
-      if (curCals > 0 && newCals > 0) {
-        const scale = newCals / curCals;
-        document.getElementById('goalProtInput').value = Math.round(prot * scale);
-        document.getElementById('goalCarbInput').value = Math.round(carb * scale);
-        document.getElementById('goalFatInput').value  = Math.round(fat  * scale);
-      }
-      updateGoalMath();
+      autoAdjustFat();
     }
   });
 
