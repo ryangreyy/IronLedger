@@ -605,82 +605,178 @@
 
   const USDA_KEY = 'gEkXUbeZOod2Cl76M0kijEqJu8v1PCdoGzGG5Whq';
 
-  /* Strip USDA technical jargon and produce a readable food name */
-  function cleanFoodName(desc) {
-    const stripPhrases = [
-      'broilers or fryers','broiler or fryer','fryers','broilers',
-      'meat only','flesh only','skin only',
-      'separable lean and fat','separable lean only','separable fat only',
-      'all grades','choice grade','select grade','prime grade',
-      'with added salt','without added salt','no salt added',
-      'commercially prepared','home-prepared','restaurant-prepared',
-      'NFS','ns as to type','ns as to fat content',
-    ];
-    let parts = desc.split(',').map(p => p.trim());
-    parts = parts.filter(p => {
-      const low = p.toLowerCase();
-      if (stripPhrases.some(s => low === s)) return false;
-      if (/^\d+%/.test(p)) return false; // "80% lean meat / 20% fat"
-      if (/^\d+\s*(mg|g|iu)\b/i.test(p)) return false;
-      return true;
-    });
-    if (parts.length > 3) parts = [parts[0], parts[1], parts[parts.length - 1]];
-    return parts
-      .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-      .join(', ');
+  /* ── Curated common foods (per 100g) ── */
+  const COMMON_FOODS = [
+    // Chicken
+    { name:'Chicken Breast',        cals:165, prot:31, carb:0,  fat:3.6 },
+    { name:'Chicken Thigh',         cals:209, prot:26, carb:0,  fat:11  },
+    { name:'Chicken Wings',         cals:203, prot:30, carb:0,  fat:8.1 },
+    { name:'Chicken Drumstick',     cals:172, prot:28, carb:0,  fat:5.7 },
+    { name:'Chicken Tenders',       cals:185, prot:28, carb:5,  fat:5.5 },
+    { name:'Rotisserie Chicken',    cals:190, prot:27, carb:0,  fat:9   },
+    { name:'Ground Chicken',        cals:143, prot:17, carb:0,  fat:8   },
+    // Beef
+    { name:'Ground Beef (80/20)',   cals:254, prot:17, carb:0,  fat:20  },
+    { name:'Ground Beef (90/10)',   cals:176, prot:20, carb:0,  fat:10  },
+    { name:'Steak (Ribeye)',        cals:291, prot:24, carb:0,  fat:21  },
+    { name:'Steak (Sirloin)',       cals:207, prot:26, carb:0,  fat:11  },
+    { name:'Steak (Flank)',         cals:192, prot:28, carb:0,  fat:8   },
+    { name:'Beef Brisket',          cals:243, prot:26, carb:0,  fat:15  },
+    // Pork
+    { name:'Pork Chop',             cals:231, prot:25, carb:0,  fat:14  },
+    { name:'Bacon',                 cals:541, prot:37, carb:1.4,fat:42  },
+    { name:'Ham',                   cals:163, prot:17, carb:2,  fat:9   },
+    { name:'Pork Tenderloin',       cals:143, prot:26, carb:0,  fat:3.5 },
+    { name:'Sausage',               cals:301, prot:13, carb:2,  fat:27  },
+    // Fish & seafood
+    { name:'Salmon (Atlantic)',     cals:208, prot:20, carb:0,  fat:13  },
+    { name:'Tilapia',               cals:128, prot:26, carb:0,  fat:2.7 },
+    { name:'Tuna (canned in water)',cals:116, prot:26, carb:0,  fat:1   },
+    { name:'Shrimp',                cals:99,  prot:24, carb:0,  fat:0.3 },
+    { name:'Cod',                   cals:82,  prot:18, carb:0,  fat:0.7 },
+    { name:'Mahi Mahi',             cals:109, prot:24, carb:0,  fat:1   },
+    // Eggs & dairy
+    { name:'Whole Egg',             cals:155, prot:13, carb:1.1,fat:11  },
+    { name:'Egg Whites',            cals:52,  prot:11, carb:0.7,fat:0.2 },
+    { name:'Whole Milk',            cals:61,  prot:3.2,carb:4.8,fat:3.3 },
+    { name:'Greek Yogurt (plain)',  cals:59,  prot:10, carb:3.6,fat:0.4 },
+    { name:'Cottage Cheese',        cals:98,  prot:11, carb:3.4,fat:4.3 },
+    { name:'Cheddar Cheese',        cals:403, prot:25, carb:1.3,fat:33  },
+    { name:'Mozzarella',            cals:280, prot:28, carb:2.2,fat:17  },
+    { name:'Butter',                cals:717, prot:0.9,carb:0.1,fat:81  },
+    // Grains & carbs
+    { name:'White Rice (cooked)',   cals:130, prot:2.7,carb:28, fat:0.3 },
+    { name:'Brown Rice (cooked)',   cals:216, prot:5,  carb:45, fat:1.8 },
+    { name:'White Bread',           cals:265, prot:9,  carb:49, fat:3.2 },
+    { name:'Whole Wheat Bread',     cals:247, prot:13, carb:41, fat:4.2 },
+    { name:'Oatmeal (cooked)',      cals:71,  prot:2.5,carb:12, fat:1.5 },
+    { name:'Pasta (cooked)',        cals:158, prot:6,  carb:31, fat:0.9 },
+    { name:'Potato (baked)',        cals:93,  prot:2.5,carb:21, fat:0.1 },
+    { name:'Sweet Potato (baked)',  cals:90,  prot:2,  carb:21, fat:0.1 },
+    { name:'Tortilla (flour)',      cals:312, prot:8,  carb:54, fat:7   },
+    { name:'Tortilla (corn)',       cals:218, prot:5.7,carb:46, fat:3   },
+    // Fruits
+    { name:'Banana',                cals:89,  prot:1.1,carb:23, fat:0.3 },
+    { name:'Apple',                 cals:52,  prot:0.3,carb:14, fat:0.2 },
+    { name:'Orange',                cals:47,  prot:0.9,carb:12, fat:0.1 },
+    { name:'Strawberries',          cals:32,  prot:0.7,carb:7.7,fat:0.3 },
+    { name:'Blueberries',           cals:57,  prot:0.7,carb:14, fat:0.3 },
+    { name:'Mango',                 cals:60,  prot:0.8,carb:15, fat:0.4 },
+    { name:'Grapes',                cals:69,  prot:0.7,carb:18, fat:0.2 },
+    { name:'Avocado',               cals:160, prot:2,  carb:9,  fat:15  },
+    // Vegetables
+    { name:'Broccoli',              cals:34,  prot:2.8,carb:7,  fat:0.4 },
+    { name:'Spinach',               cals:23,  prot:2.9,carb:3.6,fat:0.4 },
+    { name:'Mixed Greens',          cals:20,  prot:1.8,carb:3.5,fat:0.3 },
+    { name:'White Onion',           cals:40,  prot:1.1,carb:9.3,fat:0.1 },
+    { name:'Bell Pepper',           cals:31,  prot:1,  carb:6,  fat:0.3 },
+    { name:'Cucumber',              cals:15,  prot:0.7,carb:3.6,fat:0.1 },
+    { name:'Tomato',                cals:18,  prot:0.9,carb:3.9,fat:0.2 },
+    { name:'Corn',                  cals:86,  prot:3.2,carb:19, fat:1.2 },
+    { name:'Green Beans',           cals:31,  prot:1.8,carb:7,  fat:0.2 },
+    { name:'Asparagus',             cals:20,  prot:2.2,carb:3.7,fat:0.1 },
+    // Legumes
+    { name:'Black Beans (cooked)',  cals:132, prot:8.9,carb:24, fat:0.5 },
+    { name:'Lentils (cooked)',      cals:116, prot:9,  carb:20, fat:0.4 },
+    { name:'Chickpeas (cooked)',    cals:164, prot:8.9,carb:27, fat:2.6 },
+    // Nuts & fats
+    { name:'Almonds',               cals:579, prot:21, carb:22, fat:50  },
+    { name:'Peanut Butter',         cals:588, prot:25, carb:20, fat:50  },
+    { name:'Olive Oil',             cals:884, prot:0,  carb:0,  fat:100 },
+    { name:'Coconut Oil',           cals:862, prot:0,  carb:0,  fat:100 },
+    { name:'Walnuts',               cals:654, prot:15, carb:14, fat:65  },
+    // Protein shakes / bars
+    { name:'Protein Shake (whey)',  cals:120, prot:24, carb:3,  fat:2   },
+    { name:'Protein Bar',           cals:350, prot:20, carb:40, fat:10  },
+    // Fast food / common meals
+    { name:'Pizza (cheese slice)',  cals:272, prot:12, carb:34, fat:10  },
+    { name:'Cheeseburger',         cals:295, prot:17, carb:24, fat:14  },
+    { name:'French Fries',          cals:312, prot:3.4,carb:41, fat:15  },
+  ];
+
+  /* Search curated list first, USDA as fallback for unlisted foods */
+  function searchCurated(q) {
+    const lower = q.toLowerCase();
+    return COMMON_FOODS.filter(f => f.name.toLowerCase().includes(lower)).slice(0, 4);
   }
 
-  function getNutrient(nutrients, name) {
-    const m = nutrients.find(x => x.nutrientName === name);
-    return m ? parseFloat(m.value) : 0;
+  function showResults(items) {
+    const res = document.getElementById('macSearchResults');
+    res.style.display = '';
+    window._srItems = items;
+    res.innerHTML = items.map((f, i) =>
+      `<div class="mac-search-item" data-i="${i}">
+        <span>${f.name}</span>
+        <span class="mac-search-meta">${f.cals} kcal/100g</span>
+      </div>`
+    ).join('');
+    res.querySelectorAll('.mac-search-item').forEach(el =>
+      el.addEventListener('mousedown', e => { e.preventDefault(); pickFood(window._srItems[+el.dataset.i]); })
+    );
   }
 
   async function searchFood(q) {
     const res = document.getElementById('macSearchResults');
+
+    /* Try curated list first */
+    const curated = searchCurated(q);
+    if (curated.length) { showResults(curated); return; }
+
+    /* Fall back to USDA for anything not in the curated list */
     res.style.display = '';
     res.innerHTML = '<div class="mac-search-status">Searching…</div>';
     try {
-      const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${USDA_KEY}&query=${encodeURIComponent(q)}&dataType=Foundation,SR%20Legacy&pageSize=12`;
+      const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${USDA_KEY}&query=${encodeURIComponent(q)}&dataType=Foundation,SR%20Legacy&pageSize=10`;
       const data = await fetch(url).then(r => r.json());
-
-      /* Deduplicate by 25-kcal bucket so near-identical entries collapse */
       const seen = new Set();
       const foods = (data.foods || [])
         .filter(f => f.foodNutrients && f.foodNutrients.some(x => x.nutrientName === 'Energy' && x.value > 0))
-        .filter(f => {
-          const kcal = Math.round(getNutrient(f.foodNutrients, 'Energy') / 25) * 25;
-          if (seen.has(kcal)) return false;
-          seen.add(kcal);
-          return true;
-        })
-        .slice(0, 3);
-
+        .reduce((acc, f) => {
+          const kcal = Math.round(getN(f.foodNutrients, 'Energy') / 25) * 25;
+          if (!seen.has(kcal)) { seen.add(kcal); acc.push(f); }
+          return acc;
+        }, [])
+        .slice(0, 3)
+        .map(f => ({
+          name:    cleanName(f.description),
+          cals:    Math.round(getN(f.foodNutrients, 'Energy')),
+          prot:    getN(f.foodNutrients, 'Protein'),
+          carb:    getN(f.foodNutrients, 'Carbohydrate, by difference'),
+          fat:     getN(f.foodNutrients, 'Total lipid (fat)'),
+        }));
       if (!foods.length) {
         res.innerHTML = '<div class="mac-search-status">No results — try entering manually</div>';
         return;
       }
-      window._srProducts = foods;
-      res.innerHTML = foods.map((f, i) => {
-        const kcal = Math.round(getNutrient(f.foodNutrients, 'Energy'));
-        const name = cleanFoodName(f.description);
-        return `<div class="mac-search-item" data-i="${i}"><span>${name}</span><span class="mac-search-meta">${kcal} kcal/100g</span></div>`;
-      }).join('');
-      res.querySelectorAll('.mac-search-item').forEach(el =>
-        el.addEventListener('mousedown', e => { e.preventDefault(); selectFoodUSDA(window._srProducts[+el.dataset.i]); })
-      );
+      showResults(foods);
     } catch (_) {
       res.innerHTML = '<div class="mac-search-status">Search unavailable — enter manually</div>';
     }
   }
 
-  function selectFoodUSDA(food) {
-    const n = food.foodNutrients || [];
+  function getN(nutrients, name) {
+    const m = (nutrients || []).find(x => x.nutrientName === name);
+    return m ? parseFloat(m.value) : 0;
+  }
+
+  function cleanName(desc) {
+    const strip = ['broilers or fryers','broiler or fryer','fryers','broilers','meat only',
+      'flesh only','skin only','separable lean and fat','separable lean only','all grades',
+      'choice grade','select grade','prime grade','with added salt','without added salt',
+      'no salt added','commercially prepared','home-prepared','NFS','ns as to type'];
+    let parts = desc.split(',').map(p => p.trim())
+      .filter(p => !strip.includes(p.toLowerCase()) && !/^\d+%/.test(p));
+    if (parts.length > 3) parts = [parts[0], parts[1], parts[parts.length - 1]];
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(', ');
+  }
+
+  function pickFood(food) {
     selectedFood = {
-      name:    cleanFoodName(food.description),
-      cals100: getNutrient(n, 'Energy'),
-      prot100: getNutrient(n, 'Protein'),
-      carb100: getNutrient(n, 'Carbohydrate, by difference'),
-      fat100:  getNutrient(n, 'Total lipid (fat)'),
+      name:    food.name,
+      cals100: food.cals,
+      prot100: food.prot,
+      carb100: food.carb,
+      fat100:  food.fat,
     };
     document.getElementById('fSearch').value = selectedFood.name;
     document.getElementById('macSearchResults').style.display = 'none';
