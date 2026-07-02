@@ -413,18 +413,11 @@
             <div class="mac-bar-track thin"><div class="mac-bar-fill fat" id="macFatBar" style="width:0%"></div></div>
           </div>
         </div>
-        <!-- Sugar / Sodium -->
-        <div class="mac-duo">
-          <div>
-            <div class="mac-trio-name">Sugar</div>
-            <div class="mac-trio-nums"><span id="macSugarIn">0</span><span class="dim">/<span id="macSugarGoal">50</span>g</span></div>
-            <div class="mac-bar-track thin"><div class="mac-bar-fill sugar" id="macSugarBar" style="width:0%"></div></div>
-          </div>
-          <div>
-            <div class="mac-trio-name">Sodium</div>
-            <div class="mac-trio-nums"><span id="macSodiumIn">0</span><span class="dim">/<span id="macSodiumGoal">2300</span>mg</span></div>
-            <div class="mac-bar-track thin"><div class="mac-bar-fill sodium" id="macSodiumBar" style="width:0%"></div></div>
-          </div>
+        <!-- Sugar -->
+        <div style="margin-top:10px;">
+          <div class="mac-trio-name">Sugar</div>
+          <div class="mac-trio-nums"><span id="macSugarIn">0</span><span class="dim">/<span id="macSugarGoal">50</span>g</span></div>
+          <div class="mac-bar-track thin"><div class="mac-bar-fill sugar" id="macSugarBar" style="width:0%"></div></div>
         </div>
 
       </div>
@@ -480,16 +473,10 @@
           <span class="mac-math-total"><b id="gmathTotal">0</b> / <b id="gmathGoal">2000</b> kcal</span>
         </div>
 
-        <!-- Sugar / Sodium limits -->
-        <div class="mac-duo">
-          <div class="mac-macro-goal-field">
-            <label>Sugar limit (g)</label>
-            <input type="number" id="goalSugarInput" min="0" placeholder="50">
-          </div>
-          <div class="mac-macro-goal-field">
-            <label>Sodium limit (mg)</label>
-            <input type="number" id="goalSodiumInput" min="0" placeholder="2300">
-          </div>
+        <!-- Sugar limit -->
+        <div class="mac-macro-goal-field" style="margin-bottom:0;">
+          <label>Sugar limit (g)</label>
+          <input type="number" id="goalSugarInput" min="0" placeholder="50">
         </div>
 
         <button class="mac-goals-save-btn" id="macGoalsSaveBtn" style="margin-top:16px;">Save Goals</button>
@@ -534,7 +521,6 @@
               <span>Carbs: <b id="calcCarb">0</b>g</span>
               <span>Fat: <b id="calcFat">0</b>g</span>
               <span>Sugar: <b id="calcSugar">0</b>g</span>
-              <span>Sodium: <b id="calcSodium">0</b>mg</span>
             </div>
           </div>
           <button class="mac-manual-toggle" id="macManualToggle">Enter macros manually instead</button>
@@ -566,10 +552,6 @@
             <div class="mac-form-row">
               <label>Sugar (g)</label>
               <input type="number" id="fSugar" min="0" placeholder="0">
-            </div>
-            <div class="mac-form-row">
-              <label>Sodium (mg)</label>
-              <input type="number" id="fSodium" min="0" placeholder="0">
             </div>
           </div>
           <button class="mac-manual-toggle" id="macSearchToggle">Search food database instead</button>
@@ -617,7 +599,7 @@
 
   /* ── State ── */
   let currentDate  = localDateISO();
-  let goals        = { cals: 2000, prot: 150, carb: 200, fat: 65, sugar: 50, sodium: 2300 };
+  let goals        = { cals: 2000, prot: 150, carb: 200, fat: 65, sugar: 50 };
   let myUid        = null;
   let entries      = [];
   let unsubEntries = null;
@@ -629,24 +611,21 @@
     const totCarb   = entries.reduce((s, e) => s + (e.carb   || 0), 0);
     const totFat    = entries.reduce((s, e) => s + (e.fat    || 0), 0);
     const totSugar  = entries.reduce((s, e) => s + (e.sugar  || 0), 0);
-    const totSodium = entries.reduce((s, e) => s + (e.sodium || 0), 0);
 
-    document.getElementById('macCalIn').textContent    = totCals;
-    document.getElementById('macProtIn').textContent   = totProt;
-    document.getElementById('macCarbIn').textContent   = totCarb;
-    document.getElementById('macFatIn').textContent    = totFat;
-    document.getElementById('macSugarIn').textContent  = totSugar;
-    document.getElementById('macSodiumIn').textContent = totSodium;
+    document.getElementById('macCalIn').textContent   = totCals;
+    document.getElementById('macProtIn').textContent  = totProt;
+    document.getElementById('macCarbIn').textContent  = totCarb;
+    document.getElementById('macFatIn').textContent   = totFat;
+    document.getElementById('macSugarIn').textContent = totSugar;
 
     const calBar = document.getElementById('macCalBar');
     calBar.style.width = pct(totCals, goals.cals) + '%';
     calBar.classList.toggle('over', totCals > goals.cals);
 
-    document.getElementById('macProtBar').style.width   = pct(totProt,   goals.prot)   + '%';
-    document.getElementById('macCarbBar').style.width   = pct(totCarb,   goals.carb)   + '%';
-    document.getElementById('macFatBar').style.width    = pct(totFat,    goals.fat)    + '%';
-    document.getElementById('macSugarBar').style.width  = pct(totSugar,  goals.sugar)  + '%';
-    document.getElementById('macSodiumBar').style.width = pct(totSodium, goals.sodium) + '%';
+    document.getElementById('macProtBar').style.width  = pct(totProt,  goals.prot)  + '%';
+    document.getElementById('macCarbBar').style.width  = pct(totCarb,  goals.carb)  + '%';
+    document.getElementById('macFatBar').style.width   = pct(totFat,   goals.fat)   + '%';
+    document.getElementById('macSugarBar').style.width = pct(totSugar, goals.sugar) + '%';
   }
 
   /* ── Render food log ── */
@@ -660,7 +639,7 @@
       <div class="mac-entry">
         <div class="mac-entry-main">
           <div class="mac-entry-name">${e.name}</div>
-          <div class="mac-entry-meta">P ${e.prot || 0}g · C ${e.carb || 0}g · F ${e.fat || 0}g · Sugar ${e.sugar || 0}g · Na ${e.sodium || 0}mg</div>
+          <div class="mac-entry-meta">P ${e.prot || 0}g · C ${e.carb || 0}g · F ${e.fat || 0}g · Sugar ${e.sugar || 0}g</div>
         </div>
         <div class="mac-entry-cals">${e.cals || 0} kcal</div>
         <button class="mac-entry-del" data-id="${e.id}" title="Remove">✕</button>
@@ -692,25 +671,22 @@
       const snap = await db.doc(`users/${myUid}/settings/main`).get();
       const d = snap.data() || {};
       goals = {
-        cals:   d.macroCals   || 2000,
-        prot:   d.macroProt   || 150,
-        carb:   d.macroCarb   || 200,
-        fat:    d.macroFat    || 65,
-        sugar:  d.macroSugar  || 50,
-        sodium: d.macroSodium || 2300,
+        cals:  d.macroCals  || 2000,
+        prot:  d.macroProt  || 150,
+        carb:  d.macroCarb  || 200,
+        fat:   d.macroFat   || 65,
+        sugar: d.macroSugar || 50,
       };
-      document.getElementById('macCalGoal').textContent    = goals.cals;
-      document.getElementById('macProtGoal').textContent   = goals.prot;
-      document.getElementById('macCarbGoal').textContent   = goals.carb;
-      document.getElementById('macFatGoal').textContent    = goals.fat;
-      document.getElementById('macSugarGoal').textContent  = goals.sugar;
-      document.getElementById('macSodiumGoal').textContent = goals.sodium;
-      document.getElementById('goalCalInput').value    = goals.cals;
-      document.getElementById('goalProtInput').value   = goals.prot;
-      document.getElementById('goalCarbInput').value   = goals.carb;
-      document.getElementById('goalFatInput').value    = goals.fat;
-      document.getElementById('goalSugarInput').value  = goals.sugar;
-      document.getElementById('goalSodiumInput').value = goals.sodium;
+      document.getElementById('macCalGoal').textContent   = goals.cals;
+      document.getElementById('macProtGoal').textContent  = goals.prot;
+      document.getElementById('macCarbGoal').textContent  = goals.carb;
+      document.getElementById('macFatGoal').textContent   = goals.fat;
+      document.getElementById('macSugarGoal').textContent = goals.sugar;
+      document.getElementById('goalCalInput').value   = goals.cals;
+      document.getElementById('goalProtInput').value  = goals.prot;
+      document.getElementById('goalCarbInput').value  = goals.carb;
+      document.getElementById('goalFatInput').value   = goals.fat;
+      document.getElementById('goalSugarInput').value = goals.sugar;
       updateGoalMath();
       renderProgress();
     } catch (_) {}
@@ -723,19 +699,17 @@
     const carb   = parseInt(document.getElementById('goalCarbInput').value)   || 200;
     const fat    = parseInt(document.getElementById('goalFatInput').value)    || 65;
     const sugar  = parseInt(document.getElementById('goalSugarInput').value)  || 50;
-    const sodium = parseInt(document.getElementById('goalSodiumInput').value) || 2300;
-    goals = { cals, prot, carb, fat, sugar, sodium };
-    document.getElementById('macCalGoal').textContent    = cals;
-    document.getElementById('macProtGoal').textContent   = prot;
-    document.getElementById('macCarbGoal').textContent   = carb;
-    document.getElementById('macFatGoal').textContent    = fat;
-    document.getElementById('macSugarGoal').textContent  = sugar;
-    document.getElementById('macSodiumGoal').textContent = sodium;
+    goals = { cals, prot, carb, fat, sugar };
+    document.getElementById('macCalGoal').textContent   = cals;
+    document.getElementById('macProtGoal').textContent  = prot;
+    document.getElementById('macCarbGoal').textContent  = carb;
+    document.getElementById('macFatGoal').textContent   = fat;
+    document.getElementById('macSugarGoal').textContent = sugar;
     updateGoalMath();
     renderProgress();
     try {
       await db.doc(`users/${myUid}/settings/main`).set(
-        { macroCals: cals, macroProt: prot, macroCarb: carb, macroFat: fat, macroSugar: sugar, macroSodium: sodium },
+        { macroCals: cals, macroProt: prot, macroCarb: carb, macroFat: fat, macroSugar: sugar },
         { merge: true }
       );
     } catch (_) {}
@@ -822,7 +796,6 @@
     document.getElementById('calcCarb').textContent   = Math.round(selectedFood.carb100   * factor);
     document.getElementById('calcFat').textContent    = Math.round(selectedFood.fat100    * factor);
     document.getElementById('calcSugar').textContent  = Math.round(selectedFood.sugar100  * factor);
-    document.getElementById('calcSodium').textContent = Math.round(selectedFood.sodium100 * factor);
   }
 
 
@@ -831,90 +804,90 @@
   /* ── Curated common foods (per 100g) ── */
   const COMMON_FOODS = [
     // Chicken
-    { name:'Chicken Breast',        cals:165, prot:31,  carb:0,   fat:3.6, sugar:0,    sodium:74   },
-    { name:'Chicken Thigh',         cals:209, prot:26,  carb:0,   fat:11,  sugar:0,    sodium:88   },
-    { name:'Chicken Wings',         cals:203, prot:30,  carb:0,   fat:8.1, sugar:0,    sodium:96   },
-    { name:'Chicken Drumstick',     cals:172, prot:28,  carb:0,   fat:5.7, sugar:0,    sodium:81   },
-    { name:'Chicken Tenders',       cals:185, prot:28,  carb:5,   fat:5.5, sugar:0.5,  sodium:450  },
-    { name:'Rotisserie Chicken',    cals:190, prot:27,  carb:0,   fat:9,   sugar:0,    sodium:330  },
-    { name:'Ground Chicken',        cals:143, prot:17,  carb:0,   fat:8,   sugar:0,    sodium:68   },
+    { name:'Chicken Breast',        cals:165, prot:31,  carb:0,   fat:3.6, sugar:0   },
+    { name:'Chicken Thigh',         cals:209, prot:26,  carb:0,   fat:11,  sugar:0   },
+    { name:'Chicken Wings',         cals:203, prot:30,  carb:0,   fat:8.1, sugar:0   },
+    { name:'Chicken Drumstick',     cals:172, prot:28,  carb:0,   fat:5.7, sugar:0   },
+    { name:'Chicken Tenders',       cals:185, prot:28,  carb:5,   fat:5.5, sugar:0.5 },
+    { name:'Rotisserie Chicken',    cals:190, prot:27,  carb:0,   fat:9,   sugar:0   },
+    { name:'Ground Chicken',        cals:143, prot:17,  carb:0,   fat:8,   sugar:0   },
     // Beef
-    { name:'Ground Beef (80/20)',   cals:254, prot:17,  carb:0,   fat:20,  sugar:0,    sodium:72   },
-    { name:'Ground Beef (90/10)',   cals:176, prot:20,  carb:0,   fat:10,  sugar:0,    sodium:72   },
-    { name:'Steak (Ribeye)',        cals:291, prot:24,  carb:0,   fat:21,  sugar:0,    sodium:54   },
-    { name:'Steak (Sirloin)',       cals:207, prot:26,  carb:0,   fat:11,  sugar:0,    sodium:57   },
-    { name:'Steak (Flank)',         cals:192, prot:28,  carb:0,   fat:8,   sugar:0,    sodium:52   },
-    { name:'Beef Brisket',          cals:243, prot:26,  carb:0,   fat:15,  sugar:0,    sodium:60   },
+    { name:'Ground Beef (80/20)',   cals:254, prot:17,  carb:0,   fat:20,  sugar:0   },
+    { name:'Ground Beef (90/10)',   cals:176, prot:20,  carb:0,   fat:10,  sugar:0   },
+    { name:'Steak (Ribeye)',        cals:291, prot:24,  carb:0,   fat:21,  sugar:0   },
+    { name:'Steak (Sirloin)',       cals:207, prot:26,  carb:0,   fat:11,  sugar:0   },
+    { name:'Steak (Flank)',         cals:192, prot:28,  carb:0,   fat:8,   sugar:0   },
+    { name:'Beef Brisket',          cals:243, prot:26,  carb:0,   fat:15,  sugar:0   },
     // Pork
-    { name:'Pork Chop',             cals:231, prot:25,  carb:0,   fat:14,  sugar:0,    sodium:51   },
-    { name:'Bacon',                 cals:541, prot:37,  carb:1.4, fat:42,  sugar:0,    sodium:1717 },
-    { name:'Ham',                   cals:163, prot:17,  carb:2,   fat:9,   sugar:1,    sodium:1203 },
-    { name:'Pork Tenderloin',       cals:143, prot:26,  carb:0,   fat:3.5, sugar:0,    sodium:48   },
-    { name:'Sausage',               cals:301, prot:13,  carb:2,   fat:27,  sugar:0.5,  sodium:749  },
+    { name:'Pork Chop',             cals:231, prot:25,  carb:0,   fat:14,  sugar:0   },
+    { name:'Bacon',                 cals:541, prot:37,  carb:1.4, fat:42,  sugar:0   },
+    { name:'Ham',                   cals:163, prot:17,  carb:2,   fat:9,   sugar:1   },
+    { name:'Pork Tenderloin',       cals:143, prot:26,  carb:0,   fat:3.5, sugar:0   },
+    { name:'Sausage',               cals:301, prot:13,  carb:2,   fat:27,  sugar:0.5 },
     // Fish & seafood
-    { name:'Salmon (Atlantic)',     cals:208, prot:20,  carb:0,   fat:13,  sugar:0,    sodium:59   },
-    { name:'Tilapia',               cals:128, prot:26,  carb:0,   fat:2.7, sugar:0,    sodium:56   },
-    { name:'Tuna (canned in water)',cals:116, prot:26,  carb:0,   fat:1,   sugar:0,    sodium:247  },
-    { name:'Shrimp',                cals:99,  prot:24,  carb:0,   fat:0.3, sugar:0,    sodium:111  },
-    { name:'Cod',                   cals:82,  prot:18,  carb:0,   fat:0.7, sugar:0,    sodium:68   },
-    { name:'Mahi Mahi',             cals:109, prot:24,  carb:0,   fat:1,   sugar:0,    sodium:88   },
+    { name:'Salmon (Atlantic)',     cals:208, prot:20,  carb:0,   fat:13,  sugar:0   },
+    { name:'Tilapia',               cals:128, prot:26,  carb:0,   fat:2.7, sugar:0   },
+    { name:'Tuna (canned in water)',cals:116, prot:26,  carb:0,   fat:1,   sugar:0   },
+    { name:'Shrimp',                cals:99,  prot:24,  carb:0,   fat:0.3, sugar:0   },
+    { name:'Cod',                   cals:82,  prot:18,  carb:0,   fat:0.7, sugar:0   },
+    { name:'Mahi Mahi',             cals:109, prot:24,  carb:0,   fat:1,   sugar:0   },
     // Eggs & dairy
-    { name:'Whole Egg',             cals:155, prot:13,  carb:1.1, fat:11,  sugar:0.4,  sodium:142  },
-    { name:'Egg Whites',            cals:52,  prot:11,  carb:0.7, fat:0.2, sugar:0.7,  sodium:166  },
-    { name:'Whole Milk',            cals:61,  prot:3.2, carb:4.8, fat:3.3, sugar:5.1,  sodium:44   },
-    { name:'Greek Yogurt (plain)',  cals:59,  prot:10,  carb:3.6, fat:0.4, sugar:3.2,  sodium:36   },
-    { name:'Cottage Cheese',        cals:98,  prot:11,  carb:3.4, fat:4.3, sugar:2.7,  sodium:364  },
-    { name:'Cheddar Cheese',        cals:403, prot:25,  carb:1.3, fat:33,  sugar:0.5,  sodium:621  },
-    { name:'Mozzarella',            cals:280, prot:28,  carb:2.2, fat:17,  sugar:1,    sodium:373  },
-    { name:'Butter',                cals:717, prot:0.9, carb:0.1, fat:81,  sugar:0,    sodium:714  },
+    { name:'Whole Egg',             cals:155, prot:13,  carb:1.1, fat:11,  sugar:0.4 },
+    { name:'Egg Whites',            cals:52,  prot:11,  carb:0.7, fat:0.2, sugar:0.7 },
+    { name:'Whole Milk',            cals:61,  prot:3.2, carb:4.8, fat:3.3, sugar:5.1 },
+    { name:'Greek Yogurt (plain)',  cals:59,  prot:10,  carb:3.6, fat:0.4, sugar:3.2 },
+    { name:'Cottage Cheese',        cals:98,  prot:11,  carb:3.4, fat:4.3, sugar:2.7 },
+    { name:'Cheddar Cheese',        cals:403, prot:25,  carb:1.3, fat:33,  sugar:0.5 },
+    { name:'Mozzarella',            cals:280, prot:28,  carb:2.2, fat:17,  sugar:1   },
+    { name:'Butter',                cals:717, prot:0.9, carb:0.1, fat:81,  sugar:0   },
     // Grains & carbs
-    { name:'White Rice (cooked)',   cals:130, prot:2.7, carb:28,  fat:0.3, sugar:0,    sodium:1    },
-    { name:'Brown Rice (cooked)',   cals:216, prot:5,   carb:45,  fat:1.8, sugar:0.7,  sodium:1    },
-    { name:'White Bread',           cals:265, prot:9,   carb:49,  fat:3.2, sugar:5,    sodium:491  },
-    { name:'Whole Wheat Bread',     cals:247, prot:13,  carb:41,  fat:4.2, sugar:6,    sodium:400  },
-    { name:'Oatmeal (cooked)',      cals:71,  prot:2.5, carb:12,  fat:1.5, sugar:0.5,  sodium:49   },
-    { name:'Pasta (cooked)',        cals:158, prot:6,   carb:31,  fat:0.9, sugar:0.6,  sodium:1    },
-    { name:'Potato (baked)',        cals:93,  prot:2.5, carb:21,  fat:0.1, sugar:0.9,  sodium:10   },
-    { name:'Sweet Potato (baked)',  cals:90,  prot:2,   carb:21,  fat:0.1, sugar:6.5,  sodium:36   },
-    { name:'Tortilla (flour)',      cals:312, prot:8,   carb:54,  fat:7,   sugar:2,    sodium:531  },
-    { name:'Tortilla (corn)',       cals:218, prot:5.7, carb:46,  fat:3,   sugar:0.5,  sodium:256  },
+    { name:'White Rice (cooked)',   cals:130, prot:2.7, carb:28,  fat:0.3, sugar:0   },
+    { name:'Brown Rice (cooked)',   cals:216, prot:5,   carb:45,  fat:1.8, sugar:0.7 },
+    { name:'White Bread',           cals:265, prot:9,   carb:49,  fat:3.2, sugar:5   },
+    { name:'Whole Wheat Bread',     cals:247, prot:13,  carb:41,  fat:4.2, sugar:6   },
+    { name:'Oatmeal (cooked)',      cals:71,  prot:2.5, carb:12,  fat:1.5, sugar:0.5 },
+    { name:'Pasta (cooked)',        cals:158, prot:6,   carb:31,  fat:0.9, sugar:0.6 },
+    { name:'Potato (baked)',        cals:93,  prot:2.5, carb:21,  fat:0.1, sugar:0.9 },
+    { name:'Sweet Potato (baked)',  cals:90,  prot:2,   carb:21,  fat:0.1, sugar:6.5 },
+    { name:'Tortilla (flour)',      cals:312, prot:8,   carb:54,  fat:7,   sugar:2   },
+    { name:'Tortilla (corn)',       cals:218, prot:5.7, carb:46,  fat:3,   sugar:0.5 },
     // Fruits
-    { name:'Banana',                cals:89,  prot:1.1, carb:23,  fat:0.3, sugar:12,   sodium:1    },
-    { name:'Apple',                 cals:52,  prot:0.3, carb:14,  fat:0.2, sugar:10,   sodium:1    },
-    { name:'Orange',                cals:47,  prot:0.9, carb:12,  fat:0.1, sugar:9,    sodium:0    },
-    { name:'Strawberries',          cals:32,  prot:0.7, carb:7.7, fat:0.3, sugar:4.9,  sodium:1    },
-    { name:'Blueberries',           cals:57,  prot:0.7, carb:14,  fat:0.3, sugar:10,   sodium:1    },
-    { name:'Mango',                 cals:60,  prot:0.8, carb:15,  fat:0.4, sugar:14,   sodium:1    },
-    { name:'Grapes',                cals:69,  prot:0.7, carb:18,  fat:0.2, sugar:16,   sodium:2    },
-    { name:'Avocado',               cals:160, prot:2,   carb:9,   fat:15,  sugar:0.7,  sodium:7    },
+    { name:'Banana',                cals:89,  prot:1.1, carb:23,  fat:0.3, sugar:12  },
+    { name:'Apple',                 cals:52,  prot:0.3, carb:14,  fat:0.2, sugar:10  },
+    { name:'Orange',                cals:47,  prot:0.9, carb:12,  fat:0.1, sugar:9   },
+    { name:'Strawberries',          cals:32,  prot:0.7, carb:7.7, fat:0.3, sugar:4.9 },
+    { name:'Blueberries',           cals:57,  prot:0.7, carb:14,  fat:0.3, sugar:10  },
+    { name:'Mango',                 cals:60,  prot:0.8, carb:15,  fat:0.4, sugar:14  },
+    { name:'Grapes',                cals:69,  prot:0.7, carb:18,  fat:0.2, sugar:16  },
+    { name:'Avocado',               cals:160, prot:2,   carb:9,   fat:15,  sugar:0.7 },
     // Vegetables
-    { name:'Broccoli',              cals:34,  prot:2.8, carb:7,   fat:0.4, sugar:1.7,  sodium:33   },
-    { name:'Spinach',               cals:23,  prot:2.9, carb:3.6, fat:0.4, sugar:0.4,  sodium:79   },
-    { name:'Mixed Greens',          cals:20,  prot:1.8, carb:3.5, fat:0.3, sugar:0.5,  sodium:28   },
-    { name:'White Onion',           cals:40,  prot:1.1, carb:9.3, fat:0.1, sugar:4.2,  sodium:4    },
-    { name:'Bell Pepper',           cals:31,  prot:1,   carb:6,   fat:0.3, sugar:4.2,  sodium:3    },
-    { name:'Cucumber',              cals:15,  prot:0.7, carb:3.6, fat:0.1, sugar:1.7,  sodium:2    },
-    { name:'Tomato',                cals:18,  prot:0.9, carb:3.9, fat:0.2, sugar:2.6,  sodium:5    },
-    { name:'Corn',                  cals:86,  prot:3.2, carb:19,  fat:1.2, sugar:3.2,  sodium:15   },
-    { name:'Green Beans',           cals:31,  prot:1.8, carb:7,   fat:0.2, sugar:1.4,  sodium:6    },
-    { name:'Asparagus',             cals:20,  prot:2.2, carb:3.7, fat:0.1, sugar:1.9,  sodium:2    },
+    { name:'Broccoli',              cals:34,  prot:2.8, carb:7,   fat:0.4, sugar:1.7 },
+    { name:'Spinach',               cals:23,  prot:2.9, carb:3.6, fat:0.4, sugar:0.4 },
+    { name:'Mixed Greens',          cals:20,  prot:1.8, carb:3.5, fat:0.3, sugar:0.5 },
+    { name:'White Onion',           cals:40,  prot:1.1, carb:9.3, fat:0.1, sugar:4.2 },
+    { name:'Bell Pepper',           cals:31,  prot:1,   carb:6,   fat:0.3, sugar:4.2 },
+    { name:'Cucumber',              cals:15,  prot:0.7, carb:3.6, fat:0.1, sugar:1.7 },
+    { name:'Tomato',                cals:18,  prot:0.9, carb:3.9, fat:0.2, sugar:2.6 },
+    { name:'Corn',                  cals:86,  prot:3.2, carb:19,  fat:1.2, sugar:3.2 },
+    { name:'Green Beans',           cals:31,  prot:1.8, carb:7,   fat:0.2, sugar:1.4 },
+    { name:'Asparagus',             cals:20,  prot:2.2, carb:3.7, fat:0.1, sugar:1.9 },
     // Legumes
-    { name:'Black Beans (cooked)',  cals:132, prot:8.9, carb:24,  fat:0.5, sugar:0.3,  sodium:1    },
-    { name:'Lentils (cooked)',      cals:116, prot:9,   carb:20,  fat:0.4, sugar:1.8,  sodium:2    },
-    { name:'Chickpeas (cooked)',    cals:164, prot:8.9, carb:27,  fat:2.6, sugar:4.8,  sodium:7    },
+    { name:'Black Beans (cooked)',  cals:132, prot:8.9, carb:24,  fat:0.5, sugar:0.3 },
+    { name:'Lentils (cooked)',      cals:116, prot:9,   carb:20,  fat:0.4, sugar:1.8 },
+    { name:'Chickpeas (cooked)',    cals:164, prot:8.9, carb:27,  fat:2.6, sugar:4.8 },
     // Nuts & fats
-    { name:'Almonds',               cals:579, prot:21,  carb:22,  fat:50,  sugar:4.4,  sodium:1    },
-    { name:'Peanut Butter',         cals:588, prot:25,  carb:20,  fat:50,  sugar:6,    sodium:426  },
-    { name:'Olive Oil',             cals:884, prot:0,   carb:0,   fat:100, sugar:0,    sodium:2    },
-    { name:'Coconut Oil',           cals:862, prot:0,   carb:0,   fat:100, sugar:0,    sodium:0    },
-    { name:'Walnuts',               cals:654, prot:15,  carb:14,  fat:65,  sugar:2.6,  sodium:2    },
+    { name:'Almonds',               cals:579, prot:21,  carb:22,  fat:50,  sugar:4.4 },
+    { name:'Peanut Butter',         cals:588, prot:25,  carb:20,  fat:50,  sugar:6   },
+    { name:'Olive Oil',             cals:884, prot:0,   carb:0,   fat:100, sugar:0   },
+    { name:'Coconut Oil',           cals:862, prot:0,   carb:0,   fat:100, sugar:0   },
+    { name:'Walnuts',               cals:654, prot:15,  carb:14,  fat:65,  sugar:2.6 },
     // Protein shakes / bars
-    { name:'Protein Shake (whey)',  cals:120, prot:24,  carb:3,   fat:2,   sugar:2,    sodium:100  },
-    { name:'Protein Bar',           cals:350, prot:20,  carb:40,  fat:10,  sugar:20,   sodium:200  },
+    { name:'Protein Shake (whey)',  cals:120, prot:24,  carb:3,   fat:2,   sugar:2   },
+    { name:'Protein Bar',           cals:350, prot:20,  carb:40,  fat:10,  sugar:20  },
     // Fast food / common meals
-    { name:'Pizza (cheese slice)',  cals:272, prot:12,  carb:34,  fat:10,  sugar:3.6,  sodium:640  },
-    { name:'Cheeseburger',          cals:295, prot:17,  carb:24,  fat:14,  sugar:5,    sodium:510  },
-    { name:'French Fries',          cals:312, prot:3.4, carb:41,  fat:15,  sugar:0.3,  sodium:210  },
+    { name:'Pizza (cheese slice)',  cals:272, prot:12,  carb:34,  fat:10,  sugar:3.6 },
+    { name:'Cheeseburger',          cals:295, prot:17,  carb:24,  fat:14,  sugar:5   },
+    { name:'French Fries',          cals:312, prot:3.4, carb:41,  fat:15,  sugar:0.3 },
   ];
 
   /* Search curated list first, USDA as fallback for unlisted foods */
@@ -967,7 +940,6 @@
           carb:   getN(f.foodNutrients, 'Carbohydrate, by difference'),
           fat:    getN(f.foodNutrients, 'Total lipid (fat)'),
           sugar:  getN(f.foodNutrients, 'Total Sugars'),
-          sodium: getN(f.foodNutrients, 'Sodium, Na'),
         }));
       if (!foods.length) {
         res.innerHTML = '<div class="mac-search-status">No results — try entering manually</div>';
@@ -1003,7 +975,6 @@
       carb100:  food.carb,
       fat100:   food.fat,
       sugar100: food.sugar  || 0,
-      sodium100:food.sodium || 0,
     };
     document.getElementById('fSearch').value = selectedFood.name;
     document.getElementById('macSearchResults').style.display = 'none';
@@ -1046,32 +1017,30 @@
 
   /* ── Add food entry ── */
   async function addEntry() {
-    let name, cals, prot, carb, fat, sugar, sodium;
+    let name, cals, prot, carb, fat, sugar;
     if (searchMode) {
       if (!selectedFood) { document.getElementById('fSearch').focus(); return; }
       const amount = parseFloat(document.getElementById('fAmount').value) || 0;
       const unit   = document.getElementById('fUnit').value;
       const factor = amount * (UNIT_TO_G[unit] || 1) / 100;
-      name   = selectedFood.name;
-      cals   = Math.round(selectedFood.cals100   * factor);
-      prot   = Math.round(selectedFood.prot100   * factor);
-      carb   = Math.round(selectedFood.carb100   * factor);
-      fat    = Math.round(selectedFood.fat100    * factor);
-      sugar  = Math.round(selectedFood.sugar100  * factor);
-      sodium = Math.round(selectedFood.sodium100 * factor);
+      name  = selectedFood.name;
+      cals  = Math.round(selectedFood.cals100  * factor);
+      prot  = Math.round(selectedFood.prot100  * factor);
+      carb  = Math.round(selectedFood.carb100  * factor);
+      fat   = Math.round(selectedFood.fat100   * factor);
+      sugar = Math.round(selectedFood.sugar100 * factor);
     } else {
-      name   = document.getElementById('fName').value.trim();
+      name  = document.getElementById('fName').value.trim();
       if (!name) { document.getElementById('fName').focus(); return; }
-      cals   = parseInt(document.getElementById('fCals').value)   || 0;
-      prot   = parseInt(document.getElementById('fProt').value)   || 0;
-      carb   = parseInt(document.getElementById('fCarb').value)   || 0;
-      fat    = parseInt(document.getElementById('fFat').value)    || 0;
-      sugar  = parseInt(document.getElementById('fSugar').value)  || 0;
-      sodium = parseInt(document.getElementById('fSodium').value) || 0;
+      cals  = parseInt(document.getElementById('fCals').value)  || 0;
+      prot  = parseInt(document.getElementById('fProt').value)  || 0;
+      carb  = parseInt(document.getElementById('fCarb').value)  || 0;
+      fat   = parseInt(document.getElementById('fFat').value)   || 0;
+      sugar = parseInt(document.getElementById('fSugar').value) || 0;
     }
     try {
       await db.collection(`users/${myUid}/macroEntries`).add({
-        dateRaw: currentDate, name, cals, prot, carb, fat, sugar, sodium,
+        dateRaw: currentDate, name, cals, prot, carb, fat, sugar,
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
       resetForm();
@@ -1085,7 +1054,7 @@
     document.getElementById('macAmountSection').style.display = 'none';
     document.getElementById('macSearchMode').style.display = '';
     document.getElementById('macManualMode').style.display = 'none';
-    ['fName','fCals','fProt','fCarb','fFat','fSugar','fSodium'].forEach(id => document.getElementById(id).value = '');
+    ['fName','fCals','fProt','fCarb','fFat','fSugar'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('macFormCard').classList.remove('open');
   }
 
@@ -1115,7 +1084,6 @@
   document.getElementById('goalCarbInput').value   = goals.carb;
   document.getElementById('goalFatInput').value    = goals.fat;
   document.getElementById('goalSugarInput').value  = goals.sugar;
-  document.getElementById('goalSodiumInput').value = goals.sodium;
   updateGoalMath();
 
   document.getElementById('macGoalsSaveBtn').onclick = saveGoals;
