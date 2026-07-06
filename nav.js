@@ -34,11 +34,11 @@
   if (!p || p === '/') p = 'index.html';
 
   var items = [
-    ['index.html',    'ti-home-2',      'Home',     ['index.html', '']],
-    ['feed.html',     'ti-activity',    'Feed',     ['feed.html']],
+    ['index.html',    'ti-home',        'Home',     ['index.html', '']],
+    ['feed.html',     'ti-layout-list', 'Feed',     ['feed.html']],
     ['training.html', 'ti-barbell',     'Training', ['training.html']],
-    ['dashboard.html','ti-chart-bar',   'Dashboard',['dashboard.html']],
-    ['macros.html',   'ti-salad',       'Macros',   ['macros.html']],
+    ['dashboard.html','ti-chart-line',  'Dashboard',['dashboard.html']],
+    ['macros.html',   'ti-apple',       'Macros',   ['macros.html']],
     ['profile.html',  'ti-user-circle', 'Profile',  ['profile.html']],
   ];
 
