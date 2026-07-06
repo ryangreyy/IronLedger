@@ -891,6 +891,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .kpi-forge .forge-cap{ position:relative; z-index:2; margin-top:auto;
   font-family:var(--mono); font-size:11px; color:var(--text-dimmer); font-weight:500; }
 .kpi-forge .forge-rest{ position:absolute; right:16px; top:18px; bottom:auto; z-index:2; margin-top:0; }
+.kpi-streak-card .streak-action-stack{ position:absolute; right:16px; top:18px; z-index:2;
+  display:flex; flex-direction:column; align-items:flex-end; gap:7px; max-width:168px; }
+.kpi-streak-card .streak-action-stack .forge-cap{ margin-top:0; text-align:right; line-height:1.35; }
+.kpi-streak-card .streak-action-stack .forge-rest{ position:static; margin-top:0; }
 /* Light mode: the forged weight-plate medallions are dark steel with near-black
    rings — a dark blob on a light card. Swap to a light steel plate with pale
    rings (red accents on the streak plate stay). Also re-warm the streak number

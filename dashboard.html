@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=145">
+<link rel="stylesheet" href="styles.css?v=146">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -171,7 +171,7 @@
         </div>
 
         <!-- Current Streak — editorial forged medallion, red-hot -->
-        <div class="card kpi forged kpi-forge">
+        <div class="card kpi forged kpi-forge kpi-streak-card">
           <div class="label">Current Streak 🔥</div>
           <div class="forge-medallion">
             <svg class="kpi-plate" viewBox="0 0 120 120" aria-hidden="true">
@@ -182,8 +182,10 @@
             </svg>
             <div class="forge-num hot" id="kpi-streak">—</div>
           </div>
-          <div class="forge-cap" id="kpi-streak-delta">Loading…</div>
-          <button id="restDayBtn" class="btn-rest-day forge-rest">Log Rest Day</button>
+          <div class="streak-action-stack">
+            <div class="forge-cap" id="kpi-streak-delta">Loading…</div>
+            <button id="restDayBtn" class="btn-rest-day forge-rest">Log Rest Day</button>
+          </div>
         </div>
 
       </div>
