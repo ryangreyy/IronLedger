@@ -166,6 +166,41 @@
 .rxn-sheet-name{flex:1;font-size:14px;color:#fff;font-weight:600;}
 .rxn-sheet-empty{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.3);text-align:center;padding:16px 0;}
 
+[data-theme="light"] .c3-card{
+  background:linear-gradient(180deg,#FFFFFF,#F2F4F8);
+  border-color:rgba(18,23,33,.18);
+  box-shadow:0 14px 34px -22px rgba(18,23,33,.38);
+}
+[data-theme="light"] .c3-card:hover{ border-color:rgba(18,23,33,.30); }
+[data-theme="light"] .c3-lift-block{
+  background:rgba(18,23,33,.055);
+  border:1px solid rgba(18,23,33,.08);
+}
+[data-theme="light"] .rxn-bar{ border-top-color:rgba(18,23,33,.10); }
+[data-theme="light"] .rxn-main,
+[data-theme="light"] .rxn-extra{
+  background:rgba(18,23,33,.045);
+  border-color:rgba(18,23,33,.12);
+}
+[data-theme="light"] .rxn-main:hover,
+[data-theme="light"] .rxn-extra:hover{
+  background:rgba(18,23,33,.075);
+  border-color:rgba(18,23,33,.20);
+}
+[data-theme="light"] .rxn-main .rxn-ct,
+[data-theme="light"] .rxn-extra .rxn-ct{ color:rgba(18,23,33,.52); }
+[data-theme="light"] .rxn-tog{
+  background:rgba(18,23,33,.04);
+  border-color:rgba(18,23,33,.12);
+  color:rgba(18,23,33,.42);
+}
+[data-theme="light"] .rxn-tog:hover,
+[data-theme="light"] .rxn-tog.rxn-open{
+  background:rgba(18,23,33,.075);
+  border-color:rgba(18,23,33,.20);
+  color:rgba(18,23,33,.68);
+}
+
 @media(max-width:680px){
   .feed-wrap{ padding:28px 14px 100px; }
   .feed-grid{ grid-template-columns:1fr; }
