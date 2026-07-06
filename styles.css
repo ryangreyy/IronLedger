@@ -325,8 +325,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 }
 
 /* ---------- HERO ---------- */
-.hero{padding-top:72px; padding-bottom:30px; text-align:center; position:relative;
-  display:flex; flex-direction:column; align-items:center;}
+.hero{padding-top:72px; padding-bottom:30px; text-align:center; position:relative;}
 .hero::before{
   content:""; position:absolute; top:-60px; left:50%; transform:translateX(-50%);
   width:700px; height:420px; pointer-events:none;
