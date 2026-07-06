@@ -397,6 +397,7 @@
       <div class="mac-goals-card">
         <div class="mac-goals-header">
           <div class="mac-goals-title">Daily Progress</div>
+          <button class="mac-edit-goals-btn" id="macEditGoalsBtn">Edit Goals ↓</button>
         </div>
 
         <!-- Calories -->
@@ -438,7 +439,7 @@
       </div>
 
       <!-- Goals Setup Card -->
-      <div class="mac-setup-card">
+      <div class="mac-setup-card" id="macSetupCard" style="display:none;">
         <div class="mac-setup-title">Set Your Goals</div>
 
         <!-- Calorie target -->
@@ -1101,7 +1102,20 @@
   document.getElementById('goalSugarInput').value  = goals.sugar;
   updateGoalMath();
 
-  document.getElementById('macGoalsSaveBtn').onclick = saveGoals;
+  /* Edit Goals toggle */
+  const macSetupCard = document.getElementById('macSetupCard');
+  const macEditGoalsBtn = document.getElementById('macEditGoalsBtn');
+  macEditGoalsBtn.addEventListener('click', function() {
+    const open = macSetupCard.style.display !== 'none';
+    macSetupCard.style.display = open ? 'none' : 'block';
+    macEditGoalsBtn.textContent = open ? 'Edit Goals ↓' : 'Close ↑';
+  });
+
+  document.getElementById('macGoalsSaveBtn').onclick = function() {
+    saveGoals();
+    macSetupCard.style.display = 'none';
+    macEditGoalsBtn.textContent = 'Edit Goals ↓';
+  };
 
   /* Preset buttons */
   document.querySelectorAll('.mac-preset-btn').forEach(btn =>
