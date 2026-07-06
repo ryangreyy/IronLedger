@@ -305,8 +305,8 @@ nav.nav-hidden{ transform:translateY(-100%); }
     background:var(--bg);
     pointer-events:none;
   }
-  .mobile-brand-icon{ width:52px; height:52px; flex-shrink:0; display:block; transform:translateY(-2px); }
-  .mobile-brand-text{ display:flex; flex-direction:column; gap:4px; justify-content:center; min-width:0; transform:translateY(-3px); }
+  .mobile-brand-icon{ width:52px; height:52px; flex-shrink:0; display:block; transform:translateY(-8px); }
+  .mobile-brand-text{ display:flex; flex-direction:column; gap:4px; justify-content:center; min-width:0; transform:translateY(-6px); }
   .goals-wrap{ padding:56px 28px 56px !important; }
   .mobile-brand-title{
     font-family:var(--display); font-size:32px; font-weight:400;
