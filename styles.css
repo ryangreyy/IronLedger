@@ -891,6 +891,18 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .kpi-forge .forge-cap{ position:relative; z-index:2; margin-top:auto;
   font-family:var(--mono); font-size:11px; color:var(--text-dimmer); font-weight:500; }
 .kpi-forge .forge-rest{ position:absolute; right:16px; top:18px; bottom:auto; z-index:2; margin-top:0; }
+/* Light mode: the forged weight-plate medallions are dark steel with near-black
+   rings — a dark blob on a light card. Swap to a light steel plate with pale
+   rings (red accents on the streak plate stay). Also re-warm the streak number
+   so it stays legible on light. */
+[data-theme="light"] .kpi-plate circle[fill^="url"]{ fill:url(#kplate-light); }
+[data-theme="light"] .kpi-plate circle[stroke="#0a0c10"]{ stroke:#aab0ba; stroke-opacity:.55; }
+[data-theme="light"] .kpi-plate circle[stroke="#3a3e46"]{ stroke:#c4c9d2; }
+[data-theme="light"] .kpi-plate circle[stroke="#7a4a30"]{ stroke:#d3c1b0; }
+[data-theme="light"] .kpi-plate g{ fill:#c4c9d2; stroke:#aab0ba; }
+[data-theme="light"] .kpi-forge .forge-num.hot{
+  background:linear-gradient(180deg,#e0651f 0%,#c1272d 62%,#9c1f24 100%);
+  -webkit-background-clip:text; background-clip:text; text-shadow:none; }
 
 /* ---------- CHART ---------- */
 .chart-card{margin-top:32px; padding:28px;}
