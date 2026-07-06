@@ -21,6 +21,9 @@
     '.mbn-item i{font-size:22px;line-height:1;}' +
     '.mbn-item.mbn-active{color:#c1272d;}' +
     '.mbn-item:not(.mbn-active):active{color:rgba(255,255,255,.55);}' +
+    '[data-theme="light"] .mobile-bottom-nav{background:#EEF1F5;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 -6px 20px rgba(24,30,45,.12);border-top:1px solid rgba(18,23,33,.10);}' +
+    '[data-theme="light"] .mbn-item{color:rgba(18,23,33,.34);}' +
+    '[data-theme="light"] .mbn-item:not(.mbn-active):active{color:rgba(18,23,33,.6);}' +
     '@media(max-width:700px){' +
       '.mobile-bottom-nav{display:flex;}' +
       'body{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px)) !important;}' +

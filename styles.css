@@ -28,7 +28,67 @@
   --display:'Anton', 'Arial Narrow', sans-serif;
   --body:'Manrope', system-ui, -apple-system, sans-serif;
   --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Theme-adaptive helpers — flipped in light mode below so signature
+     effects (grid, glow, cards, nav) invert correctly between themes. */
+  --grid-line:rgba(255,255,255,0.025); /* backdrop grid texture */
+  --glow-accent:rgba(193,39,45,0.10);  /* red ambient glow */
+  --card-top:#16191f;                  /* card gradient — top */
+  --card-bot:#0c0d10;                  /* card gradient — bottom */
+  --card-metal:linear-gradient(155deg,#eef0f4 0%,#9a9ea8 36%,#6f7178 58%,#cfd2da 100%); /* steel border on cards */
+  --card-shadow:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.85);
+  --nav-glass:rgba(11,12,14,0.72);     /* frosted nav backdrop */
 }
+
+/* ============================================================
+   LIGHT MODE — "brushed steel in daylight". Same IronGladiator
+   identity: cool steel-gray page, white cards, blood-red intact,
+   dark brushed-metal titles. Activated by the theme guard script
+   setting data-theme="light" on <html>.
+   ============================================================ */
+[data-theme="light"]{
+  --bg:#E7EAF0;              /* cool light steel */
+  --bg-2:#EEF1F5;
+  --surface:#FFFFFF;
+  --surface-2:#EDF0F5;
+  --border:rgba(18,23,33,0.12);
+  --border-strong:rgba(18,23,33,0.22);
+  --text:#14171C;
+  --text-dim:#4B5563;
+  --text-dimmer:#79818F;
+  --accent:#C1272D;          /* brand red — fills unchanged */
+  --accent-bright:#A81E24;   /* darker red so accent text stays legible on light */
+  --up:#1F9D57;              /* darkened for contrast on light */
+  --down:#D63B3B;
+  --steel:linear-gradient(180deg,#3b4048 0%,#71777f 42%,#2b2f36 60%,#565c65 100%); /* dark brushed metal */
+  --shadow:0 20px 48px -22px rgba(24,30,45,0.28);
+
+  --grid-line:rgba(18,23,33,0.035);    /* dark grid lines on light backdrop */
+  --glow-accent:rgba(193,39,45,0.08);
+  --card-top:#FFFFFF;                  /* light cards */
+  --card-bot:#F1F3F7;
+  --card-metal:linear-gradient(155deg,#c4c9d2 0%,#8f95a0 36%,#adb3bd 58%,#d9dce2 100%); /* dimmed steel edge */
+  --card-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 6px 20px -12px rgba(24,30,45,.22); /* soft, bright top glint */
+  --nav-glass:rgba(236,239,244,0.78);  /* light frosted nav */
+}
+
+/* Light-mode component overrides — effects that need a per-theme
+   swap rather than just a token flip. */
+[data-theme="light"] nav::after{
+  background:linear-gradient(90deg, transparent 0%, rgba(120,128,140,0.35) 8%, rgba(90,98,112,0.65) 28%, rgba(60,66,78,0.85) 50%, rgba(90,98,112,0.65) 72%, rgba(120,128,140,0.35) 92%, transparent 100%);
+}
+[data-theme="light"] .bg-medallion{ opacity:.08; }
+[data-theme="light"] .bg-medallion.m3,
+[data-theme="light"] .bg-medallion.m4{ opacity:.07; }
+/* Yoga pose thumbnails: dark tile in dark mode, light tile in light mode
+   (the cream spotlight circle behind each pose icon stays either way). */
+[data-theme="light"] .pose-card-img-wrap{ background:#E3E7EE; }
+/* Hero secondary buttons/links use white glints that vanish on light —
+   give them a dark-ink surface and border instead. */
+[data-theme="light"] .btn-solid{ background:rgba(18,23,33,.05); border-color:rgba(18,23,33,.16); }
+[data-theme="light"] .btn-solid:hover{ background:rgba(18,23,33,.10); color:var(--text); border-color:rgba(18,23,33,.32); }
+[data-theme="light"] .hero-link{ border-color:rgba(18,23,33,.18); }
+[data-theme="light"] .hero-link:hover{ color:var(--accent-bright); border-color:var(--accent-bright); background:rgba(193,39,45,.05); }
 
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth; overflow-x:hidden; scroll-padding-top:70px;}
@@ -47,9 +107,9 @@ body::before{
   content:"";
   position:fixed; inset:0; z-index:0; pointer-events:none;
   background-image:
-    radial-gradient(900px 500px at 80% -10%, rgba(193,39,45,0.10), transparent 60%),
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    radial-gradient(900px 500px at 80% -10%, var(--glow-accent), transparent 60%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size:100% 100%, 46px 46px, 46px 46px;
 }
 .wrap{position:relative; z-index:1;}
@@ -74,7 +134,7 @@ h2.title{ filter:drop-shadow(0 0 18px rgba(193,39,45,.25)); margin-bottom:0; }
 nav{
   position:fixed; top:0; left:0; right:0; z-index:50;
   backdrop-filter:blur(12px);
-  background:rgba(11,12,14,0.72);
+  background:var(--nav-glass);
   border-bottom:none;
   transition:transform 0.3s ease;
 }
@@ -186,7 +246,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   .mobile-brand-header{
     display:flex; align-items:center; gap:16px;
     padding:16px 20px 16px;
-    background:#0a0c10;
+    background:var(--bg);
     border-bottom:none;
     position:relative;
   }
@@ -198,7 +258,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
     content:''; position:absolute;
     left:0; right:0; bottom:100%;
     height:100px;
-    background:#0a0c10;
+    background:var(--bg);
     pointer-events:none;
   }
   .mobile-brand-icon{ width:58px; height:58px; flex-shrink:0; display:block; margin-top:-6px; }
@@ -633,7 +693,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 
 /* ---------- WELCOME BANNER ---------- */
 #welcome-banner{ margin-bottom:20px; border-radius:16px; overflow:hidden;
-  background:radial-gradient(120% 120% at 30% 12%,#16191f 0%,#0c0d10 80%) padding-box,
+  background:radial-gradient(120% 120% at 30% 12%,var(--card-top) 0%,var(--card-bot) 80%) padding-box,
     linear-gradient(155deg,#6a6e78 0%,#3e4249 36%,#2e3138 58%,#5a5e68 100%) border-box;
   border:1px solid transparent; }
 .welcome-inner{ padding:24px 26px; }
@@ -736,11 +796,11 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .freq-card,
 .stat-tile.forged{
   background:
-    radial-gradient(120% 120% at 30% 12%, #16191f 0%, #0c0d10 80%) padding-box,
-    linear-gradient(155deg,#eef0f4 0%,#9a9ea8 36%,#6f7178 58%,#cfd2da 100%) border-box !important;
+    radial-gradient(120% 120% at 30% 12%, var(--card-top) 0%, var(--card-bot) 80%) padding-box,
+    var(--card-metal) border-box !important;
   border:1.5px solid transparent !important;
   border-radius:14px !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.85) !important;
+  box-shadow:var(--card-shadow) !important;
   position:relative; overflow:hidden;
 }
 .card::after,

@@ -3,12 +3,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem("ig-theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IRONGLADIATOR — Settings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=139">
+<link rel="stylesheet" href="styles.css?v=140">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -78,6 +79,16 @@
       <div class="settings-group">
         <p class="settings-group-label">App Preferences</p>
         <div class="card" style="padding:28px;">
+
+          <!-- Appearance / theme -->
+          <p class="settings-card-title">Appearance</p>
+          <p class="settings-card-desc">Dark is the classic forge look. Light is easier on the eyes in a bright room. Saved on this device.</p>
+          <div class="unit-toggle" id="themeToggle">
+            <button data-theme-choice="dark"><i class="ti ti-moon" style="vertical-align:-2px;margin-right:7px;"></i>Dark</button>
+            <button data-theme-choice="light"><i class="ti ti-sun" style="vertical-align:-2px;margin-right:7px;"></i>Light</button>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
 
           <!-- Weight unit -->
           <p class="settings-card-title">Weight unit</p>
@@ -764,9 +775,36 @@
     } finally { btn.textContent = 'Save preferences'; btn.disabled = false; }
   });
 
+  /* ── THEME (light / dark) ── device-local, applied instantly, no account needed.
+     The early guard in <head> reads this same localStorage key on every page
+     so the choice sticks site-wide with no flash. ── */
+  (function () {
+    const KEY = 'ig-theme';
+    const toggle = document.getElementById('themeToggle');
+    if (!toggle) return;
+    const current = () =>
+      document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    function reflect() {
+      const t = current();
+      toggle.querySelectorAll('button').forEach(b =>
+        b.classList.toggle('active', b.dataset.themeChoice === t));
+    }
+    function apply(t) {
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      else document.documentElement.removeAttribute('data-theme');
+      try { localStorage.setItem(KEY, t); } catch (e) {}
+      reflect();
+    }
+    toggle.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-theme-choice]');
+      if (btn) apply(btn.dataset.themeChoice);
+    });
+    reflect();
+  })();
+
 </script>
 <script src="nav-auth.js"></script>
-<script src="nav.js?v=2"></script>
+<script src="nav.js?v=3"></script>
 </body>
 </html>
 

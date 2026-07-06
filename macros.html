@@ -3,12 +3,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem("ig-theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>IRONGLADIATOR — Nutrition</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=139">
+<link rel="stylesheet" href="styles.css?v=140">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <style>
@@ -33,11 +34,11 @@
 /* Goals / progress card */
 .mac-goals-card{
   background:
-    radial-gradient(120% 120% at 30% 12%, #16191f 0%, #0c0d10 80%) padding-box,
-    linear-gradient(155deg,#eef0f4 0%,#9a9ea8 36%,#6f7178 58%,#cfd2da 100%) border-box;
+    radial-gradient(120% 120% at 30% 12%, var(--card-top) 0%, var(--card-bot) 80%) padding-box,
+    var(--card-metal) border-box;
   border:1.5px solid transparent;
   border-radius:14px; padding:18px 20px 20px; margin-bottom:18px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.85);
+  box-shadow:var(--card-shadow);
   position:relative;
 }
 .mac-goals-header{
@@ -148,11 +149,11 @@
 /* Add food form */
 .mac-form-card{
   background:
-    radial-gradient(120% 120% at 30% 12%, #16191f 0%, #0c0d10 80%) padding-box,
-    linear-gradient(155deg,#eef0f4 0%,#9a9ea8 36%,#6f7178 58%,#cfd2da 100%) border-box;
+    radial-gradient(120% 120% at 30% 12%, var(--card-top) 0%, var(--card-bot) 80%) padding-box,
+    var(--card-metal) border-box;
   border:1.5px solid transparent;
   border-radius:14px; padding:18px 20px; margin-bottom:18px; display:none;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.85);
+  box-shadow:var(--card-shadow);
   position:relative;
 }
 .mac-form-card.open{ display:block; }
@@ -269,11 +270,11 @@
 /* Goals setup card */
 .mac-setup-card{
   background:
-    radial-gradient(120% 120% at 30% 12%, #16191f 0%, #0c0d10 80%) padding-box,
-    linear-gradient(155deg,#eef0f4 0%,#9a9ea8 36%,#6f7178 58%,#cfd2da 100%) border-box;
+    radial-gradient(120% 120% at 30% 12%, var(--card-top) 0%, var(--card-bot) 80%) padding-box,
+    var(--card-metal) border-box;
   border:1.5px solid transparent;
   border-radius:14px; padding:20px 22px 22px; margin-bottom:18px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.85);
+  box-shadow:var(--card-shadow);
   position:relative;
 }
 .mac-setup-title{
@@ -339,6 +340,8 @@
 .mac-cal-math .mac-math-total{ margin-left:auto; white-space:nowrap; }
 .mac-math-ok{ color:#4ade80 !important; }
 .mac-math-over{ color:#ff8a4c !important; }
+[data-theme="light"] .mac-math-ok{ color:#1f9d57 !important; }
+[data-theme="light"] .mac-math-over{ color:#c2571a !important; }
 </style>
 </head>
 <body>
@@ -1377,6 +1380,6 @@
   });
 </script>
 <script src="nav-auth.js"></script>
-<script src="nav.js?v=2"></script>
+<script src="nav.js?v=3"></script>
 </body>
 </html>
