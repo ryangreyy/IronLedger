@@ -19,10 +19,11 @@
       '-webkit-tap-highlight-color:transparent;transition:color .12s;' +
     '}' +
     '.mbn-item i{font-size:22px;line-height:1;}' +
+    '.mbn-item svg{display:block;}' +
     '.mbn-item.mbn-active{color:#c1272d;}' +
     '.mbn-item:not(.mbn-active):active{color:rgba(255,255,255,.55);}' +
     '[data-theme="light"] .mobile-bottom-nav{background:#EEF1F5;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 -6px 20px rgba(24,30,45,.12);border-top:1px solid rgba(18,23,33,.10);}' +
-    '[data-theme="light"] .mbn-item{color:rgba(18,23,33,.34);}' +
+    '[data-theme="light"] .mbn-item:not(.mbn-active){color:rgba(18,23,33,.34);}' +
     '[data-theme="light"] .mbn-item:not(.mbn-active):active{color:rgba(18,23,33,.6);}' +
     '@media(max-width:700px){' +
       '.mobile-bottom-nav{display:flex;}' +
@@ -37,7 +38,7 @@
     ['index.html',    'ti-home',        'Home',     ['index.html', '']],
     ['feed.html',     'ti-layout-list', 'Feed',     ['feed.html']],
     ['training.html', 'ti-barbell',     'Training', ['training.html']],
-    ['dashboard.html','ti-chart-line',  'Dashboard',['dashboard.html']],
+    ['dashboard.html','#cal',           'Dashboard',['dashboard.html']],
     ['macros.html',   'ti-apple',       'Macros',   ['macros.html']],
     ['profile.html',  'ti-user-circle', 'Profile',  ['profile.html']],
   ];
@@ -46,10 +47,24 @@
   bar.className = 'mobile-bottom-nav';
   bar.setAttribute('role', 'navigation');
   bar.setAttribute('aria-label', 'Main navigation');
+  function iconHtml(name) {
+    if (name === '#cal') {
+      var day = new Date().getDate();
+      return '<svg class="mbn-cal" viewBox="0 0 24 24" width="22" height="22" fill="none" ' +
+        'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">' +
+        '<rect x="3.5" y="4.5" width="17" height="16.5" rx="2.4"/><path d="M3.5 9H20.5"/>' +
+        '<path d="M8 2.6V6"/><path d="M16 2.6V6"/>' +
+        '<text x="12" y="17.4" text-anchor="middle" font-size="9.5" font-weight="700" ' +
+        'fill="currentColor" stroke="none" font-family="JetBrains Mono,monospace">' + day + '</text>' +
+      '</svg>';
+    }
+    return '<i class="ti ' + name + '" aria-hidden="true"></i>';
+  }
+
   bar.innerHTML = items.map(function (item) {
     var active = item[3].indexOf(p) >= 0 ? ' mbn-active' : '';
     return '<a href="' + item[0] + '" class="mbn-item' + active + '">' +
-      '<i class="ti ' + item[1] + '" aria-hidden="true"></i>' +
+      iconHtml(item[1]) +
       '<span>' + item[2] + '</span>' +
     '</a>';
   }).join('');
