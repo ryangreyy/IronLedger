@@ -1155,6 +1155,14 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .pill.arm{   background:var(--press-28); border:1px solid var(--press-55); color:#fff; }
 .pill.other{ background:rgba(154,160,172,0.14); color:var(--text-dim); }
 .pill.rest{  background:rgba(107,114,128,0.15); color:var(--text-dimmer); font-style:italic; }
+/* Light mode: white pill text is invisible on the pale color tints. Use dark
+   ink text and lean on the colored fill + border for group identity. Works
+   with any custom lift color. */
+[data-theme="light"] .pill.squat{ background:var(--squat-55); border-color:var(--squat); color:var(--text); }
+[data-theme="light"] .pill.bench{ background:var(--bench-55); border-color:var(--bench); color:var(--text); }
+[data-theme="light"] .pill.dead{  background:var(--dead-55);  border-color:var(--dead);  color:var(--text); }
+[data-theme="light"] .pill.press,
+[data-theme="light"] .pill.arm{   background:var(--press-55); border-color:var(--press); color:var(--text); }
 
 /* ---------- PERSONALIZATION COLOR GROUPS ---------- */
 .color-group-list{ display:flex; flex-direction:column; gap:22px; margin-top:20px; }
@@ -1337,6 +1345,14 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .history-wt{ color:var(--accent-bright); font-weight:700; }
 .history-reps{ color:var(--text); }
 .history-note{ color:var(--text-dimmer); font-family:var(--body); font-size:12px; }
+/* Mobile: stack the note under the date/weight/reps (like the session log)
+   instead of cramming it into a 4th column. Empty "—" notes are hidden so a
+   lonely dash never sits on its own line. */
+@media(max-width:600px){
+  .history-detail-row{ grid-template-columns:auto auto auto; justify-content:start; row-gap:4px; column-gap:14px; }
+  .history-note{ grid-column:1 / -1; }
+  .history-note:not(.has-note){ display:none; }
+}
 
 /* ---------- BODYWEIGHT TRACKER ---------- */
 .bw-form{
