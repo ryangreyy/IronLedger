@@ -47,8 +47,8 @@
    setting data-theme="light" on <html>.
    ============================================================ */
 [data-theme="light"]{
-  --bg:#E7EAF0;              /* cool light steel */
-  --bg-2:#EEF1F5;
+  --bg:#DDE1E8;              /* cool light steel */
+  --bg-2:#E6E9EF;
   --surface:#FFFFFF;
   --surface-2:#EDF0F5;
   --border:rgba(18,23,33,0.12);
