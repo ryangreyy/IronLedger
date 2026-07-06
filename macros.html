@@ -93,6 +93,22 @@
 .mac-bar-fill.sodium{ background:linear-gradient(90deg,#a78bfa 0%,#c4b5fd 100%); }
 .mac-duo{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
 
+/* Progress card — empty state */
+.mac-empty-cal-row{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:6px; }
+.mac-empty-cal-label{ font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:3px; }
+.mac-empty-cal-num{ font-family:var(--mono); font-size:32px; font-weight:700; color:var(--text); line-height:1; }
+.mac-empty-cal-right{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); padding-bottom:4px; }
+.mac-empty-goal-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+.mac-empty-goal-name{ font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dimmer); width:54px; flex-shrink:0; }
+.mac-empty-goal-track{ flex:1; height:5px; background:var(--surface-2); border-radius:99px; border:1px solid var(--border); overflow:hidden; }
+.mac-empty-goal-fill{ width:100%; height:100%; border-radius:99px; opacity:0.22; }
+.mac-empty-goal-num{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text-dim); width:42px; text-align:right; flex-shrink:0; }
+.mac-empty-divider{ border:none; border-top:1px solid var(--border); margin:14px 0; }
+.mac-empty-cta-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.mac-empty-hint{ font-family:var(--mono); font-size:12px; color:var(--text-dimmer); display:flex; align-items:center; gap:6px; }
+.mac-empty-add-btn{ background:var(--accent); color:#fff; border:none; border-radius:8px; padding:8px 16px; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:0.06em; cursor:pointer; transition:background .15s; white-space:nowrap; flex-shrink:0; }
+.mac-empty-add-btn:hover{ background:#a01f24; }
+
 /* Edit goals panel */
 .mac-goals-edit{
   margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:none;
@@ -400,40 +416,71 @@
           <button class="mac-edit-goals-btn" id="macEditGoalsBtn">Edit Goals ↓</button>
         </div>
 
-        <!-- Calories -->
-        <div class="mac-cal-row">
-          <div class="mac-cal-label">
-            <div class="mac-cal-name">Calories</div>
-            <div class="mac-cal-nums"><span id="macCalIn">0</span> <span class="dim">/ <span id="macCalGoal">2000</span> kcal</span></div>
+        <!-- Empty state (no entries logged today) -->
+        <div id="macProgressEmpty">
+          <div class="mac-empty-cal-row">
+            <div>
+              <div class="mac-empty-cal-label">Calorie goal</div>
+              <div class="mac-empty-cal-num" id="macEmptyCalGoal">2,000</div>
+            </div>
+            <div class="mac-empty-cal-right">0 logged today</div>
           </div>
-          <div class="mac-bar-track">
-            <div class="mac-bar-fill" id="macCalBar" style="width:0%"></div>
+          <div class="mac-bar-track" style="margin-bottom:16px;"><div class="mac-bar-fill" style="width:0%"></div></div>
+          <div class="mac-empty-goal-row">
+            <div class="mac-empty-goal-name">Protein</div>
+            <div class="mac-empty-goal-track"><div class="mac-empty-goal-fill mac-bar-fill protein"></div></div>
+            <div class="mac-empty-goal-num" id="macEmptyProtGoal">150g</div>
+          </div>
+          <div class="mac-empty-goal-row">
+            <div class="mac-empty-goal-name">Carbs</div>
+            <div class="mac-empty-goal-track"><div class="mac-empty-goal-fill mac-bar-fill carbs"></div></div>
+            <div class="mac-empty-goal-num" id="macEmptyCarbGoal">200g</div>
+          </div>
+          <div class="mac-empty-goal-row">
+            <div class="mac-empty-goal-name">Fat</div>
+            <div class="mac-empty-goal-track"><div class="mac-empty-goal-fill mac-bar-fill fat"></div></div>
+            <div class="mac-empty-goal-num" id="macEmptyFatGoal">65g</div>
+          </div>
+          <div class="mac-empty-divider"></div>
+          <div class="mac-empty-cta-row">
+            <div class="mac-empty-hint"><i class="ti ti-salad"></i> No food logged yet</div>
+            <button class="mac-empty-add-btn" id="macEmptyAddBtn">+ Add Food</button>
           </div>
         </div>
 
-        <!-- Protein / Carbs / Fat -->
-        <div class="mac-trio">
-          <div>
-            <div class="mac-trio-name">Protein</div>
-            <div class="mac-trio-nums"><span id="macProtIn">0</span><span class="dim">/<span id="macProtGoal">150</span>g</span></div>
-            <div class="mac-bar-track thin"><div class="mac-bar-fill protein" id="macProtBar" style="width:0%"></div></div>
+        <!-- Filled state (entries exist) -->
+        <div id="macProgressFilled" style="display:none;">
+          <div class="mac-cal-row">
+            <div class="mac-cal-label">
+              <div class="mac-cal-name">Calories</div>
+              <div class="mac-cal-nums"><span id="macCalIn">0</span> <span class="dim">/ <span id="macCalGoal">2000</span> kcal</span></div>
+            </div>
+            <div class="mac-bar-track">
+              <div class="mac-bar-fill" id="macCalBar" style="width:0%"></div>
+            </div>
           </div>
-          <div>
-            <div class="mac-trio-name">Carbs</div>
-            <div class="mac-trio-nums"><span id="macCarbIn">0</span><span class="dim">/<span id="macCarbGoal">200</span>g</span></div>
-            <div class="mac-bar-track thin"><div class="mac-bar-fill carbs" id="macCarbBar" style="width:0%"></div></div>
+          <div class="mac-trio">
+            <div>
+              <div class="mac-trio-name">Protein</div>
+              <div class="mac-trio-nums"><span id="macProtIn">0</span><span class="dim">/<span id="macProtGoal">150</span>g</span></div>
+              <div class="mac-bar-track thin"><div class="mac-bar-fill protein" id="macProtBar" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="mac-trio-name">Carbs</div>
+              <div class="mac-trio-nums"><span id="macCarbIn">0</span><span class="dim">/<span id="macCarbGoal">200</span>g</span></div>
+              <div class="mac-bar-track thin"><div class="mac-bar-fill carbs" id="macCarbBar" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="mac-trio-name">Fat</div>
+              <div class="mac-trio-nums"><span id="macFatIn">0</span><span class="dim">/<span id="macFatGoal">65</span>g</span></div>
+              <div class="mac-bar-track thin"><div class="mac-bar-fill fat" id="macFatBar" style="width:0%"></div></div>
+            </div>
           </div>
-          <div>
-            <div class="mac-trio-name">Fat</div>
-            <div class="mac-trio-nums"><span id="macFatIn">0</span><span class="dim">/<span id="macFatGoal">65</span>g</span></div>
-            <div class="mac-bar-track thin"><div class="mac-bar-fill fat" id="macFatBar" style="width:0%"></div></div>
+          <div style="margin-top:10px;">
+            <div class="mac-trio-name">Sugar</div>
+            <div class="mac-trio-nums"><span id="macSugarIn">0</span><span class="dim">/<span id="macSugarGoal">50</span>g</span></div>
+            <div class="mac-bar-track thin"><div class="mac-bar-fill sugar" id="macSugarBar" style="width:0%"></div></div>
           </div>
-        </div>
-        <!-- Sugar -->
-        <div style="margin-top:10px;">
-          <div class="mac-trio-name">Sugar</div>
-          <div class="mac-trio-nums"><span id="macSugarIn">0</span><span class="dim">/<span id="macSugarGoal">50</span>g</span></div>
-          <div class="mac-bar-track thin"><div class="mac-bar-fill sugar" id="macSugarBar" style="width:0%"></div></div>
         </div>
 
       </div>
@@ -622,6 +669,18 @@
 
   /* ── Render progress bars ── */
   function renderProgress() {
+    const isEmpty = entries.length === 0;
+    document.getElementById('macProgressEmpty').style.display  = isEmpty ? 'block' : 'none';
+    document.getElementById('macProgressFilled').style.display = isEmpty ? 'none'  : 'block';
+
+    if (isEmpty) {
+      document.getElementById('macEmptyCalGoal').textContent  = goals.cals.toLocaleString();
+      document.getElementById('macEmptyProtGoal').textContent = goals.prot + 'g';
+      document.getElementById('macEmptyCarbGoal').textContent = goals.carb + 'g';
+      document.getElementById('macEmptyFatGoal').textContent  = goals.fat  + 'g';
+      return;
+    }
+
     const totCals   = entries.reduce((s, e) => s + (e.cals   || 0), 0);
     const totProt   = entries.reduce((s, e) => s + (e.prot   || 0), 0);
     const totCarb   = entries.reduce((s, e) => s + (e.carb   || 0), 0);
@@ -1144,11 +1203,17 @@
   document.getElementById('goalCarbInput').addEventListener('input', function() { switchToCustom(); autoAdjustFat(); });
   document.getElementById('goalFatInput').addEventListener('input', function() { switchToCustom(); autoAdjustCarbs(); });
 
+  function openAddForm() {
+    const form = document.getElementById('macFormCard');
+    form.classList.add('open');
+    document.getElementById('fSearch').focus();
+  }
   document.getElementById('macAddBtn').onclick = () => {
     const form = document.getElementById('macFormCard');
     form.classList.toggle('open');
     if (form.classList.contains('open')) document.getElementById('fSearch').focus();
   };
+  document.getElementById('macEmptyAddBtn').onclick = openAddForm;
 
   document.getElementById('macFormCancel').onclick = resetForm;
   document.getElementById('macFormSubmit').onclick = addEntry;
