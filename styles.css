@@ -64,7 +64,7 @@
   --shadow:0 20px 48px -22px rgba(24,30,45,0.28);
 
   --grid-line:rgba(18,23,33,0.035);    /* dark grid lines on light backdrop */
-  --glow-accent:rgba(193,39,45,0.08);
+  --glow-accent:rgba(193,39,45,0.05);
   --card-top:#FFFFFF;                  /* light cards */
   --card-bot:#F1F3F7;
   --card-metal:linear-gradient(155deg,#c4c9d2 0%,#8f95a0 36%,#adb3bd 58%,#d9dce2 100%); /* dimmed steel edge */
@@ -89,6 +89,49 @@
 [data-theme="light"] .btn-solid:hover{ background:rgba(18,23,33,.10); color:var(--text); border-color:rgba(18,23,33,.32); }
 [data-theme="light"] .hero-link{ border-color:rgba(18,23,33,.18); }
 [data-theme="light"] .hero-link:hover{ color:var(--accent-bright); border-color:var(--accent-bright); background:rgba(193,39,45,.05); }
+/* Red "neon" glows read as muddy haze on a light page — dial them down
+   so red stays a crisp accent, not a wash. Light mode only. */
+[data-theme="light"] .hero::before{ background:radial-gradient(ellipse at center,rgba(193,39,45,.05) 0%,transparent 68%); }
+[data-theme="light"] .hero h1 .hero-top{ text-shadow:0 0 28px rgba(193,39,45,.15); }
+[data-theme="light"] .hero h1 .lime{ filter:drop-shadow(0 0 22px rgba(193,39,45,.13)); }
+[data-theme="light"] .eyebrow,
+[data-theme="light"] .goals-eyebrow{ text-shadow:0 0 10px rgba(193,39,45,.16); }
+[data-theme="light"] h2.title{ filter:drop-shadow(0 0 10px rgba(193,39,45,.10)); }
+[data-theme="light"] .result-big .num{ filter:drop-shadow(0 0 12px rgba(193,39,45,.14)); }
+/* Calendar day cells use white fills/borders that vanish on light — give
+   each date ink-based definition so the boxes read clearly. */
+[data-theme="light"] .cal-day{ border-color:rgba(18,23,33,.14); background:rgba(18,23,33,.035); }
+[data-theme="light"] .cal-day.empty{ border-color:transparent; background:transparent; }
+[data-theme="light"] .cal-day.future{ border-color:rgba(18,23,33,.10); background:transparent; color:rgba(18,23,33,.32); }
+[data-theme="light"] .cal-day.has-session{ border-color:transparent; }
+[data-theme="light"] .cal-day.today::after{ border-color:var(--accent); }
+/* Muscle-map panels render a transparent-bg body — on light they float with
+   no frame. Give each map an inset panel + border so it reads as a chart. */
+[data-theme="light"] .mr-map-wrap{ background:var(--surface-2); border:1px solid var(--border); }
+/* Light mode: restore definition for dividers, tracks, pills and hover states
+   that were built on white glints (invisible on a light page). */
+[data-theme="light"] .yoga-table td,
+[data-theme="light"] .pace-proj-row,
+[data-theme="light"] .plan-row,
+[data-theme="light"] .ch-reroll-item{ border-bottom-color:var(--border); }
+[data-theme="light"] .effort-pips i,
+[data-theme="light"] .plan-vol-bar,
+[data-theme="light"] .rank-prog{ background:rgba(18,23,33,.09); }
+[data-theme="light"] .goal-due-pill,
+[data-theme="light"] .tracker-restore-btn,
+[data-theme="light"] .tracker-restore-date,
+[data-theme="light"] .yoga-tab{ border-color:rgba(18,23,33,.20); }
+[data-theme="light"] .goal-due-pill:hover,
+[data-theme="light"] .goal-due-pill.has-date,
+[data-theme="light"] .tracker-restore-btn:hover,
+[data-theme="light"] .yoga-tab:hover{ border-color:rgba(18,23,33,.42); }
+[data-theme="light"] .btn-google{ border-color:rgba(18,23,33,.18) !important; }
+[data-theme="light"] .log-table tbody tr:hover td,
+[data-theme="light"] .yoga-table tbody tr:hover td{ color:var(--text); }
+[data-theme="light"] .ch-bar-bg,
+[data-theme="light"] .ch-loading-row{ background:rgba(18,23,33,.09); }
+[data-theme="light"] .guide-wk-note,
+[data-theme="light"] .guide-wd-off{ background:rgba(18,23,33,.04); }
 
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth; overflow-x:hidden; scroll-padding-top:70px;}
