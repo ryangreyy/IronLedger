@@ -219,7 +219,8 @@ nav.nav-hidden{ transform:translateY(-100%); }
   .nav-links a[href="profile.html"],
   .nav-links a[href="feed.html"],
   .nav-links a[href="training.html"],
-  .nav-links a[href="dashboard.html"]{ display:none; }
+  .nav-links a[href="dashboard.html"],
+  .nav-links a[href="macros.html"]{ display:none; }
 }
 .nav-avatar{
   width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0;

@@ -35,10 +35,10 @@
 
   var items = [
     ['index.html',    'ti-home-2',      'Home',     ['index.html', '']],
-    ['training.html', 'ti-barbell',     'Training', ['training.html']],
-    ['macros.html',   'ti-salad',       'Macros',   ['macros.html']],
-    ['dashboard.html','ti-chart-bar',   'Dashboard',['dashboard.html']],
     ['feed.html',     'ti-activity',    'Feed',     ['feed.html']],
+    ['training.html', 'ti-barbell',     'Training', ['training.html']],
+    ['dashboard.html','ti-chart-bar',   'Dashboard',['dashboard.html']],
+    ['macros.html',   'ti-salad',       'Macros',   ['macros.html']],
     ['profile.html',  'ti-user-circle', 'Profile',  ['profile.html']],
   ];
 
