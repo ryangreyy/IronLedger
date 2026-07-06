@@ -960,18 +960,18 @@
     { name:'Protein Shake (whey)',  cals:120, prot:24,  carb:3,   fat:2,   sugar:2   },
     { name:'Protein Bar',           cals:350, prot:20,  carb:40,  fat:10,  sugar:20  },
     // Beverages
-    { name:'Coffee (black)',        cals:2,   prot:0.3, carb:0,   fat:0,   sugar:0   },
-    { name:'Espresso',              cals:9,   prot:0.1, carb:1.7, fat:0,   sugar:0   },
-    { name:'Latte',                 cals:54,  prot:2.7, carb:4.5, fat:2.4, sugar:4.6 },
-    { name:'Cappuccino',            cals:40,  prot:2.4, carb:3.6, fat:1.8, sugar:3.6 },
-    { name:'Green Tea',             cals:1,   prot:0,   carb:0.2, fat:0,   sugar:0   },
-    { name:'Black Tea',             cals:1,   prot:0,   carb:0.3, fat:0,   sugar:0   },
-    { name:'Orange Juice',          cals:45,  prot:0.7, carb:10,  fat:0.2, sugar:8.4 },
-    { name:'Apple Juice',           cals:46,  prot:0.1, carb:11,  fat:0.1, sugar:9.6 },
-    { name:'Almond Milk',           cals:15,  prot:0.6, carb:0.3, fat:1.2, sugar:0   },
-    { name:'Sports Drink',          cals:26,  prot:0,   carb:7,   fat:0,   sugar:6   },
-    { name:'Cola (regular)',        cals:41,  prot:0,   carb:11,  fat:0,   sugar:11  },
-    { name:'Diet Soda',             cals:1,   prot:0,   carb:0.1, fat:0,   sugar:0   },
+    { name:'Coffee (black)',        cals:2,   prot:0.3, carb:0,   fat:0,   sugar:0,   tags:['coffee'] },
+    { name:'Espresso',              cals:9,   prot:0.1, carb:1.7, fat:0,   sugar:0,   tags:['coffee'] },
+    { name:'Latte',                 cals:54,  prot:2.7, carb:4.5, fat:2.4, sugar:4.6, tags:['coffee','milk'] },
+    { name:'Cappuccino',            cals:40,  prot:2.4, carb:3.6, fat:1.8, sugar:3.6, tags:['coffee','milk'] },
+    { name:'Green Tea',             cals:1,   prot:0,   carb:0.2, fat:0,   sugar:0,   tags:['tea','drink'] },
+    { name:'Black Tea',             cals:1,   prot:0,   carb:0.3, fat:0,   sugar:0,   tags:['tea','drink'] },
+    { name:'Orange Juice',          cals:45,  prot:0.7, carb:10,  fat:0.2, sugar:8.4, tags:['juice','oj'] },
+    { name:'Apple Juice',           cals:46,  prot:0.1, carb:11,  fat:0.1, sugar:9.6, tags:['juice'] },
+    { name:'Almond Milk',           cals:15,  prot:0.6, carb:0.3, fat:1.2, sugar:0,   tags:['milk','drink'] },
+    { name:'Sports Drink',          cals:26,  prot:0,   carb:7,   fat:0,   sugar:6,   tags:['gatorade','powerade','drink'] },
+    { name:'Cola (regular)',        cals:41,  prot:0,   carb:11,  fat:0,   sugar:11,  tags:['soda','coke','pepsi','drink'] },
+    { name:'Diet Soda',             cals:1,   prot:0,   carb:0.1, fat:0,   sugar:0,   tags:['soda','diet coke','drink'] },
     // Fast food / common meals
     { name:'Pizza (cheese slice)',  cals:272, prot:12,  carb:34,  fat:10,  sugar:3.6 },
     { name:'Cheeseburger',          cals:295, prot:17,  carb:24,  fat:14,  sugar:5   },
@@ -981,7 +981,10 @@
   /* Search curated list first, USDA as fallback for unlisted foods */
   function searchCurated(q) {
     const lower = q.toLowerCase();
-    return COMMON_FOODS.filter(f => f.name.toLowerCase().includes(lower)).slice(0, 4);
+    return COMMON_FOODS.filter(f =>
+      f.name.toLowerCase().includes(lower) ||
+      (f.tags && f.tags.some(t => t.includes(lower) || lower.includes(t)))
+    ).slice(0, 4);
   }
 
   function showResults(items) {
