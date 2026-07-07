@@ -277,7 +277,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   body.index-page .nav-streak-label{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; }
   body.index-page .nav-streak-bar{
     width:34px; height:2px; border-radius:2px;
-    background:linear-gradient(90deg,#ff8a4c,#c1272d);
+    background:linear-gradient(90deg,var(--accent),var(--accent-bright));
   }
   body.index-page .brand{ display:none; }
   body.index-page .nav-inner{ position:relative; }
