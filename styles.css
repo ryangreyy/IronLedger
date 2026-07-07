@@ -273,7 +273,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
     white-space:nowrap; pointer-events:none;
   }
   body.index-page .nav-streak-top{ display:flex; align-items:baseline; gap:6px; }
-  body.index-page #nav-streak-count{ font-size:14px; font-weight:700; color:var(--text); }
+  body.index-page #nav-streak-count{
+    font-size:14px; font-weight:700;
+    background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
   body.index-page .nav-streak-label{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; }
   body.index-page .nav-streak-bar{
     width:34px; height:2px; border-radius:2px;
