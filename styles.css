@@ -267,13 +267,18 @@ nav.nav-hidden{ transform:translateY(-100%); }
   .hero{ display:none; }
   /* Index-page mobile nav: hide logo, show avatar + username on left */
   body.index-page #nav-streak{
-    display:flex; align-items:center; gap:4px;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    font-family:var(--mono); font-size:11px; color:var(--text-dim);
+    font-family:var(--mono); color:var(--text-dim);
     white-space:nowrap; pointer-events:none;
   }
-  body.index-page #nav-streak-count{ font-size:13px; font-weight:700; color:var(--text); }
-  body.index-page .nav-streak-label{ font-size:10px; }
+  body.index-page .nav-streak-top{ display:flex; align-items:baseline; gap:6px; }
+  body.index-page #nav-streak-count{ font-size:14px; font-weight:700; color:var(--text); }
+  body.index-page .nav-streak-label{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; }
+  body.index-page .nav-streak-bar{
+    width:34px; height:2px; border-radius:2px;
+    background:linear-gradient(90deg,#ff8a4c,#c1272d);
+  }
   body.index-page .brand{ display:none; }
   body.index-page .nav-inner{ position:relative; }
   body.index-page .nav-right{ margin-left:auto; }
