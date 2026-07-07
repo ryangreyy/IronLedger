@@ -267,7 +267,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   .hero{ display:none; }
   /* Index-page mobile nav: hide logo, show avatar + username on left */
   body.index-page #nav-streak{
-    display:flex; flex-direction:column; align-items:center; gap:5px;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
     font-family:var(--mono); color:var(--text-dim);
     white-space:nowrap; pointer-events:none;
