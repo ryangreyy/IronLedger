@@ -18,6 +18,22 @@
 .feed-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:32px 0; }
 .feed-loading{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:24px 0; }
 
+/* ── Collapsible section toggle (Head-to-Head, Leaderboards) ── */
+.feed-section-toggle{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  width:100%; background:none; border:none; padding:0; margin:0;
+  cursor:pointer; text-align:left; transition:opacity .15s;
+}
+.feed-section-toggle:hover{ opacity:0.85; }
+.feed-toggle-chevron{
+  flex-shrink:0; font-size:20px; color:var(--text-dimmer);
+  transition:transform .2s ease, color .15s;
+}
+.feed-section-toggle:hover .feed-toggle-chevron{ color:var(--text); }
+.feed-section-toggle[aria-expanded="true"] .feed-toggle-chevron{ transform:rotate(180deg); }
+.feed-section-body{ display:none; margin-top:20px; }
+.feed-section-body.open{ display:block; }
+
 /* ── Day header ── */
 .feed-day-label{
   font-family:var(--mono); font-size:11px; font-weight:700;
@@ -361,42 +377,52 @@
   <div id="feed-page" style="display:none;">
     <div class="feed-wrap h2h-wrap">
       <div class="eyebrow">Social</div>
-      <h2 class="title" style="margin-bottom:20px;">Head-to-Head Challenges</h2>
-      <div id="h2hList"><p class="feed-loading">Loading…</p></div>
+      <button class="feed-section-toggle" id="h2hToggleBtn" aria-expanded="false">
+        <h2 class="title" style="margin-bottom:0;">Head-to-Head Challenges</h2>
+        <i class="ti ti-chevron-down feed-toggle-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="feed-section-body" id="h2hBody">
+        <div id="h2hList"><p class="feed-loading">Loading…</p></div>
 
-      <div class="h2h-subhead">Suggested Challenges</div>
-      <div class="h2h-suggest-grid" id="h2hSuggestGrid"></div>
+        <div class="h2h-subhead">Suggested Challenges</div>
+        <div class="h2h-suggest-grid" id="h2hSuggestGrid"></div>
 
-      <div class="h2h-subhead">Create Your Own</div>
-      <div class="h2h-form-card open" id="h2hFormCard">
-        <div class="field">
-          <label>Friend</label>
-          <select id="h2hFriendSel"><option value="">Choose a friend…</option></select>
+        <div class="h2h-subhead">Create Your Own</div>
+        <div class="h2h-form-card open" id="h2hFormCard">
+          <div class="field">
+            <label>Friend</label>
+            <select id="h2hFriendSel"><option value="">Choose a friend…</option></select>
+          </div>
+          <div class="field">
+            <label>Lift</label>
+            <input id="h2hLiftInput" type="text" placeholder="e.g. Bench Press" maxlength="40" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Ends on</label>
+            <input id="h2hEndDateInput" type="text">
+          </div>
+          <div class="h2h-form-actions">
+            <button class="btn btn-primary" id="h2hSendBtn">Send challenge</button>
+          </div>
+          <p id="h2hFormMsg" class="h2h-form-msg"></p>
         </div>
-        <div class="field">
-          <label>Lift</label>
-          <input id="h2hLiftInput" type="text" placeholder="e.g. Bench Press" maxlength="40" autocomplete="off">
-        </div>
-        <div class="field">
-          <label>Ends on</label>
-          <input id="h2hEndDateInput" type="text">
-        </div>
-        <div class="h2h-form-actions">
-          <button class="btn btn-primary" id="h2hSendBtn">Send challenge</button>
-        </div>
-        <p id="h2hFormMsg" class="h2h-form-msg"></p>
       </div>
     </div>
 
     <div class="feed-wrap lb-wrap">
       <div class="eyebrow">Social</div>
-      <h2 class="title" style="margin-bottom:20px;">Leaderboards</h2>
-      <div class="lb-tabs" id="lbTabs">
-        <button class="lb-tab active" data-lb="streak">Current Streak</button>
-        <button class="lb-tab" data-lb="best">Best Streak</button>
-        <button class="lb-tab" data-lb="rank">Rank</button>
+      <button class="feed-section-toggle" id="lbToggleBtn" aria-expanded="false">
+        <h2 class="title" style="margin-bottom:0;">Leaderboards</h2>
+        <i class="ti ti-chevron-down feed-toggle-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="feed-section-body" id="lbBody">
+        <div class="lb-tabs" id="lbTabs">
+          <button class="lb-tab active" data-lb="streak">Current Streak</button>
+          <button class="lb-tab" data-lb="best">Best Streak</button>
+          <button class="lb-tab" data-lb="rank">Rank</button>
+        </div>
+        <div id="lbList"><p class="feed-loading">Loading…</p></div>
       </div>
-      <div id="lbList"><p class="feed-loading">Loading…</p></div>
     </div>
 
     <div class="feed-wrap">
@@ -1172,6 +1198,21 @@
   const h2hDefaultEnd = new Date(); h2hDefaultEnd.setDate(h2hDefaultEnd.getDate() + 7);
   const h2hDatePickerApi = h2hCreateDatePicker('h2hEndDateInput', _igLocalISO(h2hDefaultEnd));
   h2hRenderSuggestions();
+
+  /* ── Collapsible sections (Head-to-Head, Leaderboards) — start closed;
+     data still loads in the background so content is ready on first open. ── */
+  function setupFeedSectionToggle(btnId, bodyId) {
+    const btn  = document.getElementById(btnId);
+    const body = document.getElementById(bodyId);
+    if (!btn || !body) return;
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      btn.setAttribute('aria-expanded', String(open));
+      body.classList.toggle('open', open);
+    });
+  }
+  setupFeedSectionToggle('h2hToggleBtn', 'h2hBody');
+  setupFeedSectionToggle('lbToggleBtn', 'lbBody');
 
   document.getElementById('h2hSuggestGrid').addEventListener('click', e => {
     const chip = e.target.closest('.h2h-suggest-chip');
