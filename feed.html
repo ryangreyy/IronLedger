@@ -18,21 +18,31 @@
 .feed-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:32px 0; }
 .feed-loading{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:24px 0; }
 
-/* ── Collapsible section toggle (Head-to-Head, Leaderboards) ── */
-.feed-section-toggle{
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  width:100%; background:none; border:none; padding:0; margin:0;
-  cursor:pointer; text-align:left; transition:opacity .15s;
+/* ── Top-level page tabs (Head-to-Head Challenges / Leaderboards) ── */
+.feed-toplevel-tabs{
+  display:flex; gap:28px; margin-bottom:24px;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto; scrollbar-width:none;
 }
-.feed-section-toggle:hover{ opacity:0.85; }
-.feed-toggle-chevron{
-  flex-shrink:0; font-size:20px; color:var(--text-dimmer);
-  transition:transform .2s ease, color .15s;
+.feed-toplevel-tabs::-webkit-scrollbar{ display:none; }
+.feed-toplevel-tab{
+  background:none; border:none; padding:0 0 14px; margin:0;
+  font-family:var(--display); font-size:21px; font-weight:400; letter-spacing:0.4px;
+  color:var(--text-dimmer); cursor:pointer; position:relative; white-space:nowrap;
+  transition:color .15s;
 }
-.feed-section-toggle:hover .feed-toggle-chevron{ color:var(--text); }
-.feed-section-toggle[aria-expanded="true"] .feed-toggle-chevron{ transform:rotate(180deg); }
-.feed-section-body{ display:none; margin-top:20px; }
-.feed-section-body.open{ display:block; }
+.feed-toplevel-tab:hover{ color:var(--text-dim); }
+.feed-toplevel-tab.active{ color:var(--text); }
+.feed-toplevel-tab.active::after{
+  content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-bright));
+}
+.feed-toplevel-panel{ display:none; }
+.feed-toplevel-panel.active{ display:block; }
+@media(max-width:480px){
+  .feed-toplevel-tabs{ gap:20px; }
+  .feed-toplevel-tab{ font-size:16px; }
+}
 
 /* ── Day header ── */
 .feed-day-label{
@@ -183,7 +193,6 @@
 .rxn-sheet-empty{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.3);text-align:center;padding:16px 0;}
 
 /* ── Leaderboards ── */
-.lb-wrap{ padding-bottom:8px; }
 .lb-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
 .lb-tab{
   background:transparent; border:1px solid rgba(255,255,255,.12); border-radius:8px;
@@ -377,11 +386,12 @@
   <div id="feed-page" style="display:none;">
     <div class="feed-wrap h2h-wrap">
       <div class="eyebrow">Social</div>
-      <button class="feed-section-toggle" id="h2hToggleBtn" aria-expanded="false">
-        <h2 class="title" style="margin-bottom:0;">Head-to-Head Challenges</h2>
-        <i class="ti ti-chevron-down feed-toggle-chevron" aria-hidden="true"></i>
-      </button>
-      <div class="feed-section-body" id="h2hBody">
+      <div class="feed-toplevel-tabs" id="feedTopTabs">
+        <button class="feed-toplevel-tab active" data-panel="h2h">Head-to-Head Challenges</button>
+        <button class="feed-toplevel-tab" data-panel="lb">Leaderboards</button>
+      </div>
+
+      <div class="feed-toplevel-panel active" id="h2hPanel">
         <div id="h2hList"><p class="feed-loading">Loading…</p></div>
 
         <div class="h2h-subhead">Suggested Challenges</div>
@@ -407,15 +417,8 @@
           <p id="h2hFormMsg" class="h2h-form-msg"></p>
         </div>
       </div>
-    </div>
 
-    <div class="feed-wrap lb-wrap">
-      <div class="eyebrow">Social</div>
-      <button class="feed-section-toggle" id="lbToggleBtn" aria-expanded="false">
-        <h2 class="title" style="margin-bottom:0;">Leaderboards</h2>
-        <i class="ti ti-chevron-down feed-toggle-chevron" aria-hidden="true"></i>
-      </button>
-      <div class="feed-section-body" id="lbBody">
+      <div class="feed-toplevel-panel" id="lbPanel">
         <div class="lb-tabs" id="lbTabs">
           <button class="lb-tab active" data-lb="streak">Current Streak</button>
           <button class="lb-tab" data-lb="best">Best Streak</button>
@@ -1199,20 +1202,18 @@
   const h2hDatePickerApi = h2hCreateDatePicker('h2hEndDateInput', _igLocalISO(h2hDefaultEnd));
   h2hRenderSuggestions();
 
-  /* ── Collapsible sections (Head-to-Head, Leaderboards) — start closed;
-     data still loads in the background so content is ready on first open. ── */
-  function setupFeedSectionToggle(btnId, bodyId) {
-    const btn  = document.getElementById(btnId);
-    const body = document.getElementById(bodyId);
-    if (!btn || !body) return;
-    btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') !== 'true';
-      btn.setAttribute('aria-expanded', String(open));
-      body.classList.toggle('open', open);
-    });
-  }
-  setupFeedSectionToggle('h2hToggleBtn', 'h2hBody');
-  setupFeedSectionToggle('lbToggleBtn', 'lbBody');
+  /* ── Top-level page tabs (Head-to-Head Challenges / Leaderboards) —
+     data for both loads in the background regardless of which is shown,
+     so switching tabs is instant. ── */
+  document.getElementById('feedTopTabs').addEventListener('click', e => {
+    const btn = e.target.closest('.feed-toplevel-tab');
+    if (!btn) return;
+    const panel = btn.dataset.panel;
+    document.querySelectorAll('.feed-toplevel-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('h2hPanel').classList.toggle('active', panel === 'h2h');
+    document.getElementById('lbPanel').classList.toggle('active', panel === 'lb');
+  });
 
   document.getElementById('h2hSuggestGrid').addEventListener('click', e => {
     const chip = e.target.closest('.h2h-suggest-chip');
