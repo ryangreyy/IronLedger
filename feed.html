@@ -236,18 +236,22 @@
 .h2h-decline-btn:hover{ border-color:var(--down) !important; color:var(--down); }
 .h2h-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:16px 0; }
 
-.h2h-new-btn{
-  width:100%; padding:12px; background:var(--surface); border:1px solid var(--border-strong);
-  border-radius:10px; color:var(--text-dim); font-family:var(--mono); font-size:12px;
-  font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer;
-  transition:background .15s, color .15s, border-color .15s; margin-top:14px;
+.h2h-subhead{
+  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.14em;
+  text-transform:uppercase; color:var(--text-dimmer); margin:26px 0 12px;
 }
-.h2h-new-btn:hover{ background:var(--bg-2); color:var(--text); border-color:var(--accent); }
+.h2h-suggest-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+.h2h-suggest-chip{
+  padding:12px 14px; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:10px; cursor:pointer; text-align:left; transition:all .15s; font-family:inherit;
+}
+.h2h-suggest-chip:hover{ border-color:var(--accent); background:var(--bg-2); }
+.h2h-suggest-lift{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text); }
+.h2h-suggest-meta{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); margin-top:4px; text-transform:uppercase; letter-spacing:0.04em; }
 .h2h-form-card{
-  display:none; margin-top:14px; padding:20px; background:var(--surface);
+  margin-top:0; padding:20px; background:var(--surface);
   border:1px solid var(--border); border-radius:14px;
 }
-.h2h-form-card.open{ display:block; }
 .h2h-form-actions{ display:flex; gap:10px; margin-top:6px; }
 .h2h-form-msg{ margin-top:10px; font-family:var(--mono); font-size:12px; }
 
@@ -256,8 +260,8 @@
 [data-theme="light"] .lb-row{ background:rgba(18,23,33,.03); border-color:rgba(18,23,33,.14); }
 [data-theme="light"] .lb-row.lb-me{ border-color:var(--accent); background:rgba(193,39,45,.06); }
 
-[data-theme="light"] .h2h-new-btn{ border-color:rgba(18,23,33,.16); }
-[data-theme="light"] .h2h-new-btn:hover{ border-color:var(--accent); }
+[data-theme="light"] .h2h-suggest-chip{ border-color:rgba(18,23,33,.16); }
+[data-theme="light"] .h2h-suggest-chip:hover{ border-color:var(--accent); }
 [data-theme="light"] .h2h-card{ background:rgba(18,23,33,.03); border-color:rgba(18,23,33,.14); }
 [data-theme="light"] .h2h-badge.pending{ background:rgba(180,120,0,.10); color:#8a5a00; border-color:rgba(180,120,0,.32); }
 [data-theme="light"] .h2h-badge.won{ background:rgba(21,128,73,.07); color:#0f6b3d; border-color:rgba(21,128,73,.32); }
@@ -359,8 +363,12 @@
       <div class="eyebrow">Social</div>
       <h2 class="title" style="margin-bottom:20px;">Head-to-Head Challenges</h2>
       <div id="h2hList"><p class="feed-loading">Loading…</p></div>
-      <button class="h2h-new-btn" id="h2hNewBtn">+ Challenge a friend</button>
-      <div class="h2h-form-card" id="h2hFormCard">
+
+      <div class="h2h-subhead">Suggested Challenges</div>
+      <div class="h2h-suggest-grid" id="h2hSuggestGrid"></div>
+
+      <div class="h2h-subhead">Create Your Own</div>
+      <div class="h2h-form-card open" id="h2hFormCard">
         <div class="field">
           <label>Friend</label>
           <select id="h2hFriendSel"><option value="">Choose a friend…</option></select>
@@ -370,15 +378,11 @@
           <input id="h2hLiftInput" type="text" placeholder="e.g. Bench Press" maxlength="40" autocomplete="off">
         </div>
         <div class="field">
-          <label>Timeframe</label>
-          <div class="unit-toggle" id="h2hDurationToggle">
-            <button data-days="7" class="active">1 week</button>
-            <button data-days="14">2 weeks</button>
-          </div>
+          <label>Ends on</label>
+          <input id="h2hEndDateInput" type="text">
         </div>
         <div class="h2h-form-actions">
           <button class="btn btn-primary" id="h2hSendBtn">Send challenge</button>
-          <button class="btn btn-ghost" id="h2hCancelBtn">Cancel</button>
         </div>
         <p id="h2hFormMsg" class="h2h-form-msg"></p>
       </div>
@@ -846,6 +850,12 @@
     return Math.round((new Date(endDate + 'T12:00:00') - new Date(today + 'T12:00:00')) / 86400000);
   }
 
+  const H2H_MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function h2hFmtDate(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return `${H2H_MONTHS_SHORT[m - 1]} ${d}`;
+  }
+
   function h2hPopulateFriendSelect() {
     const sel = document.getElementById('h2hFriendSel');
     if (!sel) return;
@@ -947,7 +957,7 @@
       const otherName = c.myRole === 'challenger' ? c.opponentUsername   : c.challengerUsername;
       const myBest    = c.myRole === 'challenger' ? c.challengerBest     : c.opponentBest;
       const otherBest = c.myRole === 'challenger' ? c.opponentBest       : c.challengerBest;
-      const durLabel  = c.durationDays === 14 ? '2 weeks' : '1 week';
+      const byLabel   = c.endDate ? 'by ' + h2hFmtDate(c.endDate) : '';
 
       if (c.status === 'pending') {
         if (c.myRole === 'opponent') {
@@ -955,7 +965,7 @@
             <div class="h2h-card-head">
               <div>
                 <div class="h2h-card-title">${c.challengerUsername} challenged you</div>
-                <div class="h2h-card-sub">${c.lift} · ${durLabel}</div>
+                <div class="h2h-card-sub">${c.lift} · ${byLabel}</div>
               </div>
               <span class="h2h-badge pending">Pending</span>
             </div>
@@ -969,7 +979,7 @@
           <div class="h2h-card-head">
             <div>
               <div class="h2h-card-title">Waiting on ${c.opponentUsername}</div>
-              <div class="h2h-card-sub">${c.lift} · ${durLabel}</div>
+              <div class="h2h-card-sub">${c.lift} · ${byLabel}</div>
             </div>
             <span class="h2h-badge pending">Pending</span>
           </div>
@@ -1017,38 +1027,172 @@
     }).join('') + '</div>';
   }
 
-  document.getElementById('h2hNewBtn').addEventListener('click', () => {
-    const card = document.getElementById('h2hFormCard');
-    const btn  = document.getElementById('h2hNewBtn');
-    const open = !card.classList.contains('open');
-    card.classList.toggle('open', open);
-    btn.textContent = open ? 'Cancel' : '+ Challenge a friend';
-  });
+  /* ── Future-only calendar date picker for the challenge end date.
+     Mirrors app.js's createDatePicker (same .dp-* markup/CSS, already
+     theme-independent) but disables today+past instead of the future,
+     since a challenge deadline has to be upcoming. Self-contained here
+     rather than loading all of app.js, which assumes dashboard-only DOM. */
+  function h2hCreateDatePicker(inputId, initialDate) {
+    const input = document.getElementById(inputId);
+    if (!input) return null;
 
-  document.getElementById('h2hCancelBtn').addEventListener('click', () => {
-    document.getElementById('h2hFormCard').classList.remove('open');
-    document.getElementById('h2hNewBtn').textContent = '+ Challenge a friend';
-    document.getElementById('h2hFriendSel').value = '';
-    document.getElementById('h2hLiftInput').value = '';
-    document.getElementById('h2hFormMsg').textContent = '';
-  });
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
-  document.getElementById('h2hDurationToggle').addEventListener('click', e => {
-    const btn = e.target.closest('button[data-days]');
-    if (!btn) return;
-    document.querySelectorAll('#h2hDurationToggle button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    const todayISO = _igLocalISO();
+    const startISO = initialDate || todayISO;
+    const [sy, sm] = startISO.split('-').map(Number);
+    let state = { year: sy, month: sm - 1, selected: startISO };
+
+    input.type  = 'hidden';
+    input.value = startISO;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'dp-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+
+    const trigger = document.createElement('button');
+    trigger.type      = 'button';
+    trigger.className = 'dp-trigger';
+    wrap.insertBefore(trigger, input);
+
+    const popup = document.createElement('div');
+    popup.className     = 'dp-popup';
+    popup.style.display = 'none';
+    wrap.appendChild(popup);
+
+    function fmtDisplay(iso) {
+      const [y, m, d] = iso.split('-').map(Number);
+      return `${MONTHS[m - 1].slice(0, 3)} ${d}, ${y}`;
+    }
+    function renderTrigger() {
+      trigger.innerHTML = `
+        <span>${state.selected ? fmtDisplay(state.selected) : 'Select date'}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>`;
+    }
+    function renderCalendar() {
+      const { year, month } = state;
+      const firstDay    = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      let cells = '';
+      for (let i = 0; i < firstDay; i++) cells += '<button class="dp-day dp-empty" disabled></button>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const iso  = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const sel  = iso === state.selected;
+        const tod  = iso === todayISO;
+        const notFuture = iso <= todayISO; // must be strictly after today
+        cells += `<button class="dp-day${sel?' dp-selected':''}${tod&&!sel?' dp-today':''}"
+                          data-date="${iso}" ${notFuture?'disabled':''}>${d}</button>`;
+      }
+      popup.innerHTML = `
+        <div class="dp-header">
+          <button class="dp-nav" data-dir="-1">&#8249;</button>
+          <span class="dp-month-year">${MONTHS[month]} ${year}</span>
+          <button class="dp-nav" data-dir="1">&#8250;</button>
+        </div>
+        <div class="dp-weekdays">${DAYS.map(d => `<span>${d}</span>`).join('')}</div>
+        <div class="dp-grid">${cells}</div>`;
+    }
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      if (popup.style.display === 'none') {
+        const rect = trigger.getBoundingClientRect();
+        popup.style.top  = (rect.bottom + 6) + 'px';
+        popup.style.left = rect.left + 'px';
+        renderCalendar();
+        popup.style.display = 'block';
+        requestAnimationFrame(() => {
+          const pr = popup.getBoundingClientRect();
+          if (pr.right > window.innerWidth - 8)
+            popup.style.left = Math.max(8, window.innerWidth - pr.width - 8) + 'px';
+        });
+      } else {
+        popup.style.display = 'none';
+      }
+    });
+    popup.addEventListener('click', e => {
+      e.stopPropagation();
+      const nav = e.target.closest('.dp-nav');
+      if (nav) {
+        state.month += +nav.dataset.dir;
+        if (state.month < 0)  { state.month = 11; state.year--; }
+        if (state.month > 11) { state.month = 0;  state.year++; }
+        renderCalendar(); return;
+      }
+      const day = e.target.closest('.dp-day');
+      if (day && !day.disabled) {
+        state.selected = day.dataset.date;
+        input.value    = state.selected;
+        renderTrigger();
+        popup.style.display = 'none';
+      }
+    });
+    document.addEventListener('click', () => { popup.style.display = 'none'; });
+
+    renderTrigger();
+    return {
+      setDate(iso) {
+        state.selected = iso;
+        state.year  = +iso.slice(0, 4);
+        state.month = +iso.slice(5, 7) - 1;
+        input.value = iso;
+        renderTrigger();
+      }
+    };
+  }
+
+  /* ── Suggested challenges — quick-pick lift + deadline combos that
+     pre-fill the form below. Friend selection is always left to the user. */
+  const H2H_SUGGESTIONS = [
+    { lift: 'Bench Press',    days: 7  },
+    { lift: 'Squat',          days: 7  },
+    { lift: 'Deadlift',       days: 14 },
+    { lift: 'Overhead Press', days: 7  },
+    { lift: 'Pull-Up',        days: 14 },
+    { lift: 'Push-Up',        days: 7  },
+  ];
+
+  function h2hRenderSuggestions() {
+    const grid = document.getElementById('h2hSuggestGrid');
+    if (!grid) return;
+    grid.innerHTML = H2H_SUGGESTIONS.map((s, i) =>
+      `<button type="button" class="h2h-suggest-chip" data-idx="${i}">
+        <div class="h2h-suggest-lift">${s.lift}</div>
+        <div class="h2h-suggest-meta">${s.days === 14 ? '2 weeks' : '1 week'}</div>
+      </button>`
+    ).join('');
+  }
+
+  const h2hDefaultEnd = new Date(); h2hDefaultEnd.setDate(h2hDefaultEnd.getDate() + 7);
+  const h2hDatePickerApi = h2hCreateDatePicker('h2hEndDateInput', _igLocalISO(h2hDefaultEnd));
+  h2hRenderSuggestions();
+
+  document.getElementById('h2hSuggestGrid').addEventListener('click', e => {
+    const chip = e.target.closest('.h2h-suggest-chip');
+    if (!chip) return;
+    const s = H2H_SUGGESTIONS[+chip.dataset.idx];
+    document.getElementById('h2hLiftInput').value = s.lift;
+    const end = new Date(); end.setDate(end.getDate() + s.days);
+    if (h2hDatePickerApi) h2hDatePickerApi.setDate(_igLocalISO(end));
+    document.getElementById('h2hFriendSel').focus();
   });
 
   document.getElementById('h2hSendBtn').addEventListener('click', async () => {
     const friendUid = document.getElementById('h2hFriendSel').value;
     const lift       = document.getElementById('h2hLiftInput').value.trim();
-    const days       = +document.querySelector('#h2hDurationToggle button.active').dataset.days;
+    const endDate    = document.getElementById('h2hEndDateInput').value;
     const msg        = document.getElementById('h2hFormMsg');
     const btn        = document.getElementById('h2hSendBtn');
 
-    if (!friendUid) { msg.style.color = 'var(--down)'; msg.textContent = 'Pick a friend.'; return; }
-    if (!lift)       { msg.style.color = 'var(--down)'; msg.textContent = 'Enter a lift.';  return; }
+    if (!friendUid)                     { msg.style.color = 'var(--down)'; msg.textContent = 'Pick a friend.'; return; }
+    if (!lift)                          { msg.style.color = 'var(--down)'; msg.textContent = 'Enter a lift.'; return; }
+    if (!endDate || endDate <= _igLocalISO()) { msg.style.color = 'var(--down)'; msg.textContent = 'Pick a date in the future.'; return; }
 
     const friend = h2hFriendsCache.find(f => f.uid === friendUid);
     btn.textContent = 'Sending…'; btn.disabled = true;
@@ -1056,15 +1200,18 @@
       await db.collection('headToHead').add({
         challengerUid: h2hMyUid, challengerUsername: h2hMyUsername,
         opponentUid: friendUid,  opponentUsername: friend ? friend.username : 'Athlete',
-        lift, durationDays: days,
-        startDate: null, endDate: null,
+        lift,
+        startDate: null, endDate,
         status: 'pending',
         challengerBest: 0, opponentBest: 0,
         winnerUid: null,
         challengerXpAwarded: false, opponentXpAwarded: false,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      document.getElementById('h2hCancelBtn').click();
+      msg.style.color = 'var(--up)'; msg.textContent = 'Challenge sent!';
+      document.getElementById('h2hFriendSel').value = '';
+      document.getElementById('h2hLiftInput').value = '';
+      setTimeout(() => { msg.textContent = ''; }, 2500);
       loadHeadToHead(h2hMyUid);
     } catch (err) {
       msg.style.color = 'var(--down)'; msg.textContent = 'Could not send — check your connection.';
@@ -1081,9 +1228,13 @@
       acceptBtn.textContent = '…'; acceptBtn.disabled = true;
       const today = _igLocalISO();
       const snap  = await db.doc(`headToHead/${id}`).get();
-      const days  = snap.exists ? (snap.data().durationDays || 7) : 7;
-      const end   = new Date(today + 'T12:00:00'); end.setDate(end.getDate() + days);
-      await db.doc(`headToHead/${id}`).update({ status: 'active', startDate: today, endDate: _igLocalISO(end) });
+      const c     = snap.exists ? snap.data() : null;
+      if (!c || !c.endDate || c.endDate <= today) {
+        alert('This challenge\'s date has already passed — ask them to send a new one.');
+        loadHeadToHead(h2hMyUid);
+        return;
+      }
+      await db.doc(`headToHead/${id}`).update({ status: 'active', startDate: today });
       loadHeadToHead(h2hMyUid);
     } else if (declineBtn) {
       const id = declineBtn.dataset.h2hDecline;
