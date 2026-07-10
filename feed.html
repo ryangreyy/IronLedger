@@ -387,11 +387,11 @@
     <div class="feed-wrap h2h-wrap">
       <div class="eyebrow">Social</div>
       <div class="feed-toplevel-tabs" id="feedTopTabs">
-        <button class="feed-toplevel-tab active" data-panel="h2h">Head-to-Head Challenges</button>
+        <button class="feed-toplevel-tab" data-panel="h2h">Head-to-Head Challenges</button>
         <button class="feed-toplevel-tab" data-panel="lb">Leaderboards</button>
       </div>
 
-      <div class="feed-toplevel-panel active" id="h2hPanel">
+      <div class="feed-toplevel-panel" id="h2hPanel">
         <div id="h2hList"><p class="feed-loading">Loading…</p></div>
 
         <div class="h2h-subhead">Suggested Challenges</div>
@@ -1203,16 +1203,23 @@
   h2hRenderSuggestions();
 
   /* ── Top-level page tabs (Head-to-Head Challenges / Leaderboards) —
-     data for both loads in the background regardless of which is shown,
-     so switching tabs is instant. ── */
+     neither is active on load, so landing on the page shows just the
+     Friends Activity feed with the two buttons above it. Clicking a tab
+     opens it; clicking the already-open tab again closes it back to
+     neither. Data for both loads in the background regardless of which
+     (or neither) is shown, so opening a tab is instant. ── */
   document.getElementById('feedTopTabs').addEventListener('click', e => {
     const btn = e.target.closest('.feed-toplevel-tab');
     if (!btn) return;
     const panel = btn.dataset.panel;
+    const alreadyActive = btn.classList.contains('active');
     document.querySelectorAll('.feed-toplevel-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('h2hPanel').classList.toggle('active', panel === 'h2h');
-    document.getElementById('lbPanel').classList.toggle('active', panel === 'lb');
+    document.getElementById('h2hPanel').classList.remove('active');
+    document.getElementById('lbPanel').classList.remove('active');
+    if (!alreadyActive) {
+      btn.classList.add('active');
+      document.getElementById(panel === 'h2h' ? 'h2hPanel' : 'lbPanel').classList.add('active');
+    }
   });
 
   document.getElementById('h2hSuggestGrid').addEventListener('click', e => {
