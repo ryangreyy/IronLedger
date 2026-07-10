@@ -203,10 +203,66 @@
 .lb-rank-xp{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); }
 .lb-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:20px 0; }
 
+/* ── Head-to-head challenges ── */
+.h2h-cards{ display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
+.h2h-card{
+  padding:14px 16px; border-radius:10px;
+  background:rgba(255,255,255,.03); border:1px solid var(--border);
+}
+.h2h-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:2px; }
+.h2h-card-title{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text); }
+.h2h-card-sub{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); margin-top:3px; }
+.h2h-badge{
+  font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  padding:3px 9px; border-radius:20px; flex-shrink:0; white-space:nowrap;
+}
+.h2h-badge.pending{ background:rgba(255,193,7,.12); color:#ffc107; border:1px solid rgba(255,193,7,.35); }
+.h2h-badge.active{ background:rgba(193,39,45,.12); color:var(--accent-bright); border:1px solid rgba(193,39,45,.35); }
+.h2h-badge.won{ background:rgba(74,222,128,.12); color:#4ade80; border:1px solid rgba(74,222,128,.35); }
+.h2h-badge.lost{ background:rgba(255,255,255,.05); color:var(--text-dimmer); border:1px solid var(--border); }
+.h2h-progress-row{ display:flex; align-items:center; gap:10px; margin-top:9px; font-family:var(--mono); font-size:12px; }
+.h2h-progress-name{ width:88px; flex-shrink:0; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.h2h-progress-track{ flex:1; height:6px; background:var(--bg-2); border-radius:3px; overflow:hidden; border:1px solid var(--border); }
+.h2h-progress-fill{ height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent),var(--accent-bright)); transition:width .5s; }
+.h2h-progress-val{ width:58px; text-align:right; flex-shrink:0; font-weight:700; color:var(--text); }
+.h2h-actions{ display:flex; gap:8px; margin-top:10px; }
+.h2h-actions button{
+  flex:1; padding:8px; border-radius:8px; font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase; cursor:pointer; transition:all .15s; border:none;
+}
+.h2h-accept-btn{ background:var(--accent); border:1px solid var(--accent-bright) !important; color:#fff; }
+.h2h-accept-btn:hover{ background:#a01f24; }
+.h2h-decline-btn{ background:transparent; border:1px solid var(--border-strong) !important; color:var(--text-dim); }
+.h2h-decline-btn:hover{ border-color:var(--down) !important; color:var(--down); }
+.h2h-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:16px 0; }
+
+.h2h-new-btn{
+  width:100%; padding:12px; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:10px; color:var(--text-dim); font-family:var(--mono); font-size:12px;
+  font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer;
+  transition:background .15s, color .15s, border-color .15s; margin-top:14px;
+}
+.h2h-new-btn:hover{ background:var(--bg-2); color:var(--text); border-color:var(--accent); }
+.h2h-form-card{
+  display:none; margin-top:14px; padding:20px; background:var(--surface);
+  border:1px solid var(--border); border-radius:14px;
+}
+.h2h-form-card.open{ display:block; }
+.h2h-form-actions{ display:flex; gap:10px; margin-top:6px; }
+.h2h-form-msg{ margin-top:10px; font-family:var(--mono); font-size:12px; }
+
 [data-theme="light"] .lb-tab{ border-color:rgba(18,23,33,.16); }
 [data-theme="light"] .lb-tab:hover{ border-color:rgba(18,23,33,.30); background:rgba(18,23,33,.04); }
 [data-theme="light"] .lb-row{ background:rgba(18,23,33,.03); border-color:rgba(18,23,33,.14); }
 [data-theme="light"] .lb-row.lb-me{ border-color:var(--accent); background:rgba(193,39,45,.06); }
+
+[data-theme="light"] .h2h-new-btn{ border-color:rgba(18,23,33,.16); }
+[data-theme="light"] .h2h-new-btn:hover{ border-color:var(--accent); }
+[data-theme="light"] .h2h-card{ background:rgba(18,23,33,.03); border-color:rgba(18,23,33,.14); }
+[data-theme="light"] .h2h-badge.pending{ background:rgba(180,120,0,.10); color:#8a5a00; border-color:rgba(180,120,0,.32); }
+[data-theme="light"] .h2h-badge.won{ background:rgba(21,128,73,.07); color:#0f6b3d; border-color:rgba(21,128,73,.32); }
+[data-theme="light"] .h2h-badge.lost{ background:rgba(18,23,33,.05); border-color:rgba(18,23,33,.16); }
+[data-theme="light"] .h2h-decline-btn{ border-color:rgba(18,23,33,.20); }
 
 [data-theme="light"] .c3-card{
   background:linear-gradient(180deg,#FFFFFF,#F2F4F8) !important;
@@ -299,6 +355,35 @@
 
   <!-- FEED PAGE -->
   <div id="feed-page" style="display:none;">
+    <div class="feed-wrap h2h-wrap">
+      <div class="eyebrow">Social</div>
+      <h2 class="title" style="margin-bottom:20px;">Head-to-Head Challenges</h2>
+      <div id="h2hList"><p class="feed-loading">Loading…</p></div>
+      <button class="h2h-new-btn" id="h2hNewBtn">+ Challenge a friend</button>
+      <div class="h2h-form-card" id="h2hFormCard">
+        <div class="field">
+          <label>Friend</label>
+          <select id="h2hFriendSel"><option value="">Choose a friend…</option></select>
+        </div>
+        <div class="field">
+          <label>Lift</label>
+          <input id="h2hLiftInput" type="text" placeholder="e.g. Bench Press" maxlength="40" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Timeframe</label>
+          <div class="unit-toggle" id="h2hDurationToggle">
+            <button data-days="7" class="active">1 week</button>
+            <button data-days="14">2 weeks</button>
+          </div>
+        </div>
+        <div class="h2h-form-actions">
+          <button class="btn btn-primary" id="h2hSendBtn">Send challenge</button>
+          <button class="btn btn-ghost" id="h2hCancelBtn">Cancel</button>
+        </div>
+        <p id="h2hFormMsg" class="h2h-form-msg"></p>
+      </div>
+    </div>
+
     <div class="feed-wrap lb-wrap">
       <div class="eyebrow">Social</div>
       <h2 class="title" style="margin-bottom:20px;">Leaderboards</h2>
@@ -744,6 +829,269 @@
     renderLbList(btn.dataset.lb);
   });
 
+  /* ── Head-to-head challenges ──
+     XP is ALWAYS self-written: each client only ever increments its own
+     users/{myUid}/xp/main.total, triggered by seeing itself as the recorded
+     winner. This avoids relying on cross-user writes into a personal
+     subcollection, which isn't a proven-safe pattern here (unlike the
+     shared headToHead doc itself, which follows the same open,
+     any-participant-can-update shape already proven by friendRequests). */
+  const H2H_XP_BONUS = 150;
+  let h2hMyUid      = null;
+  let h2hMyUsername = 'Athlete';
+  let h2hFriendsCache = []; // [{uid, username}]
+
+  function h2hDaysLeft(endDate) {
+    const today = _igLocalISO();
+    return Math.round((new Date(endDate + 'T12:00:00') - new Date(today + 'T12:00:00')) / 86400000);
+  }
+
+  function h2hPopulateFriendSelect() {
+    const sel = document.getElementById('h2hFriendSel');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Choose a friend…</option>' +
+      h2hFriendsCache.map(f => `<option value="${f.uid}">${f.username}</option>`).join('');
+  }
+
+  async function loadHeadToHead(myUid) {
+    const list = document.getElementById('h2hList');
+    if (!list) return;
+    h2hMyUid = myUid;
+    list.innerHTML = '<p class="feed-loading">Loading…</p>';
+
+    try {
+      const [sentSnap, recvSnap, mySettingsSnap] = await Promise.all([
+        db.collection('friendRequests').where('fromUid', '==', myUid).where('status', '==', 'accepted').get(),
+        db.collection('friendRequests').where('toUid',   '==', myUid).where('status', '==', 'accepted').get(),
+        db.doc(`users/${myUid}/settings/main`).get(),
+      ]);
+      const mySettings = mySettingsSnap.exists ? mySettingsSnap.data() : {};
+      h2hMyUsername = mySettings.username || mySettings.displayName || 'Athlete';
+      h2hFriendsCache = [
+        ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
+        ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername })),
+      ];
+      h2hPopulateFriendSelect();
+
+      const [asChallenger, asOpponent] = await Promise.all([
+        db.collection('headToHead').where('challengerUid', '==', myUid).get(),
+        db.collection('headToHead').where('opponentUid',   '==', myUid).get(),
+      ]);
+      const challenges = [
+        ...asChallenger.docs.map(d => ({ id: d.id, ...d.data(), myRole: 'challenger' })),
+        ...asOpponent.docs.map(d => ({ id: d.id, ...d.data(), myRole: 'opponent' })),
+      ];
+
+      /* Update my own side's best weight on active challenges, and
+         resolve any whose window has passed. */
+      const today = _igLocalISO();
+      await Promise.all(challenges.filter(c => c.status === 'active').map(async c => {
+        const sessSnap = await db.collection(`users/${myUid}/sessions`)
+          .where('dateRaw', '>=', c.startDate).get();
+        const liftLower = (c.lift || '').toLowerCase();
+        const myBest = sessSnap.docs
+          .map(d => d.data())
+          .filter(s => !s.isRestDay && (s.lift || '').toLowerCase() === liftLower && s.dateRaw <= c.endDate)
+          .reduce((m, s) => Math.max(m, +s.wt || 0), 0);
+
+        const myField = c.myRole === 'challenger' ? 'challengerBest' : 'opponentBest';
+        if (myBest > (c[myField] || 0)) {
+          await db.doc(`headToHead/${c.id}`).update({ [myField]: myBest });
+          c[myField] = myBest;
+        }
+
+        if (c.endDate < today) {
+          const winnerUid = c.challengerBest === c.opponentBest
+            ? null
+            : (c.challengerBest > c.opponentBest ? c.challengerUid : c.opponentUid);
+          await db.doc(`headToHead/${c.id}`).update({ status: 'completed', winnerUid });
+          c.status = 'completed';
+          c.winnerUid = winnerUid;
+        }
+      }));
+
+      /* Self-award XP for challenges I've won, once. */
+      const myAwardField = c => c.myRole === 'challenger' ? 'challengerXpAwarded' : 'opponentXpAwarded';
+      const winsToAward = challenges.filter(c =>
+        c.status === 'completed' && c.winnerUid === myUid && !c[myAwardField(c)]
+      );
+      for (const c of winsToAward) {
+        await db.doc(`users/${myUid}/xp/main`).set(
+          { total: firebase.firestore.FieldValue.increment(H2H_XP_BONUS) },
+          { merge: true }
+        );
+        await db.doc(`headToHead/${c.id}`).update({ [myAwardField(c)]: true });
+        c[myAwardField(c)] = true;
+      }
+
+      renderH2HList(challenges);
+    } catch (err) {
+      console.error('Head-to-head load failed:', err);
+      list.innerHTML = '<p class="h2h-empty">Couldn\'t load challenges right now.</p>';
+    }
+  }
+
+  function renderH2HList(challenges) {
+    const list = document.getElementById('h2hList');
+    if (!list) return;
+
+    if (!challenges.length) {
+      list.innerHTML = '<p class="h2h-empty">No challenges yet — pick a friend and a lift below.</p>';
+      return;
+    }
+
+    const order = { pending: 0, active: 1, completed: 2 };
+    challenges.sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3));
+
+    list.innerHTML = '<div class="h2h-cards">' + challenges.map(c => {
+      const otherName = c.myRole === 'challenger' ? c.opponentUsername   : c.challengerUsername;
+      const myBest    = c.myRole === 'challenger' ? c.challengerBest     : c.opponentBest;
+      const otherBest = c.myRole === 'challenger' ? c.opponentBest       : c.challengerBest;
+      const durLabel  = c.durationDays === 14 ? '2 weeks' : '1 week';
+
+      if (c.status === 'pending') {
+        if (c.myRole === 'opponent') {
+          return `<div class="h2h-card">
+            <div class="h2h-card-head">
+              <div>
+                <div class="h2h-card-title">${c.challengerUsername} challenged you</div>
+                <div class="h2h-card-sub">${c.lift} · ${durLabel}</div>
+              </div>
+              <span class="h2h-badge pending">Pending</span>
+            </div>
+            <div class="h2h-actions">
+              <button class="h2h-accept-btn" data-h2h-accept="${c.id}">Accept</button>
+              <button class="h2h-decline-btn" data-h2h-decline="${c.id}">Decline</button>
+            </div>
+          </div>`;
+        }
+        return `<div class="h2h-card">
+          <div class="h2h-card-head">
+            <div>
+              <div class="h2h-card-title">Waiting on ${c.opponentUsername}</div>
+              <div class="h2h-card-sub">${c.lift} · ${durLabel}</div>
+            </div>
+            <span class="h2h-badge pending">Pending</span>
+          </div>
+        </div>`;
+      }
+
+      if (c.status === 'active') {
+        const daysLeft = h2hDaysLeft(c.endDate);
+        const maxVal   = Math.max(myBest, otherBest, 1);
+        return `<div class="h2h-card">
+          <div class="h2h-card-head">
+            <div>
+              <div class="h2h-card-title">${c.lift}</div>
+              <div class="h2h-card-sub">${daysLeft > 0 ? daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' left' : 'Ending today'}</div>
+            </div>
+            <span class="h2h-badge active">Active</span>
+          </div>
+          <div class="h2h-progress-row">
+            <div class="h2h-progress-name">You</div>
+            <div class="h2h-progress-track"><div class="h2h-progress-fill" style="width:${myBest / maxVal * 100}%"></div></div>
+            <div class="h2h-progress-val">${myBest || '—'} lbs</div>
+          </div>
+          <div class="h2h-progress-row">
+            <div class="h2h-progress-name">${otherName}</div>
+            <div class="h2h-progress-track"><div class="h2h-progress-fill" style="width:${otherBest / maxVal * 100}%"></div></div>
+            <div class="h2h-progress-val">${otherBest || '—'} lbs</div>
+          </div>
+        </div>`;
+      }
+
+      /* completed */
+      const draw     = !c.winnerUid;
+      const won      = c.winnerUid === h2hMyUid;
+      const badgeCls = draw ? 'lost' : (won ? 'won' : 'lost');
+      const badgeTxt = draw ? 'Draw' : (won ? 'You won' : 'You lost');
+      return `<div class="h2h-card">
+        <div class="h2h-card-head">
+          <div>
+            <div class="h2h-card-title">${c.lift} vs ${otherName}</div>
+            <div class="h2h-card-sub">You ${myBest} lbs · ${otherName} ${otherBest} lbs</div>
+          </div>
+          <span class="h2h-badge ${badgeCls}">${badgeTxt}</span>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  document.getElementById('h2hNewBtn').addEventListener('click', () => {
+    const card = document.getElementById('h2hFormCard');
+    const btn  = document.getElementById('h2hNewBtn');
+    const open = !card.classList.contains('open');
+    card.classList.toggle('open', open);
+    btn.textContent = open ? 'Cancel' : '+ Challenge a friend';
+  });
+
+  document.getElementById('h2hCancelBtn').addEventListener('click', () => {
+    document.getElementById('h2hFormCard').classList.remove('open');
+    document.getElementById('h2hNewBtn').textContent = '+ Challenge a friend';
+    document.getElementById('h2hFriendSel').value = '';
+    document.getElementById('h2hLiftInput').value = '';
+    document.getElementById('h2hFormMsg').textContent = '';
+  });
+
+  document.getElementById('h2hDurationToggle').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-days]');
+    if (!btn) return;
+    document.querySelectorAll('#h2hDurationToggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+
+  document.getElementById('h2hSendBtn').addEventListener('click', async () => {
+    const friendUid = document.getElementById('h2hFriendSel').value;
+    const lift       = document.getElementById('h2hLiftInput').value.trim();
+    const days       = +document.querySelector('#h2hDurationToggle button.active').dataset.days;
+    const msg        = document.getElementById('h2hFormMsg');
+    const btn        = document.getElementById('h2hSendBtn');
+
+    if (!friendUid) { msg.style.color = 'var(--down)'; msg.textContent = 'Pick a friend.'; return; }
+    if (!lift)       { msg.style.color = 'var(--down)'; msg.textContent = 'Enter a lift.';  return; }
+
+    const friend = h2hFriendsCache.find(f => f.uid === friendUid);
+    btn.textContent = 'Sending…'; btn.disabled = true;
+    try {
+      await db.collection('headToHead').add({
+        challengerUid: h2hMyUid, challengerUsername: h2hMyUsername,
+        opponentUid: friendUid,  opponentUsername: friend ? friend.username : 'Athlete',
+        lift, durationDays: days,
+        startDate: null, endDate: null,
+        status: 'pending',
+        challengerBest: 0, opponentBest: 0,
+        winnerUid: null,
+        challengerXpAwarded: false, opponentXpAwarded: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      document.getElementById('h2hCancelBtn').click();
+      loadHeadToHead(h2hMyUid);
+    } catch (err) {
+      msg.style.color = 'var(--down)'; msg.textContent = 'Could not send — check your connection.';
+    } finally {
+      btn.textContent = 'Send challenge'; btn.disabled = false;
+    }
+  });
+
+  document.getElementById('h2hList').addEventListener('click', async e => {
+    const acceptBtn  = e.target.closest('[data-h2h-accept]');
+    const declineBtn = e.target.closest('[data-h2h-decline]');
+    if (acceptBtn) {
+      const id = acceptBtn.dataset.h2hAccept;
+      acceptBtn.textContent = '…'; acceptBtn.disabled = true;
+      const today = _igLocalISO();
+      const snap  = await db.doc(`headToHead/${id}`).get();
+      const days  = snap.exists ? (snap.data().durationDays || 7) : 7;
+      const end   = new Date(today + 'T12:00:00'); end.setDate(end.getDate() + days);
+      await db.doc(`headToHead/${id}`).update({ status: 'active', startDate: today, endDate: _igLocalISO(end) });
+      loadHeadToHead(h2hMyUid);
+    } else if (declineBtn) {
+      const id = declineBtn.dataset.h2hDecline;
+      await db.doc(`headToHead/${id}`).delete();
+      loadHeadToHead(h2hMyUid);
+    }
+  });
+
   async function loadFeed(myUid) {
     const container = document.getElementById('feedContainer');
     if (!container) return;
@@ -837,6 +1185,7 @@
     if (user) {
       if (gate) gate.style.display = 'none';
       if (page) page.style.display = '';
+      loadHeadToHead(user.uid);
       loadLeaderboards(user.uid);
       loadFeed(user.uid);
     } else {
