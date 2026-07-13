@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=158">
+<link rel="stylesheet" href="styles.css?v=159">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -102,11 +102,15 @@
   <div class="wrap">
 
     <!-- ================= PAGE TABS ================= -->
+    <div class="training-mobile-head">
+      <div class="eyebrow" id="trainingMobileEyebrow">Recent Activity</div>
+      <h2 class="title" id="trainingMobileTitle">Training log</h2>
+    </div>
     <div class="page-tabs" id="trainingPageTabs" style="margin-top:28px;">
-      <button class="page-tab active" data-tpanel="log">Training Log</button>
-      <button class="page-tab" data-tpanel="weight">Weight Log</button>
-      <button class="page-tab" data-tpanel="breakdown">Daily Breakdown</button>
-      <button class="page-tab" data-tpanel="history">Exercise History</button>
+      <button class="page-tab active" data-tpanel="log" data-eyebrow="Recent Activity" data-title="Training log">Training Log</button>
+      <button class="page-tab" data-tpanel="weight" data-eyebrow="Bodyweight" data-title="Weight Tracking">Weight Log</button>
+      <button class="page-tab" data-tpanel="breakdown" data-eyebrow="Daily Breakdown" data-title="Daily Breakdown">Daily Breakdown</button>
+      <button class="page-tab" data-tpanel="history" data-eyebrow="Exercise History" data-title="Exercise History">Exercise History</button>
     </div>
 
     <!-- ================= TRAINING LOG ================= -->
@@ -353,6 +357,10 @@
     const panel = btn.dataset.tpanel;
     document.querySelectorAll('#trainingPageTabs .page-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
+    const mobileEyebrow = document.getElementById('trainingMobileEyebrow');
+    const mobileTitle = document.getElementById('trainingMobileTitle');
+    if (mobileEyebrow) mobileEyebrow.textContent = btn.dataset.eyebrow || btn.textContent;
+    if (mobileTitle) mobileTitle.textContent = btn.dataset.title || btn.textContent;
     document.querySelectorAll('.page-tab-panel').forEach(p => {
       p.classList.toggle('active', p.dataset.panel === panel);
     });
