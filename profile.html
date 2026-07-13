@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=159">
+<link rel="stylesheet" href="styles.css?v=160">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <style>
@@ -393,28 +393,9 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       <!-- ── Edit Profile ── -->
       <div class="edit-profile-section">
         <div style="display:flex;align-items:center;gap:10px;">
-          <button id="addFriendBtn" class="btn btn-primary" style="font-size:13px;padding:9px 18px;">Add Friend +</button>
           <button class="edit-profile-btn" id="editProfileToggle" title="Edit profile" aria-label="Edit profile">
             <i class="ti ti-user-edit" aria-hidden="true"></i>
           </button>
-        </div>
-
-        <!-- Friends dropdown -->
-        <div id="addFriendDropdown" style="display:none;margin-top:10px;">
-          <div class="card" style="padding:20px 22px;">
-            <p class="friends-section-label" style="margin-top:0;margin-bottom:10px;">Find by username</p>
-            <div class="friend-search-wrap">
-              <div class="field"><input id="friendSearchInput" type="text" placeholder="@username" autocomplete="off" maxlength="30" spellcheck="false"></div>
-              <button id="friendSearchBtn" class="btn btn-primary" style="padding:10px 16px;font-size:13px;white-space:nowrap;">Find</button>
-            </div>
-            <div id="friendSearchResult"></div>
-            <div id="pendingRequestsList"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:8px;">
-              <p class="friends-section-label" style="margin:0;">Friends</p>
-              <span id="friendCount" class="friends-count"></span>
-            </div>
-            <div id="friendsList"><p class="friends-empty">No friends yet. Search by username to add someone.</p></div>
-          </div>
         </div>
         <div class="edit-profile-panel" id="editProfilePanel">
           <div class="card" style="padding:20px 22px;">

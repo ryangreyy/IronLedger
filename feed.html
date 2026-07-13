@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=159">
+<link rel="stylesheet" href="styles.css?v=160">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <style>
@@ -17,6 +17,17 @@
 .feed-wrap{ max-width:820px; margin:0 auto; padding:28px 20px 120px; }
 #feedActivityWrap{ padding-top:8px; }
 .h2h-wrap{ padding-bottom:0; }
+.feed-head-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.feed-head-row .eyebrow{ margin-bottom:0; }
+.feed-add-friend{ font-size:13px; padding:9px 16px; white-space:nowrap; }
+.feed-friend-dropdown{ display:none; margin-bottom:16px; }
+.friend-search-wrap{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.friend-search-wrap .field{ flex:1; margin:0; }
+.friend-row{ display:flex; align-items:center; justify-content:space-between; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin-top:8px; }
+.friend-handle{ font-size:14px; font-weight:700; color:var(--text); font-family:var(--mono); }
+.friends-count{ font-family:var(--mono); font-size:12px; color:var(--text-dimmer); margin-left:8px; font-weight:600; }
+.friends-empty{ font-size:13px; color:var(--text-dimmer); font-family:var(--mono); padding:4px 0; }
+.friends-section-label{ font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:8px; }
 .feed-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:32px 0; }
 .feed-loading{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:24px 0; }
 
@@ -349,6 +360,8 @@
   .feed-wrap{ padding:28px 14px 100px; }
   .h2h-wrap{ padding-bottom:0; }
   .feed-grid{ grid-template-columns:1fr; }
+  .feed-head-row{ align-items:flex-start; }
+  .feed-add-friend{ padding:8px 12px; font-size:12px; }
 
   /* Head-to-head/Leaderboards move from inline desktop tabs to rounded
      pill tabs, and challenge creation moves off the scroll into a
@@ -448,7 +461,27 @@
   <!-- FEED PAGE -->
   <div id="feed-page" style="display:none;">
     <div class="feed-wrap h2h-wrap">
-      <div class="eyebrow">Social</div>
+      <div class="feed-head-row">
+        <div class="eyebrow">Social</div>
+        <button id="addFriendBtn" class="btn btn-primary feed-add-friend">Add Friend +</button>
+      </div>
+
+      <div id="addFriendDropdown" class="feed-friend-dropdown">
+        <div class="card" style="padding:20px 22px;">
+          <p class="friends-section-label" style="margin-top:0;margin-bottom:10px;">Find by username</p>
+          <div class="friend-search-wrap">
+            <div class="field"><input id="friendSearchInput" type="text" placeholder="@username" autocomplete="off" maxlength="30" spellcheck="false"></div>
+            <button id="friendSearchBtn" class="btn btn-primary" style="padding:10px 16px;font-size:13px;white-space:nowrap;">Find</button>
+          </div>
+          <div id="friendSearchResult"></div>
+          <div id="pendingRequestsList"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:8px;">
+            <p class="friends-section-label" style="margin:0;">Friends</p>
+            <span id="friendCount" class="friends-count"></span>
+          </div>
+          <div id="friendsList"><p class="friends-empty">No friends yet. Search by username to add someone.</p></div>
+        </div>
+      </div>
 
       <div class="feed-toplevel-tabs" id="feedTopTabs">
         <button class="feed-toplevel-tab" data-panel="h2h">Head-to-Head Challenges</button>
@@ -538,6 +571,13 @@
   const RXN_TYPES  = ['heart', 'fire', 'skull', 'ins'];
   const RXN_EMOJI  = { heart: '❤️', fire: '🔥', skull: '💀', ins: '🤯' };
   const RXN_CLASS  = { fire: 'rxn-fire', skull: 'rxn-skull', ins: 'rxn-ins' };
+  let feedCurrentUser = null;
+  let feedMyUsername = null;
+  let feedFriendSearchInited = false;
+  let feedSentFriendReqs = [];
+  let feedReceivedFriendReqs = [];
+  let feedUnsubFriendsSent = null;
+  let feedUnsubFriendsRecv = null;
 
   /* Build a color map from a friend's settings doc */
   function clsColors(settings) {
@@ -1418,6 +1458,7 @@
       const mySettings    = mySettingsSnap.exists ? mySettingsSnap.data() : {};
       const viewerColors  = clsColors(mySettings);
       const viewerUsername = mySettings.username || 'me';
+      feedMyUsername = mySettings.username || mySettings.displayName || feedCurrentUser?.displayName || feedCurrentUser?.email?.split('@')[0] || 'Athlete';
       const friends = [
         { uid: myUid, username: viewerUsername },
         ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
@@ -1425,7 +1466,7 @@
       ];
 
       if (!friends.length) {
-        container.innerHTML = '<p class="feed-empty">Add friends on your profile to see their workouts here.</p>';
+        container.innerHTML = '<p class="feed-empty">Add friends above to see their workouts here.</p>';
         return;
       }
 
@@ -1489,16 +1530,190 @@
     }
   }
 
+  function mergeFeedFriendState() {
+    const accepted = [
+      ...feedSentFriendReqs.filter(r => r.status === 'accepted').map(r => ({ docId: r.docId, username: r.toUsername })),
+      ...feedReceivedFriendReqs.filter(r => r.status === 'accepted').map(r => ({ docId: r.docId, username: r.fromUsername }))
+    ];
+    const pending = feedReceivedFriendReqs.filter(r => r.status === 'pending');
+    renderFeedFriendsList(accepted);
+    renderFeedPendingRequests(pending);
+    const countEl = document.getElementById('friendCount');
+    if (countEl) countEl.textContent = accepted.length ? `(${accepted.length})` : '';
+  }
+
+  function renderFeedFriendsList(list) {
+    const el = document.getElementById('friendsList');
+    if (!el) return;
+    if (!list.length) {
+      el.innerHTML = '<p class="friends-empty">No friends yet. Search by username to add someone.</p>';
+      return;
+    }
+    el.innerHTML = list.map(f => `
+      <div class="friend-row">
+        <span class="friend-handle">@${f.username}</span>
+        <button class="btn btn-ghost remove-friend" data-docid="${f.docId}" style="padding:6px 12px;font-size:12px;color:var(--down);">Remove</button>
+      </div>`).join('');
+    el.querySelectorAll('.remove-friend').forEach(btn =>
+      btn.addEventListener('click', () => removeFeedFriendRequest(btn.dataset.docid)));
+  }
+
+  function renderFeedPendingRequests(list) {
+    const el = document.getElementById('pendingRequestsList');
+    if (!el) return;
+    if (!list.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `<p class="friends-section-label">Pending Requests (${list.length})</p>` +
+      list.map(r => `
+        <div class="friend-row">
+          <span class="friend-handle">@${r.fromUsername}</span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary accept-req" data-docid="${r.docId}" style="padding:6px 12px;font-size:12px;">Accept</button>
+            <button class="btn btn-ghost decline-req" data-docid="${r.docId}" style="padding:6px 12px;font-size:12px;">Decline</button>
+          </div>
+        </div>`).join('');
+    el.querySelectorAll('.accept-req').forEach(btn =>
+      btn.addEventListener('click', () => acceptFeedFriendRequest(btn.dataset.docid)));
+    el.querySelectorAll('.decline-req').forEach(btn =>
+      btn.addEventListener('click', () => removeFeedFriendRequest(btn.dataset.docid)));
+  }
+
+  function initFeedFriends(uid) {
+    if (feedUnsubFriendsSent) { feedUnsubFriendsSent(); feedUnsubFriendsSent = null; }
+    if (feedUnsubFriendsRecv) { feedUnsubFriendsRecv(); feedUnsubFriendsRecv = null; }
+
+    feedUnsubFriendsSent = db.collection('friendRequests').where('fromUid', '==', uid)
+      .onSnapshot(snap => {
+        feedSentFriendReqs = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+        mergeFeedFriendState();
+      });
+    feedUnsubFriendsRecv = db.collection('friendRequests').where('toUid', '==', uid)
+      .onSnapshot(snap => {
+        feedReceivedFriendReqs = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+        mergeFeedFriendState();
+      });
+
+    if (feedFriendSearchInited) return;
+    feedFriendSearchInited = true;
+
+    document.getElementById('addFriendBtn')?.addEventListener('click', () => {
+      const dropdown = document.getElementById('addFriendDropdown');
+      const btn = document.getElementById('addFriendBtn');
+      if (!dropdown || !btn) return;
+      const isHidden = dropdown.style.display === 'none' || !dropdown.style.display;
+      dropdown.style.display = isHidden ? 'block' : 'none';
+      if (isHidden) {
+        btn.textContent = '✕ Close';
+        document.getElementById('friendSearchInput')?.focus();
+      } else {
+        btn.textContent = 'Add Friend +';
+        const res = document.getElementById('friendSearchResult');
+        if (res) res.innerHTML = '';
+      }
+    });
+
+    document.getElementById('friendSearchBtn')?.addEventListener('click', doFeedFriendSearch);
+    document.getElementById('friendSearchInput')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doFeedFriendSearch();
+    });
+  }
+
+  async function doFeedFriendSearch() {
+    const input = document.getElementById('friendSearchInput');
+    const resultEl = document.getElementById('friendSearchResult');
+    if (!input || !resultEl || !feedCurrentUser) return;
+    const handle = input.value.trim().replace(/^@/, '').toLowerCase();
+    if (!handle) return;
+    resultEl.innerHTML = '<span style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">Searching…</span>';
+    try {
+      const snap = await db.collection('usernames').doc(handle).get();
+      if (!snap.exists) {
+        resultEl.innerHTML = '<span style="font-size:13px;color:var(--down);font-family:var(--mono);">No user found with that username.</span>';
+        return;
+      }
+      const targetUid = snap.data().uid;
+      if (targetUid === feedCurrentUser.uid) {
+        resultEl.innerHTML = '<span style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">That\'s you!</span>';
+        return;
+      }
+      const [sentSnap, recvSnap] = await Promise.all([
+        db.collection('friendRequests').where('fromUid', '==', feedCurrentUser.uid).where('toUid', '==', targetUid).limit(1).get(),
+        db.collection('friendRequests').where('fromUid', '==', targetUid).where('toUid', '==', feedCurrentUser.uid).limit(1).get()
+      ]);
+      if (!sentSnap.empty) {
+        const st = sentSnap.docs[0].data().status;
+        resultEl.innerHTML = st === 'accepted'
+          ? `<span style="font-size:13px;color:var(--up);font-family:var(--mono);">You're already friends with @${handle}.</span>`
+          : `<span style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">Request already sent to @${handle}.</span>`;
+        return;
+      }
+      if (!recvSnap.empty) {
+        resultEl.innerHTML = `<span style="font-size:13px;color:var(--text-dimmer);font-family:var(--mono);">@${handle} already sent you a request.</span>`;
+        return;
+      }
+      resultEl.innerHTML = `
+        <div class="friend-row">
+          <span class="friend-handle">@${handle}</span>
+          <button id="sendReqBtn" class="btn btn-primary" data-uid="${targetUid}" data-handle="${handle}" style="padding:6px 12px;font-size:12px;">Send Request</button>
+        </div>`;
+      document.getElementById('sendReqBtn')?.addEventListener('click', async e => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        try {
+          await db.collection('friendRequests').add({
+            fromUid:      feedCurrentUser.uid,
+            toUid:        targetUid,
+            fromUsername: feedMyUsername || feedCurrentUser.displayName || feedCurrentUser.email?.split('@')[0] || 'Athlete',
+            toUsername:   handle,
+            status:       'pending',
+            sentAt:       firebase.firestore.FieldValue.serverTimestamp()
+          });
+          resultEl.innerHTML = `<span style="font-size:13px;color:var(--up);font-family:var(--mono);">Request sent to @${handle}!</span>`;
+          input.value = '';
+          loadFeed(feedCurrentUser.uid);
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = 'Send Request';
+          resultEl.innerHTML += `<p style="font-size:12px;color:var(--down);font-family:var(--mono);margin-top:6px;">${err.message}</p>`;
+        }
+      });
+    } catch (err) {
+      resultEl.innerHTML = `<span style="font-size:13px;color:var(--down);font-family:var(--mono);">Error: ${err.message}</span>`;
+    }
+  }
+
+  async function acceptFeedFriendRequest(docId) {
+    try {
+      await db.doc(`friendRequests/${docId}`).update({ status: 'accepted' });
+      if (feedCurrentUser) loadFeed(feedCurrentUser.uid);
+    } catch (err) { alert('Could not accept: ' + err.message); }
+  }
+
+  async function removeFeedFriendRequest(docId) {
+    try {
+      await db.doc(`friendRequests/${docId}`).delete();
+      if (feedCurrentUser) loadFeed(feedCurrentUser.uid);
+    } catch (err) { alert('Could not remove: ' + err.message); }
+  }
+
   auth.onAuthStateChanged(user => {
     const gate = document.getElementById('feed-gate');
     const page = document.getElementById('feed-page');
     if (user) {
+      feedCurrentUser = user;
       if (gate) gate.style.display = 'none';
       if (page) page.style.display = '';
+      initFeedFriends(user.uid);
       loadHeadToHead(user.uid);
       loadLeaderboards(user.uid);
       loadFeed(user.uid);
     } else {
+      feedCurrentUser = null;
+      feedMyUsername = null;
+      feedSentFriendReqs = [];
+      feedReceivedFriendReqs = [];
+      if (feedUnsubFriendsSent) { feedUnsubFriendsSent(); feedUnsubFriendsSent = null; }
+      if (feedUnsubFriendsRecv) { feedUnsubFriendsRecv(); feedUnsubFriendsRecv = null; }
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }
