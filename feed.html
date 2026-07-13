@@ -17,8 +17,9 @@
 .feed-wrap{ max-width:820px; margin:0 auto; padding:28px 20px 120px; }
 #feedActivityWrap{ padding-top:8px; }
 .h2h-wrap{ padding-bottom:0; }
-.feed-head-row{ position:relative; padding-right:150px; }
+.feed-head-row{ position:relative; }
 .feed-head-row .eyebrow{ margin-bottom:14px; transform:translateY(-7px); }
+.feed-head-title{ margin-top:-4px; margin-bottom:22px; }
 .feed-add-friend{ position:absolute; top:-17px; right:0; font-size:13px; padding:9px 16px; white-space:nowrap; }
 .feed-friend-dropdown{ display:none; margin-bottom:16px; }
 .friend-search-wrap{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
@@ -33,28 +34,24 @@
 
 /* ── Top-level page tabs (Head-to-Head Challenges / Leaderboards) ── */
 .feed-toplevel-tabs{
-  display:flex; gap:28px; margin-bottom:24px;
-  border-bottom:1px solid var(--border);
-  overflow-x:auto; scrollbar-width:none;
+  display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px;
+  border-bottom:none;
+  overflow:visible; scrollbar-width:none;
 }
 .feed-toplevel-tabs::-webkit-scrollbar{ display:none; }
 .feed-toplevel-tab{
-  background:none; border:none; padding:0 0 14px; margin:0;
-  font-family:var(--display); font-size:21px; font-weight:400; letter-spacing:0.4px;
-  color:var(--text-dimmer); cursor:pointer; position:relative; white-space:nowrap;
-  transition:color .15s;
+  background:var(--surface); border:1px solid var(--border-strong);
+  color:var(--text-dim); font-family:var(--mono); font-size:12px; font-weight:700;
+  letter-spacing:0.04em; text-transform:uppercase; padding:10px 18px;
+  border-radius:10px; cursor:pointer; position:relative; white-space:nowrap;
+  transition:all .15s;
 }
-.feed-toplevel-tab:hover{ color:var(--text-dim); }
-.feed-toplevel-tab.active{ color:var(--text); }
-.feed-toplevel-tab.active::after{
-  content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px;
-  background:linear-gradient(90deg,var(--accent),var(--accent-bright));
-}
+.feed-toplevel-tab:hover{ background:var(--bg-2); color:var(--text); border-color:var(--accent); }
+.feed-toplevel-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
 .feed-toplevel-panel{ display:none; }
 .feed-toplevel-panel.active{ display:block; }
 @media(max-width:480px){
-  .feed-toplevel-tabs{ gap:20px; }
-  .feed-toplevel-tab{ font-size:16px; }
+  .feed-toplevel-tab{ font-size:11px; white-space:normal; line-height:1.15; text-align:center; }
 }
 
 /* ── Day header ── */
@@ -319,7 +316,7 @@
 [data-theme="light"] .h2h-sheet-handle{ background:rgba(18,23,33,.18); }
 [data-theme="light"] .h2h-create-wrap{ background:#FFFFFF; border-color:rgba(18,23,33,.14); }
 [data-theme="light"] .mobile-pill{ color:rgba(18,23,33,.42); }
-[data-theme="light"] .mobile-pill-tabs{ background:rgba(18,23,33,.04); }
+[data-theme="light"] .mobile-pill-tabs{ background:transparent; }
 
 [data-theme="light"] .c3-card{
   background:linear-gradient(180deg,#FFFFFF,#F2F4F8) !important;
@@ -360,7 +357,7 @@
   .feed-wrap{ padding:28px 14px 100px; }
   .h2h-wrap{ padding-bottom:0; }
   .feed-grid{ grid-template-columns:1fr; }
-  .feed-head-row{ padding-right:128px; }
+  .feed-head-title{ margin-bottom:20px; }
   .feed-add-friend{ padding:8px 12px; font-size:12px; }
 
   /* Head-to-head/Leaderboards move from inline desktop tabs to rounded
@@ -369,14 +366,15 @@
      desktop's "activity always visible" behavior). */
   #feedTopTabs{ display:none; }
   .mobile-pill-tabs{
-    display:flex; background:var(--surface); border-radius:10px; padding:3px; margin-bottom:20px;
+    display:flex; gap:8px; background:transparent; border-radius:0; padding:0; margin-bottom:20px;
   }
   .mobile-pill{
-    flex:1; text-align:center; padding:9px 0; background:none; border:none; cursor:pointer;
-    font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-dimmer);
-    border-radius:8px; transition:background .15s, color .15s;
+    flex:1; text-align:center; padding:9px 8px; background:var(--surface);
+    border:1px solid var(--border-strong); cursor:pointer;
+    font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-dim);
+    border-radius:10px; transition:all .15s;
   }
-  .mobile-pill.active{ background:var(--accent); color:#fff; }
+  .mobile-pill.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
 
   .h2h-fab{
     display:flex; align-items:center; justify-content:center;
@@ -411,6 +409,12 @@
 </style>
 </head>
 <body>
+
+  <!-- LIVING BACKGROUND MEDALLIONS -->
+  <img class="bg-medallion m1" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="-0.18" data-rot="0.012">
+  <img class="bg-medallion m2" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="0.10" data-rot="-0.02">
+  <img class="bg-medallion m3" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="0.16" data-rot="0.025">
+  <img class="bg-medallion m4" src="favicon.svg?v=5" alt="" aria-hidden="true" data-speed="-0.13" data-rot="-0.016">
 
   <!-- NAV -->
   <nav>
@@ -463,6 +467,7 @@
     <div class="feed-wrap h2h-wrap">
       <div class="feed-head-row">
         <div class="eyebrow">Social</div>
+        <h2 class="title feed-head-title">Friends Activity</h2>
         <button id="addFriendBtn" class="btn btn-primary feed-add-friend">Add Friend +</button>
       </div>
 
@@ -540,7 +545,6 @@
     </button>
 
     <div class="feed-wrap feed-toplevel-panel active" id="feedActivityWrap">
-      <h2 class="title" style="margin-bottom:6px;">Friends Activity</h2>
       <p style="font-family:var(--mono);font-size:11px;color:var(--text-dimmer);margin-bottom:28px;letter-spacing:0.08em;">LAST 7 DAYS</p>
       <div id="feedContainer"><p class="feed-loading">Loading…</p></div>
     </div>
@@ -556,6 +560,26 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db   = firebase.firestore();
+
+  (function () {
+    const meds = Array.from(document.querySelectorAll('.bg-medallion'));
+    if (!meds.length) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let ticking = false;
+    function update() {
+      const y = window.scrollY || window.pageYOffset || 0;
+      meds.forEach(el => {
+        const sp = parseFloat(el.dataset.speed) || 0;
+        const ro = parseFloat(el.dataset.rot) || 0;
+        el.style.transform = 'translateY(' + (y * sp) + 'px) rotate(' + (y * ro) + 'deg)';
+      });
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+  })();
 
   const EMBLEMS = {gladius:'ti-sword',scutum:'ti-shield',summit:'ti-mountain',inferno:'ti-flame',surge:'ti-bolt',iron:'ti-barbell',duellum:'ti-swords',target:'ti-target',anchor:'ti-anchor',skull:'ti-skull',securis:'ti-axe',tridens:'ti-spade',serpens:'ti-dna-2',taurus:'ti-chess-rook',corona:'ti-crown',dagger:'ti-tools',storm:'ti-tornado',rex:'ti-chess-king'};
 
