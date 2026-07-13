@@ -1307,6 +1307,27 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .unit-toggle button.active{ background:var(--accent); color:#fff; }
 
+/* ---------- PAGE-LEVEL TABS ----------
+   Reusable "main screen + a few buttons at top to cycle sections" pattern.
+   One rounded-pill style works at every width, no separate mobile
+   treatment needed. First used on training.html; drop this onto any page
+   that wants the same top-level tab structure. */
+.page-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+.page-tab{
+  background:var(--surface); border:1px solid var(--border-strong);
+  color:var(--text-dim); font-family:var(--mono); font-size:12px; font-weight:700;
+  letter-spacing:0.04em; text-transform:uppercase; padding:10px 18px;
+  border-radius:10px; cursor:pointer; transition:all .15s; white-space:nowrap;
+}
+.page-tab:hover{ background:var(--bg-2); color:var(--text); border-color:var(--accent); }
+.page-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
+.page-tab-panel{ display:none; }
+.page-tab-panel.active{ display:block; }
+@media(max-width:480px){
+  .page-tabs{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:6px; }
+  .page-tab{ padding:8px 12px; font-size:11px; }
+}
+
 /* Danger (delete) button */
 .btn-danger{
   background:transparent; color:var(--down);

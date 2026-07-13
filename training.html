@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=156">
+<link rel="stylesheet" href="styles.css?v=157">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -101,8 +101,16 @@
   <div id="main-content">
   <div class="wrap">
 
+    <!-- ================= PAGE TABS ================= -->
+    <div class="page-tabs" id="trainingPageTabs" style="margin-top:28px;">
+      <button class="page-tab active" data-tpanel="log">Training Log</button>
+      <button class="page-tab" data-tpanel="weight">Weight Log</button>
+      <button class="page-tab" data-tpanel="breakdown">Daily Breakdown</button>
+      <button class="page-tab" data-tpanel="history">Exercise History</button>
+    </div>
+
     <!-- ================= TRAINING LOG ================= -->
-    <section id="log" class="reveal" style="padding-top:28px;">
+    <section id="log" class="page-tab-panel active" data-panel="log">
       <div class="eyebrow">Recent Activity</div>
       <h2 class="title">Training log</h2>
 
@@ -243,7 +251,7 @@
     </section>
 
     <!-- ================= BODYWEIGHT ================= -->
-    <section class="reveal">
+    <section class="page-tab-panel" data-panel="weight">
       <div class="eyebrow">Bodyweight</div>
       <h2 class="title">Weight Tracking</h2>
       <div class="card chart-card" style="margin-top:16px;">
@@ -269,7 +277,7 @@
     </section>
 
     <!-- ================= DAILY BREAKDOWN ================= -->
-    <section class="reveal">
+    <section class="page-tab-panel" data-panel="breakdown">
       <div class="eyebrow" style="margin-bottom:12px;">Daily Breakdown</div>
       <div class="card chart-card">
         <div class="chart-head">
@@ -287,8 +295,12 @@
           No sessions logged for this date yet.
         </p>
       </div>
+    </section>
 
-      <div class="card chart-card" style="margin-top:18px;">
+    <!-- ================= EXERCISE HISTORY ================= -->
+    <section class="page-tab-panel" data-panel="history">
+      <div class="eyebrow" style="margin-bottom:12px;">Exercise History</div>
+      <div class="card chart-card">
         <div class="chart-head">
           <div>
             <p class="controls-label" style="margin-bottom:10px;">Exercise history</p>
@@ -329,5 +341,22 @@
 <script src="challenges.js?v=98"></script>
 <script src="app.js?v=111"></script>
 <script src="nav.js?v=7"></script>
+<script>
+  /* ── Page tabs (Training Log / Weight Log / Daily Breakdown / Exercise
+     History) ── purely UI — shows/hides the existing sections. Doesn't
+     touch app.js: its render functions (renderLog, bodyweight chart,
+     donut, history chart) already populate these elements regardless of
+     display state, so data is ready the moment a panel is opened. */
+  document.getElementById('trainingPageTabs').addEventListener('click', e => {
+    const btn = e.target.closest('.page-tab');
+    if (!btn) return;
+    const panel = btn.dataset.tpanel;
+    document.querySelectorAll('#trainingPageTabs .page-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.page-tab-panel').forEach(p => {
+      p.classList.toggle('active', p.dataset.panel === panel);
+    });
+  });
+</script>
 </body>
 </html>
