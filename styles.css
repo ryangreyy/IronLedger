@@ -1321,6 +1321,10 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .page-tab:hover{ background:var(--bg-2); color:var(--text); border-color:var(--accent); }
 .page-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
+#trainingPageTabs .page-tab:not(.active){ background:rgba(255,255,255,.03); border-color:var(--border); color:var(--text-dimmer); }
+#trainingPageTabs .page-tab:not(.active):hover{ background:rgba(255,255,255,.06); border-color:var(--border-strong); color:var(--text-dim); }
+[data-theme="light"] #trainingPageTabs .page-tab:not(.active){ background:rgba(18,23,33,.04); border-color:rgba(18,23,33,.14); color:rgba(18,23,33,.42); }
+[data-theme="light"] #trainingPageTabs .page-tab:not(.active):hover{ background:rgba(18,23,33,.075); border-color:rgba(18,23,33,.20); color:rgba(18,23,33,.68); }
 .page-tab-panel{ display:none; }
 .page-tab-panel.active{ display:block; }
 #trainingPageTabs ~ .page-tab-panel{ padding-top:73px; }
