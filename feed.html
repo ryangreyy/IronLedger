@@ -280,6 +280,17 @@
 .h2h-form-actions{ display:flex; gap:10px; margin-top:6px; }
 .h2h-form-msg{ margin-top:10px; font-family:var(--mono); font-size:12px; }
 
+/* Mobile-only: pill tabs, FAB, and the sheet that hosts Suggested/Create
+   Your Own. All hidden on desktop by default — the @media block below is
+   the only place that reveals and positions them. Desktop keeps the
+   original inline tabs/layout, completely untouched. */
+.mobile-pill-tabs{ display:none; }
+.h2h-fab{ display:none; }
+.h2h-sheet-overlay{ display:none; }
+.h2h-sheet-handle{ display:none; }
+.h2h-create-wrap{ display:none; }
+.h2h-create-wrap.active{ display:block; }
+
 [data-theme="light"] .lb-tab{ border-color:rgba(18,23,33,.16); }
 [data-theme="light"] .lb-tab:hover{ border-color:rgba(18,23,33,.30); background:rgba(18,23,33,.04); }
 [data-theme="light"] .lb-row{ background:rgba(18,23,33,.03); border-color:rgba(18,23,33,.14); }
@@ -292,6 +303,10 @@
 [data-theme="light"] .h2h-badge.won{ background:rgba(21,128,73,.07); color:#0f6b3d; border-color:rgba(21,128,73,.32); }
 [data-theme="light"] .h2h-badge.lost{ background:rgba(18,23,33,.05); border-color:rgba(18,23,33,.16); }
 [data-theme="light"] .h2h-decline-btn{ border-color:rgba(18,23,33,.20); }
+[data-theme="light"] .h2h-sheet-handle{ background:rgba(18,23,33,.18); }
+[data-theme="light"] .h2h-create-wrap{ background:#FFFFFF; border-color:rgba(18,23,33,.14); }
+[data-theme="light"] .mobile-pill{ color:rgba(18,23,33,.42); }
+[data-theme="light"] .mobile-pill-tabs{ background:rgba(18,23,33,.04); }
 
 [data-theme="light"] .c3-card{
   background:linear-gradient(180deg,#FFFFFF,#F2F4F8) !important;
@@ -331,6 +346,51 @@
 @media(max-width:680px){
   .feed-wrap{ padding:28px 14px 100px; }
   .feed-grid{ grid-template-columns:1fr; }
+
+  /* Head-to-head/Leaderboards move from inline desktop tabs to rounded
+     pill tabs, and challenge creation moves off the scroll into a
+     FAB-triggered bottom sheet. Feed pill is the default (matches
+     desktop's "activity always visible" behavior). */
+  #feedTopTabs{ display:none; }
+  .mobile-pill-tabs{
+    display:flex; background:var(--surface); border-radius:10px; padding:3px; margin-bottom:20px;
+  }
+  .mobile-pill{
+    flex:1; text-align:center; padding:9px 0; background:none; border:none; cursor:pointer;
+    font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-dimmer);
+    border-radius:8px; transition:background .15s, color .15s;
+  }
+  .mobile-pill.active{ background:var(--accent); color:#fff; }
+
+  .h2h-fab{
+    display:flex; align-items:center; justify-content:center;
+    position:fixed; right:16px; bottom:calc(58px + env(safe-area-inset-bottom,0px) + 16px);
+    width:52px; height:52px; border-radius:50%; border:none; cursor:pointer;
+    background:linear-gradient(90deg,var(--accent),var(--accent-bright));
+    color:#fff; font-size:24px; z-index:900;
+    box-shadow:0 8px 22px -4px rgba(193,39,45,.55);
+  }
+
+  .h2h-sheet-overlay{
+    display:block; position:fixed; inset:0; z-index:1000;
+    background:rgba(0,0,0,.55); opacity:0; pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .h2h-sheet-overlay.open{ opacity:1; pointer-events:auto; }
+
+  .h2h-create-wrap{
+    display:block; position:fixed; left:0; right:0; bottom:0; z-index:1001;
+    background:var(--bg-2); border:1px solid var(--border); border-bottom:none;
+    border-radius:16px 16px 0 0;
+    padding:14px 18px calc(18px + env(safe-area-inset-bottom,0px));
+    max-height:75vh; overflow-y:auto;
+    transform:translateY(100%); transition:transform .28s cubic-bezier(.4,0,.2,1);
+  }
+  .h2h-create-wrap.sheet-open{ transform:translateY(0); }
+  .h2h-sheet-handle{
+    display:block; width:34px; height:3px; background:rgba(255,255,255,.2);
+    border-radius:2px; margin:0 auto 14px;
+  }
 }
 </style>
 </head>
@@ -386,36 +446,20 @@
   <div id="feed-page" style="display:none;">
     <div class="feed-wrap h2h-wrap">
       <div class="eyebrow">Social</div>
+
       <div class="feed-toplevel-tabs" id="feedTopTabs">
         <button class="feed-toplevel-tab" data-panel="h2h">Head-to-Head Challenges</button>
         <button class="feed-toplevel-tab" data-panel="lb">Leaderboards</button>
       </div>
 
+      <div class="mobile-pill-tabs" id="mobilePillTabs">
+        <button class="mobile-pill active" data-mpanel="feed">Feed</button>
+        <button class="mobile-pill" data-mpanel="h2h">Challenges</button>
+        <button class="mobile-pill" data-mpanel="lb">Ranks</button>
+      </div>
+
       <div class="feed-toplevel-panel" id="h2hPanel">
         <div id="h2hList"><p class="feed-loading">Loading…</p></div>
-
-        <div class="h2h-subhead">Suggested Challenges</div>
-        <div class="h2h-suggest-grid" id="h2hSuggestGrid"></div>
-
-        <div class="h2h-subhead">Create Your Own</div>
-        <div class="h2h-form-card open" id="h2hFormCard">
-          <div class="field">
-            <label>Friend</label>
-            <select id="h2hFriendSel"><option value="">Choose a friend…</option></select>
-          </div>
-          <div class="field">
-            <label>Lift</label>
-            <input id="h2hLiftInput" type="text" placeholder="e.g. Bench Press" maxlength="40" autocomplete="off">
-          </div>
-          <div class="field">
-            <label>Ends on</label>
-            <input id="h2hEndDateInput" type="text">
-          </div>
-          <div class="h2h-form-actions">
-            <button class="btn btn-primary" id="h2hSendBtn">Send challenge</button>
-          </div>
-          <p id="h2hFormMsg" class="h2h-form-msg"></p>
-        </div>
       </div>
 
       <div class="feed-toplevel-panel" id="lbPanel">
@@ -428,7 +472,38 @@
       </div>
     </div>
 
-    <div class="feed-wrap">
+    <div class="h2h-sheet-overlay" id="h2hSheetOverlay"></div>
+    <div class="h2h-create-wrap" id="h2hCreateWrap">
+      <div class="h2h-sheet-handle"></div>
+      <div class="h2h-subhead">Suggested Challenges</div>
+      <div class="h2h-suggest-grid" id="h2hSuggestGrid"></div>
+
+      <div class="h2h-subhead">Create Your Own</div>
+      <div class="h2h-form-card open" id="h2hFormCard">
+        <div class="field">
+          <label>Friend</label>
+          <select id="h2hFriendSel"><option value="">Choose a friend…</option></select>
+        </div>
+        <div class="field">
+          <label>Lift</label>
+          <input id="h2hLiftInput" type="text" placeholder="e.g. Bench Press" maxlength="40" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Ends on</label>
+          <input id="h2hEndDateInput" type="text">
+        </div>
+        <div class="h2h-form-actions">
+          <button class="btn btn-primary" id="h2hSendBtn">Send challenge</button>
+        </div>
+        <p id="h2hFormMsg" class="h2h-form-msg"></p>
+      </div>
+    </div>
+
+    <button class="h2h-fab" id="h2hFabBtn" aria-label="New challenge">
+      <i class="ti ti-plus" aria-hidden="true"></i>
+    </button>
+
+    <div class="feed-wrap feed-toplevel-panel active" id="feedActivityWrap">
       <div class="eyebrow">Social</div>
       <h2 class="title" style="margin-bottom:6px;">Friends Activity</h2>
       <p style="font-family:var(--mono);font-size:11px;color:var(--text-dimmer);margin-bottom:28px;letter-spacing:0.08em;">LAST 7 DAYS</p>
@@ -1216,11 +1291,43 @@
     document.querySelectorAll('.feed-toplevel-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('h2hPanel').classList.remove('active');
     document.getElementById('lbPanel').classList.remove('active');
+    document.getElementById('h2hCreateWrap').classList.remove('active');
     if (!alreadyActive) {
       btn.classList.add('active');
       document.getElementById(panel === 'h2h' ? 'h2hPanel' : 'lbPanel').classList.add('active');
+      if (panel === 'h2h') document.getElementById('h2hCreateWrap').classList.add('active');
     }
   });
+
+  /* ── Mobile pill tabs (Feed / Challenges / Ranks) — Feed is the default,
+     matching desktop's "activity always visible" behavior. Independent of
+     the desktop tabs above; only one set is ever visible/clickable at a
+     given viewport width, both just toggle the same three panels. ── */
+  document.getElementById('mobilePillTabs').addEventListener('click', e => {
+    const btn = e.target.closest('.mobile-pill');
+    if (!btn) return;
+    const panel = btn.dataset.mpanel;
+    document.querySelectorAll('.mobile-pill').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('feedActivityWrap').classList.toggle('active', panel === 'feed');
+    document.getElementById('h2hPanel').classList.toggle('active', panel === 'h2h');
+    document.getElementById('lbPanel').classList.toggle('active', panel === 'lb');
+  });
+
+  /* ── Mobile FAB + bottom sheet for challenge creation. Reuses the exact
+     same #h2hCreateWrap elements as desktop (date picker, suggestions,
+     form) rather than duplicating them — only the CSS positioning differs
+     between breakpoints, so nothing needs to stay in sync manually. ── */
+  function h2hOpenSheet() {
+    document.getElementById('h2hCreateWrap').classList.add('sheet-open');
+    document.getElementById('h2hSheetOverlay').classList.add('open');
+  }
+  function h2hCloseSheet() {
+    document.getElementById('h2hCreateWrap').classList.remove('sheet-open');
+    document.getElementById('h2hSheetOverlay').classList.remove('open');
+  }
+  document.getElementById('h2hFabBtn').addEventListener('click', h2hOpenSheet);
+  document.getElementById('h2hSheetOverlay').addEventListener('click', h2hCloseSheet);
 
   document.getElementById('h2hSuggestGrid').addEventListener('click', e => {
     const chip = e.target.closest('.h2h-suggest-chip');
@@ -1261,6 +1368,7 @@
       document.getElementById('h2hFriendSel').value = '';
       document.getElementById('h2hLiftInput').value = '';
       setTimeout(() => { msg.textContent = ''; }, 2500);
+      setTimeout(h2hCloseSheet, 1100);
       loadHeadToHead(h2hMyUid);
     } catch (err) {
       msg.style.color = 'var(--down)'; msg.textContent = 'Could not send — check your connection.';
