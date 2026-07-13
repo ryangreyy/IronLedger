@@ -319,7 +319,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   }
   .mobile-brand-icon{ width:52px; height:52px; flex-shrink:0; display:block; transform:translateY(-8px); }
   .mobile-brand-text{ display:flex; flex-direction:column; gap:4px; justify-content:center; min-width:0; transform:translateY(-6px); }
-  .goals-wrap{ padding:56px 28px 56px !important; }
+  .goals-wrap{ padding:49px 28px 56px !important; }
   .mobile-brand-title{
     font-family:var(--display); font-size:32px; font-weight:400;
     letter-spacing:2px; text-transform:uppercase;
@@ -369,7 +369,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
    logged in. No CTAs by design: the bottom nav (mobile) and hamburger
    (desktop) already cover navigation, so this is pure status. */
 .home-status-header{
-  max-width:640px; margin:0 auto; padding:56px 28px 20px; text-align:center;
+  max-width:640px; margin:0 auto; padding:56px 28px 5px; text-align:center;
 }
 .home-status-header .eyebrow{ justify-content:center; margin-bottom:10px; }
 .home-status-header .title{ margin-bottom:22px; }
@@ -377,7 +377,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .home-stat-strip .stat-tile{ text-align:center; align-items:center; }
 .home-stat-strip .st-value{ font-size:26px; }
 @media(max-width:480px){
-  .home-status-header{ padding:36px 20px 8px; }
+  .home-status-header{ padding:36px 20px 0; }
   .home-stat-strip{ gap:8px; }
   .home-stat-strip .stat-tile{ padding:14px 8px; }
   .home-stat-strip .st-value{ font-size:20px; }
