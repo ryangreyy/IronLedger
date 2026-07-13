@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=167">
+<link rel="stylesheet" href="styles.css?v=168">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -101,8 +101,19 @@
   <div id="main-content">
   <div class="wrap">
 
+    <!-- ================= PAGE TABS ================= -->
+    <div class="dashboard-mobile-head">
+      <div class="eyebrow" id="dashboardMobileEyebrow">Overview</div>
+      <h2 class="title" id="dashboardMobileTitle">This month at a glance</h2>
+    </div>
+    <div class="page-tabs" id="dashboardPageTabs" style="margin-top:28px;">
+      <button class="page-tab active" data-dpanel="overview" data-eyebrow="Overview" data-title="This month at a glance">Overview</button>
+      <button class="page-tab" data-dpanel="calendar" data-eyebrow="Calendar" data-title="Calendar &amp; Frequency">Calendar</button>
+      <button class="page-tab" data-dpanel="muscle" data-eyebrow="Recovery" data-title="Muscle Recovery">Muscle Recovery</button>
+    </div>
+
     <!-- ================= DASHBOARD / KPIs ================= -->
-    <section id="dashboard" class="reveal" style="padding-top:32px;">
+    <section id="dashboard" class="page-tab-panel active" data-panel="overview" style="padding-top:32px;">
       <div class="eyebrow">Overview</div>
       <h2 class="title" id="glance-title">This month at a glance</h2>
 
@@ -189,9 +200,14 @@
         </div>
 
       </div>
+    </section>
+
+    <section class="page-tab-panel" data-panel="calendar">
+      <div class="eyebrow">Calendar</div>
+      <h2 class="title">Calendar &amp; Frequency</h2>
 
       <!-- Calendar + Lift Frequency row -->
-      <div class="kpi-lower-row">
+      <div class="kpi-lower-row" style="margin-top:16px;">
         <div class="cal-card">
           <div class="cal-header">
             <span class="cal-eyebrow">Calendar</span>
@@ -210,9 +226,14 @@
           <div class="freq-bars" id="freqBars"></div>
         </div>
       </div>
+    </section>
+
+    <section class="page-tab-panel" data-panel="muscle">
+      <div class="eyebrow">Recovery</div>
+      <h2 class="title">Muscle Recovery</h2>
 
       <!-- Muscle Recovery -->
-      <div class="card forged muscle-recovery-card">
+      <div class="card forged muscle-recovery-card" style="margin-top:16px;">
         <div class="mr-header">
           <div class="label">Muscle Recovery</div>
           <div class="mr-header-right">
@@ -288,5 +309,26 @@
 <script src="musclemap.js?v=1"></script>
 <script src="app.js?v=112"></script>
 <script src="nav.js?v=7"></script>
+<script>
+  /* ── Page tabs (Overview / Calendar / Muscle Recovery) ── purely UI —
+     shows/hides the existing sections. Doesn't touch app.js: its render
+     functions (KPIs, calendar, muscle map) already populate these
+     elements regardless of display state, so data is ready the moment
+     a panel is opened. */
+  document.getElementById('dashboardPageTabs').addEventListener('click', e => {
+    const btn = e.target.closest('.page-tab');
+    if (!btn) return;
+    const panel = btn.dataset.dpanel;
+    document.querySelectorAll('#dashboardPageTabs .page-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const mobileEyebrow = document.getElementById('dashboardMobileEyebrow');
+    const mobileTitle = document.getElementById('dashboardMobileTitle');
+    if (mobileEyebrow) mobileEyebrow.textContent = btn.dataset.eyebrow || btn.textContent;
+    if (mobileTitle) mobileTitle.textContent = btn.dataset.title || btn.textContent;
+    document.querySelectorAll('.page-tab-panel').forEach(p => {
+      p.classList.toggle('active', p.dataset.panel === panel);
+    });
+  });
+</script>
 </body>
 </html>

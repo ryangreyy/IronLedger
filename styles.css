@@ -1338,6 +1338,10 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 #trainingPageTabs .page-tab:not(.active):hover{ background:rgba(255,255,255,.06); border-color:var(--border-strong); color:var(--text-dim); }
 [data-theme="light"] #trainingPageTabs .page-tab:not(.active){ background:rgba(18,23,33,.04); border-color:rgba(18,23,33,.14); color:rgba(18,23,33,.42); }
 [data-theme="light"] #trainingPageTabs .page-tab:not(.active):hover{ background:rgba(18,23,33,.075); border-color:rgba(18,23,33,.20); color:rgba(18,23,33,.68); }
+#dashboardPageTabs .page-tab:not(.active){ background:rgba(255,255,255,.03); border-color:var(--border); color:var(--text-dimmer); }
+#dashboardPageTabs .page-tab:not(.active):hover{ background:rgba(255,255,255,.06); border-color:var(--border-strong); color:var(--text-dim); }
+[data-theme="light"] #dashboardPageTabs .page-tab:not(.active){ background:rgba(18,23,33,.04); border-color:rgba(18,23,33,.14); color:rgba(18,23,33,.42); }
+[data-theme="light"] #dashboardPageTabs .page-tab:not(.active):hover{ background:rgba(18,23,33,.075); border-color:rgba(18,23,33,.20); color:rgba(18,23,33,.68); }
 .page-tab-panel{ display:none; }
 .page-tab-panel.active{ display:block; }
 #trainingPageTabs ~ .page-tab-panel{ padding-top:73px; }
@@ -1350,6 +1354,18 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #trainingPageTabs ~ .page-tab-panel{ padding-top:3px; }
   #trainingPageTabs ~ .page-tab-panel > .eyebrow,
   #trainingPageTabs ~ .page-tab-panel > h2.title{ display:none; }
+}
+
+#dashboardPageTabs ~ .page-tab-panel{ padding-top:73px; }
+.dashboard-mobile-head{ display:none; }
+@media(max-width:700px){
+  #dashboardPageTabs{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:10px 28px 20px !important; }
+  #dashboardPageTabs .page-tab{ min-height:42px; padding:8px 6px; font-size:10px; white-space:normal; line-height:1.15; text-align:center; }
+  .dashboard-mobile-head{ display:block; max-width:1140px; margin:0 auto; padding:28px 28px 0; }
+  .dashboard-mobile-head .eyebrow{ margin-bottom:10px; }
+  #dashboardPageTabs ~ .page-tab-panel{ padding-top:3px; }
+  #dashboardPageTabs ~ .page-tab-panel > .eyebrow,
+  #dashboardPageTabs ~ .page-tab-panel > h2.title{ display:none; }
 }
 
 /* Danger (delete) button */
