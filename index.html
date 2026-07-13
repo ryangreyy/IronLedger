@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=162">
+<link rel="stylesheet" href="styles.css?v=163">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 </head>
@@ -118,8 +118,8 @@
       </div>
     </div>
 
-    <!-- ================= HERO ================= -->
-    <section class="hero reveal">
+    <!-- ================= HERO (signed-out) ================= -->
+    <section class="hero reveal" id="homeHero">
       <div class="eyebrow">Training Analytics Platform</div>
       <h1><span class="hero-top">Train hard.</span><span class="lime">Track everything.</span></h1>
 <div class="hero-cta">
@@ -136,58 +136,81 @@
       </div>
     </section>
 
+    <!-- ================= STATUS HEADER (signed-in) ================= -->
+    <section class="home-status-header" id="homeStatusHeader" style="display:none;">
+      <div class="eyebrow">Welcome back</div>
+      <h2 class="title" id="homeWelcomeName">Athlete</h2>
+      <div class="home-stat-strip">
+        <div class="stat-tile">
+          <div class="st-label">Day streak</div>
+          <div class="st-value" id="homeStatStreak">0</div>
+        </div>
+        <div class="stat-tile">
+          <div class="st-label">Rank</div>
+          <div class="st-value" id="homeStatRank">—</div>
+        </div>
+        <div class="stat-tile">
+          <div class="st-label">This week</div>
+          <div class="st-value" id="homeStatWeek">0</div>
+        </div>
+      </div>
+    </section>
+
     <!-- ================= GOALS + CHALLENGES + PERSONAL TRACKERS ================= -->
     <div class="goals-wrap reveal">
-      <div class="goals-tracker-row">
-
-        <!-- Goals -->
-        <div class="goals-card">
-          <div class="goals-header">
-            <span class="goals-eyebrow">My Goals</span>
-            <span class="goals-tally" id="goalsTally"></span>
-          </div>
-          <div class="goals-scroll-wrap"><div class="goals-list" id="goalsList"></div></div>
-          <div id="goals-done-pagination" class="log-pagination" style="display:none;">
-            <button id="goals-prev" class="btn-page">&#8592; Prev</button>
-            <span id="goals-page-info" class="page-info">Page 1 of 1</span>
-            <button id="goals-next" class="btn-page">Next &#8594;</button>
-          </div>
-        </div>
-
-        <!-- Challenges -->
-        <div id="challenges-section" class="goals-card">
-          <div class="eyebrow" style="margin-bottom:14px;">Challenges</div>
-          <div class="ch-loading-card">
-            <div class="ch-loading-head">
-              <span class="ch-loading-dot"></span>
-              <span class="ch-loading-title"></span>
-              <span class="ch-loading-timer"></span>
-            </div>
-            <div class="ch-loading-row"></div>
-            <div class="ch-loading-row short"></div>
-          </div>
-          <div class="ch-loading-card">
-            <div class="ch-loading-head">
-              <span class="ch-loading-dot weekly"></span>
-              <span class="ch-loading-title"></span>
-              <span class="ch-loading-timer"></span>
-            </div>
-            <div class="ch-loading-row"></div>
-            <div class="ch-loading-row short"></div>
-          </div>
-        </div>
-
-        <!-- Personal Trackers -->
-        <div class="card tracker-card goals-tracker-full">
-          <div class="tracker-header">
-            <div class="label">Personal Trackers</div>
-            <button id="trackerAddBtn" class="tracker-add-btn">+ Add</button>
-          </div>
-          <div id="trackerError" style="display:none;font-size:12px;color:var(--down);font-family:var(--mono);margin-bottom:8px;padding:6px 10px;background:rgba(255,80,80,.08);border-radius:6px;"></div>
-          <div id="trackerList" class="tracker-list"></div>
-        </div>
-
+      <div class="page-tabs" id="goalsPageTabs">
+        <button class="page-tab active" data-gpanel="goals">Goals</button>
+        <button class="page-tab" data-gpanel="challenges">Challenges</button>
+        <button class="page-tab" data-gpanel="trackers">Trackers</button>
       </div>
+
+      <!-- Goals -->
+      <div class="goals-card page-tab-panel active" data-panel="goals">
+        <div class="goals-header">
+          <span class="goals-eyebrow">My Goals</span>
+          <span class="goals-tally" id="goalsTally"></span>
+        </div>
+        <div class="goals-scroll-wrap"><div class="goals-list" id="goalsList"></div></div>
+        <div id="goals-done-pagination" class="log-pagination" style="display:none;">
+          <button id="goals-prev" class="btn-page">&#8592; Prev</button>
+          <span id="goals-page-info" class="page-info">Page 1 of 1</span>
+          <button id="goals-next" class="btn-page">Next &#8594;</button>
+        </div>
+      </div>
+
+      <!-- Challenges -->
+      <div id="challenges-section" class="goals-card page-tab-panel" data-panel="challenges">
+        <div class="eyebrow" style="margin-bottom:14px;">Challenges</div>
+        <div class="ch-loading-card">
+          <div class="ch-loading-head">
+            <span class="ch-loading-dot"></span>
+            <span class="ch-loading-title"></span>
+            <span class="ch-loading-timer"></span>
+          </div>
+          <div class="ch-loading-row"></div>
+          <div class="ch-loading-row short"></div>
+        </div>
+        <div class="ch-loading-card">
+          <div class="ch-loading-head">
+            <span class="ch-loading-dot weekly"></span>
+            <span class="ch-loading-title"></span>
+            <span class="ch-loading-timer"></span>
+          </div>
+          <div class="ch-loading-row"></div>
+          <div class="ch-loading-row short"></div>
+        </div>
+      </div>
+
+      <!-- Personal Trackers -->
+      <div class="card tracker-card page-tab-panel" data-panel="trackers">
+        <div class="tracker-header">
+          <div class="label">Personal Trackers</div>
+          <button id="trackerAddBtn" class="tracker-add-btn">+ Add</button>
+        </div>
+        <div id="trackerError" style="display:none;font-size:12px;color:var(--down);font-family:var(--mono);margin-bottom:8px;padding:6px 10px;background:rgba(255,80,80,.08);border-radius:6px;"></div>
+        <div id="trackerList" class="tracker-list"></div>
+      </div>
+
     </div>
 
     <!-- ================= FOOTER ================= -->
@@ -212,5 +235,21 @@
 <script src="challenges.js?v=100"></script>
 <script src="app.js?v=108"></script>
 <script src="nav.js?v=7"></script>
+<script>
+  /* ── Goals / Challenges / Trackers page tabs ── purely UI — app.js's
+     existing renderers (goals list, challenges, tracker list) already
+     populate these elements regardless of display state, so switching
+     tabs is instant. */
+  document.getElementById('goalsPageTabs').addEventListener('click', e => {
+    const btn = e.target.closest('.page-tab');
+    if (!btn) return;
+    const panel = btn.dataset.gpanel;
+    document.querySelectorAll('#goalsPageTabs .page-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.goals-wrap .page-tab-panel').forEach(p => {
+      p.classList.toggle('active', p.dataset.panel === panel);
+    });
+  });
+</script>
 </body>
 </html>

@@ -479,6 +479,14 @@ auth.onAuthStateChanged(user => {
     navSignedIn.style.opacity  = '0';
     navUserName.textContent = user.displayName || user.email.split('@')[0];
     requestAnimationFrame(() => requestAnimationFrame(() => { navSignedIn.style.opacity = '1'; }));
+    /* Home page only: swap the marketing hero for the personal status
+       header now that there's an actual account to show data for. */
+    const homeHero = document.getElementById('homeHero');
+    const homeHeader = document.getElementById('homeStatusHeader');
+    const homeWelcomeName = document.getElementById('homeWelcomeName');
+    if (homeHero)   homeHero.style.display = 'none';
+    if (homeHeader) homeHeader.style.display = '';
+    if (homeWelcomeName) homeWelcomeName.textContent = user.displayName || user.email.split('@')[0];
     db.doc(`users/${user.uid}/settings/main`).get().then(snap => {
       const d = snap.exists ? snap.data() : {};
       applyNavAvatar(user, d.avatarId || null, d.avatarRingColor || null, d.avatarBgColor || null, d.avatarIconColor || null, d.avatarPhotoUrl || null, d.avatarZoom != null ? d.avatarZoom : null, d.avatarPosX != null ? d.avatarPosX : null, d.avatarPosY != null ? d.avatarPosY : null, true);
@@ -496,6 +504,10 @@ auth.onAuthStateChanged(user => {
     navSignedIn.style.display  = 'none';
     navSignedOut.style.display = '';
     requestAnimationFrame(() => requestAnimationFrame(() => { navSignedOut.style.opacity = '1'; }));
+    const homeHeroOut   = document.getElementById('homeHero');
+    const homeHeaderOut = document.getElementById('homeStatusHeader');
+    if (homeHeroOut)   homeHeroOut.style.display = '';
+    if (homeHeaderOut) homeHeaderOut.style.display = 'none';
     initApp(null);   // renders all cards with empty data, returns before Firestore
     if (location.hash) setTimeout(() => {
       const el = document.querySelector(location.hash);
@@ -1448,6 +1460,14 @@ function initApp(uid) {
     const s = currentSettings;
     const big3 = s ? (s.squatMax || 0) + (s.benchMax || 0) + (s.deadMax || 0) : 0;
 
+    /* Sessions this week — Monday-start, same boundary challenges.js uses,
+       so this matches whatever "this week" means elsewhere in the app. */
+    const weekStart   = _igWeekStart(todayISO);
+    const sessionsWeek = new Set(
+      currentSessions.filter(s => !s.isRestDay && s.dateRaw && s.dateRaw >= weekStart && s.dateRaw <= todayISO)
+        .map(s => s.dateRaw)
+    ).size;
+
     /* Update the four cards */
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
@@ -1455,6 +1475,10 @@ function initApp(uid) {
     set('kpi-streak',   streak);
     set('nav-streak-count', streak || '0');
     set('kpi-big3',     big3 ? big3.toLocaleString() : '—');
+
+    /* Home page status header (no-op elsewhere — elements don't exist) */
+    set('homeStatStreak', streak || '0');
+    set('homeStatWeek',   sessionsWeek || '0');
 
     /* Editorial card captions — real month-over-month trend + best-ever streak */
     const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
@@ -1817,6 +1841,8 @@ function initApp(uid) {
     unsubscribeXP = xpRef.onSnapshot(snap => {
       _xpTotal = snap.exists ? (snap.data().total || 0) : 0;
       renderChallengesWhenReady();
+      const homeRankEl = document.getElementById('homeStatRank');
+      if (homeRankEl) homeRankEl.textContent = getRankFromXP(_xpTotal).rankName;
     });
   }).catch(err => console.error('Challenge init error:', err));
 
