@@ -281,24 +281,23 @@ nav.nav-hidden{ transform:translateY(-100%); }
   #nav-signed-out{ gap:8px; }
   #nav-signed-out button{ padding:8px 12px !important; font-size:13px !important; white-space:nowrap; }
   .hero{ display:none; }
-  /* Index-page mobile nav: hide logo, show avatar + username on left;
-     streak counter sits absolutely centered where the logo would be. */
-  body.index-page #nav-streak{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    pointer-events:none;
+
+  /* No top nav bar on mobile — just the sign-in/account controls and the
+     menu trigger floating top-right, no background/logo/streak bar. The
+     streak lives in index.html's own status header now, and .nav-links'
+     dropdown (opened by the hamburger) still carries every page link. */
+  nav{ background:transparent; backdrop-filter:none; }
+  nav::after{ display:none; }
+  .brand{ display:none; }
+  #nav-streak{ display:none !important; }
+  .nav-inner{ justify-content:flex-end; padding:14px 16px; }
+  .nav-right{ margin-left:auto; }
+  .nav-hamburger{
+    background:var(--surface); border:1px solid var(--border-strong);
+    border-radius:50%; width:44px; height:44px;
+    box-shadow:0 4px 16px rgba(0,0,0,.25);
   }
-  body.index-page .brand{ display:none; }
-  body.index-page .nav-inner{ position:relative; }
-  body.index-page .nav-right{ margin-left:auto; }
-  body.index-page #nav-signed-in{
-    position:absolute; left:20px; top:50%; transform:translateY(-50%);
-    z-index:2;
-  }
-  body.index-page #nav-signed-in #signOut{ display:none; }
-  body.index-page #nav-user-name{
-    display:block !important; font-size:13px;
-    max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
+  .nav-hamburger:hover{ background:var(--bg-2); }
 
   .mobile-brand-header{
     display:flex; align-items:center; gap:14px;
