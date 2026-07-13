@@ -226,6 +226,10 @@
           <div class="field">
             <label for="logWeight">Weight (<span class="unit-label">lbs</span>)</label>
             <input id="logWeight" type="number" min="1" step="5" placeholder="225">
+            <label class="bodyweight-toggle">
+              <input id="logBodyweight" type="checkbox">
+              <span>Bodyweight (no added weight)</span>
+            </label>
           </div>
           <div class="field">
             <label for="logNote">Note (optional)</label>
@@ -343,7 +347,7 @@
 <!-- App data and logic -->
 <script src="data.js"></script>
 <script src="challenges.js?v=98"></script>
-<script src="app.js?v=111"></script>
+<script src="app.js?v=112"></script>
 <script src="nav.js?v=7"></script>
 <script>
   /* ── Page tabs (Training Log / Weight Log / Daily Breakdown / Exercise

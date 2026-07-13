@@ -1240,12 +1240,16 @@ function initApp(uid) {
       const historyCls = normalizeLiftCls(liftSessions[0]?.cls || liftToCls(liftName) || 'other');
       const historyColor = clsColor(historyCls);
 
+      /* Bodyweight lifts have no meaningful weight to chart — plot reps instead */
+      const isBwLift = liftSessions.every(s => s.bodyweight);
+      const metricOf = s => isBwLift ? s.reps : s.wt;
+
       const W = 700, H = window.innerWidth < 640 ? 320 : 240;
       const padL = 52, padR = 24, padT = 24, padB = 52;
       const chartW = W - padL - padR, chartH = H - padT - padB;
       svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
-      const weights = liftSessions.map(s => s.wt);
+      const weights = liftSessions.map(metricOf);
       const minW = Math.min(...weights), maxW = Math.max(...weights);
       const pad  = (maxW - minW) * 0.20 || 15;
       const lo   = minW - pad, hi = maxW + pad, range = hi - lo;
@@ -1264,12 +1268,12 @@ function initApp(uid) {
                        class="axis-label">${val}</text>`;
       }
 
-      const coords = liftSessions.map((s, i) => `${xOf(i).toFixed(1)},${yOf(s.wt).toFixed(1)}`);
+      const coords = liftSessions.map((s, i) => `${xOf(i).toFixed(1)},${yOf(metricOf(s)).toFixed(1)}`);
       const area   = `M${xOf(0).toFixed(1)},${(padT + chartH).toFixed(1)} L${coords.join(' L')} L${xOf(n-1).toFixed(1)},${(padT+chartH).toFixed(1)}Z`;
 
       let dots = '', labels = '', vlines = '';
       liftSessions.forEach((s, i) => {
-        const x = xOf(i).toFixed(1), y = yOf(s.wt).toFixed(1);
+        const x = xOf(i).toFixed(1), y = yOf(metricOf(s)).toFixed(1);
         const [, m, d] = s.dateRaw.split('-').map(Number);
         const lbl = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`;
         vlines += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${(padT + chartH).toFixed(1)}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
@@ -1293,7 +1297,7 @@ function initApp(uid) {
         details.innerHTML = liftSessions.slice().reverse().map(s => `
           <div class="history-detail-row">
             <span class="history-date">${fmtDateDisplay(s.dateRaw)}</span>
-            <span class="history-wt">${s.wt} lbs</span>
+            <span class="history-wt">${s.bodyweight ? 'Bodyweight' : s.wt + ' lbs'}</span>
             <span class="history-reps">${s.sets} × ${s.reps}</span>
             <span class="history-note${s.note ? ' has-note' : ''}">${s.note ? '★ ' + s.note : '—'}</span>
           </div>`).join('');
@@ -1705,7 +1709,7 @@ function initApp(uid) {
           <tr data-id="${s.id}">
             <td class="log-main-cell">
               <span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${s.lift}</span>
-              <div class="log-meta-line">${s.date} · ${s.sets}×${s.reps} · ${s.wt} lbs</div>${s.note ? '<div class="log-note-line"><span class="pr-flag">★ ' + s.note + '</span></div>' : ''}
+              <div class="log-meta-line">${s.date} · ${s.sets}×${s.reps} · ${s.bodyweight ? 'Bodyweight' : s.wt + ' lbs'}</div>${s.note ? '<div class="log-note-line"><span class="pr-flag">★ ' + s.note + '</span></div>' : ''}
             </td>
             <td class="row-actions">
               <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
@@ -1749,9 +1753,13 @@ function initApp(uid) {
             <span style="color:var(--text-dimmer)">×</span>
             <input class="edit-field edit-num" id="ed-reps" type="number" value="${s.reps}" min="1">
             <span style="color:var(--text-dimmer)">·</span>
-            <input class="edit-field edit-num" id="ed-wt" type="number" value="${s.wt}" step="5" min="1">
+            <input class="edit-field edit-num" id="ed-wt" type="number" value="${s.wt}" step="5" min="1" ${s.bodyweight ? 'disabled' : ''}>
             <span style="color:var(--text-dimmer)">lbs ·</span>
             <input class="edit-field" id="ed-note" type="text" value="${s.note}" placeholder="PR…" style="width:90px">
+            <label class="bodyweight-toggle" style="margin-top:0;">
+              <input id="ed-bodyweight" type="checkbox" ${s.bodyweight ? 'checked' : ''}>
+              <span>Bodyweight</span>
+            </label>
           </div>
         </td>
         <td class="row-actions">
@@ -1846,15 +1854,24 @@ function initApp(uid) {
     });
   }).catch(err => console.error('Challenge init error:', err));
 
+  /* Bodyweight toggle — no added weight, so hide/disable the weight input */
+  const logBwEl = document.getElementById('logBodyweight');
+  const logWtEl = document.getElementById('logWeight');
+  logBwEl?.addEventListener('change', () => {
+    logWtEl.disabled = logBwEl.checked;
+    if (logBwEl.checked) logWtEl.value = '';
+  });
+
   /* Add session — also saves dateRaw so the edit form can pre-fill it */
   document.getElementById('addSession')?.addEventListener('click', () => {
-    const dateVal = document.getElementById('logDate').value;
-    const liftVal = document.getElementById('logLift').value;
-    const sets    = +document.getElementById('logSets').value;
-    const reps    = +document.getElementById('logReps').value;
-    const wt      = +document.getElementById('logWeight').value;
-    const note    = document.getElementById('logNote').value.trim();
-    if (!dateVal || !sets || !reps || !wt) {
+    const dateVal    = document.getElementById('logDate').value;
+    const liftVal    = document.getElementById('logLift').value;
+    const sets       = +document.getElementById('logSets').value;
+    const reps       = +document.getElementById('logReps').value;
+    const bodyweight = !!logBwEl?.checked;
+    const wt         = bodyweight ? 0 : +document.getElementById('logWeight').value;
+    const note       = document.getElementById('logNote').value.trim();
+    if (!dateVal || !sets || !reps || (!bodyweight && !wt)) {
       alert('Please fill in date, sets, reps, and weight.'); return;
     }
     const lift = liftVal.trim();
@@ -1864,12 +1881,13 @@ function initApp(uid) {
     const prevBest = (currentSessions || [])
       .filter(s => (s.lift || '').toLowerCase() === lift.toLowerCase())
       .reduce((m, s) => Math.max(m, +s.wt || 0), 0);
-    const isPR = prevBest > 0 && wt > prevBest;
+    const isPR = !bodyweight && prevBest > 0 && wt > prevBest;
     sessionsRef().add({ date: formatDate(dateVal), dateRaw: dateVal,
-                        lift, cls, sets, reps, wt, note,
+                        lift, cls, sets, reps, wt, bodyweight, note,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
       .then(() => {
         ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = '');
+        if (logBwEl) { logBwEl.checked = false; logWtEl.disabled = false; }
         if (isPR) showPrStamp(lift, wt);
       })
       .catch(err => showToast('Could not save session — ' + (err?.message || 'check your connection.')));
@@ -1893,19 +1911,28 @@ function initApp(uid) {
     /* ── Save button: write edited values back to Firestore ── */
     const saveBtn = e.target.closest('.btn-save-edit');
     if (saveBtn) {
-      const id      = saveBtn.dataset.id;
-      const dateVal = document.getElementById('ed-date').value;
-      const liftVal = document.getElementById('ed-lift').value;
-      const sets    = +document.getElementById('ed-sets').value;
-      const reps    = +document.getElementById('ed-reps').value;
-      const wt      = +document.getElementById('ed-wt').value;
-      const note    = document.getElementById('ed-note').value.trim();
-      if (!dateVal || !sets || !reps || !wt) { showToast('Please fill in all fields.'); return; }
+      const id         = saveBtn.dataset.id;
+      const dateVal    = document.getElementById('ed-date').value;
+      const liftVal    = document.getElementById('ed-lift').value;
+      const sets       = +document.getElementById('ed-sets').value;
+      const reps       = +document.getElementById('ed-reps').value;
+      const bodyweight = !!document.getElementById('ed-bodyweight')?.checked;
+      const wt         = bodyweight ? 0 : +document.getElementById('ed-wt').value;
+      const note       = document.getElementById('ed-note').value.trim();
+      if (!dateVal || !sets || !reps || (!bodyweight && !wt)) { showToast('Please fill in all fields.'); return; }
       const lift = liftVal.trim();
       const cls  = liftToCls(lift);
       sessionsRef().doc(id)
-        .update({ date: formatDate(dateVal), dateRaw: dateVal, lift, cls, sets, reps, wt, note })
+        .update({ date: formatDate(dateVal), dateRaw: dateVal, lift, cls, sets, reps, wt, bodyweight, note })
         .catch(err => showToast('Could not update session — ' + (err?.message || 'check your connection.')));
+      return;
+    }
+
+    /* ── Bodyweight checkbox toggled inside an edit row ── */
+    const bwToggle = e.target.closest('#ed-bodyweight');
+    if (bwToggle) {
+      const wtInput = document.getElementById('ed-wt');
+      if (wtInput) { wtInput.disabled = bwToggle.checked; if (bwToggle.checked) wtInput.value = 0; }
       return;
     }
 
