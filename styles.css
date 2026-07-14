@@ -290,6 +290,10 @@ nav.nav-hidden{ transform:translateY(-100%); }
      dropdown (opened by the hamburger) still carries every page link. */
   nav{ background:transparent; backdrop-filter:none; }
   nav::after{ display:none; }
+  nav::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:2px;
+    background:linear-gradient(90deg, transparent 0%, rgba(150,20,25,0.45) 8%, rgba(193,39,45,0.85) 28%, rgba(240,80,85,1) 50%, rgba(193,39,45,0.85) 72%, rgba(150,20,25,0.45) 92%, transparent 100%);
+  }
   .brand{ display:none; }
   #nav-streak{ display:none !important; }
   .nav-inner{ justify-content:flex-end; padding:14px 16px; }
@@ -379,7 +383,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .home-stat-strip .stat-tile{ text-align:center; align-items:center; }
 .home-stat-strip .st-value{ font-size:26px; }
 @media(max-width:480px){
-  .home-status-header{ padding:36px 20px 0; }
+  .home-status-header{ padding:6px 20px 0; }
   .home-stat-strip{ gap:8px; }
   .home-stat-strip .stat-tile{ padding:14px 8px; }
   .home-stat-strip .st-value{ font-size:20px; }
