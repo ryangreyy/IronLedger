@@ -1509,7 +1509,7 @@
         const settings = settingsSnap.exists ? settingsSnap.data() : {};
         const username = settings.username || settings.displayName || f.username || 'Athlete';
         uidToName[f.uid] = username;
-        return { uid: f.uid, username, settings, sessions: sessSnap.docs.map(d => ({ ...d.data(), id: d.id })) };
+        return { uid: f.uid, username, settings, sessions: sessSnap.docs.map((d, i) => ({ ...d.data(), id: d.id, feedFetchIndex: i })) };
       }));
 
       /* Group by date → uid → { username, settings, sessions[] } */
@@ -1538,7 +1538,7 @@
         const sortedUids = Object.keys(byDate[date]).sort((a, b) => a === myUid ? -1 : b === myUid ? 1 : 0);
         for (const uid of sortedUids) {
           const { username, settings, sessions } = byDate[date][uid];
-          html += renderFriendDayCard(uid, username, settings, sessions, date, viewerColors);
+          html += renderFriendDayCard(uid, username, settings, sortFeedSessionsByLoggedOrder(sessions), date, viewerColors);
         }
         html += '</div>';
       }
@@ -1551,6 +1551,27 @@
     } catch (err) {
       container.innerHTML = `<p style="color:var(--down);font-family:var(--mono);font-size:13px;">Error: ${err.message}</p>`;
     }
+  }
+
+  function feedCreatedAtMs(s) {
+    const ts = s && s.createdAt;
+    if (!ts) return null;
+    if (typeof ts.toMillis === 'function') return ts.toMillis();
+    if (typeof ts.seconds === 'number') return ts.seconds * 1000 + Math.floor((ts.nanoseconds || 0) / 1000000);
+    if (ts instanceof Date) return ts.getTime();
+    if (typeof ts === 'number') return ts;
+    return null;
+  }
+
+  function sortFeedSessionsByLoggedOrder(sessions) {
+    return [...sessions].sort((a, b) => {
+      const aMs = feedCreatedAtMs(a);
+      const bMs = feedCreatedAtMs(b);
+      if (aMs != null && bMs != null && aMs !== bMs) return aMs - bMs;
+      if (aMs != null && bMs == null) return -1;
+      if (aMs == null && bMs != null) return 1;
+      return (a.feedFetchIndex || 0) - (b.feedFetchIndex || 0);
+    });
   }
 
   function mergeFeedFriendState() {
