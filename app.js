@@ -209,6 +209,9 @@ function compressImage(file, maxW, maxH, quality) {
 
 function showOnboardingModal(user) {
   let obName = user.displayName || '';
+  let obFirstName = '';
+  let obLastName = '';
+  let obPhone = '';
   let obAvatarDataUrl = null;
   let obAvatarZoom = 1;
   let obAvatarX = 50;
@@ -250,18 +253,118 @@ function showOnboardingModal(user) {
         try { await user.updateProfile({ displayName: name }); } catch(e) {}
         navUserName.textContent = name;
       }
-      renderStepPhoto();
+      renderStepFirstName();
     }
 
     input.addEventListener('keydown', e => { if (e.key === 'Enter') advanceName(); });
     document.getElementById('ob-name-continue').addEventListener('click', advanceName);
-    document.getElementById('ob-skip-name').addEventListener('click', renderStepPhoto);
+    document.getElementById('ob-skip-name').addEventListener('click', renderStepFirstName);
   }
 
-  /* ---- Step 2: Profile photo ---- */
+  /* ---- Step 2: First name (required) ---- */
+  function renderStepFirstName() {
+    card.innerHTML = `
+      <div class="eyebrow">Step 2 of 7</div>
+      <h2 class="title" style="margin:6px 0 6px;">What's your first name?</h2>
+      <p class="sub" style="margin-bottom:22px;">Used for your personal profile info.</p>
+      <input id="ob-first-name" type="text" class="auth-input" placeholder="First name"
+             value="${obFirstName.replace(/"/g,'&quot;')}" maxlength="40"
+             style="width:100%;margin-bottom:8px;">
+      <p id="ob-first-name-err" style="color:var(--down);font-size:12px;margin:0 0 8px;min-height:16px;"></p>
+      <button id="ob-first-name-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+      <button id="ob-first-name-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+    `;
+    const input = document.getElementById('ob-first-name');
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+
+    function advance() {
+      const val = input.value.trim();
+      if (!val) { document.getElementById('ob-first-name-err').textContent = 'Please enter your first name.'; return; }
+      obFirstName = val;
+      renderStepLastName();
+    }
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') advance(); });
+    document.getElementById('ob-first-name-continue').addEventListener('click', advance);
+    document.getElementById('ob-first-name-back').addEventListener('click', renderStepName);
+  }
+
+  /* ---- Step 3: Last name (required) ---- */
+  function renderStepLastName() {
+    card.innerHTML = `
+      <div class="eyebrow">Step 3 of 7</div>
+      <h2 class="title" style="margin:6px 0 6px;">What's your last name?</h2>
+      <p class="sub" style="margin-bottom:22px;">Used for your personal profile info.</p>
+      <input id="ob-last-name" type="text" class="auth-input" placeholder="Last name"
+             value="${obLastName.replace(/"/g,'&quot;')}" maxlength="40"
+             style="width:100%;margin-bottom:8px;">
+      <p id="ob-last-name-err" style="color:var(--down);font-size:12px;margin:0 0 8px;min-height:16px;"></p>
+      <button id="ob-last-name-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+      <button id="ob-last-name-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+    `;
+    const input = document.getElementById('ob-last-name');
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+
+    function advance() {
+      const val = input.value.trim();
+      if (!val) { document.getElementById('ob-last-name-err').textContent = 'Please enter your last name.'; return; }
+      obLastName = val;
+      renderStepEmailConfirm();
+    }
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') advance(); });
+    document.getElementById('ob-last-name-continue').addEventListener('click', advance);
+    document.getElementById('ob-last-name-back').addEventListener('click', renderStepFirstName);
+  }
+
+  /* ---- Step 4: Email confirm (required, read-only — already tied to the account) ---- */
+  function renderStepEmailConfirm() {
+    card.innerHTML = `
+      <div class="eyebrow">Step 4 of 7</div>
+      <h2 class="title" style="margin:6px 0 6px;">Confirm your email</h2>
+      <p class="sub" style="margin-bottom:22px;">This is the email tied to your account.</p>
+      <input type="text" class="auth-input" value="${(user.email || '').replace(/"/g,'&quot;')}" disabled
+             style="width:100%;margin-bottom:16px;opacity:0.6;cursor:not-allowed;">
+      <button id="ob-email-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+      <button id="ob-email-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+    `;
+    document.getElementById('ob-email-continue').addEventListener('click', renderStepPhone);
+    document.getElementById('ob-email-back').addEventListener('click', renderStepLastName);
+  }
+
+  /* ---- Step 5: Phone number (skippable) ---- */
+  function renderStepPhone() {
+    card.innerHTML = `
+      <div class="eyebrow">Step 5 of 7</div>
+      <h2 class="title" style="margin:6px 0 6px;">What's your phone number?</h2>
+      <p class="sub" style="margin-bottom:22px;">Optional — used for your personal profile info.</p>
+      <input id="ob-phone" type="tel" class="auth-input" placeholder="(555) 123-4567"
+             value="${obPhone.replace(/"/g,'&quot;')}" maxlength="20"
+             style="width:100%;margin-bottom:16px;">
+      <button id="ob-phone-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+      <button id="ob-skip-phone" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
+      <button id="ob-phone-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+    `;
+    const input = document.getElementById('ob-phone');
+    input.focus();
+
+    function advance() {
+      obPhone = input.value.trim();
+      renderStepPhoto();
+    }
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') advance(); });
+    document.getElementById('ob-phone-continue').addEventListener('click', advance);
+    document.getElementById('ob-skip-phone').addEventListener('click', renderStepPhoto);
+    document.getElementById('ob-phone-back').addEventListener('click', renderStepEmailConfirm);
+  }
+
+  /* ---- Step 6: Profile photo ---- */
   function renderStepPhoto() {
     card.innerHTML = `
-      <div class="eyebrow">Step 2 of 3</div>
+      <div class="eyebrow">Step 6 of 7</div>
       <h2 class="title" style="margin:6px 0 6px;">Set your profile photo</h2>
       <p class="sub" style="margin-bottom:20px;">Appears next to your name across the site.</p>
       <div style="display:flex;justify-content:center;margin-bottom:16px;">
@@ -344,13 +447,13 @@ function showOnboardingModal(user) {
 
     document.getElementById('ob-av-continue').addEventListener('click', renderStepBanner);
     document.getElementById('ob-av-skip').addEventListener('click', renderStepBanner);
-    document.getElementById('ob-av-back').addEventListener('click', renderStepName);
+    document.getElementById('ob-av-back').addEventListener('click', renderStepPhone);
   }
 
-  /* ---- Step 3: Profile banner ---- */
+  /* ---- Step 7: Profile banner ---- */
   function renderStepBanner() {
     card.innerHTML = `
-      <div class="eyebrow">Step 3 of 3</div>
+      <div class="eyebrow">Step 7 of 7</div>
       <h2 class="title" style="margin:6px 0 6px;">Set your profile banner</h2>
       <p class="sub" style="margin-bottom:16px;">The banner appears at the top of your profile page.</p>
       <div id="ob-banner-preview" class="ob-banner-preview">
@@ -431,17 +534,19 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-x')?.addEventListener('input',    e => { obBannerX    = parseFloat(e.target.value); updateBannerPreview(); });
     document.getElementById('ob-banner-y')?.addEventListener('input',    e => { obBannerY    = parseFloat(e.target.value); updateBannerPreview(); });
 
-    document.getElementById('ob-banner-done').addEventListener('click', () => finishOnboarding(true));
-    document.getElementById('ob-banner-skip').addEventListener('click', () => finishOnboarding(obAvatarDataUrl != null));
+    document.getElementById('ob-banner-done').addEventListener('click', () => finishOnboarding());
+    document.getElementById('ob-banner-skip').addEventListener('click', () => finishOnboarding());
     document.getElementById('ob-banner-back').addEventListener('click', renderStepPhoto);
   }
 
   /* ---- Finish ---- */
-  async function finishOnboarding(save) {
+  async function finishOnboarding() {
     overlay.remove();
-    if (!save) return;
     try {
       const data = {};
+      if (obFirstName) data.firstName = obFirstName;
+      if (obLastName)  data.lastName  = obLastName;
+      if (obPhone)     data.phone     = obPhone;
       if (obAvatarDataUrl) {
         data.avatarPhotoUrl = obAvatarDataUrl;
         data.avatarZoom = obAvatarZoom;
