@@ -234,7 +234,7 @@
 <!-- App data and logic -->
 <script src="data.js"></script>
 <script src="challenges.js?v=100"></script>
-<script src="app.js?v=115"></script>
+<script src="app.js?v=116"></script>
 <script src="nav.js?v=8"></script>
 <script>
   /* ── Goals / Challenges / Trackers page tabs ── purely UI — app.js's
@@ -250,6 +250,16 @@
     document.querySelectorAll('.goals-wrap .page-tab-panel').forEach(p => {
       p.classList.toggle('active', p.dataset.panel === panel);
     });
+    /* Tracker label textareas auto-size to their content via scrollHeight,
+       which reads as 0 while the Trackers panel is display:none -- re-run
+       it now that the panel is actually visible and laid out, or a
+       multi-line label stays clipped at the CSS min-height forever. */
+    if (panel === 'trackers') {
+      document.querySelectorAll('.tracker-row-input').forEach(el => {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+      });
+    }
   });
 </script>
 </body>

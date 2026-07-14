@@ -2875,6 +2875,12 @@ function initApp(uid) {
           <input type="date" class="tracker-restore-date" max="${todayISO}">
           <button class="tracker-restore-set" data-id="${btn.dataset.id}">Set</button>
           <button class="tracker-restore-cancel">✕</button>`;
+        /* Row layout just changed (streak controls now wrap onto their own
+           line), which can change the label textarea's available width --
+           re-run its auto-height calc so a newly-wrapped second line of
+           text isn't clipped by the old, shorter height. */
+        const labelInput = btn.closest('.tracker-row').querySelector('.tracker-row-input');
+        if (labelInput) { labelInput.style.height = 'auto'; labelInput.style.height = labelInput.scrollHeight + 'px'; }
         streakSpan.querySelector('.tracker-restore-cancel').addEventListener('click', () => renderTracker());
         streakSpan.querySelector('.tracker-restore-set').addEventListener('click', () => {
           const dateVal = streakSpan.querySelector('.tracker-restore-date').value;
