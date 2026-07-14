@@ -559,9 +559,8 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .goal-step-btn:hover{ color:var(--accent-bright); border-color:var(--accent-bright); }
 .goal-step-count{ font-size:11px; color:var(--text-dimmer); font-family:var(--mono); min-width:14px; text-align:center; }
 
-.goals-scroll-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.goals-scroll-wrap{ overflow-x:hidden; }
 @media(max-width:600px){
-  .goals-list{ min-width:480px; }
   .goal-steps-adj{ display:flex; opacity:1; }
   .goal-delete{ opacity:1; }
 }
@@ -716,9 +715,9 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 .tracker-add-btn:hover{ border-color:var(--accent-bright); color:var(--accent-bright); }
 .tracker-list{ display:flex; flex-direction:column; gap:8px; }
-.tracker-row{ display:flex; align-items:flex-start; gap:10px; }
+.tracker-row{ display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; }
 .tracker-row-input{
-  flex:1; min-width:0; background:var(--surface-2); border:1px solid var(--border-strong);
+  flex:1; min-width:100px; background:var(--surface-2); border:1px solid var(--border-strong);
   border-radius:8px; padding:9px 12px;
   font-family:var(--body); font-size:13px; color:var(--text); outline:none;
   transition:border-color .15s; line-height:1.4;
@@ -737,13 +736,14 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .tracker-row-check.done:hover{ border-color:var(--up); color:#fff; }
 .tracker-row-streak{
   font-family:var(--mono); font-size:11px; font-weight:700;
-  color:var(--text-dimmer); white-space:nowrap; min-width:46px; text-align:right;
+  color:var(--text-dimmer); min-width:46px; text-align:right;
   display:flex; align-items:center; gap:4px; justify-content:flex-end;
+  flex-wrap:wrap; row-gap:6px; max-width:100%;
 }
 .tracker-restore-btn{ background:none; border:1px solid rgba(255,255,255,0.18); border-radius:20px; color:var(--text-dimmer); font-size:10px; font-family:var(--body); padding:2px 7px; cursor:pointer; white-space:nowrap; transition:border-color .15s,color .15s; }
 .tracker-restore-btn:hover{ border-color:rgba(255,255,255,0.4); color:var(--text); }
-.tracker-restore-label{ font-size:10px; color:var(--text-dimmer); font-family:var(--body); }
-.tracker-restore-date{ font-size:10px; background:transparent; border:1px solid rgba(255,255,255,0.2); border-radius:5px; color:var(--text); font-family:var(--body); padding:1px 4px; outline:none; color-scheme:dark; width:110px; }
+.tracker-restore-label{ font-size:10px; color:var(--text-dimmer); font-family:var(--body); white-space:nowrap; }
+.tracker-restore-date{ font-size:10px; background:transparent; border:1px solid rgba(255,255,255,0.2); border-radius:5px; color:var(--text); font-family:var(--body); padding:1px 4px; outline:none; color-scheme:dark; width:110px; max-width:100%; }
 .tracker-restore-set{ background:var(--accent); border:none; border-radius:5px; color:#fff; font-size:10px; font-family:var(--body); padding:2px 7px; cursor:pointer; }
 .tracker-restore-cancel{ background:none; border:none; color:var(--text-dimmer); font-size:11px; cursor:pointer; padding:0 2px; }
 .tracker-row-delete{
