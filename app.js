@@ -745,7 +745,7 @@ document.getElementById('googleSignIn').addEventListener('click', () => {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider)
     .then(r => { if (r.additionalUserInfo?.isNewUser) showOnboardingModal(r.user); })
-    .catch(err => { authError.textContent = friendlyError(err.code); });
+    .catch(err => { authError.textContent = friendlyError(err.code) + ' [' + err.code + ']'; });
 });
 
 /* Email sign-in */
