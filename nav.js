@@ -2,13 +2,13 @@
   var style = document.createElement('style');
   style.textContent =
     '.mobile-bottom-nav{' +
-      'display:none;position:fixed;' +
+      'display:none;position:fixed;box-sizing:content-box;' +
       'top:auto !important;bottom:0;left:0;right:0;' +
       'height:58px;z-index:999;' +
       'flex-direction:row;align-items:stretch;' +
       'background:#0d0f12;' +
       'box-shadow:inset 0 1px 0 rgba(210,185,110,.2),0 -6px 24px rgba(0,0,0,.55);' +
-      'padding-bottom:env(safe-area-inset-bottom,0px);' +
+      'padding-bottom:max(env(safe-area-inset-bottom,0px),20px);' +
     '}' +
     '.mbn-item{' +
       'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
@@ -35,7 +35,7 @@
     '[data-theme="light"] .mbn-item:not(.mbn-active):active{color:rgba(18,23,33,.6);}' +
     '@media(max-width:700px){' +
       '.mobile-bottom-nav{display:flex;}' +
-      'body{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px)) !important;}' +
+      'body{padding-bottom:calc(58px + max(env(safe-area-inset-bottom,0px),20px)) !important;}' +
     '}';
   document.head.appendChild(style);
 
