@@ -1995,3 +1995,40 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .ch-reroll-cancel{ background:transparent; border:1px solid var(--border); color:var(--text-dim); font-size:12px; padding:7px 14px; border-radius:8px; cursor:pointer; transition:background .15s; }
 .ch-reroll-cancel:hover{ background:rgba(255,255,255,.06); }
 .ch-reroll-used{ display:inline-flex; align-items:center; gap:4px; white-space:nowrap; font-size:11px; font-family:var(--mono); color:var(--text-dimmer); opacity:.6; }
+
+/* ---------- APP LOCK (Face ID / biometric unlock overlay) ----------
+   Shown by applock.js when the user enabled the lock in Settings. The
+   data-locked attribute is set synchronously in <head> before first
+   paint, so page content never flashes before the lock covers it. */
+html[data-locked="1"] body > *:not(.applock){ display:none !important; }
+html[data-locked="1"] body{ overflow:hidden; }
+.applock{
+  position:fixed; inset:0; z-index:2147483000;
+  background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:18px; padding:32px 28px; text-align:center;
+  transition:opacity .2s ease;
+}
+.applock-logo{ width:84px; height:84px; filter:drop-shadow(0 0 22px rgba(193,39,45,.4)); }
+.applock-title{
+  font-family:var(--display); font-size:26px; letter-spacing:2px;
+  text-transform:uppercase;
+  background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.applock-sub{
+  font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.2em;
+  color:var(--text-dimmer); margin-top:-8px;
+}
+.applock-btn{
+  margin-top:6px; background:var(--accent); border:1px solid var(--accent-bright);
+  color:#fff; font-family:var(--body); font-weight:700; font-size:15px;
+  padding:14px 28px; border-radius:12px; cursor:pointer; transition:transform .15s, box-shadow .15s;
+  box-shadow:0 0 0 0 rgba(193,39,45,.5);
+}
+.applock-btn:hover{ transform:translateY(-2px); box-shadow:0 0 32px rgba(193,39,45,.5); }
+.applock-err{ font-size:13px; color:var(--text-dim); min-height:18px; font-family:var(--body); }
+.applock-fallback{
+  background:transparent; border:none; color:var(--text-dimmer); font-size:13px;
+  font-family:var(--body); text-decoration:underline; cursor:pointer; padding:6px;
+}
+.applock-fallback:hover{ color:var(--text); }

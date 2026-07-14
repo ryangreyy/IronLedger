@@ -9,9 +9,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=176">
+<link rel="stylesheet" href="styles.css?v=178">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0B0C0E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="IronGladiator">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script src="applock.js?v=1"></script>
 </head>
 <body>
 
@@ -269,6 +276,14 @@
             <button id="savePassword" class="btn btn-primary">Update password</button>
             <p id="passwordMsg" class="settings-msg"></p>
           </div>
+        </div>
+
+        <!-- Face ID / biometric lock -->
+        <div class="card" style="padding:28px;" id="faceIdCard">
+          <p class="settings-card-title">Face ID lock</p>
+          <p class="settings-card-desc">Require Face ID (or your device fingerprint) every time you open IronGladiator. Set up per device.</p>
+          <button id="faceIdToggle" class="btn btn-primary">Enable Face ID lock</button>
+          <p id="faceIdMsg" class="settings-msg"></p>
         </div>
 
       </div>
@@ -584,6 +599,80 @@
       }
     } finally { btn.textContent = 'Update password'; btn.disabled = false; }
   });
+
+  /* ── FACE ID / BIOMETRIC LOCK ──
+     Registers a WebAuthn platform credential (Face ID on iPhone, Touch ID
+     on Mac, fingerprint on Android). Stored per-device in localStorage;
+     applock.js reads it to gate the app on open. No backend, so this is a
+     privacy lock, not cryptographic auth — see applock.js for the caveat. */
+  (function () {
+    const btn = document.getElementById('faceIdToggle');
+    const msg = document.getElementById('faceIdMsg');
+    if (!btn) return;
+
+    function bufToB64url(buf) {
+      const b = new Uint8Array(buf); let s = '';
+      for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+      return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    function isOn() { try { return localStorage.getItem('ig-faceid-lock') === '1'; } catch (e) { return false; } }
+    function refresh() {
+      const on = isOn();
+      btn.textContent = on ? 'Disable Face ID lock' : 'Enable Face ID lock';
+      btn.className = on ? 'btn btn-ghost' : 'btn btn-primary';
+    }
+
+    if (!window.PublicKeyCredential || !navigator.credentials) {
+      btn.disabled = true;
+      msg.style.color = 'var(--text-dim)';
+      msg.textContent = 'This device / browser doesn’t support biometric unlock.';
+      return;
+    }
+    refresh();
+
+    btn.addEventListener('click', async () => {
+      msg.textContent = '';
+      if (isOn()) {
+        try { localStorage.removeItem('ig-faceid-lock'); localStorage.removeItem('ig-faceid-cred'); sessionStorage.removeItem('ig-unlocked'); } catch (e) {}
+        refresh();
+        msg.style.color = 'var(--text-dim)'; msg.textContent = 'Face ID lock turned off.';
+        setTimeout(() => { msg.textContent = ''; }, 3000);
+        return;
+      }
+      const user = auth.currentUser;
+      if (!user) { msg.style.color = 'var(--down)'; msg.textContent = 'Please sign in first.'; return; }
+      btn.textContent = 'Waiting for Face ID…'; btn.disabled = true;
+      try {
+        const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+        const cred = await navigator.credentials.create({
+          publicKey: {
+            challenge,
+            rp: { name: 'IronGladiator', id: location.hostname },
+            user: {
+              id: new TextEncoder().encode(user.uid),
+              name: user.email || user.uid,
+              displayName: user.displayName || user.email || 'Athlete'
+            },
+            pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' },
+            timeout: 60000,
+            attestation: 'none'
+          }
+        });
+        localStorage.setItem('ig-faceid-cred', bufToB64url(cred.rawId));
+        localStorage.setItem('ig-faceid-lock', '1');
+        try { sessionStorage.setItem('ig-unlocked', '1'); } catch (e) {}
+        refresh();
+        msg.style.color = 'var(--up)'; msg.textContent = '✓ Face ID lock enabled — you’ll be asked next time you open the app.';
+      } catch (err) {
+        refresh();
+        msg.style.color = 'var(--down)';
+        msg.textContent = (err && err.name === 'NotAllowedError')
+          ? 'Setup cancelled or timed out. Nothing was changed.'
+          : 'Couldn’t set up Face ID on this device.';
+      } finally { btn.disabled = false; }
+    });
+  })();
 
   /* ── DELETE ACCOUNT ── */
   document.getElementById('deleteBtn').addEventListener('click', () => {
