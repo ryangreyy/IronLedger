@@ -108,6 +108,7 @@
   if (signOutBtn) signOutBtn.addEventListener('click', () => auth.signOut());
 
   auth.onAuthStateChanged(async user => {
+    try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
     if (user) {
       if (navSignedOut) { navSignedOut.style.display = 'none'; }
       if (navSignedIn)  { navSignedIn.style.display = 'flex'; navSignedIn.style.opacity = '0'; }

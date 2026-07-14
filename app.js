@@ -492,6 +492,7 @@ let isSignedIn      = false;  // used by scroll-trigger below
 let authPromptShown = false;  // only auto-prompt once per page load
 
 auth.onAuthStateChanged(user => {
+  try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
   if (user) {
     /* ---- Signed in ---- */
     isSignedIn = true;

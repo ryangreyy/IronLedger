@@ -375,8 +375,19 @@ nav.nav-hidden{ transform:translateY(-100%); }
    logged in. No CTAs by design: the bottom nav (mobile) and hamburger
    (desktop) already cover navigation, so this is pure status. */
 .home-status-header{
+  display:none;
   max-width:640px; margin:0 auto; padding:56px 28px 5px; text-align:center;
 }
+/* No-FOUC guess: a tiny inline script in <head> reads a localStorage
+   flag set on the last real auth result and applies it synchronously,
+   before first paint, so returning users don't see the signed-out
+   layout flash before app.js's async auth check catches up. app.js's
+   own inline .style.display writes still win once the real check
+   resolves (inline style beats an external class selector), so a wrong
+   guess self-corrects with no visible flash of its own. */
+html[data-guess-signedin="true"] .mobile-brand-header,
+html[data-guess-signedin="true"] #homeHero{ display:none; }
+html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-status-header .eyebrow{ justify-content:center; margin-bottom:10px; }
 .home-status-header .title{ margin-bottom:22px; }
 .home-stat-strip{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
