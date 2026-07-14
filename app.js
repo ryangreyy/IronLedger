@@ -508,8 +508,10 @@ auth.onAuthStateChanged(user => {
     const homeHero = document.getElementById('homeHero');
     const homeHeader = document.getElementById('homeStatusHeader');
     const homeWelcomeName = document.getElementById('homeWelcomeName');
+    const homeBrandHeader = document.querySelector('.mobile-brand-header');
     if (homeHero)   homeHero.style.display = 'none';
     if (homeHeader) homeHeader.style.display = '';
+    if (homeBrandHeader) homeBrandHeader.style.display = 'none';
     if (homeWelcomeName) homeWelcomeName.textContent = user.displayName || user.email.split('@')[0];
     db.doc(`users/${user.uid}/settings/main`).get().then(snap => {
       const d = snap.exists ? snap.data() : {};
@@ -530,8 +532,10 @@ auth.onAuthStateChanged(user => {
     requestAnimationFrame(() => requestAnimationFrame(() => { navSignedOut.style.opacity = '1'; }));
     const homeHeroOut   = document.getElementById('homeHero');
     const homeHeaderOut = document.getElementById('homeStatusHeader');
+    const homeBrandHeaderOut = document.querySelector('.mobile-brand-header');
     if (homeHeroOut)   homeHeroOut.style.display = '';
     if (homeHeaderOut) homeHeaderOut.style.display = 'none';
+    if (homeBrandHeaderOut) homeBrandHeaderOut.style.display = '';
     initApp(null);   // renders all cards with empty data, returns before Firestore
     if (location.hash) setTimeout(() => {
       const el = document.querySelector(location.hash);
