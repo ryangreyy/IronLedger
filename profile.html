@@ -675,12 +675,27 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const epRemove  = document.getElementById('epRemoveAvatar');
     if (!img) return;
     if (url) {
-      img.style.display = 'block';
-      if (content) content.style.display = 'none';
       if (epRepos)  epRepos.style.display  = '';
       if (epRemove) epRemove.style.display = '';
-      const apply = () => setAvatarTransform(img, zoom || 1, posX != null ? posX : 50, posY != null ? posY : 50);
-      if (img.src !== url) { img.onload = apply; img.src = url; } else apply();
+      const apply = () => {
+        setAvatarTransform(img, zoom || 1, posX != null ? posX : 50, posY != null ? posY : 50);
+        if (content) content.style.display = 'none';
+        img.style.display = 'block';
+      };
+      img.onerror = () => {
+        img.style.display = 'none';
+        if (content) content.style.display = '';
+      };
+      if (img.src !== url) {
+        img.style.display = 'none';
+        img.onload = apply;
+        img.src = url;
+      } else if (img.complete && img.naturalWidth) {
+        apply();
+      } else {
+        img.style.display = 'none';
+        img.onload = apply;
+      }
     } else {
       img.src = ''; img.style.display = 'none';
       img.style.width = ''; img.style.height = ''; img.style.left = ''; img.style.top = '';
@@ -1688,11 +1703,9 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         if (initAvatar.setCurrentState) initAvatar.setCurrentState(aZ, aPX, aPY);
         const navAv = document.getElementById('nav-avatar');
         if (navAv && d.avatarPhotoUrl) {
-          navAv.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
-          navAv.innerHTML = '';
           const navImg = document.createElement('img');
           navImg.alt = '';
-          navImg.style.cssText = 'position:absolute;object-fit:fill;';
+          navImg.style.cssText = 'position:absolute;object-fit:fill;display:none;';
           navImg.onload = function () {
             const cW = navAv.offsetWidth  || 36;
             const cH = navAv.offsetHeight || 36;
@@ -1706,10 +1719,13 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
             navImg.style.height = dH + 'px';
             navImg.style.left   = -((dW - cW) * px / 100) + 'px';
             navImg.style.top    = -((dH - cH) * py / 100) + 'px';
+            navAv.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
+            navAv.innerHTML = '';
+            navAv.appendChild(navImg);
+            navImg.style.display = 'block';
             navAv.style.opacity = '1';
           };
           navImg.src = d.avatarPhotoUrl;
-          navAv.appendChild(navImg);
         }
         renderAll();
       });
