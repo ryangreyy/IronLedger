@@ -936,8 +936,12 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 #dashboard .kpi-forge .forge-medallion{ left:18px; top:58%; width:96px; height:96px; }
 #dashboard .kpi-forge .forge-num{ font-size:38px; }
 #dashboard .kpi-forge .forge-cap{ font-size:10px; }
-#dashboard .kpi-forge .label{ white-space:nowrap; }
-#dashboard .kpi-forge-header{ padding-left:0; min-height:28px; }
+#dashboard .kpi-forge .label{
+  position:absolute; top:18px; left:20px; z-index:3;
+  white-space:nowrap !important; width:max-content; max-width:none;
+}
+#dashboard .kpi-forge-header{ display:block; padding-left:0; min-height:28px; }
+#dashboard .kpi-forge-header .forge-cap{ position:absolute; top:18px; right:20px; max-width:44%; }
 #dashboard .kpi-streak-card > .label{ padding-left:0; }
 #dashboard .kpi-streak-card .streak-action-stack{ top:18px; right:18px; max-width:150px; }
 #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:5px 10px; font-size:11px; }
