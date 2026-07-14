@@ -122,7 +122,31 @@ const ICON_COLORS  = ['#ffffff','#f0f4f8','#d4af37','#ff5a5a','#ff8a4c','#ffd700
 
 let currentUser = null;
 
+/* Mirrors the top-nav avatar into the bottom nav's Profile icon so the
+   nav bar visually says "this is you" instead of a generic person icon. */
+function syncBottomNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl) {
+  const profileLink = document.querySelector('.mobile-bottom-nav a[href="profile.html"]');
+  if (!profileLink) return;
+  const old = profileLink.querySelector('i, .mbn-avatar');
+  if (!old) return;
+  const el = document.createElement('span');
+  el.className = 'mbn-avatar';
+  const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
+  if (avatarPhotoUrl || (user && user.photoURL && !emb)) {
+    el.innerHTML = `<img src="${avatarPhotoUrl || user.photoURL}" alt="">`;
+  } else if (emb) {
+    el.style.cssText = `background:${bgColor||'#8b1c1c'};box-shadow:inset 0 0 0 2px ${ringColor||'#d4af37'};`;
+    el.innerHTML = `<i class="ti ${emb.icon}" style="font-size:12px;color:${iconColor||'#fff'};line-height:1;" aria-hidden="true"></i>`;
+  } else if (user) {
+    el.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+  } else {
+    return;
+  }
+  old.replaceWith(el);
+}
+
 function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY, doReveal) {
+  syncBottomNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl);
   if (!navAvatar) return;
   if (avatarPhotoUrl) {
     navAvatar.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
