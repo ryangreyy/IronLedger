@@ -932,6 +932,14 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   display:flex; flex-direction:column; align-items:flex-end; gap:7px; max-width:168px; }
 .kpi-streak-card .streak-action-stack .forge-cap{ margin-top:0; text-align:right; line-height:1.35; }
 .kpi-streak-card .streak-action-stack .forge-rest{ position:static; margin-top:0; }
+#dashboard .kpi-forge{ min-height:170px; padding:18px 20px; }
+#dashboard .kpi-forge .forge-medallion{ left:18px; top:58%; width:96px; height:96px; }
+#dashboard .kpi-forge .forge-num{ font-size:38px; }
+#dashboard .kpi-forge .forge-cap{ font-size:10px; }
+#dashboard .kpi-forge-header{ padding-left:112px; min-height:28px; }
+#dashboard .kpi-streak-card > .label{ padding-left:112px; }
+#dashboard .kpi-streak-card .streak-action-stack{ top:18px; right:18px; max-width:150px; }
+#dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:5px 10px; font-size:11px; }
 /* Light mode: the forged weight-plate medallions are dark steel with near-black
    rings — a dark blob on a light card. Swap to a light steel plate with pale
    rings (red accents on the streak plate stay). Also re-warm the streak number
@@ -1376,7 +1384,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 #dashboardPageTabs ~ .page-tab-panel{ padding-top:36px; }
 .dashboard-mobile-head{ display:none; }
 @media(max-width:700px){
-  #dashboardPageTabs{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:10px 28px 20px !important; }
+  #dashboardPageTabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 28px 20px !important; }
   #dashboardPageTabs .page-tab{ min-height:42px; padding:8px 6px; font-size:10px; white-space:normal; line-height:1.15; text-align:center; }
   .dashboard-mobile-head{ display:block; max-width:1140px; margin:0 auto; padding:14px 28px 0; }
   .dashboard-mobile-head .eyebrow{ margin-bottom:10px; }
