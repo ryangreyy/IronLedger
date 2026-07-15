@@ -1516,7 +1516,18 @@ function initApp(uid) {
   /* Muscle recovery card state (declared here so guest-mode renderMuscleMap() can access them) */
   let mrWidgetFront = null;
   let mrWidgetBack  = null;
-  let mrGender = 'male';
+  const MR_GENDER_KEY = 'ig-muscle-recovery-gender';
+  function mrSavedGender() {
+    try {
+      const saved = localStorage.getItem(MR_GENDER_KEY);
+      if (saved === 'male' || saved === 'female') return saved;
+    } catch (_) {}
+    return 'male';
+  }
+  function mrPersistGender(gender) {
+    try { localStorage.setItem(MR_GENDER_KEY, gender); } catch (_) {}
+  }
+  let mrGender = mrSavedGender();
   let mrSkin   = 0;
   let mrHairColor = 'rgb(26,18,8)';
   let mrHighlights = {};
@@ -1702,8 +1713,10 @@ function initApp(uid) {
     });
   }
 
-  function mrSetGender(gender) {
+  function mrSetGender(gender, persist = true) {
+    if (gender !== 'male' && gender !== 'female') gender = 'male';
     mrGender = gender;
+    if (persist) mrPersistGender(gender);
     document.getElementById('mr-btn-male')?.classList.toggle('active', gender === 'male');
     document.getElementById('mr-btn-female')?.classList.toggle('active', gender === 'female');
     [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) { w.setGender(gender); } });
@@ -1732,6 +1745,7 @@ function initApp(uid) {
   document.querySelectorAll('#mr-hair-swatches .mr-swatch').forEach((el, i) => {
     el.addEventListener('click', () => mrSetHairColor(i));
   });
+  mrSetGender(mrGender, false);
 
   function mrInitWidget(containerId, side) {
     const container = document.getElementById(containerId);
