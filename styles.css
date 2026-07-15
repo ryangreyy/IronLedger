@@ -2018,30 +2018,36 @@ html[data-locked="1"] body{ overflow:hidden; }
 .applock{
   position:fixed; inset:0; z-index:2147483000;
   background:var(--bg);
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:18px; padding:32px 28px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  gap:14px; padding:clamp(58px, 11vh, 104px) 28px 32px; text-align:center;
   transition:opacity .2s ease;
 }
-.applock-logo{ width:84px; height:84px; filter:drop-shadow(0 0 22px rgba(193,39,45,.4)); }
+.applock-logo{ width:118px; height:118px; filter:drop-shadow(0 0 28px rgba(193,39,45,.46)); }
 .applock-title{
-  font-family:var(--display); font-size:26px; letter-spacing:2px;
+  font-family:var(--display); font-size:38px; letter-spacing:1px; line-height:.95;
   text-transform:uppercase;
   background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 .applock-sub{
   font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.2em;
-  color:var(--text-dimmer); margin-top:-8px;
+  color:var(--text-dimmer); margin-top:0;
 }
 .applock-btn{
-  margin-top:6px; background:var(--accent); border:1px solid var(--accent-bright);
+  margin-top:24px; width:min(100%, 320px); background:var(--accent); border:1px solid var(--accent-bright);
   color:#fff; font-family:var(--body); font-weight:700; font-size:15px;
   padding:14px 28px; border-radius:12px; cursor:pointer; transition:transform .15s, box-shadow .15s;
   box-shadow:0 0 0 0 rgba(193,39,45,.5);
 }
 .applock-btn:hover{ transform:translateY(-2px); box-shadow:0 0 32px rgba(193,39,45,.5); }
-.applock-err{ font-size:13px; color:var(--text-dim); min-height:18px; font-family:var(--body); }
+.applock-err{ font-size:13px; color:var(--text-dim); min-height:18px; font-family:var(--body); max-width:320px; }
 .applock-fallback{
   background:transparent; border:none; color:var(--text-dimmer); font-size:13px;
   font-family:var(--body); text-decoration:underline; cursor:pointer; padding:6px;
 }
 .applock-fallback:hover{ color:var(--text); }
+@media(max-height:700px){
+  .applock{ padding-top:42px; gap:10px; }
+  .applock-logo{ width:98px; height:98px; }
+  .applock-title{ font-size:32px; }
+  .applock-btn{ margin-top:16px; }
+}
