@@ -718,6 +718,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     let currentZoom = 1, currentPosX = 50, currentPosY = 50;
     let liveZoom    = 1, livePosX   = 50, livePosY    = 50;
     let dragging = false, dragStartX = 0, dragStartY = 0, basePosX = 50, basePosY = 50;
+    let pinching = false, pinchStartDist = 0, pinchStartZoom = 1;
 
     function getImg() { return document.getElementById('avatarImg'); }
 
@@ -766,6 +767,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     }
 
     function enterReposMode() {
+      const img = getImg();
+      if (!img || !img.src) return;
       liveZoom = currentZoom; livePosX = currentPosX; livePosY = currentPosY;
       applyLive();
       const overlay = document.getElementById('avatarRepoOverlay');
@@ -775,7 +778,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     }
 
     function exitReposMode() {
-      dragging = false;
+      dragging = pinching = false;
       const overlay = document.getElementById('avatarRepoOverlay');
       const toolbar = document.getElementById('avatarRepoToolbar');
       if (overlay) overlay.style.display = 'none';
@@ -785,32 +788,53 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const overlay = document.getElementById('avatarRepoOverlay');
     if (overlay) {
       overlay.addEventListener('mousedown', e => {
-        e.preventDefault(); dragging = true;
+        e.preventDefault();
+        dragging = true;
         dragStartX = e.clientX; dragStartY = e.clientY;
         basePosX = livePosX; basePosY = livePosY;
       });
-      overlay.addEventListener('mousemove', e => {
+
+      window.addEventListener('mousemove', e => {
         if (!dragging) return;
         const { dpx, dpy } = dragToPct(e.clientX - dragStartX, e.clientY - dragStartY);
         livePosX = Math.max(0, Math.min(100, basePosX + dpx));
         livePosY = Math.max(0, Math.min(100, basePosY + dpy));
         applyLive();
       });
-      overlay.addEventListener('mouseup',    () => { dragging = false; });
-      overlay.addEventListener('mouseleave', () => { dragging = false; });
+
+      window.addEventListener('mouseup', () => { dragging = false; });
+
       overlay.addEventListener('touchstart', e => {
-        e.preventDefault(); dragging = true;
-        dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY;
-        basePosX = livePosX; basePosY = livePosY;
+        e.preventDefault();
+        if (e.touches.length === 1) {
+          dragging = true; pinching = false;
+          dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY;
+          basePosX = livePosX; basePosY = livePosY;
+        } else if (e.touches.length === 2) {
+          dragging = false; pinching = true;
+          pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+          pinchStartZoom = liveZoom;
+        }
       }, { passive: false });
+
       overlay.addEventListener('touchmove', e => {
-        if (!dragging) return; e.preventDefault();
-        const { dpx, dpy } = dragToPct(e.touches[0].clientX - dragStartX, e.touches[0].clientY - dragStartY);
-        livePosX = Math.max(0, Math.min(100, basePosX + dpx));
-        livePosY = Math.max(0, Math.min(100, basePosY + dpy));
-        applyLive();
+        e.preventDefault();
+        if (dragging && e.touches.length === 1) {
+          const { dpx, dpy } = dragToPct(e.touches[0].clientX - dragStartX, e.touches[0].clientY - dragStartY);
+          livePosX = Math.max(0, Math.min(100, basePosX + dpx));
+          livePosY = Math.max(0, Math.min(100, basePosY + dpy));
+          applyLive();
+        } else if (pinching && e.touches.length === 2) {
+          const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+          liveZoom = Math.max(1, Math.min(4, pinchStartZoom * (dist / pinchStartDist)));
+          applyLive();
+        }
       }, { passive: false });
-      overlay.addEventListener('touchend', () => { dragging = false; });
+
+      overlay.addEventListener('touchend', e => {
+        if (e.touches.length === 0) { dragging = pinching = false; }
+        else if (e.touches.length < 2) { pinching = false; }
+      });
     }
 
     const zoomIn  = document.getElementById('avatarZoomIn');
