@@ -1364,6 +1364,14 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .page-tab:hover{ background:var(--bg-2); color:var(--text); border-color:var(--accent); }
 .page-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
+@media(min-width:701px){
+  #trainingPageTabs,
+  #dashboardPageTabs{ display:grid; gap:10px; margin-bottom:22px; }
+  #trainingPageTabs{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+  #dashboardPageTabs{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #trainingPageTabs .page-tab,
+  #dashboardPageTabs .page-tab{ width:100%; text-align:center; }
+}
 #trainingPageTabs .page-tab:not(.active){ background:rgba(255,255,255,.03); border-color:var(--border); color:var(--text-dimmer); }
 #trainingPageTabs .page-tab:not(.active):hover{ background:rgba(255,255,255,.06); border-color:var(--border-strong); color:var(--text-dim); }
 [data-theme="light"] #trainingPageTabs .page-tab:not(.active){ background:rgba(18,23,33,.04); border-color:rgba(18,23,33,.14); color:rgba(18,23,33,.42); }
