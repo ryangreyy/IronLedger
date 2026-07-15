@@ -98,12 +98,15 @@
     document.body.appendChild(wrap);
     document.getElementById('applock-go').addEventListener('click', attempt);
     document.getElementById('applock-pw').addEventListener('click', usePassword);
-    /* Deliberately NOT auto-firing attempt() here. Safari requires a real
-       user gesture (a tap) for a clean, direct Face ID prompt -- calling
-       navigator.credentials.get() from a timer instead makes it treat the
-       request as unsolicited and insert its own "Use Passkey" confirmation
-       button first. Waiting for the button tap here means that tap IS the
-       gesture, so Face ID fires immediately with no extra step. */
+    /* Auto-fire on open. The "Use Passkey" chip iOS shows before Face ID
+       is Apple's own required consent step for EVERY passkey sign-in on
+       Safari -- it isn't caused by (or avoidable via) how this call is
+       triggered, gesture or not. So there's no UX upside to waiting for
+       a manual tap on our own button first; that just adds a second,
+       redundant tap in front of the one Apple already requires. Firing
+       immediately means the native "Use Passkey" prompt is the ONLY tap
+       needed, and it appears the instant the app opens. */
+    setTimeout(attempt, 250);
   }
 
   if (document.readyState === 'loading') {
