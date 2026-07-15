@@ -1402,6 +1402,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   .dashboard-mobile-head{ display:block; max-width:1140px; margin:0 auto; padding:14px 28px 0; }
   .dashboard-mobile-head .eyebrow{ margin-bottom:10px; }
   #dashboardPageTabs ~ .page-tab-panel{ padding-top:3px; }
+  #dashboard{ padding-top:3px !important; }
   #dashboardPageTabs ~ .page-tab-panel > .eyebrow,
   #dashboardPageTabs ~ .page-tab-panel > h2.title{ display:none; }
   #dashboard .kpi-forge-header{ position:static; }
