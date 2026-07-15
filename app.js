@@ -1385,7 +1385,7 @@ function initApp(uid) {
 
       /* Bodyweight lifts have no meaningful weight to chart — plot reps instead */
       const isBwLift = liftSessions.every(s => s.bodyweight);
-      const metricOf = s => isBwLift ? s.reps : s.wt;
+      const metricOf = s => isTimedSession(s) ? (s.timeSeconds || 0) : (isBwLift ? s.reps : s.wt);
 
       const W = 700, H = window.innerWidth < 640 ? 320 : 240;
       const padL = 52, padR = 24, padT = 24, padB = 52;
@@ -1441,7 +1441,7 @@ function initApp(uid) {
           <div class="history-detail-row">
             <span class="history-date">${fmtDateDisplay(s.dateRaw)}</span>
             <span class="history-wt">${s.bodyweight ? 'Bodyweight' : s.wt + ' lbs'}</span>
-            <span class="history-reps">${s.sets} × ${s.reps}</span>
+            <span class="history-reps">${s.sets} × ${repMetricText(s)}</span>
             <span class="history-note${s.note ? ' has-note' : ''}">${s.note ? '★ ' + s.note : '—'}</span>
           </div>`).join('');
       }
@@ -1587,7 +1587,7 @@ function initApp(uid) {
     });
 
     /* Volume = sets × reps × weight for each month session */
-    const volume     = monthSess.reduce((sum, s) => sum + (s.sets * s.reps * s.wt), 0);
+    const volume     = monthSess.reduce((sum, s) => sum + (s.sets * (isTimedSession(s) ? 1 : s.reps) * s.wt), 0);
     const daysLifted = new Set(monthSess.map(s => s.dateRaw).filter(Boolean)).size;
 
     /* Streak = consecutive days with a session OR a logged rest day */
@@ -1852,6 +1852,37 @@ function initApp(uid) {
     `).join('');
   }
 
+  function isTimedSession(s) {
+    return s?.repMode === 'time';
+  }
+
+  function parseTimeSeconds(raw) {
+    const value = String(raw || '').trim().toLowerCase();
+    if (!value) return 0;
+    const colon = value.match(/^(\d+):([0-5]?\d)$/);
+    if (colon) return (+colon[1] * 60) + +colon[2];
+    const min = value.match(/(\d+(?:\.\d+)?)\s*m/);
+    const sec = value.match(/(\d+(?:\.\d+)?)\s*s/);
+    if (min || sec) return Math.round((min ? parseFloat(min[1]) * 60 : 0) + (sec ? parseFloat(sec[1]) : 0));
+    const numeric = parseFloat(value);
+    return Number.isFinite(numeric) ? Math.round(numeric) : 0;
+  }
+
+  function formatTimeSeconds(seconds) {
+    const total = Math.max(0, Math.round(+seconds || 0));
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return mins ? `${mins}:${String(secs).padStart(2, '0')}` : `${secs}s`;
+  }
+
+  function repMetricText(s) {
+    return isTimedSession(s) ? formatTimeSeconds(s.timeSeconds || s.reps) : (s.reps || '—');
+  }
+
+  function repInputValue(s) {
+    return isTimedSession(s) ? formatTimeSeconds(s.timeSeconds || s.reps) : (s.reps || '');
+  }
+
   function renderLog(sessions) {
     currentSessions = sessions;
     const logBodyEl = document.getElementById('logBody');
@@ -1875,7 +1906,7 @@ function initApp(uid) {
           <tr data-id="${s.id}">
             <td class="log-main-cell">
               <span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${s.lift}</span>
-              <div class="log-meta-line">${s.date} · ${s.sets}×${s.reps} · ${s.bodyweight ? 'Bodyweight' : s.wt + ' lbs'}</div>${s.note ? '<div class="log-note-line"><span class="pr-flag">★ ' + s.note + '</span></div>' : ''}
+              <div class="log-meta-line">${s.date} · ${s.sets}×${repMetricText(s)} · ${s.bodyweight ? 'Bodyweight' : s.wt + ' lbs'}</div>${s.note ? '<div class="log-note-line"><span class="pr-flag">★ ' + s.note + '</span></div>' : ''}
             </td>
             <td class="row-actions">
               <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
@@ -1917,7 +1948,7 @@ function initApp(uid) {
           <div class="log-edit-meta">
             <input class="edit-field edit-num" id="ed-sets" type="number" value="${s.sets}" min="1">
             <span style="color:var(--text-dimmer)">×</span>
-            <input class="edit-field edit-num" id="ed-reps" type="number" value="${s.reps}" min="1">
+            <input class="edit-field edit-num" id="ed-reps" type="${isTimedSession(s) ? 'text' : 'number'}" value="${repInputValue(s)}" min="1">
             <span style="color:var(--text-dimmer)">·</span>
             <input class="edit-field edit-num" id="ed-wt" type="number" value="${s.wt}" step="5" min="1" ${s.bodyweight ? 'disabled' : ''}>
             <span style="color:var(--text-dimmer)">lbs ·</span>
@@ -1925,6 +1956,10 @@ function initApp(uid) {
             <label class="bodyweight-toggle" style="margin-top:0;">
               <input id="ed-bodyweight" type="checkbox" ${s.bodyweight ? 'checked' : ''}>
               <span>Bodyweight</span>
+            </label>
+            <label class="bodyweight-toggle" style="margin-top:0;">
+              <input id="ed-reps-time" type="checkbox" ${isTimedSession(s) ? 'checked' : ''}>
+              <span>Time</span>
             </label>
           </div>
         </td>
@@ -2035,22 +2070,44 @@ function initApp(uid) {
   /* Bodyweight toggle — no added weight, so hide/disable the weight input */
   const logBwEl = document.getElementById('logBodyweight');
   const logWtEl = document.getElementById('logWeight');
+  const logRepsEl = document.getElementById('logReps');
+  const logRepsTimeEl = document.getElementById('logRepsTime');
   logBwEl?.addEventListener('change', () => {
     logWtEl.disabled = logBwEl.checked;
     if (logBwEl.checked) logWtEl.value = '';
   });
+  function syncRepsInputMode(input, toggle) {
+    if (!input || !toggle) return;
+    const timed = !!toggle.checked;
+    input.type = timed ? 'text' : 'number';
+    input.placeholder = timed ? '0:45' : '5';
+    const label = input.id === 'logReps' ? document.getElementById('logRepsLabel') : null;
+    if (label) label.textContent = timed ? 'Time' : 'Reps';
+    if (timed) {
+      input.removeAttribute('min');
+      input.removeAttribute('max');
+    } else {
+      input.min = '1';
+      input.max = '50';
+    }
+  }
+  logRepsTimeEl?.addEventListener('change', () => syncRepsInputMode(logRepsEl, logRepsTimeEl));
+  syncRepsInputMode(logRepsEl, logRepsTimeEl);
 
   /* Add session — also saves dateRaw so the edit form can pre-fill it */
   document.getElementById('addSession')?.addEventListener('click', () => {
     const dateVal    = document.getElementById('logDate').value;
     const liftVal    = document.getElementById('logLift').value;
     const sets       = +document.getElementById('logSets').value;
-    const reps       = +document.getElementById('logReps').value;
+    const timed      = !!logRepsTimeEl?.checked;
+    const repsRaw    = document.getElementById('logReps').value;
+    const timeSeconds = timed ? parseTimeSeconds(repsRaw) : 0;
+    const reps       = timed ? 0 : +repsRaw;
     const bodyweight = !!logBwEl?.checked;
     const wt         = bodyweight ? 0 : +document.getElementById('logWeight').value;
     const note       = document.getElementById('logNote').value.trim();
-    if (!dateVal || !sets || !reps || (!bodyweight && !wt)) {
-      alert('Please fill in date, sets, reps, and weight.'); return;
+    if (!dateVal || !sets || (timed ? !timeSeconds : !reps) || (!bodyweight && !wt)) {
+      alert(timed ? 'Please fill in date, sets, time, and weight.' : 'Please fill in date, sets, reps, and weight.'); return;
     }
     const lift = liftVal.trim();
     const cls  = liftToCls(lift);
@@ -2061,10 +2118,11 @@ function initApp(uid) {
       .reduce((m, s) => Math.max(m, +s.wt || 0), 0);
     const isPR = !bodyweight && prevBest > 0 && wt > prevBest;
     sessionsRef().add({ date: formatDate(dateVal), dateRaw: dateVal,
-                        lift, cls, sets, reps, wt, bodyweight, note,
+                        lift, cls, sets, reps, repMode: timed ? 'time' : 'reps', timeSeconds: timed ? timeSeconds : 0, wt, bodyweight, note,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
       .then(() => {
         ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = '');
+        if (logRepsTimeEl) { logRepsTimeEl.checked = false; syncRepsInputMode(logRepsEl, logRepsTimeEl); }
         if (logBwEl) { logBwEl.checked = false; logWtEl.disabled = false; }
         if (isPR) showPrStamp(lift, wt);
       })
@@ -2093,15 +2151,18 @@ function initApp(uid) {
       const dateVal    = document.getElementById('ed-date').value;
       const liftVal    = document.getElementById('ed-lift').value;
       const sets       = +document.getElementById('ed-sets').value;
-      const reps       = +document.getElementById('ed-reps').value;
+      const timed      = !!document.getElementById('ed-reps-time')?.checked;
+      const repsRaw    = document.getElementById('ed-reps').value;
+      const timeSeconds = timed ? parseTimeSeconds(repsRaw) : 0;
+      const reps       = timed ? 0 : +repsRaw;
       const bodyweight = !!document.getElementById('ed-bodyweight')?.checked;
       const wt         = bodyweight ? 0 : +document.getElementById('ed-wt').value;
       const note       = document.getElementById('ed-note').value.trim();
-      if (!dateVal || !sets || !reps || (!bodyweight && !wt)) { showToast('Please fill in all fields.'); return; }
+      if (!dateVal || !sets || (timed ? !timeSeconds : !reps) || (!bodyweight && !wt)) { showToast('Please fill in all fields.'); return; }
       const lift = liftVal.trim();
       const cls  = liftToCls(lift);
       sessionsRef().doc(id)
-        .update({ date: formatDate(dateVal), dateRaw: dateVal, lift, cls, sets, reps, wt, bodyweight, note })
+        .update({ date: formatDate(dateVal), dateRaw: dateVal, lift, cls, sets, reps, repMode: timed ? 'time' : 'reps', timeSeconds: timed ? timeSeconds : 0, wt, bodyweight, note })
         .catch(err => showToast('Could not update session — ' + (err?.message || 'check your connection.')));
       return;
     }
@@ -2111,6 +2172,12 @@ function initApp(uid) {
     if (bwToggle) {
       const wtInput = document.getElementById('ed-wt');
       if (wtInput) { wtInput.disabled = bwToggle.checked; if (bwToggle.checked) wtInput.value = 0; }
+      return;
+    }
+
+    const repsTimeToggle = e.target.closest('#ed-reps-time');
+    if (repsTimeToggle) {
+      syncRepsInputMode(document.getElementById('ed-reps'), repsTimeToggle);
       return;
     }
 

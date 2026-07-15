@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="styles.css?v=184">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
-<link rel="manifest" href="/manifest.json?v=7">
+<link rel="manifest" href="/manifest.json?v=8">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -840,6 +840,21 @@
     return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
   }
 
+  function feedIsTimedSession(s) {
+    return s?.repMode === 'time';
+  }
+
+  function feedFormatTimeSeconds(seconds) {
+    const total = Math.max(0, Math.round(+seconds || 0));
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return mins ? `${mins}:${String(secs).padStart(2, '0')}` : `${secs}s`;
+  }
+
+  function feedRepMetricText(s) {
+    return feedIsTimedSession(s) ? feedFormatTimeSeconds(s.timeSeconds || s.reps) : (s.reps || '');
+  }
+
   /* Render one C3 card for a single friend on a single day.
      colors = viewer's own palette so the feed matches their settings. */
   function renderFriendDayCard(friendUid, username, settings, sessions, dateRaw, colors) {
@@ -859,7 +874,8 @@
       const rows = lifts.map(s => {
         const dot  = colors[s.cls] || '#888';
         const wt   = s.wt   ? s.wt + ' lbs' : '';
-        const vol  = (s.sets && s.reps) ? `${s.sets}×${s.reps}` : '';
+        const reps = feedRepMetricText(s);
+        const vol  = (s.sets && reps) ? `${s.sets}×${reps}` : '';
         const stat = [wt, vol].filter(Boolean).join(' · ');
         const note = s.note ? `<div class="c3-note">${s.note}</div>` : '';
         return `<div class="c3-lift-block">

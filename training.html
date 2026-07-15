@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="styles.css?v=184">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
-<link rel="manifest" href="/manifest.json?v=7">
+<link rel="manifest" href="/manifest.json?v=8">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -227,8 +227,12 @@
             <input id="logSets" type="number" min="1" max="20" placeholder="3">
           </div>
           <div class="field">
-            <label for="logReps">Reps</label>
+            <label for="logReps" id="logRepsLabel">Reps</label>
             <input id="logReps" type="number" min="1" max="50" placeholder="5">
+            <label class="bodyweight-toggle">
+              <input id="logRepsTime" type="checkbox">
+              <span>Time instead of reps</span>
+            </label>
           </div>
           <div class="field">
             <label for="logWeight">Weight (<span class="unit-label">lbs</span>)</label>
@@ -355,7 +359,7 @@
 <!-- App data and logic -->
 <script src="data.js"></script>
 <script src="challenges.js?v=101"></script>
-<script src="app.js?v=127"></script>
+<script src="app.js?v=128"></script>
 <script src="nav.js?v=10"></script>
 <script>
   /* ── Page tabs (Training Log / Weight Log / Daily Breakdown / Exercise
