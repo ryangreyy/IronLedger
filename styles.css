@@ -849,11 +849,11 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   .mr-header-right .mr-ctrl-col:first-child{ grid-column:1 / -1; }
   .mr-mobile-legend{
     display:flex; grid-column:1 / -1; align-items:center; justify-content:center;
-    flex-wrap:nowrap; gap:7px; padding:8px 7px; border:1px solid var(--border);
+    flex-wrap:nowrap; gap:10px; padding:8px 7px; border:1px solid var(--border);
     border-radius:10px; background:rgba(255,255,255,.025);
   }
   .mr-footer .mr-legend{ display:none; }
-  .mr-mobile-legend .mr-legend-item{ justify-content:center; gap:3px; font-size:7px; letter-spacing:0; white-space:nowrap; }
+  .mr-mobile-legend .mr-legend-item{ justify-content:center; gap:4px; font-size:7px; letter-spacing:0; white-space:nowrap; }
   .mr-mobile-legend .mr-dot{ width:6px; height:6px; }
   .mr-ctrl-col{ align-items:stretch; gap:7px; padding:8px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.035); }
   .mr-ctrl-label{ text-align:center; }
