@@ -598,6 +598,7 @@ let authPromptShown = false;  // only auto-prompt once per page load
 
 auth.onAuthStateChanged(user => {
   try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
+  document.documentElement.toggleAttribute('data-guess-signedin', !!user);
   if (user) {
     /* ---- Signed in ---- */
     isSignedIn = true;
@@ -616,7 +617,7 @@ auth.onAuthStateChanged(user => {
     const homeWelcomeName = document.getElementById('homeWelcomeName');
     const homeBrandHeader = document.querySelector('.mobile-brand-header');
     if (homeHero)   homeHero.style.display = 'none';
-    if (homeHeader) homeHeader.style.display = '';
+    if (homeHeader) homeHeader.style.display = 'block';
     if (homeBrandHeader) homeBrandHeader.style.display = 'none';
     if (homeWelcomeName) homeWelcomeName.textContent = user.displayName || user.email.split('@')[0];
     db.doc(`users/${user.uid}/settings/main`).get().then(snap => {
