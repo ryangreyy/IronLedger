@@ -830,33 +830,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .mr-map-panel{ flex:1; display:flex; flex-direction:column; gap:6px; }
 .mr-panel-label{ font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dimmer); text-align:center; }
 .mr-map-wrap{ width:100%; height:460px; border-radius:8px; overflow:hidden; position:relative; }
-.mr-map-wrap canvas{ display:block; width:100% !important; height:100% !important; touch-action:pan-y !important; position:relative; z-index:1; }
-.mr-face-overlay{
-  --mr-face-skin:rgb(245,201,160); --mr-face-hair:rgb(26,18,8);
-  position:absolute; left:50%; top:26px; width:54px; height:66px;
-  transform:translateX(-50%); z-index:3; pointer-events:none;
-}
-.mr-face-overlay[data-gender="female"]{ top:22px; width:50px; height:64px; }
-.mr-face{ position:absolute; inset:0; width:100%; height:100%; display:none; overflow:visible; }
-.mr-face-overlay[data-gender="male"] .mr-face-male,
-.mr-face-overlay[data-gender="female"] .mr-face-female{ display:block; }
-.mr-face-feature,
-.mr-face-brow,
-.mr-face-soft,
-.mr-face-mouth,
-.mr-face-lash,
-.mr-face-hairline,
-.mr-face-beard{
-  fill:none; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke;
-}
-.mr-face-feature{ stroke:rgba(35,22,18,.82); stroke-width:1.45; }
-.mr-face-brow{ stroke:var(--mr-face-hair); stroke-width:2.1; }
-.mr-face-soft{ stroke:rgba(55,35,29,.38); stroke-width:1.15; }
-.mr-face-mouth{ stroke:rgba(132,33,42,.82); stroke-width:1.8; }
-.mr-face-lash{ stroke:var(--mr-face-hair); stroke-width:1.35; }
-.mr-face-hairline{ fill:var(--mr-face-hair); opacity:.86; stroke:rgba(0,0,0,.18); stroke-width:.55; }
-.mr-face-eye{ fill:rgba(18,13,10,.92); stroke:rgba(255,255,255,.45); stroke-width:.35; }
-.mr-face-beard{ stroke:rgba(35,22,18,.18); stroke-width:2.7; }
+.mr-map-wrap canvas{ display:block; width:100% !important; height:100% !important; touch-action:pan-y !important; }
 .mr-footer{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .mr-muscle-label{ font-family:var(--mono); font-size:10px; color:var(--text-dim); min-height:14px; }
 .mr-legend{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -889,8 +863,6 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   .mr-swatch{ width:22px; height:22px; }
   .mr-maps{ flex-direction:column; }
   .mr-map-wrap{ height:320px; }
-  .mr-face-overlay{ top:14px; width:42px; height:52px; }
-  .mr-face-overlay[data-gender="female"]{ top:12px; width:39px; height:50px; }
 }
 .cal-legend-dot.squat{ background:radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),var(--squat); box-shadow:inset 0 1px 2px rgba(255,255,255,.4),inset 0 -1px 2px rgba(0,0,0,.35); }
 .cal-legend-dot.bench{ background:radial-gradient(ellipse at 36% 26%,rgba(255,255,255,.46) 0%,rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(0,0,0,.2) 100%),var(--bench); box-shadow:inset 0 1px 2px rgba(255,255,255,.4),inset 0 -1px 2px rgba(0,0,0,.35); }
