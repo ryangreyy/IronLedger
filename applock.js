@@ -98,8 +98,12 @@
     document.body.appendChild(wrap);
     document.getElementById('applock-go').addEventListener('click', attempt);
     document.getElementById('applock-pw').addEventListener('click', usePassword);
-    /* Auto-prompt on open; small delay lets iOS settle after launch. */
-    setTimeout(attempt, 250);
+    /* Deliberately NOT auto-firing attempt() here. Safari requires a real
+       user gesture (a tap) for a clean, direct Face ID prompt -- calling
+       navigator.credentials.get() from a timer instead makes it treat the
+       request as unsolicited and insert its own "Use Passkey" confirmation
+       button first. Waiting for the button tap here means that tap IS the
+       gesture, so Face ID fires immediately with no extra step. */
   }
 
   if (document.readyState === 'loading') {
