@@ -405,7 +405,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-av-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obAvatarDataUrl = await compressImage(file, 800, 800, 0.95);
+      obAvatarDataUrl = await compressImage(file, 400, 400, 0.9);
       applyAvPreview();
       document.getElementById('ob-av-sliders').style.display = '';
       const btn = document.getElementById('ob-av-btn');
@@ -494,7 +494,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obBannerDataUrl = await compressImage(file, 1920, 9000, 0.95);
+      obBannerDataUrl = await compressImage(file, 1600, 500, 0.9);
       applyBannerPreview();
       document.getElementById('ob-banner-sliders').style.display = '';
       const btn = document.getElementById('ob-banner-btn');
@@ -511,33 +511,52 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-back').addEventListener('click', renderStepPhoto);
   }
 
-  /* ---- Finish ---- */
+  /* ---- Finish ----
+     Persist the profile FIRST (before any UI), so a failure or a later
+     step can never silently drop the user's name/photos. If the write
+     fails, surface it and still keep the text fields so a too-large image
+     can't lose the name too. */
   async function finishOnboarding() {
     overlay.remove();
-    showInstallPrompt();
-    try {
-      const data = {};
-      if (obFirstName) data.firstName = obFirstName;
-      if (obLastName)  data.lastName  = obLastName;
-      if (obAvatarDataUrl) {
-        data.avatarPhotoUrl = obAvatarDataUrl;
-        data.avatarZoom = obAvatarZoom;
-        data.avatarPosX = obAvatarX;
-        data.avatarPosY = obAvatarY;
+
+    const textData = {};
+    if (obFirstName) textData.firstName = obFirstName;
+    if (obLastName)  textData.lastName  = obLastName;
+
+    const data = { ...textData };
+    if (obAvatarDataUrl) {
+      data.avatarPhotoUrl = obAvatarDataUrl;
+      data.avatarZoom = obAvatarZoom;
+      data.avatarPosX = obAvatarX;
+      data.avatarPosY = obAvatarY;
+    }
+    if (obBannerDataUrl) {
+      data.bannerUrl  = obBannerDataUrl;
+      data.bannerZoom = obBannerZoom;
+      data.bannerPosX = obBannerX;
+      data.bannerPosY = obBannerY;
+    }
+
+    const ref = db.collection('users').doc(user.uid).collection('settings').doc('main');
+    if (Object.keys(data).length) {
+      try {
+        await ref.set(data, { merge: true });
+      } catch (e) {
+        console.error('Onboarding save failed:', e);
+        showToast('Couldn’t save your profile photos — they may be too large. Your name was kept; you can add photos later in Settings.');
+        // Keep at least the text fields so a failed image write doesn't lose the name.
+        if (Object.keys(textData).length) {
+          try { await ref.set(textData, { merge: true }); } catch (_) {}
+        }
       }
-      if (obBannerDataUrl) {
-        data.bannerUrl  = obBannerDataUrl;
-        data.bannerZoom = obBannerZoom;
-        data.bannerPosX = obBannerX;
-        data.bannerPosY = obBannerY;
-      }
-      if (Object.keys(data).length) {
-        await db.collection('users').doc(user.uid).collection('settings').doc('main').set(data, { merge: true });
-      }
-    } catch(e) {}
+    }
+
     if (obAvatarDataUrl) {
       applyNavAvatar(user, null, null, null, null, obAvatarDataUrl, obAvatarZoom, obAvatarX, obAvatarY);
     }
+
+    /* Install prompt last, isolated — it must never block the save above. */
+    try { showInstallPrompt(); } catch (e) { console.error('Install prompt error:', e); }
   }
 
   renderStepName();
