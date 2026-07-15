@@ -1404,6 +1404,9 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #dashboardPageTabs ~ .page-tab-panel{ padding-top:3px; }
   #dashboardPageTabs ~ .page-tab-panel > .eyebrow,
   #dashboardPageTabs ~ .page-tab-panel > h2.title{ display:none; }
+  #dashboard .kpi-forge-header{ position:static; }
+  #dashboard .kpi-forge-header .label{ top:18px; left:20px; }
+  #dashboard .kpi-forge-header .forge-cap{ top:18px; right:20px; }
 }
 
 /* Danger (delete) button */
