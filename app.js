@@ -1706,6 +1706,56 @@ function initApp(uid) {
     };
   }
 
+  function mrFaceOverlayMarkup() {
+    return `
+      <svg class="mr-face mr-face-male" viewBox="0 0 72 88" focusable="false" aria-hidden="true">
+        <path class="mr-face-hairline" d="M18 20c5-9 16-14 28-11 7 2 12 7 14 13-10-5-23-5-42-2Z"/>
+        <path class="mr-face-soft" d="M21 34c3-5 7-8 12-9M51 34c-3-5-7-8-12-9"/>
+        <path class="mr-face-brow" d="M20 36c5-3 11-3 15 0M38 36c4-3 10-3 15 0"/>
+        <ellipse class="mr-face-eye" cx="28" cy="43" rx="3.3" ry="2"/>
+        <ellipse class="mr-face-eye" cx="44" cy="43" rx="3.3" ry="2"/>
+        <path class="mr-face-feature" d="M36 43c-2 6-3 11-2 16M34 60c2 2 5 2 7 0"/>
+        <path class="mr-face-soft" d="M22 53c3 2 7 3 10 2M50 53c-3 2-7 3-10 2"/>
+        <path class="mr-face-mouth" d="M28 68c4 3 12 3 16 0"/>
+        <path class="mr-face-soft" d="M26 75c5 4 15 4 20 0"/>
+        <path class="mr-face-beard" d="M20 58c1 13 8 21 16 22 8-1 15-9 16-22"/>
+      </svg>
+      <svg class="mr-face mr-face-female" viewBox="0 0 72 88" focusable="false" aria-hidden="true">
+        <path class="mr-face-hairline" d="M14 25c4-13 15-20 29-17 9 2 15 9 16 19-12-8-29-8-45-2Z"/>
+        <path class="mr-face-soft" d="M19 34c4-5 9-8 14-8M53 34c-4-5-9-8-14-8"/>
+        <path class="mr-face-brow" d="M20 37c5-4 11-4 15-1M37 36c4-3 10-3 15 1"/>
+        <path class="mr-face-lash" d="M23 41l-3-2M31 41l3-2M41 41l-3-2M49 41l3-2"/>
+        <ellipse class="mr-face-eye" cx="28" cy="43" rx="3.1" ry="2"/>
+        <ellipse class="mr-face-eye" cx="44" cy="43" rx="3.1" ry="2"/>
+        <path class="mr-face-feature" d="M36 42c-2 6-3 12-2 17M34 59c2 2 5 2 7 0"/>
+        <path class="mr-face-soft" d="M23 55c3 2 6 2 9 1M49 55c-3 1-6 1-9-1"/>
+        <path class="mr-face-mouth" d="M28 68c4 4 12 4 16 0M31 71c3 2 7 2 10 0"/>
+        <path class="mr-face-soft" d="M28 77c5 3 11 3 16 0"/>
+      </svg>`;
+  }
+
+  function mrEnsureFaceOverlay() {
+    const container = document.getElementById('muscle-map-front');
+    if (!container) return null;
+    let overlay = container.querySelector('.mr-face-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'mr-face-overlay';
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.innerHTML = mrFaceOverlayMarkup();
+      container.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  function mrSyncFaceOverlay() {
+    const overlay = mrEnsureFaceOverlay();
+    if (!overlay) return;
+    overlay.dataset.gender = mrGender;
+    overlay.style.setProperty('--mr-face-skin', MR_SKIN_TONES[mrSkin]);
+    overlay.style.setProperty('--mr-face-hair', mrHairColor);
+  }
+
   function mrApplyHighlights() {
     [mrWidgetFront, mrWidgetBack].forEach(w => {
       if (!w) return;
@@ -1729,6 +1779,7 @@ function initApp(uid) {
     document.getElementById('mr-btn-male')?.classList.toggle('active', gender === 'male');
     document.getElementById('mr-btn-female')?.classList.toggle('active', gender === 'female');
     [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) { w.setGender(gender); } });
+    mrSyncFaceOverlay();
     mrApplyHighlights();
   }
 
@@ -1737,6 +1788,7 @@ function initApp(uid) {
     document.querySelectorAll('#mr-skin-swatches .mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
     const style = mrBuildStyle();
     [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) w.setStyle(style); });
+    mrSyncFaceOverlay();
   }
 
   function mrSetHairColor(idx) {
@@ -1744,6 +1796,7 @@ function initApp(uid) {
     document.querySelectorAll('#mr-hair-swatches .mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
     const style = mrBuildStyle();
     [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) w.setStyle(style); });
+    mrSyncFaceOverlay();
   }
 
   document.getElementById('mr-btn-male')?.addEventListener('click', () => mrSetGender('male'));
@@ -1769,6 +1822,7 @@ function initApp(uid) {
       const el = document.getElementById('mr-muscle-label');
       if (el) el.textContent = 'Hover a muscle';
     });
+    if (side === 'front') mrSyncFaceOverlay();
     return w;
   }
 
@@ -1811,6 +1865,7 @@ function initApp(uid) {
 
     if (!mrWidgetFront) mrWidgetFront = mrInitWidget('muscle-map-front', 'front');
     if (!mrWidgetBack)  mrWidgetBack  = mrInitWidget('muscle-map-back',  'back');
+    mrSyncFaceOverlay();
     mrApplyHighlights();
 
     const labelEl = document.getElementById('mr-muscle-label');
