@@ -590,19 +590,6 @@ document.querySelector('nav .brand')?.addEventListener('click', e => {
   }
 });
 
-/* ===== RECONNECT ON RESUME =========================================
-   Installed PWAs on iOS can have their network connection silently
-   dropped while backgrounded (the OS suspends the WebView without
-   telling in-page JS); Firestore's listeners then just sit idle with no
-   error, since from their point of view nothing ever failed -- they're
-   waiting on a socket the OS already closed. Nudging Firestore's network
-   off/on when the tab becomes visible again forces it to check and
-   re-establish the connection instead of staying silently stuck. */
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
-  db.disableNetwork().then(() => db.enableNetwork()).catch(() => {});
-});
-
 /* ===== AUTH — SIGN IN / SIGN UP / SIGN OUT ========================
    Firebase watches auth state automatically — we just react to it. */
 
