@@ -910,7 +910,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .btn-rest-day.rest-day-active{ color:var(--accent-bright); border-color:var(--accent-bright); background:rgba(193,39,45,0.08); }
 
 /* ---------- EDITORIAL FORGED KPI CARDS (Days Lifted / Current Streak) ---------- */
-.kpi-forge{ display:flex; flex-direction:column; min-height:438px; position:relative; overflow:hidden; }
+.kpi-forge{ display:flex; flex-direction:column; min-height:188px; position:relative; overflow:hidden; }
 .kpi-forge .label{ position:relative; z-index:2; }
 .kpi-forge-header{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; position:relative; z-index:2; }
 .kpi-forge-header .forge-cap{ margin-top:0; text-align:right; flex-shrink:1; }
