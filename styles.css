@@ -848,12 +848,13 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   .mr-header-right{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; align-items:stretch; }
   .mr-header-right .mr-ctrl-col:first-child{ grid-column:1 / -1; }
   .mr-mobile-legend{
-    display:grid; grid-column:1 / -1; grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:8px 10px; padding:8px 10px; border:1px solid var(--border);
+    display:flex; grid-column:1 / -1; align-items:center; justify-content:center;
+    flex-wrap:nowrap; gap:7px; padding:8px 7px; border:1px solid var(--border);
     border-radius:10px; background:rgba(255,255,255,.025);
   }
   .mr-footer .mr-legend{ display:none; }
-  .mr-mobile-legend .mr-legend-item{ justify-content:center; font-size:8px; letter-spacing:.05em; }
+  .mr-mobile-legend .mr-legend-item{ justify-content:center; gap:3px; font-size:7px; letter-spacing:0; white-space:nowrap; }
+  .mr-mobile-legend .mr-dot{ width:6px; height:6px; }
   .mr-ctrl-col{ align-items:stretch; gap:7px; padding:8px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.035); }
   .mr-ctrl-label{ text-align:center; }
   .mr-toggle{ width:100%; }
