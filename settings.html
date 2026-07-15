@@ -410,12 +410,17 @@
     document.getElementById('settingsEmail').value         = user.email || '';
     document.getElementById('settingsPersonalEmail').value = user.email || '';
 
-    /* Show password card only for email/password users; hide for Google */
-    const isEmailUser = user.providerData.some(p => p.providerId === 'password');
-    if (!isEmailUser) {
-      document.getElementById('passwordForm').style.display = 'none';
-      document.getElementById('passwordDesc').textContent   =
-        'Your password is managed through your Google account.';
+    /* Google-only accounts have no password credential yet -- offer to add
+       one (linkWithCredential) instead of hiding the card. Once linked,
+       the user can sign in with either Google or email/password. */
+    const hasPasswordProvider = user.providerData.some(p => p.providerId === 'password');
+    window.__igHasPasswordProvider = hasPasswordProvider;
+    const pwTitle = document.querySelector('#passwordCard .settings-card-title');
+    if (!hasPasswordProvider) {
+      if (pwTitle) pwTitle.textContent = 'Set a password';
+      document.getElementById('passwordDesc').textContent =
+        'You signed up with Google, so there’s no password yet. Set one here to also be able to sign in with your email and password.';
+      document.getElementById('savePassword').textContent = 'Set password';
     }
 
     /* Load saved preferences */
@@ -573,31 +578,55 @@
     } finally { btn.textContent = 'Save personal info'; btn.disabled = false; }
   });
 
-  /* ── CHANGE PASSWORD ── */
+  /* ── CHANGE / SET PASSWORD ──
+     Existing email/password users: updatePassword() as before.
+     Google-only users (no 'password' provider yet): linkWithCredential()
+     adds a password credential to the SAME account/uid -- it does not
+     create a separate account, so Google sign-in keeps working too. */
   document.getElementById('savePassword')?.addEventListener('click', async () => {
     const np  = document.getElementById('newPassword').value;
     const cp  = document.getElementById('confirmPassword').value;
     const msg = document.getElementById('passwordMsg');
     const btn = document.getElementById('savePassword');
+    const isNewPassword = !window.__igHasPasswordProvider;
+    const defaultLabel = isNewPassword ? 'Set password' : 'Update password';
     msg.textContent = '';
     if (!np)        { msg.style.color='var(--down)'; msg.textContent='Please enter a new password.'; return; }
     if (np.length < 6){ msg.style.color='var(--down)'; msg.textContent='Password must be at least 6 characters.'; return; }
     if (np !== cp)  { msg.style.color='var(--down)'; msg.textContent='Passwords do not match.'; return; }
-    btn.textContent = 'Updating…'; btn.disabled = true;
+    btn.textContent = isNewPassword ? 'Setting…' : 'Updating…'; btn.disabled = true;
     try {
-      await auth.currentUser.updatePassword(np);
+      if (isNewPassword) {
+        const cred = firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, np);
+        await auth.currentUser.linkWithCredential(cred);
+        window.__igHasPasswordProvider = true;
+        const pwTitle = document.querySelector('#passwordCard .settings-card-title');
+        if (pwTitle) pwTitle.textContent = 'Change password';
+        document.getElementById('passwordDesc').textContent = 'Enter a new password for your account.';
+      } else {
+        await auth.currentUser.updatePassword(np);
+      }
       document.getElementById('newPassword').value    = '';
       document.getElementById('confirmPassword').value = '';
-      msg.style.color = 'var(--up)'; msg.textContent = '✓ Password updated.';
-      setTimeout(() => { msg.textContent = ''; }, 3000);
+      msg.style.color = 'var(--up)';
+      msg.textContent = isNewPassword
+        ? '✓ Password set — you can now sign in with your email and password too.'
+        : '✓ Password updated.';
+      setTimeout(() => { msg.textContent = ''; }, 4000);
     } catch (err) {
       if (err.code === 'auth/requires-recent-login') {
         msg.style.color = 'var(--down)';
-        msg.textContent = 'For security, please sign out and sign back in before changing your password.';
+        msg.textContent = 'For security, please sign out and sign back in before ' + (isNewPassword ? 'setting a password.' : 'changing your password.');
+      } else if (err.code === 'auth/credential-already-in-use' || err.code === 'auth/email-already-in-use') {
+        msg.style.color = 'var(--down)';
+        msg.textContent = 'That didn’t go through — please sign out and back in, then try again.';
       } else {
         msg.style.color = 'var(--down)'; msg.textContent = err.message || 'Something went wrong.';
       }
-    } finally { btn.textContent = 'Update password'; btn.disabled = false; }
+    } finally {
+      btn.textContent = window.__igHasPasswordProvider ? 'Update password' : defaultLabel;
+      btn.disabled = false;
+    }
   });
 
   /* ── FACE ID / BIOMETRIC LOCK ──

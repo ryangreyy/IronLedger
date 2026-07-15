@@ -755,7 +755,7 @@ document.getElementById('emailSignIn').addEventListener('click', () => {
   authError.textContent = '';
   if (!email || !password) { authError.textContent = 'Please enter your email and password.'; return; }
   auth.signInWithEmailAndPassword(email, password)
-    .catch(err => { authError.textContent = friendlyError(err.code) + ' [' + err.code + ']'; });
+    .catch(err => { authError.textContent = friendlyError(err.code); });
 });
 
 /* Email sign-up (create account) */
@@ -907,6 +907,7 @@ function friendlyError(code) {
     'auth/too-many-requests':   'Too many attempts. Please wait a moment and try again.',
     'auth/popup-closed-by-user':'Sign-in window was closed — please try again.',
     'auth/invalid-credential':  'Email or password is incorrect.',
+    'auth/invalid-login-credentials': 'Email or password is incorrect. If you originally signed up with Google, use "Continue with Google" instead, or set a password in Settings once you’re signed in.',
   })[code] || 'Something went wrong. Please try again.';
 }
 
