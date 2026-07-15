@@ -1517,10 +1517,13 @@ function initApp(uid) {
   let mrWidgetFront = null;
   let mrWidgetBack  = null;
   const MR_GENDER_KEY = 'ig-muscle-recovery-gender';
+  function mrValidGender(gender) {
+    return gender === 'male' || gender === 'female';
+  }
   function mrSavedGender() {
     try {
       const saved = localStorage.getItem(MR_GENDER_KEY);
-      if (saved === 'male' || saved === 'female') return saved;
+      if (mrValidGender(saved)) return saved;
     } catch (_) {}
     return 'male';
   }
@@ -1714,9 +1717,15 @@ function initApp(uid) {
   }
 
   function mrSetGender(gender, persist = true) {
-    if (gender !== 'male' && gender !== 'female') gender = 'male';
+    if (!mrValidGender(gender)) gender = 'male';
     mrGender = gender;
-    if (persist) mrPersistGender(gender);
+    if (persist) {
+      mrPersistGender(gender);
+      if (uid) {
+        settingsRef().set({ muscleRecoveryGender: gender }, { merge: true })
+          .catch(err => showToast('Could not save body type — ' + (err?.message || 'check your connection.')));
+      }
+    }
     document.getElementById('mr-btn-male')?.classList.toggle('active', gender === 'male');
     document.getElementById('mr-btn-female')?.classList.toggle('active', gender === 'female');
     [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) { w.setGender(gender); } });
@@ -2892,6 +2901,10 @@ function initApp(uid) {
       applyColors(currentSettings);
       renderGoals(currentSettings.goals);
       applyCustomLifts(currentSettings.customLifts);
+      if (mrValidGender(currentSettings.muscleRecoveryGender) && currentSettings.muscleRecoveryGender !== mrGender) {
+        mrPersistGender(currentSettings.muscleRecoveryGender);
+        mrSetGender(currentSettings.muscleRecoveryGender, false);
+      }
       applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarRingColor || null, currentSettings.avatarBgColor || null, currentSettings.avatarIconColor || null, currentSettings.avatarPhotoUrl || null, currentSettings.avatarZoom != null ? currentSettings.avatarZoom : null, currentSettings.avatarPosX != null ? currentSettings.avatarPosX : null, currentSettings.avatarPosY != null ? currentSettings.avatarPosY : null, true);
     } else {
       currentSettings = null;
