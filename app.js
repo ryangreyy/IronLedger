@@ -1706,101 +1706,6 @@ function initApp(uid) {
     };
   }
 
-  function mrDrawCanvasFace(w) {
-    if (!w || w.side !== 'front' || !w.ctx) return;
-    const head = w.getBoundingRect?.('head');
-    if (!head || head.width < 10 || head.height < 10) return;
-
-    const ctx = w.ctx;
-    const dpr = w.dpr || window.devicePixelRatio || 1;
-    const x = head.x, y = head.y, width = head.width, height = head.height;
-    const cx = x + width / 2;
-    const eyeY = y + height * 0.47;
-    const browY = y + height * 0.38;
-    const noseTop = y + height * 0.49;
-    const noseBottom = y + height * 0.65;
-    const mouthY = y + height * 0.76;
-    const jawY = y + height * 0.9;
-    const eyeGap = width * 0.18;
-    const eyeW = Math.max(1.4, width * 0.055);
-    const line = Math.max(0.65, width * 0.025);
-    const dark = 'rgba(24,17,14,.72)';
-    const soft = 'rgba(24,17,14,.34)';
-
-    ctx.save();
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    ctx.strokeStyle = dark;
-    ctx.lineWidth = line;
-    ctx.beginPath();
-    ctx.moveTo(cx - width * 0.27, browY);
-    ctx.quadraticCurveTo(cx - width * 0.18, browY - height * 0.025, cx - width * 0.08, browY + height * 0.015);
-    ctx.moveTo(cx + width * 0.08, browY + height * 0.015);
-    ctx.quadraticCurveTo(cx + width * 0.18, browY - height * 0.025, cx + width * 0.27, browY);
-    ctx.stroke();
-
-    ctx.fillStyle = dark;
-    ctx.beginPath();
-    ctx.ellipse(cx - eyeGap, eyeY, eyeW, Math.max(0.9, eyeW * 0.58), 0, 0, Math.PI * 2);
-    ctx.ellipse(cx + eyeGap, eyeY, eyeW, Math.max(0.9, eyeW * 0.58), 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = soft;
-    ctx.lineWidth = line * 0.75;
-    ctx.beginPath();
-    ctx.moveTo(cx, noseTop);
-    ctx.quadraticCurveTo(cx - width * 0.035, y + height * 0.58, cx - width * 0.015, noseBottom);
-    ctx.quadraticCurveTo(cx + width * 0.055, noseBottom + height * 0.02, cx + width * 0.11, noseBottom);
-    ctx.stroke();
-
-    ctx.strokeStyle = dark;
-    ctx.lineWidth = line * 0.85;
-    ctx.beginPath();
-    ctx.moveTo(cx - width * 0.16, mouthY);
-    ctx.quadraticCurveTo(cx, mouthY + height * 0.06, cx + width * 0.16, mouthY);
-    ctx.stroke();
-
-    if (mrGender === 'female') {
-      ctx.strokeStyle = dark;
-      ctx.lineWidth = line * 0.65;
-      ctx.beginPath();
-      ctx.moveTo(cx - eyeGap - eyeW * 1.3, eyeY - eyeW * 0.3);
-      ctx.lineTo(cx - eyeGap - eyeW * 2, eyeY - eyeW);
-      ctx.moveTo(cx + eyeGap + eyeW * 1.3, eyeY - eyeW * 0.3);
-      ctx.lineTo(cx + eyeGap + eyeW * 2, eyeY - eyeW);
-      ctx.stroke();
-    } else {
-      ctx.strokeStyle = 'rgba(24,17,14,.18)';
-      ctx.lineWidth = line * 1.15;
-      ctx.beginPath();
-      ctx.moveTo(cx - width * 0.24, y + height * 0.67);
-      ctx.quadraticCurveTo(cx, jawY + height * 0.03, cx + width * 0.24, y + height * 0.67);
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  }
-
-  function mrAttachCanvasFace(w) {
-    if (!w || w.side !== 'front' || w._igFaceDetailsAttached) return;
-    const baseDraw = w.draw.bind(w);
-    w.draw = () => {
-      baseDraw();
-      mrDrawCanvasFace(w);
-    };
-    if (typeof w.drawAnimated === 'function') {
-      const baseDrawAnimated = w.drawAnimated.bind(w);
-      w.drawAnimated = () => {
-        baseDrawAnimated();
-        mrDrawCanvasFace(w);
-      };
-    }
-    w._igFaceDetailsAttached = true;
-    mrDrawCanvasFace(w);
-  }
-
   function mrApplyHighlights() {
     [mrWidgetFront, mrWidgetBack].forEach(w => {
       if (!w) return;
@@ -1864,7 +1769,6 @@ function initApp(uid) {
       const el = document.getElementById('mr-muscle-label');
       if (el) el.textContent = 'Hover a muscle';
     });
-    if (side === 'front') mrAttachCanvasFace(w);
     return w;
   }
 
