@@ -2078,7 +2078,14 @@ function initApp(uid) {
       _xpTotal = snap.exists ? (snap.data().total || 0) : 0;
       renderChallengesWhenReady();
       const homeRankEl = document.getElementById('homeStatRank');
-      if (homeRankEl) homeRankEl.textContent = getRankFromXP(_xpTotal).rankName;
+      if (homeRankEl) {
+        const rank = getRankFromXP(_xpTotal);
+        if (typeof rankHexBadge === 'function') {
+          homeRankEl.innerHTML = `<span class="home-rank-badge">${rankHexBadge(rank.rankIndex)}<span>${rank.rankName}</span></span>`;
+        } else {
+          homeRankEl.textContent = rank.rankName;
+        }
+      }
     }, err => console.error('XP error:', err.code, err.message));
   }).catch(err => { console.error('Challenge init error:', err); showToast('Could not load challenges — check your connection.'); });
 
