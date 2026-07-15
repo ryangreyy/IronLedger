@@ -98,10 +98,6 @@
             <label>Email</label>
             <input id="settingsPersonalEmail" type="text" disabled style="opacity:0.45;cursor:not-allowed;">
           </div>
-          <div class="field">
-            <label for="settingsPhone">Phone number</label>
-            <input id="settingsPhone" type="tel" placeholder="(555) 123-4567" autocomplete="tel" maxlength="20">
-          </div>
           <button id="savePersonalInfo" class="btn btn-primary">Save personal info</button>
           <p id="personalInfoMsg" class="settings-msg"></p>
         </div>
@@ -440,7 +436,6 @@
         if (d.username) { document.getElementById('settingsName').value = d.username; currentUsername = d.username; }
         if (d.firstName) document.getElementById('settingsFirstName').value = d.firstName;
         if (d.lastName)  document.getElementById('settingsLastName').value  = d.lastName;
-        if (d.phone)     document.getElementById('settingsPhone').value    = d.phone;
         applyNavAvatarSettings(user, selectedAvatarPhotoUrl, selectedAvatarZoom, selectedAvatarPosX, selectedAvatarPosY);
       }
     } catch (e) { /* preferences not saved yet — use defaults */ }
@@ -559,7 +554,6 @@
   document.getElementById('savePersonalInfo').addEventListener('click', async () => {
     const firstName = document.getElementById('settingsFirstName').value.trim();
     const lastName  = document.getElementById('settingsLastName').value.trim();
-    const phone     = document.getElementById('settingsPhone').value.trim();
     const msg = document.getElementById('personalInfoMsg');
     const btn = document.getElementById('savePersonalInfo');
     msg.textContent = '';
@@ -570,7 +564,7 @@
 
     btn.textContent = 'Saving…'; btn.disabled = true;
     try {
-      await settingsRef().set({ firstName, lastName, phone }, { merge: true });
+      await settingsRef().set({ firstName, lastName }, { merge: true });
       msg.style.color = 'var(--up)'; msg.textContent = '✓ Personal info saved.';
       setTimeout(() => { msg.textContent = ''; }, 3000);
     } catch (err) {

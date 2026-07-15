@@ -211,7 +211,6 @@ function showOnboardingModal(user) {
   let obName = user.displayName || '';
   let obFirstName = '';
   let obLastName = '';
-  let obPhone = '';
   let obAvatarDataUrl = null;
   let obAvatarZoom = 1;
   let obAvatarX = 50;
@@ -264,7 +263,7 @@ function showOnboardingModal(user) {
   /* ---- Step 2: First name (required) ---- */
   function renderStepFirstName() {
     card.innerHTML = `
-      <div class="eyebrow">Step 2 of 7</div>
+      <div class="eyebrow">Step 2 of 6</div>
       <h2 class="title" style="margin:6px 0 6px;">What's your first name?</h2>
       <p class="sub" style="margin-bottom:22px;">Used for your personal profile info.</p>
       <input id="ob-first-name" type="text" class="auth-input" placeholder="First name"
@@ -293,7 +292,7 @@ function showOnboardingModal(user) {
   /* ---- Step 3: Last name (required) ---- */
   function renderStepLastName() {
     card.innerHTML = `
-      <div class="eyebrow">Step 3 of 7</div>
+      <div class="eyebrow">Step 3 of 6</div>
       <h2 class="title" style="margin:6px 0 6px;">What's your last name?</h2>
       <p class="sub" style="margin-bottom:22px;">Used for your personal profile info.</p>
       <input id="ob-last-name" type="text" class="auth-input" placeholder="Last name"
@@ -322,7 +321,7 @@ function showOnboardingModal(user) {
   /* ---- Step 4: Email confirm (required, read-only — already tied to the account) ---- */
   function renderStepEmailConfirm() {
     card.innerHTML = `
-      <div class="eyebrow">Step 4 of 7</div>
+      <div class="eyebrow">Step 4 of 6</div>
       <h2 class="title" style="margin:6px 0 6px;">Confirm your email</h2>
       <p class="sub" style="margin-bottom:22px;">This is the email tied to your account.</p>
       <input type="text" class="auth-input" value="${(user.email || '').replace(/"/g,'&quot;')}" disabled
@@ -330,38 +329,11 @@ function showOnboardingModal(user) {
       <button id="ob-email-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
       <button id="ob-email-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
     `;
-    document.getElementById('ob-email-continue').addEventListener('click', renderStepPhone);
+    document.getElementById('ob-email-continue').addEventListener('click', renderStepPhoto);
     document.getElementById('ob-email-back').addEventListener('click', renderStepLastName);
   }
 
-  /* ---- Step 5: Phone number (skippable) ---- */
-  function renderStepPhone() {
-    card.innerHTML = `
-      <div class="eyebrow">Step 5 of 7</div>
-      <h2 class="title" style="margin:6px 0 6px;">What's your phone number?</h2>
-      <p class="sub" style="margin-bottom:22px;">Optional — used for your personal profile info.</p>
-      <input id="ob-phone" type="tel" class="auth-input" placeholder="(555) 123-4567"
-             value="${obPhone.replace(/"/g,'&quot;')}" maxlength="20"
-             style="width:100%;margin-bottom:16px;">
-      <button id="ob-phone-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
-      <button id="ob-skip-phone" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
-      <button id="ob-phone-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
-    `;
-    const input = document.getElementById('ob-phone');
-    input.focus();
-
-    function advance() {
-      obPhone = input.value.trim();
-      renderStepPhoto();
-    }
-
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') advance(); });
-    document.getElementById('ob-phone-continue').addEventListener('click', advance);
-    document.getElementById('ob-skip-phone').addEventListener('click', renderStepPhoto);
-    document.getElementById('ob-phone-back').addEventListener('click', renderStepEmailConfirm);
-  }
-
-  /* ---- Step 6: Profile photo ---- */
+  /* ---- Step 5: Profile photo ---- */
   function renderStepPhoto() {
     card.innerHTML = `
       <div class="eyebrow">Step 6 of 7</div>
@@ -447,13 +419,13 @@ function showOnboardingModal(user) {
 
     document.getElementById('ob-av-continue').addEventListener('click', renderStepBanner);
     document.getElementById('ob-av-skip').addEventListener('click', renderStepBanner);
-    document.getElementById('ob-av-back').addEventListener('click', renderStepPhone);
+    document.getElementById('ob-av-back').addEventListener('click', renderStepEmailConfirm);
   }
 
-  /* ---- Step 7: Profile banner ---- */
+  /* ---- Step 6: Profile banner ---- */
   function renderStepBanner() {
     card.innerHTML = `
-      <div class="eyebrow">Step 7 of 7</div>
+      <div class="eyebrow">Step 6 of 6</div>
       <h2 class="title" style="margin:6px 0 6px;">Set your profile banner</h2>
       <p class="sub" style="margin-bottom:16px;">The banner appears at the top of your profile page.</p>
       <div id="ob-banner-preview" class="ob-banner-preview">
@@ -546,7 +518,6 @@ function showOnboardingModal(user) {
       const data = {};
       if (obFirstName) data.firstName = obFirstName;
       if (obLastName)  data.lastName  = obLastName;
-      if (obPhone)     data.phone     = obPhone;
       if (obAvatarDataUrl) {
         data.avatarPhotoUrl = obAvatarDataUrl;
         data.avatarZoom = obAvatarZoom;
