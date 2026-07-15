@@ -567,11 +567,20 @@ document.querySelector('nav .brand')?.addEventListener('click', e => {
 let isSignedIn      = false;  // used by scroll-trigger below
 let authPromptShown = false;  // only auto-prompt once per page load
 
+/* Is this the home page (the one page that hosts the login-wall gate)?
+   Every other page bounces here when signed out. */
+function isIndexPage() {
+  const p = location.pathname.replace(/\/+$/, '').toLowerCase();
+  return p === '' || p === '/index' || p.endsWith('/index.html');
+}
+
 auth.onAuthStateChanged(user => {
   try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
   document.documentElement.toggleAttribute('data-guess-signedin', !!user);
   if (user) {
     /* ---- Signed in ---- */
+    document.documentElement.removeAttribute('data-authgate-pending');
+    document.documentElement.removeAttribute('data-authredirect');
     isSignedIn = true;
     currentUser = user;
     authScreen.style.display   = 'none';
@@ -601,24 +610,19 @@ auth.onAuthStateChanged(user => {
       if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
     }, 900);
   } else {
-    /* ---- Signed out — show landing page, render empty cards ---- */
+    /* ---- Signed out — hard login wall ----
+       The home page shows the auth card as a mandatory full-screen gate.
+       dashboard/training (the other app.js pages) bounce to the home gate,
+       so nothing in the app is reachable while signed out. */
     isSignedIn = false;
-    authScreen.style.display   = 'none';
-    mainContent.style.display  = '';
+    if (!isIndexPage()) { location.replace('/index.html'); return; }
+    document.documentElement.removeAttribute('data-guess-signedin');
+    document.documentElement.setAttribute('data-authgate-pending', '1'); // keep app content hidden behind the gate
+    mainContent.style.display  = 'none';
     navSignedIn.style.display  = 'none';
     navSignedOut.style.display = '';
-    requestAnimationFrame(() => requestAnimationFrame(() => { navSignedOut.style.opacity = '1'; }));
-    const homeHeroOut   = document.getElementById('homeHero');
-    const homeHeaderOut = document.getElementById('homeStatusHeader');
-    const homeBrandHeaderOut = document.querySelector('.mobile-brand-header');
-    if (homeHeroOut)   homeHeroOut.style.display = '';
-    if (homeHeaderOut) homeHeaderOut.style.display = 'none';
-    if (homeBrandHeaderOut) homeBrandHeaderOut.style.display = '';
-    initApp(null);   // renders all cards with empty data, returns before Firestore
-    if (location.hash) setTimeout(() => {
-      const el = document.querySelector(location.hash);
-      if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
-    }, 200);
+    switchAuthTab('signin');
+    authScreen.style.display   = ''; // reveal the gate (CSS base rule is display:flex)
   }
 });
 
@@ -648,8 +652,8 @@ document.getElementById('navSignUp').addEventListener('click', () => {
   openAuthModal();
   setTimeout(() => { const el = document.getElementById('authEmailUp'); if (el) el.focus(); }, 60);
 });
-document.getElementById('authClose').addEventListener('click', closeAuthModal);
-authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAuthModal(); });
+/* No close button / backdrop-dismiss: when signed out the auth card is a
+   mandatory gate, not a dismissable modal (the ✕ is hidden via CSS too). */
 
 /* ===== HIDE NAV ON SCROLL DOWN, REVEAL ON SCROLL UP =============== */
 (function () {

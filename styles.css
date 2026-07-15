@@ -1506,6 +1506,21 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   margin-top:14px; min-height:18px; line-height:1.4;
 }
 
+/* ---------- SIGNED-OUT LOGIN WALL ----------
+   When signed out, the auth card (#auth-screen) is a mandatory
+   full-screen gate, not a dismissable modal — so the close button and
+   backdrop-dismiss are gone (handled in app.js). These attributes let
+   the page hide its real content BEFORE first paint, based on the
+   last-known auth state (ig-signedin-guess), so a signed-out visitor
+   never sees a flash of app content before the gate/redirect. */
+.auth-close{ display:none !important; }
+/* Home page: show the gate, hide the app behind it, pre-paint. */
+html[data-authgate-pending] #main-content{ display:none !important; }
+html[data-authgate-pending] #auth-screen{ display:flex !important; }
+/* Every other page: keep everything hidden until auth resolves — JS then
+   either reveals the page (signed in) or bounces to the home gate. */
+html[data-authredirect] body{ visibility:hidden; }
+
 /* ---------- EXERCISE HISTORY ---------- */
 .history-details{ margin-top:16px; border-top:1px solid var(--border); }
 .history-detail-row{

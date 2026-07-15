@@ -109,6 +109,15 @@
 
   auth.onAuthStateChanged(async user => {
     try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
+    if (!user) {
+      /* Login wall: none of these pages are reachable while signed out —
+         bounce to the home page, which hosts the sign-in / create-account
+         gate. (data-authredirect kept the page hidden until now.) */
+      location.replace('/index.html');
+      return;
+    }
+    /* Signed in — reveal the page (the head guard may have hidden it). */
+    document.documentElement.removeAttribute('data-authredirect');
     if (user) {
       if (navSignedOut) { navSignedOut.style.display = 'none'; }
       if (navSignedIn)  { navSignedIn.style.display = 'flex'; navSignedIn.style.opacity = '0'; }
