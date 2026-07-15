@@ -514,6 +514,7 @@ function showOnboardingModal(user) {
   /* ---- Finish ---- */
   async function finishOnboarding() {
     overlay.remove();
+    showInstallPrompt();
     try {
       const data = {};
       if (obFirstName) data.firstName = obFirstName;
@@ -540,6 +541,57 @@ function showOnboardingModal(user) {
   }
 
   renderStepName();
+}
+
+/* ===== "ADD TO HOME SCREEN" PROMPT ================================
+   Shown once, right after a new account finishes onboarding. Asks if
+   they want to install the app to their home screen; "Yes" reveals a
+   short step-by-step, "Skip" just dismisses. Skipped automatically if
+   we're already running as an installed (standalone) app. */
+function showInstallPrompt() {
+  const isStandalone =
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    window.navigator.standalone === true;
+  if (isStandalone) return; // already installed — nothing to prompt
+
+  const overlay = document.createElement('div');
+  overlay.className = 'onboarding-overlay';
+  const card = document.createElement('div');
+  card.className = 'onboarding-card install-card';
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  function renderAsk() {
+    card.innerHTML = `
+      <div class="eyebrow">One last thing</div>
+      <h2 class="title" style="margin:6px 0 8px;">Add IronGladiator to your Home Screen</h2>
+      <p class="sub" style="margin-bottom:24px;">Install the app for one-tap access — it opens full-screen like a real app, no browser bar.</p>
+      <button id="install-yes" class="btn btn-primary" style="width:100%;margin-bottom:10px;">Yes, show me how</button>
+      <button id="install-skip" class="btn btn-ghost" style="width:100%;">Skip for now</button>
+    `;
+    document.getElementById('install-yes').addEventListener('click', renderSteps);
+    document.getElementById('install-skip').addEventListener('click', close);
+  }
+
+  function renderSteps() {
+    card.innerHTML = `
+      <div class="eyebrow">Add to Home Screen</div>
+      <h2 class="title" style="margin:6px 0 18px;">Four quick steps</h2>
+      <ol class="install-steps">
+        <li class="install-step"><span class="install-step-num">1</span><span class="install-step-text">Tap the <strong>three dots</strong></span></li>
+        <li class="install-step"><span class="install-step-num">2</span><span class="install-step-text">Tap <strong>Share</strong></span></li>
+        <li class="install-step"><span class="install-step-num">3</span><span class="install-step-text">Tap <strong>View more</strong></span></li>
+        <li class="install-step"><span class="install-step-num">4</span><span class="install-step-text">Tap <strong>Add to Home Screen</strong></span></li>
+      </ol>
+      <button id="install-done" class="btn btn-primary" style="width:100%;">Got it</button>
+    `;
+    document.getElementById('install-done').addEventListener('click', close);
+  }
+
+  renderAsk();
 }
 
 /* ===== HAMBURGER MENU ============================================= */
