@@ -590,6 +590,19 @@ document.querySelector('nav .brand')?.addEventListener('click', e => {
   }
 });
 
+/* ===== RECONNECT ON RESUME =========================================
+   Installed PWAs on iOS can have their network connection silently
+   dropped while backgrounded (the OS suspends the WebView without
+   telling in-page JS); Firestore's listeners then just sit idle with no
+   error, since from their point of view nothing ever failed -- they're
+   waiting on a socket the OS already closed. Nudging Firestore's network
+   off/on when the tab becomes visible again forces it to check and
+   re-establish the connection instead of staying silently stuck. */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  db.disableNetwork().then(() => db.enableNetwork()).catch(() => {});
+});
+
 /* ===== AUTH — SIGN IN / SIGN UP / SIGN OUT ========================
    Firebase watches auth state automatically — we just react to it. */
 
@@ -889,10 +902,18 @@ function showToast(message, type = 'error') {
   el.className = `toast toast-${type}`;
   el.textContent = message;
   container.appendChild(el);
-  requestAnimationFrame(() => el.classList.add('toast-in'));
+  /* Entrance is a CSS @keyframes animation (see .toast in styles.css) that
+     plays automatically on insert -- deliberately not a class-toggled
+     transition, since that needs a real requestAnimationFrame to avoid
+     the browser coalescing the before/after styles into one paint and
+     skipping the animation, and rAF doesn't reliably fire in every
+     context (e.g. backgrounded/inactive tabs). Exit re-uses opacity via
+     .toast-out, which is safe as a plain transition since by then the
+     element has already painted at least one visible frame. */
   setTimeout(() => {
-    el.classList.remove('toast-in');
+    el.classList.add('toast-out');
     el.addEventListener('transitionend', () => el.remove(), { once: true });
+    setTimeout(() => el.remove(), 500); // fallback if transitionend never fires
   }, 4500);
 }
 
@@ -1941,6 +1962,7 @@ function initApp(uid) {
       renderLog([]);
       updateKPIs();
       renderCalendar();
+      showToast('Could not load your training log — check your connection.');
     });
 
   /* Bodyweight listener */
@@ -1951,7 +1973,10 @@ function initApp(uid) {
         bwAllEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderBodyweight();
         igCheckChallenges(uid, db, currentSessions, bwAllEntries, currentSettings?.goals);
-      }, err => console.error('BW error:', err));
+      }, err => {
+        console.error('BW error:', err.code, err.message);
+        showToast('Could not load your weight log — check your connection.');
+      });
   }
 
   /* Challenge subscriptions — init docs then subscribe to live updates */
@@ -1973,12 +1998,20 @@ function initApp(uid) {
       _dailyData = snap.exists ? snap.data() : null;
       _dailyReady = true;
       renderChallengesWhenReady();
+    }, err => {
+      console.error('Daily challenge error:', err.code, err.message);
+      _dailyData = null; _dailyReady = true; renderChallengesWhenReady();
+      showToast('Could not load daily challenges — check your connection.');
     });
 
     unsubscribeWeekly = weeklyRef.onSnapshot(snap => {
       _weeklyData = snap.exists ? snap.data() : null;
       _weeklyReady = true;
       renderChallengesWhenReady();
+    }, err => {
+      console.error('Weekly challenge error:', err.code, err.message);
+      _weeklyData = null; _weeklyReady = true; renderChallengesWhenReady();
+      showToast('Could not load weekly challenges — check your connection.');
     });
 
     unsubscribeXP = xpRef.onSnapshot(snap => {
@@ -1986,8 +2019,8 @@ function initApp(uid) {
       renderChallengesWhenReady();
       const homeRankEl = document.getElementById('homeStatRank');
       if (homeRankEl) homeRankEl.textContent = getRankFromXP(_xpTotal).rankName;
-    });
-  }).catch(err => console.error('Challenge init error:', err));
+    }, err => console.error('XP error:', err.code, err.message));
+  }).catch(err => { console.error('Challenge init error:', err); showToast('Could not load challenges — check your connection.'); });
 
   /* Bodyweight toggle — no added weight, so hide/disable the weight input */
   const logBwEl = document.getElementById('logBodyweight');
@@ -2875,8 +2908,11 @@ function initApp(uid) {
   }, err => {
     console.error('Settings error:', err.code, err.message);
     renderProfile(0, 0, 0, 185, '');
+    renderGoals(null);
+    renderTracker();
     updateKPIs();
     renderCalendar();
+    showToast('Could not load your data — check your connection and reload.');
   });
 
   /* ---- PERSONAL TRACKERS ---- */

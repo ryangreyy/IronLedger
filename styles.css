@@ -2051,3 +2051,30 @@ html[data-locked="1"] body{ overflow:hidden; }
   .applock-title{ font-size:32px; }
   .applock-btn{ margin-top:16px; }
 }
+
+/* ---------- TOAST NOTIFICATIONS ----------
+   Bottom-stacked, auto-dismissing error/status banners. Used whenever a
+   save/load/listener operation fails so the failure is visible instead
+   of silent -- see showToast() in app.js. */
+.toast-container{
+  position:fixed; left:0; right:0; bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  z-index:2147482000; display:flex; flex-direction:column; align-items:center;
+  gap:8px; padding:0 16px; pointer-events:none;
+}
+@media(max-width:700px){
+  .toast-container{ bottom:calc(74px + env(safe-area-inset-bottom,0px)); }
+}
+@keyframes toastIn{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
+.toast{
+  max-width:420px; width:100%; pointer-events:auto;
+  background:var(--surface); border:1px solid var(--border-strong);
+  border-left:3px solid var(--down);
+  color:var(--text); font-family:var(--body); font-size:13px; line-height:1.4;
+  padding:12px 16px; border-radius:10px;
+  box-shadow:0 8px 28px rgba(0,0,0,.4);
+  opacity:0; transform:translateY(12px);
+  animation:toastIn .25s ease forwards;
+  transition:opacity .2s ease, transform .2s ease;
+}
+.toast.toast-out{ opacity:0; transform:translateY(12px); }
+.toast-success{ border-left-color:var(--up); }
