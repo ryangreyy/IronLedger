@@ -1375,7 +1375,10 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .page-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
 @media(min-width:701px){
   #trainingPageTabs,
-  #dashboardPageTabs{ display:grid; gap:10px; margin-bottom:22px; }
+  #dashboardPageTabs{
+    display:grid; gap:10px; margin-bottom:22px;
+    width:calc(100% - 56px); max-width:1140px; margin-left:auto; margin-right:auto;
+  }
   #trainingPageTabs{ grid-template-columns:repeat(4,minmax(0,1fr)); }
   #dashboardPageTabs{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   #trainingPageTabs .page-tab,
