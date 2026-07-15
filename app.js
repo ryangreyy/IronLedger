@@ -2078,12 +2078,14 @@ function initApp(uid) {
       _xpTotal = snap.exists ? (snap.data().total || 0) : 0;
       renderChallengesWhenReady();
       const homeRankEl = document.getElementById('homeStatRank');
+      const homeRankBadgeEl = document.getElementById('homeRankBadge');
       if (homeRankEl) {
         const rank = getRankFromXP(_xpTotal);
-        if (typeof rankHexBadge === 'function') {
-          homeRankEl.innerHTML = `<span class="home-rank-badge">${rankHexBadge(rank.rankIndex)}<span>${rank.rankName}</span></span>`;
-        } else {
-          homeRankEl.textContent = rank.rankName;
+        homeRankEl.textContent = rank.rankName;
+        if (homeRankBadgeEl) {
+          homeRankBadgeEl.innerHTML = typeof rankHexBadge === 'function'
+            ? `<span class="home-rank-badge">${rankHexBadge(rank.rankIndex)}</span>`
+            : '';
         }
       }
     }, err => console.error('XP error:', err.code, err.message));

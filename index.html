@@ -14,10 +14,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=183">
+<link rel="stylesheet" href="styles.css?v=184">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
-<link rel="manifest" href="/manifest.json?v=14">
+<link rel="manifest" href="/manifest.json?v=15">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -154,8 +154,8 @@
           <div class="st-value" id="homeStatStreak">0</div>
         </div>
         <div class="stat-tile home-rank-tile">
-          <div class="st-label">Rank</div>
-          <div class="st-value" id="homeStatRank">—</div>
+          <div class="st-label home-rank-name" id="homeStatRank">—</div>
+          <div class="st-value home-rank-badge-slot" id="homeRankBadge">—</div>
         </div>
         <div class="stat-tile">
           <div class="st-label">This week</div>
@@ -242,7 +242,7 @@
 <!-- App data and logic -->
 <script src="data.js"></script>
 <script src="challenges.js?v=101"></script>
-<script src="app.js?v=134"></script>
+<script src="app.js?v=135"></script>
 <script src="nav.js?v=10"></script>
 <script>
   /* ── Goals / Challenges / Trackers page tabs ── purely UI — app.js's
