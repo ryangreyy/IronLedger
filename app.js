@@ -755,7 +755,7 @@ document.getElementById('emailSignIn').addEventListener('click', () => {
   authError.textContent = '';
   if (!email || !password) { authError.textContent = 'Please enter your email and password.'; return; }
   auth.signInWithEmailAndPassword(email, password)
-    .catch(err => { authError.textContent = friendlyError(err.code); });
+    .catch(err => { authError.textContent = friendlyError(err.code) + ' [' + err.code + ']'; });
 });
 
 /* Email sign-up (create account) */
