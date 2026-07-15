@@ -1772,16 +1772,30 @@ function initApp(uid) {
     return w;
   }
 
+  function calendarRecoveryClsByDate() {
+    const dayCls = {};
+    (currentSessions || []).forEach(s => {
+      if (!s.dateRaw || dayCls[s.dateRaw]) return;
+      dayCls[s.dateRaw] = s.isRestDay ? 'rest' : normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+    });
+    const calColors = currentSettings?.calendarColors || {};
+    Object.entries(calColors).forEach(([dateRaw, cls]) => {
+      dayCls[dateRaw] = normalizeLiftCls(cls);
+    });
+    return dayCls;
+  }
+
   function renderMuscleMap() {
     if (typeof MuscleMapJS === 'undefined') return;
 
     const today = new Date(); today.setHours(12, 0, 0, 0);
     const lastSeenCls = {};
-    (currentSessions || []).forEach(s => {
-      if (!s.dateRaw || s.isRestDay) return;
-      const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+    const todayISO = localDateISO(today);
+    Object.entries(calendarRecoveryClsByDate()).forEach(([dateRaw, clsRaw]) => {
+      if (!dateRaw || dateRaw > todayISO) return;
+      const cls = normalizeLiftCls(clsRaw);
       if (!cls || cls === 'other' || cls === 'rest') return;
-      if (!lastSeenCls[cls] || s.dateRaw > lastSeenCls[cls]) lastSeenCls[cls] = s.dateRaw;
+      if (!lastSeenCls[cls] || dateRaw > lastSeenCls[cls]) lastSeenCls[cls] = dateRaw;
     });
 
     const muscleData = {};
