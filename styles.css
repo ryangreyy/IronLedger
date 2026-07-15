@@ -399,7 +399,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   color:var(--text) !important; font-size:14px !important; font-weight:800;
   text-align:center;
 }
-.home-rank-badge-slot{ width:100%; display:flex; align-items:center; justify-content:center; min-height:52px; line-height:1; }
+.home-rank-badge-slot{ width:100%; display:flex; align-items:center; justify-content:center; min-height:52px; line-height:1; transform:translateX(-2px); }
 .home-rank-badge{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   min-width:0; max-width:100%; padding:4px 7px;
