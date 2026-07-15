@@ -626,10 +626,27 @@ auth.onAuthStateChanged(user => {
 function openAuthModal()  { authScreen.style.display = ''; }
 function closeAuthModal() { authScreen.style.display = 'none'; authPromptShown = true; }
 
-document.getElementById('navSignIn').addEventListener('click', openAuthModal);
-document.getElementById('navSignUp').addEventListener('click', () => {
+/* ---- Auth modal Sign In / Create Account tabs ---- */
+function switchAuthTab(which) {
+  document.querySelectorAll('#authTabs .page-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.apanel === which);
+  });
+  document.querySelectorAll('#auth-screen .page-tab-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.dataset.panel === which);
+  });
+}
+document.querySelectorAll('#authTabs .page-tab').forEach(btn => {
+  btn.addEventListener('click', () => switchAuthTab(btn.dataset.apanel));
+});
+
+document.getElementById('navSignIn').addEventListener('click', () => {
+  switchAuthTab('signin');
   openAuthModal();
-  setTimeout(() => { const el = document.getElementById('authEmail'); if (el) el.focus(); }, 60);
+});
+document.getElementById('navSignUp').addEventListener('click', () => {
+  switchAuthTab('signup');
+  openAuthModal();
+  setTimeout(() => { const el = document.getElementById('authEmailUp'); if (el) el.focus(); }, 60);
 });
 document.getElementById('authClose').addEventListener('click', closeAuthModal);
 authScreen.addEventListener('click', e => { if (e.target === authScreen) closeAuthModal(); });
@@ -722,8 +739,8 @@ document.getElementById('googleSignIn').addEventListener('click', () => {
 
 /* Email sign-in */
 document.getElementById('emailSignIn').addEventListener('click', () => {
-  const email    = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
+  const email    = document.getElementById('authEmailIn').value.trim();
+  const password = document.getElementById('authPasswordIn').value;
   authError.textContent = '';
   if (!email || !password) { authError.textContent = 'Please enter your email and password.'; return; }
   auth.signInWithEmailAndPassword(email, password)
@@ -732,8 +749,8 @@ document.getElementById('emailSignIn').addEventListener('click', () => {
 
 /* Email sign-up (create account) */
 document.getElementById('emailSignUp').addEventListener('click', () => {
-  const email    = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
+  const email    = document.getElementById('authEmailUp').value.trim();
+  const password = document.getElementById('authPasswordUp').value;
   authError.textContent = '';
   if (!email || !password) { authError.textContent = 'Please enter an email and password.'; return; }
   if (password.length < 6)  { authError.textContent = 'Password must be at least 6 characters.'; return; }
