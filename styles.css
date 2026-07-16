@@ -47,7 +47,7 @@
   --card-top:#16191f;                  /* card gradient — top */
   --card-bot:#0c0d10;                  /* card gradient — bottom */
   --card-metal:linear-gradient(155deg,#eef0f4 0%,#9a9ea8 36%,#6f7178 58%,#cfd2da 100%); /* steel border on cards */
-  --card-shadow:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(0,0,0,.5), 0 10px 30px -16px rgba(0,0,0,.85);
+  --card-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 18px rgba(255,255,255,.045), inset 0 0 24px rgba(0,0,0,.48), 0 1px 3px rgba(255,255,255,.07), 0 12px 34px -18px rgba(255,255,255,.18), 0 18px 46px -24px rgba(0,0,0,.90);
   --nav-glass:rgba(11,12,14,0.72);     /* frosted nav backdrop */
 }
 
@@ -136,6 +136,28 @@
 [data-theme="light"] .btn-primary:hover,
 [data-theme="light"] .page-tab.active:hover,
 [data-theme="light"] .pace-mode-btn.active:hover{ box-shadow:0 2px 5px rgba(24,30,45,.16), 0 10px 26px -6px rgba(193,39,45,.55); }
+:root:not([data-theme="light"]) .btn,
+:root:not([data-theme="light"]) .page-tab,
+:root:not([data-theme="light"]) .yoga-tab,
+:root:not([data-theme="light"]) .pace-mode-btn{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 1px 3px rgba(255,255,255,.07), 0 9px 22px -14px rgba(255,255,255,.18);
+}
+:root:not([data-theme="light"]) .btn:hover,
+:root:not([data-theme="light"]) .page-tab:hover,
+:root:not([data-theme="light"]) .yoga-tab:hover,
+:root:not([data-theme="light"]) .pace-mode-btn:hover{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 2px 5px rgba(255,255,255,.10), 0 12px 28px -14px rgba(255,255,255,.24);
+}
+:root:not([data-theme="light"]) .btn-primary,
+:root:not([data-theme="light"]) .page-tab.active,
+:root:not([data-theme="light"]) .pace-mode-btn.active{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 1px 4px rgba(255,255,255,.10), 0 10px 26px -14px rgba(255,255,255,.24), 0 8px 28px -10px rgba(193,39,45,.55);
+}
+:root:not([data-theme="light"]) .btn-primary:hover,
+:root:not([data-theme="light"]) .page-tab.active:hover,
+:root:not([data-theme="light"]) .pace-mode-btn.active:hover{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.26), 0 2px 6px rgba(255,255,255,.12), 0 14px 34px -14px rgba(255,255,255,.28), 0 10px 32px -10px rgba(193,39,45,.62);
+}
 [data-theme="light"] .hero-link{ border-color:rgba(18,23,33,.18); }
 [data-theme="light"] .hero-link:hover{ color:var(--accent-bright); border-color:var(--accent-bright); background:rgba(193,39,45,.05); }
 /* Red "neon" glows read as muddy haze on a light page — dial them down
