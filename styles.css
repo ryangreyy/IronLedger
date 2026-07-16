@@ -1477,7 +1477,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 #trainingPageTabs .page-tab.active,
 #dashboardPageTabs .page-tab.active{
-  opacity:.86;
+  opacity:.72;
 }
 #trainingPageTabs .page-tab:not(.active),
 #dashboardPageTabs .page-tab:not(.active){
