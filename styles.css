@@ -1475,6 +1475,10 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #trainingPageTabs .page-tab,
   #dashboardPageTabs .page-tab{ width:100%; text-align:center; }
 }
+#trainingPageTabs .page-tab.active,
+#dashboardPageTabs .page-tab.active{
+  opacity:.86;
+}
 #trainingPageTabs .page-tab:not(.active),
 #dashboardPageTabs .page-tab:not(.active){
   background:transparent;
