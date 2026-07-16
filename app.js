@@ -555,6 +555,7 @@ function showOnboardingModal(user) {
         data.avatarPosY = obAvatarY;
       } catch (e) {
         console.error('Avatar upload failed:', e);
+        alert('DEBUG avatar upload error: ' + (e.code || '') + ' — ' + (e.message || e));
         showToast('Couldn’t upload your profile photo — you can add it later in Settings.');
       }
     }
@@ -566,6 +567,7 @@ function showOnboardingModal(user) {
         data.bannerPosY = obBannerY;
       } catch (e) {
         console.error('Banner upload failed:', e);
+        alert('DEBUG banner upload error: ' + (e.code || '') + ' — ' + (e.message || e));
         showToast('Couldn’t upload your profile banner — you can add it later in Settings.');
       }
     }
@@ -576,6 +578,7 @@ function showOnboardingModal(user) {
         await ref.set(data, { merge: true });
       } catch (e) {
         console.error('Onboarding save failed:', e);
+        alert('DEBUG Firestore save error: ' + (e.code || '') + ' — ' + (e.message || e));
         showToast('Couldn’t save your profile — you can update it later in Settings.');
         // Keep at least the text fields so a failed write doesn't lose the name.
         if (Object.keys(textData).length) {
