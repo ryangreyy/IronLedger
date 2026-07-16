@@ -2065,24 +2065,13 @@ function initApp(uid) {
               <button class="btn-delete" data-id="${s.id}" title="Remove">✕</button>
             </td>
           </tr>`;
-        if (group.sessions.length === 1) return `
-          <tr data-id="${s.id}">
-            <td class="log-main-cell">
-              <span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${escapeHTML(s.lift)}</span>
-              <div class="log-meta-line">${escapeHTML(s.date)} · ${escapeHTML(logSetSummary(s))}</div>${s.note ? '<div class="log-note-line"><span class="pr-flag">★ ' + escapeHTML(s.note) + '</span></div>' : ''}
-            </td>
-            <td class="row-actions">
-              <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
-              <button class="btn-delete"   data-id="${s.id}" title="Remove this session">✕</button>
-            </td>
-          </tr>`;
         const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
         return `
           <tr class="log-group-row" data-group="${escapeHTML((group.dateRaw || group.date) + '|' + (group.lift || '').toLowerCase())}">
             <td class="log-main-cell" colspan="2">
               <div class="log-group-head">
                 <span class="pill ${cls}">${escapeHTML(group.lift || '—')}</span>
-                <span class="log-meta-line">${escapeHTML(group.date)} · ${group.sessions.length} entries</span>
+                <span class="log-meta-line">${escapeHTML(group.date)}${group.sessions.length > 1 ? ' · ' + group.sessions.length + ' entries' : ''}</span>
               </div>
               <div class="log-set-list">
                 ${group.sessions.map(entry => renderLogSetLine(entry, false)).join('')}
