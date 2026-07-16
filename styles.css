@@ -738,7 +738,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 .tracker-add-btn:hover{ border-color:var(--accent-bright); color:var(--accent-bright); }
 .tracker-list{ display:flex; flex-direction:column; gap:8px; }
-.tracker-row{ display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; }
+.tracker-row{ display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; scroll-margin-bottom:100px; }
 .tracker-row-input{
   flex:1; min-width:100px; background:var(--surface-2); border:1px solid var(--border-strong);
   border-radius:8px; padding:9px 12px;

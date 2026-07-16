@@ -3223,10 +3223,16 @@ function initApp(uid) {
            text isn't clipped by the old, shorter height. */
         const labelInput = btn.closest('.tracker-row').querySelector('.tracker-row-input');
         if (labelInput) { labelInput.style.height = 'auto'; labelInput.style.height = labelInput.scrollHeight + 'px'; }
+        /* The fixed mobile bottom-nav bar can end up physically covering
+           this row once it grows taller (date input + Set + Cancel), if
+           the row was already near the bottom of the viewport -- taps on
+           "Set" would land on the nav bar instead and silently do
+           nothing. Scroll the new controls clear of that bar every time
+           the form opens. */
+        btn.closest('.tracker-row').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         streakSpan.querySelector('.tracker-restore-cancel').addEventListener('click', () => renderTracker());
         streakSpan.querySelector('.tracker-restore-set').addEventListener('click', () => {
           const dateVal = streakSpan.querySelector('.tracker-restore-date').value;
-          showToast('DEBUG: Set clicked, dateVal=' + JSON.stringify(dateVal), 'success'); // TEMP
           if (!dateVal) return;
           const dates = [];
           const cur = new Date(dateVal + 'T12:00:00');
