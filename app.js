@@ -189,13 +189,22 @@ function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPho
   if (doReveal) navAvatar.style.opacity = '1';
 }
 
-function compressImage(file, maxW, maxH, quality) {
+/* Caps the LONGEST side at maxSide, preserving the photo's natural
+   aspect ratio, rather than force-fitting it into a maxW x maxH box.
+   Boxing in a non-square shape (like a 4:1 banner target) badly
+   under-uses the resolution budget for any normally-proportioned
+   photo (4:3, 16:9, portrait) since the shorter box dimension ends up
+   the binding constraint -- the avatar/banner crop tool already does
+   its own cover-fit crop/pan/zoom, so the compressor's job is just to
+   preserve enough source detail for that, not to pre-shape the image
+   to match the final display frame. */
+function compressImage(file, maxSide, quality) {
   return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
       img.onload = () => {
-        const ratio = Math.min(1, maxW / img.width, maxH / img.height);
+        const ratio = Math.min(1, maxSide / Math.max(img.width, img.height));
         const canvas = document.createElement('canvas');
         canvas.width  = Math.round(img.width  * ratio);
         canvas.height = Math.round(img.height * ratio);
@@ -416,7 +425,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-av-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obAvatarDataUrl = await compressImage(file, 800, 800, 0.95);
+      obAvatarDataUrl = await compressImage(file, 800, 0.95);
       applyAvPreview();
       document.getElementById('ob-av-sliders').style.display = '';
       const btn = document.getElementById('ob-av-btn');
@@ -504,7 +513,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obBannerDataUrl = await compressImage(file, 2200, 550, 0.95);
+      obBannerDataUrl = await compressImage(file, 2200, 0.92);
       applyBannerPreview();
       document.getElementById('ob-banner-sliders').style.display = '';
       const btn = document.getElementById('ob-banner-btn');
