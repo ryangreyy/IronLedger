@@ -537,6 +537,17 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   const db      = firebase.firestore();
   const storage = firebase.storage();
 
+  /* Uploads a compressed data URL to Firebase Storage and returns the
+     public download URL to store in Firestore — Storage has no
+     meaningful size ceiling (unlike a Firestore document, capped at
+     1 MiB total), unlike stuffing the raw image into the settings doc.
+     `path` is overwritten in place on every re-upload. */
+  async function uploadToStorage(dataUrl, path) {
+    const ref = storage.ref(path);
+    await ref.putString(dataUrl, 'data_url');
+    return ref.getDownloadURL();
+  }
+
   /* ---- Edit stats toggle ---- */
   document.getElementById('editStatsToggle').addEventListener('click', () => {
     const panel = document.getElementById('editStatsPanel');
@@ -744,7 +755,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
           const img = new Image();
           img.onerror = () => reject(new Error('Could not decode image'));
           img.onload = () => {
-            const MAX = 450, ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+            const MAX = 800, ratio = Math.min(MAX / img.width, MAX / img.height, 1);
             const w = Math.round(img.width * ratio), h = Math.round(img.height * ratio);
             const canvas = document.createElement('canvas');
             canvas.width = w; canvas.height = h;
@@ -752,7 +763,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, w, h);
-            resolve(canvas.toDataURL('image/jpeg', 0.93));
+            resolve(canvas.toDataURL('image/jpeg', 0.95));
           };
           img.src = ev.target.result;
         };
@@ -764,8 +775,9 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       if (!file) return;
       try {
         const dataUrl = await compressAvatar(file);
-        if (dataUrl.length > 900000) { alert('Image too large. Please choose a different photo.'); return; }
-        await settingsRef.set({ avatarPhotoUrl: dataUrl }, { merge: true });
+        if (dataUrl.length > 6000000) { alert('Image too large. Please choose a different photo.'); return; }
+        const url = await uploadToStorage(dataUrl, `avatars/${userId}`);
+        await settingsRef.set({ avatarPhotoUrl: url }, { merge: true });
       } catch (err) { alert('Failed to save photo: ' + (err.message || 'Unknown error')); }
     }
 
@@ -1330,7 +1342,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
           const img = new Image();
           img.onerror = () => reject(new Error('Could not decode image'));
           img.onload = () => {
-            const MAX_W = 1600, MAX_H = 500;
+            const MAX_W = 2200, MAX_H = 550;
             const ratio = Math.min(MAX_W / img.width, MAX_H / img.height, 1);
             const w = Math.round(img.width  * ratio);
             const h = Math.round(img.height * ratio);
@@ -1340,7 +1352,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, w, h);
-            resolve(canvas.toDataURL('image/jpeg', 0.93));
+            resolve(canvas.toDataURL('image/jpeg', 0.95));
           };
           img.src = ev.target.result;
         };
@@ -1370,9 +1382,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       try {
         setLoading(20, 'Processing…');
         const dataUrl = await compressImage(file);
-        if (dataUrl.length > 900000) { restoreButtons(); alert('Photo is too large after compression. Please choose a different image.'); return; }
-        setLoading(70, 'Saving…');
-        await settingsRef.set({ bannerUrl: dataUrl }, { merge: true });
+        if (dataUrl.length > 6000000) { restoreButtons(); alert('Photo is too large after compression. Please choose a different image.'); return; }
+        setLoading(50, 'Uploading…');
+        const url = await uploadToStorage(dataUrl, `banners/${userId}`);
+        setLoading(85, 'Saving…');
+        await settingsRef.set({ bannerUrl: url }, { merge: true });
         setLoading(100, 'Done!');
         restoreButtons();
       } catch (err) {

@@ -76,8 +76,9 @@ function localDateISO(d) {
 
 /* ===== FIREBASE INIT ============================================== */
 firebase.initializeApp(firebaseConfig);
-const db   = firebase.firestore();
-const auth = firebase.auth();
+const db      = firebase.firestore();
+const auth    = firebase.auth();
+const storage = firebase.storage();
 
 /* ===== DOM HANDLES ================================================ */
 const authScreen   = document.getElementById('auth-screen');
@@ -208,6 +209,18 @@ function compressImage(file, maxW, maxH, quality) {
     };
     reader.readAsDataURL(file);
   });
+}
+
+/* Uploads a compressed data URL to Firebase Storage and returns the
+   public download URL to store in Firestore instead of the raw image
+   data. Storage has no meaningful size ceiling (unlike a Firestore
+   document, capped at 1 MiB total), so this is what actually lets
+   avatar/banner quality be turned up. `path` is overwritten in place
+   on every re-upload (one file per user per slot — no cleanup needed). */
+async function uploadToStorage(dataUrl, path) {
+  const ref = storage.ref(path);
+  await ref.putString(dataUrl, 'data_url');
+  return ref.getDownloadURL();
 }
 
 function showOnboardingModal(user) {
@@ -403,7 +416,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-av-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obAvatarDataUrl = await compressImage(file, 450, 450, 0.93);
+      obAvatarDataUrl = await compressImage(file, 800, 800, 0.95);
       applyAvPreview();
       document.getElementById('ob-av-sliders').style.display = '';
       const btn = document.getElementById('ob-av-btn');
@@ -491,7 +504,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obBannerDataUrl = await compressImage(file, 1600, 500, 0.93);
+      obBannerDataUrl = await compressImage(file, 2200, 550, 0.95);
       applyBannerPreview();
       document.getElementById('ob-banner-sliders').style.display = '';
       const btn = document.getElementById('ob-banner-btn');
@@ -509,14 +522,14 @@ function showOnboardingModal(user) {
   }
 
   /* ---- Finish ----
-     Persist the profile FIRST (before any UI), so a failure or a later
-     step can never silently drop the user's name/photos. If the write
-     fails, surface it and still keep the text fields so a too-large image
-     can't lose the name too. */
+     Photos upload to Storage first (each independent of the other), then
+     everything (name + resulting photo URLs) is written to Firestore in
+     one go. A failed photo upload never blocks the name, and never
+     blocks the other photo — each failure just surfaces its own toast. */
   async function finishOnboarding() {
     overlay.remove();
-    /* Fire immediately, before the (possibly slower) save below — the
-       install prompt shouldn't wait on network/Firestore latency. */
+    /* Fire immediately, before the (possibly slower) work below — the
+       install prompt shouldn't wait on network/upload/save latency. */
     try { showInstallPrompt(); } catch (e) { console.error('Install prompt error:', e); }
 
     const textData = {};
@@ -524,17 +537,28 @@ function showOnboardingModal(user) {
     if (obLastName)  textData.lastName  = obLastName;
 
     const data = { ...textData };
+
     if (obAvatarDataUrl) {
-      data.avatarPhotoUrl = obAvatarDataUrl;
-      data.avatarZoom = obAvatarZoom;
-      data.avatarPosX = obAvatarX;
-      data.avatarPosY = obAvatarY;
+      try {
+        data.avatarPhotoUrl = await uploadToStorage(obAvatarDataUrl, `avatars/${user.uid}`);
+        data.avatarZoom = obAvatarZoom;
+        data.avatarPosX = obAvatarX;
+        data.avatarPosY = obAvatarY;
+      } catch (e) {
+        console.error('Avatar upload failed:', e);
+        showToast('Couldn’t upload your profile photo — you can add it later in Settings.');
+      }
     }
     if (obBannerDataUrl) {
-      data.bannerUrl  = obBannerDataUrl;
-      data.bannerZoom = obBannerZoom;
-      data.bannerPosX = obBannerX;
-      data.bannerPosY = obBannerY;
+      try {
+        data.bannerUrl = await uploadToStorage(obBannerDataUrl, `banners/${user.uid}`);
+        data.bannerZoom = obBannerZoom;
+        data.bannerPosX = obBannerX;
+        data.bannerPosY = obBannerY;
+      } catch (e) {
+        console.error('Banner upload failed:', e);
+        showToast('Couldn’t upload your profile banner — you can add it later in Settings.');
+      }
     }
 
     const ref = db.collection('users').doc(user.uid).collection('settings').doc('main');
@@ -543,16 +567,16 @@ function showOnboardingModal(user) {
         await ref.set(data, { merge: true });
       } catch (e) {
         console.error('Onboarding save failed:', e);
-        showToast('Couldn’t save your profile photos — they may be too large. Your name was kept; you can add photos later in Settings.');
-        // Keep at least the text fields so a failed image write doesn't lose the name.
+        showToast('Couldn’t save your profile — you can update it later in Settings.');
+        // Keep at least the text fields so a failed write doesn't lose the name.
         if (Object.keys(textData).length) {
           try { await ref.set(textData, { merge: true }); } catch (_) {}
         }
       }
     }
 
-    if (obAvatarDataUrl) {
-      applyNavAvatar(user, null, null, null, null, obAvatarDataUrl, obAvatarZoom, obAvatarX, obAvatarY);
+    if (data.avatarPhotoUrl) {
+      applyNavAvatar(user, null, null, null, null, data.avatarPhotoUrl, obAvatarZoom, obAvatarX, obAvatarY);
     }
   }
 
