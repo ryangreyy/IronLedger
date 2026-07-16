@@ -403,7 +403,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-av-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obAvatarDataUrl = await compressImage(file, 400, 400, 0.9);
+      obAvatarDataUrl = await compressImage(file, 450, 450, 0.93);
       applyAvPreview();
       document.getElementById('ob-av-sliders').style.display = '';
       const btn = document.getElementById('ob-av-btn');
@@ -491,7 +491,7 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obBannerDataUrl = await compressImage(file, 1600, 500, 0.9);
+      obBannerDataUrl = await compressImage(file, 1600, 500, 0.93);
       applyBannerPreview();
       document.getElementById('ob-banner-sliders').style.display = '';
       const btn = document.getElementById('ob-banner-btn');
@@ -515,6 +515,9 @@ function showOnboardingModal(user) {
      can't lose the name too. */
   async function finishOnboarding() {
     overlay.remove();
+    /* Fire immediately, before the (possibly slower) save below — the
+       install prompt shouldn't wait on network/Firestore latency. */
+    try { showInstallPrompt(); } catch (e) { console.error('Install prompt error:', e); }
 
     const textData = {};
     if (obFirstName) textData.firstName = obFirstName;
@@ -551,9 +554,6 @@ function showOnboardingModal(user) {
     if (obAvatarDataUrl) {
       applyNavAvatar(user, null, null, null, null, obAvatarDataUrl, obAvatarZoom, obAvatarX, obAvatarY);
     }
-
-    /* Install prompt last, isolated — it must never block the save above. */
-    try { showInstallPrompt(); } catch (e) { console.error('Install prompt error:', e); }
   }
 
   renderStepName();
@@ -585,8 +585,10 @@ function showInstallPrompt() {
       <div class="eyebrow">One last thing</div>
       <h2 class="title" style="margin:6px 0 8px;">Add IronGladiator to your Home Screen</h2>
       <p class="sub" style="margin-bottom:24px;">Install the app for one-tap access — it opens full-screen like a real app, no browser bar.</p>
-      <button id="install-yes" class="btn btn-primary" style="width:100%;margin-bottom:10px;">Yes, show me how</button>
-      <button id="install-skip" class="btn btn-ghost" style="width:100%;">Skip for now</button>
+      <button id="install-yes" class="btn btn-primary" style="width:100%;margin-bottom:14px;">Yes, show me how</button>
+      <div style="text-align:center;">
+        <button id="install-skip" class="btn btn-ghost" style="width:auto;font-size:12px;padding:6px 14px;">Skip for now</button>
+      </div>
     `;
     document.getElementById('install-yes').addEventListener('click', renderSteps);
     document.getElementById('install-skip').addEventListener('click', close);
