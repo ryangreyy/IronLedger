@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=209">
+<link rel="stylesheet" href="styles.css?v=212">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <link rel="manifest" href="/manifest.json?v=21">
@@ -55,7 +55,7 @@
   transition:all .15s;
 }
 .feed-toplevel-tab:hover{ background:var(--bg-2); color:var(--text); border-color:var(--accent); }
-.feed-toplevel-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
+.feed-toplevel-tab.active{ background:var(--tab-active); border-color:var(--tab-active-border); color:#fff; }
 .feed-toplevel-panel{ display:none; }
 .feed-toplevel-panel.active{ display:block; }
 @media(max-width:480px){
@@ -227,10 +227,7 @@
   white-space:nowrap;
 }
 .lb-tab:hover{ color:var(--text); border-color:rgba(255,255,255,.28); background:rgba(255,255,255,.04); }
-.lb-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
-.feed-toplevel-tab.active,
-.mobile-pill.active,
-.lb-tab.active{ opacity:.72; }
+.lb-tab.active{ background:var(--tab-active); border-color:var(--tab-active-border); color:#fff; }
 :root:not([data-theme="light"]) .feed-toplevel-tab,
 :root:not([data-theme="light"]) .mobile-pill,
 :root:not([data-theme="light"]) .lb-tab{
@@ -449,7 +446,7 @@
     font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-dim);
     border-radius:10px; transition:all .15s;
   }
-  .mobile-pill.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
+  .mobile-pill.active{ background:var(--tab-active); border-color:var(--tab-active-border); color:#fff; }
 
   .h2h-fab{
     display:flex; align-items:center; justify-content:center;
