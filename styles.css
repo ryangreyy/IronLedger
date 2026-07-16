@@ -441,6 +441,13 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-status-header .title{ margin-bottom:22px; transform:translateY(-3px); }
 .home-stat-strip{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
 .home-stat-strip .stat-tile{ text-align:center; align-items:center; justify-content:center; }
+[data-theme="light"] .home-stat-strip .stat-tile{
+  background:
+    radial-gradient(120% 120% at 30% 12%,var(--card-top) 0%,var(--card-bot) 80%) padding-box,
+    var(--card-metal) border-box;
+  border:1.5px solid transparent;
+  box-shadow:var(--card-shadow);
+}
 .home-stat-strip .st-value{ font-size:26px; }
 .home-rank-tile{ align-items:center !important; justify-content:center; gap:8px; }
 .home-rank-name{
