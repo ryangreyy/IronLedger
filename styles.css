@@ -2,6 +2,17 @@
    Design tokens (colors, fonts, spacing) are at the top under :root. */
 
 /* ============================================================
+   PAGE-TO-PAGE VIEW TRANSITIONS — native browser crossfade between
+   pages instead of a hard flash/reload. Needs this rule present on
+   BOTH the outgoing and incoming page, which is automatic here since
+   every page shares this one stylesheet. No-ops silently on browsers
+   that don't support it yet (nothing to feature-detect or guard).
+   ============================================================ */
+@view-transition{ navigation:auto; }
+::view-transition-old(root),
+::view-transition-new(root){ animation-duration:.18s; animation-timing-function:ease-out; }
+
+/* ============================================================
    DESIGN TOKENS — all colors/spacing live here so they're easy
    to tweak in one place.
    ============================================================ */

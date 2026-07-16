@@ -79,4 +79,34 @@
 
   function mount() { document.body.appendChild(bar); }
   if (document.body) { mount(); } else { document.addEventListener('DOMContentLoaded', mount); }
+
+  /* ---- Prefetch other pages so navigation feels instant ----
+     Plain fetch() (not <link rel=prefetch>) so this actually works on
+     Safari, which has never reliably supported rel=prefetch. A warm
+     HTTP cache entry is all a normal <a href> navigation needs to load
+     near-instantly afterward. */
+  var prefetched = {};
+  function prefetchUrl(url) {
+    if (!url || prefetched[url] || url === p) return;
+    prefetched[url] = true;
+    fetch(url, { credentials: 'same-origin' }).catch(function () {});
+  }
+
+  // Idle: warm the 6 most-visited pages (bottom nav) ahead of any tap.
+  var idlePrefetch = function () {
+    items.forEach(function (item) { prefetchUrl(item[0]); });
+  };
+  if ('requestIdleCallback' in window) requestIdleCallback(idlePrefetch, { timeout: 2000 });
+  else setTimeout(idlePrefetch, 1500);
+
+  // Intent: the instant a finger/cursor touches ANY nav link (before
+  // the tap/click even completes), warm that specific destination too
+  // -- covers the desktop/hamburger links (settings, tools, guide,
+  // running, yoga) that aren't in the idle-prefetch set above.
+  function onIntent(e) {
+    var a = e.target.closest && e.target.closest('a[href$=".html"]');
+    if (a) prefetchUrl(a.getAttribute('href'));
+  }
+  document.addEventListener('touchstart', onIntent, { passive: true });
+  document.addEventListener('mousedown', onIntent);
 }());
