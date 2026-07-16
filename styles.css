@@ -79,14 +79,16 @@
   --card-top:#FFFFFF;                  /* light cards */
   --card-bot:#F1F3F7;
   --card-metal:linear-gradient(155deg,#c4c9d2 0%,#8f95a0 36%,#adb3bd 58%,#d9dce2 100%); /* dimmed steel edge */
-  /* Bright top glint + a gray vignette fading inward from the card's inner
-     trim (the light-mode counterpart to dark mode's inset dark glow), so
-     cards read as raised objects instead of blending into the steel-gray
-     page. Two stacked insets: a tight one that defines the trim itself and
-     a wider one that carries the falloff, so the shadow is strongest right
-     at the edge and fades to nothing by the card's centre rather than
-     flatly tinting it. Outer drop shadow separates card from backdrop. */
-  --card-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 7px rgba(24,30,45,.10), inset 0 0 26px rgba(24,30,45,.17), 0 8px 24px -12px rgba(24,30,45,.30);
+  /* INSIDE: bright top glint + a gray vignette fading inward from the card's
+     inner trim (the light-mode counterpart to dark mode's inset dark glow).
+     Two stacked insets -- a tight one defining the trim itself, a wider one
+     carrying the falloff -- so it's strongest at the edge and fades to
+     nothing by the card's centre rather than flatly tinting it.
+     OUTSIDE: a 3-layer elevation shadow. The tight 3px contact layer has no
+     negative spread, so it renders on ALL edges (left/right/top too, not
+     just below) and is what actually reads as "the card is sitting above
+     the page"; the two wider layers add depth and lift. */
+  --card-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 7px rgba(24,30,45,.10), inset 0 0 26px rgba(24,30,45,.17), 0 1px 3px rgba(24,30,45,.10), 0 6px 16px -4px rgba(24,30,45,.16), 0 16px 34px -12px rgba(24,30,45,.20);
   --nav-glass:rgba(236,239,244,0.78);  /* light frosted nav */
 }
 
@@ -105,6 +107,16 @@
    give them a dark-ink surface and border instead. */
 [data-theme="light"] .btn-solid{ background:rgba(18,23,33,.05); border-color:rgba(18,23,33,.16); }
 [data-theme="light"] .btn-solid:hover{ background:rgba(18,23,33,.10); color:var(--text); border-color:rgba(18,23,33,.32); }
+/* Buttons need the same outer-edge lift as cards on light — on dark they
+   read as raised via glow/contrast, which does nothing on a light page.
+   Tight contact layer (no negative spread, so it wraps every edge) plus a
+   softer cast below. .btn-primary keeps a red-tinted cast so the accent
+   still glows, just ink-grounded rather than the muddy haze a pure red
+   glow becomes on light. */
+[data-theme="light"] .btn{ box-shadow:0 1px 2px rgba(24,30,45,.10), 0 4px 12px -4px rgba(24,30,45,.20); }
+[data-theme="light"] .btn:hover{ box-shadow:0 2px 4px rgba(24,30,45,.12), 0 8px 20px -6px rgba(24,30,45,.26); }
+[data-theme="light"] .btn-primary{ box-shadow:0 1px 2px rgba(24,30,45,.12), 0 6px 18px -6px rgba(193,39,45,.50); }
+[data-theme="light"] .btn-primary:hover{ box-shadow:0 2px 5px rgba(24,30,45,.14), 0 10px 26px -6px rgba(193,39,45,.55); }
 [data-theme="light"] .hero-link{ border-color:rgba(18,23,33,.18); }
 [data-theme="light"] .hero-link:hover{ color:var(--accent-bright); border-color:var(--accent-bright); background:rgba(193,39,45,.05); }
 /* Red "neon" glows read as muddy haze on a light page — dial them down
