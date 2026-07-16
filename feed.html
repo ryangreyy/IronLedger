@@ -154,8 +154,12 @@
   font-family:var(--mono); font-size:11px; color:var(--text-dim);
   white-space:nowrap; flex-shrink:0;
 }
-.c3-set-list{ display:flex; flex-direction:column; gap:4px; padding-left:16px; }
-.c3-set-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.c3-set-list{ display:flex; flex-direction:column; gap:6px; padding-left:16px; }
+.c3-set-row{
+  display:flex; flex-direction:column; gap:3px;
+  padding:7px 9px; border:1px solid var(--border); border-radius:8px;
+  background:rgba(255,255,255,0.03);
+}
 .c3-set-stat{ font-family:var(--mono); font-size:11px; color:var(--text-dim); }
 .c3-set-note{ font-size:11px; color:var(--text-dim); font-style:italic; line-height:1.35; }
 
@@ -339,6 +343,10 @@
 [data-theme="light"] .c3-lift-block{
   background:rgba(18,23,33,.055);
   border:1px solid rgba(18,23,33,.08);
+}
+[data-theme="light"] .c3-set-row{
+  background:rgba(18,23,33,.035);
+  border-color:rgba(18,23,33,.10);
 }
 [data-theme="light"] .rxn-bar{ border-top-color:rgba(18,23,33,.10); }
 [data-theme="light"] .rxn-main,
@@ -911,10 +919,11 @@
         const dot = colors[group.cls] || '#888';
         const setRows = group.sessions.map(s => {
           const stat = feedSetSummary(s);
-          const note = s.note ? `<div class="c3-set-note">${feedEscapeHTML(s.note)}</div>` : '';
+          const note = s.note ? `<span class="c3-set-note">${feedEscapeHTML(s.note)}</span>` : '';
           return `<div class="c3-set-row">
             <span class="c3-set-stat">${feedEscapeHTML(stat)}</span>
-          </div>${note}`;
+            ${note}
+          </div>`;
         }).join('');
         return `<div class="c3-lift-block">
           <div class="c3-row">
