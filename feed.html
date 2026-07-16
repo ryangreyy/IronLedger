@@ -1032,9 +1032,9 @@
       ]);
 
       const friends = [
-        { uid: myUid },
-        ...sentSnap.docs.map(d => ({ uid: d.data().toUid })),
-        ...recvSnap.docs.map(d => ({ uid: d.data().fromUid })),
+        { uid: myUid, username: feedCurrentUser?.displayName || feedCurrentUser?.email?.split('@')[0] },
+        ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
+        ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername })),
       ];
 
       const rows = await Promise.all(friends.map(async f => {
@@ -1044,7 +1044,7 @@
           db.doc(`users/${f.uid}/xp/main`).get(),
         ]);
         const settings  = settingsSnap.exists ? settingsSnap.data() : {};
-        const username  = settings.username || settings.displayName || 'Athlete';
+        const username  = settings.username || settings.displayName || f.username || 'Athlete';
         const sessions  = sessSnap.docs.map(d => d.data()).filter(s => !s.isRestDay);
         const { streak, bestStreak } = computeStreaks(sessions, settings.restDays);
         const xpTotal   = xpSnap.exists ? (xpSnap.data().total || 0) : 0;
