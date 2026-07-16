@@ -352,6 +352,16 @@
   -webkit-appearance:none; appearance:none;
   cursor:pointer;
 }
+.mac-slider-row{ display:flex; align-items:center; gap:8px; }
+.mac-slider-row input[type="range"]{ flex:1; min-width:0; }
+.mac-step-btn{
+  width:30px; height:30px; border-radius:8px; border:1px solid var(--border-strong);
+  background:var(--surface-2); color:var(--text-dim); font-family:var(--mono);
+  font-size:16px; font-weight:700; cursor:pointer; line-height:1;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  transition:color .15s, border-color .15s, background .15s;
+}
+.mac-step-btn:hover{ color:var(--text); border-color:var(--accent); background:var(--bg); }
 .mac-macro-goal-field input[type="range"]::-webkit-slider-runnable-track{
   height:6px; border-radius:99px; background:var(--surface-2); border:1px solid var(--border);
 }
@@ -553,19 +563,31 @@
           <div class="mac-macro-goal-field">
             <label>Protein (g)</label>
             <div class="mac-macro-value"><span id="goalProtValue">150</span><span>g</span></div>
-            <input type="range" id="goalProtInput" min="0" max="1500" step="1" value="150" aria-label="Protein grams">
+            <div class="mac-slider-row">
+              <button type="button" class="mac-step-btn" data-goal-step="goalProtInput" data-delta="-1" aria-label="Decrease protein by 1 gram">−</button>
+              <input type="range" id="goalProtInput" min="0" max="1500" step="1" value="150" aria-label="Protein grams">
+              <button type="button" class="mac-step-btn" data-goal-step="goalProtInput" data-delta="1" aria-label="Increase protein by 1 gram">+</button>
+            </div>
             <div class="mac-bar-track thin"><div class="mac-bar-fill protein" id="goalProtBar" style="width:0%"></div></div>
           </div>
           <div class="mac-macro-goal-field">
             <label>Carbs (g)</label>
             <div class="mac-macro-value"><span id="goalCarbValue">200</span><span>g</span></div>
-            <input type="range" id="goalCarbInput" min="0" max="1500" step="1" value="200" aria-label="Carbs grams">
+            <div class="mac-slider-row">
+              <button type="button" class="mac-step-btn" data-goal-step="goalCarbInput" data-delta="-1" aria-label="Decrease carbs by 1 gram">−</button>
+              <input type="range" id="goalCarbInput" min="0" max="1500" step="1" value="200" aria-label="Carbs grams">
+              <button type="button" class="mac-step-btn" data-goal-step="goalCarbInput" data-delta="1" aria-label="Increase carbs by 1 gram">+</button>
+            </div>
             <div class="mac-bar-track thin"><div class="mac-bar-fill carbs" id="goalCarbBar" style="width:0%"></div></div>
           </div>
           <div class="mac-macro-goal-field">
             <label>Fat (g) <span class="mac-auto-badge">auto</span></label>
             <div class="mac-macro-value"><span id="goalFatValue">65</span><span>g</span></div>
-            <input type="range" id="goalFatInput" min="0" max="600" step="1" value="65" aria-label="Fat grams">
+            <div class="mac-slider-row">
+              <button type="button" class="mac-step-btn" data-goal-step="goalFatInput" data-delta="-1" aria-label="Decrease fat by 1 gram">−</button>
+              <input type="range" id="goalFatInput" min="0" max="600" step="1" value="65" aria-label="Fat grams">
+              <button type="button" class="mac-step-btn" data-goal-step="goalFatInput" data-delta="1" aria-label="Increase fat by 1 gram">+</button>
+            </div>
             <div class="mac-bar-track thin"><div class="mac-bar-fill fat" id="goalFatBar" style="width:0%"></div></div>
           </div>
         </div>
@@ -1390,6 +1412,18 @@
   document.getElementById('goalProtInput').addEventListener('input', function() { switchToCustom(); autoAdjustFat(); });
   document.getElementById('goalCarbInput').addEventListener('input', function() { switchToCustom(); autoAdjustFat(); });
   document.getElementById('goalFatInput').addEventListener('input', function() { switchToCustom(); autoAdjustCarbs(); });
+  document.querySelectorAll('.mac-step-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const input = document.getElementById(btn.dataset.goalStep);
+      if (!input) return;
+      const min = parseInt(input.min) || 0;
+      const max = parseInt(input.max) || 0;
+      const delta = parseInt(btn.dataset.delta) || 0;
+      input.value = Math.max(min, Math.min(max, (parseInt(input.value) || 0) + delta));
+      if (input.id === 'goalFatInput') { switchToCustom(); autoAdjustCarbs(); }
+      else { switchToCustom(); autoAdjustFat(); }
+    });
+  });
 
   function openAddForm() {
     const form = document.getElementById('macFormCard');
