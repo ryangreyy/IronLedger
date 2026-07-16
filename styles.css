@@ -88,7 +88,7 @@
      negative spread, so it renders on ALL edges (left/right/top too, not
      just below) and is what actually reads as "the card is sitting above
      the page"; the two wider layers add depth and lift. */
-  --card-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 7px rgba(24,30,45,.10), inset 0 0 26px rgba(24,30,45,.17), 0 1px 3px rgba(24,30,45,.10), 0 6px 16px -4px rgba(24,30,45,.16), 0 16px 34px -12px rgba(24,30,45,.20);
+  --card-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 7px rgba(24,30,45,.10), inset 0 0 26px rgba(24,30,45,.17), 0 2px 4px rgba(24,30,45,.14), 0 8px 20px -4px rgba(24,30,45,.24), 0 22px 44px -10px rgba(24,30,45,.28);
   --nav-glass:rgba(236,239,244,0.78);  /* light frosted nav */
 }
 
