@@ -320,22 +320,53 @@
   margin-bottom:16px; min-height:14px;
 }
 .mac-macro-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px; }
+@media(max-width:560px){ .mac-macro-grid{ grid-template-columns:1fr; } }
+.mac-macro-grid .mac-macro-goal-field{
+  background:rgba(255,255,255,0.03); border:1px solid var(--border);
+  border-radius:10px; padding:10px 10px 12px;
+}
 .mac-macro-goal-field label{
   display:flex; align-items:center; justify-content:space-between;
   font-family:var(--mono); font-size:9px; letter-spacing:0.15em; text-transform:uppercase;
-  color:var(--text-dimmer); margin-bottom:4px; font-weight:700;
+  color:var(--text-dimmer); margin-bottom:8px; font-weight:700;
 }
+.mac-macro-value{
+  display:flex; align-items:baseline; justify-content:center; gap:4px;
+  font-family:var(--mono); font-size:30px; font-weight:700; color:var(--text);
+  line-height:1; margin-bottom:10px;
+}
+.mac-macro-value span:last-child{ font-size:12px; color:var(--text-dimmer); font-weight:700; }
 .mac-auto-badge{
   font-size:8px; background:rgba(193,39,45,.15); border:1px solid rgba(193,39,45,.3);
   border-radius:4px; padding:1px 5px; color:var(--accent); font-weight:700;
   letter-spacing:0.05em; text-transform:uppercase;
 }
-.mac-macro-goal-field input{
+.mac-macro-goal-field input[type="number"]{
   width:100%; background:var(--bg); border:1px solid var(--border-strong);
   border-radius:8px; padding:8px 10px; color:var(--text); font-family:var(--mono);
   font-size:16px; font-weight:700; outline:none; transition:border-color .15s;
 }
-.mac-macro-goal-field input:focus{ border-color:var(--accent); }
+.mac-macro-goal-field input[type="number"]:focus{ border-color:var(--accent); }
+.mac-macro-goal-field input[type="range"]{
+  width:100%; height:28px; margin:0; background:transparent; accent-color:var(--accent);
+  -webkit-appearance:none; appearance:none;
+  cursor:pointer;
+}
+.mac-macro-goal-field input[type="range"]::-webkit-slider-runnable-track{
+  height:6px; border-radius:99px; background:var(--surface-2); border:1px solid var(--border);
+}
+.mac-macro-goal-field input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:20px; height:20px; border-radius:50%;
+  background:var(--accent); border:2px solid #fff; margin-top:-8px;
+  box-shadow:0 4px 12px rgba(0,0,0,.35);
+}
+.mac-macro-goal-field input[type="range"]::-moz-range-track{
+  height:6px; border-radius:99px; background:var(--surface-2); border:1px solid var(--border);
+}
+.mac-macro-goal-field input[type="range"]::-moz-range-thumb{
+  width:18px; height:18px; border-radius:50%; background:var(--accent); border:2px solid #fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.35);
+}
 .mac-macro-goal-field .mac-bar-track{ margin-top:6px; }
 .mac-cal-math{
   display:flex; align-items:center; gap:8px; padding:10px 12px;
@@ -521,17 +552,20 @@
         <div class="mac-macro-grid">
           <div class="mac-macro-goal-field">
             <label>Protein (g)</label>
-            <input type="number" id="goalProtInput" min="0" placeholder="150">
+            <div class="mac-macro-value"><span id="goalProtValue">150</span><span>g</span></div>
+            <input type="range" id="goalProtInput" min="0" max="1500" step="1" value="150" aria-label="Protein grams">
             <div class="mac-bar-track thin"><div class="mac-bar-fill protein" id="goalProtBar" style="width:0%"></div></div>
           </div>
           <div class="mac-macro-goal-field">
             <label>Carbs (g)</label>
-            <input type="number" id="goalCarbInput" min="0" placeholder="200">
+            <div class="mac-macro-value"><span id="goalCarbValue">200</span><span>g</span></div>
+            <input type="range" id="goalCarbInput" min="0" max="1500" step="1" value="200" aria-label="Carbs grams">
             <div class="mac-bar-track thin"><div class="mac-bar-fill carbs" id="goalCarbBar" style="width:0%"></div></div>
           </div>
           <div class="mac-macro-goal-field">
             <label>Fat (g) <span class="mac-auto-badge">auto</span></label>
-            <input type="number" id="goalFatInput" min="0" placeholder="65">
+            <div class="mac-macro-value"><span id="goalFatValue">65</span><span>g</span></div>
+            <input type="range" id="goalFatInput" min="0" max="600" step="1" value="65" aria-label="Fat grams">
             <div class="mac-bar-track thin"><div class="mac-bar-fill fat" id="goalFatBar" style="width:0%"></div></div>
           </div>
         </div>
@@ -854,6 +888,9 @@
     document.getElementById('gmathProt').textContent  = fromProt;
     document.getElementById('gmathCarb').textContent  = fromCarb;
     document.getElementById('gmathFat').textContent   = fromFat;
+    document.getElementById('goalProtValue').textContent = prot;
+    document.getElementById('goalCarbValue').textContent = carb;
+    document.getElementById('goalFatValue').textContent  = fat;
     document.getElementById('gmathTotal').textContent = total;
     document.getElementById('gmathGoal').textContent  = cals;
     const el = document.getElementById('gmathTotal');
