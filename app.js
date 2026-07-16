@@ -236,9 +236,8 @@ function showOnboardingModal(user) {
   function renderStepName() {
     card.innerHTML = `
       <div class="eyebrow">Welcome to IronGladiator</div>
-      <h2 class="title" style="margin:6px 0 6px;">What should we call you?</h2>
-      <p class="sub" style="margin-bottom:22px;">This is your display name — shown next to your avatar in the nav.</p>
-      <input id="ob-name" type="text" class="auth-input" placeholder="Display name"
+      <h2 class="title" style="margin:6px 0 22px;">What should we call you?</h2>
+      <input id="ob-name" type="text" class="auth-input" placeholder="Username"
              value="${obName.replace(/"/g,'&quot;')}" maxlength="30"
              style="width:100%;margin-bottom:16px;">
       <button id="ob-name-continue" class="btn btn-primary" style="width:100%;margin-bottom:10px;">Continue</button>
@@ -267,8 +266,7 @@ function showOnboardingModal(user) {
   function renderStepFirstName() {
     card.innerHTML = `
       <div class="eyebrow">Step 2 of 6</div>
-      <h2 class="title" style="margin:6px 0 6px;">What's your first name?</h2>
-      <p class="sub" style="margin-bottom:22px;">Used for your personal profile info.</p>
+      <h2 class="title" style="margin:6px 0 22px;">What's your first name?</h2>
       <input id="ob-first-name" type="text" class="auth-input" placeholder="First name"
              value="${obFirstName.replace(/"/g,'&quot;')}" maxlength="40"
              style="width:100%;margin-bottom:8px;">
@@ -296,8 +294,7 @@ function showOnboardingModal(user) {
   function renderStepLastName() {
     card.innerHTML = `
       <div class="eyebrow">Step 3 of 6</div>
-      <h2 class="title" style="margin:6px 0 6px;">What's your last name?</h2>
-      <p class="sub" style="margin-bottom:22px;">Used for your personal profile info.</p>
+      <h2 class="title" style="margin:6px 0 22px;">What's your last name?</h2>
       <input id="ob-last-name" type="text" class="auth-input" placeholder="Last name"
              value="${obLastName.replace(/"/g,'&quot;')}" maxlength="40"
              style="width:100%;margin-bottom:8px;">
@@ -325,8 +322,7 @@ function showOnboardingModal(user) {
   function renderStepEmailConfirm() {
     card.innerHTML = `
       <div class="eyebrow">Step 4 of 6</div>
-      <h2 class="title" style="margin:6px 0 6px;">Confirm your email</h2>
-      <p class="sub" style="margin-bottom:22px;">This is the email tied to your account.</p>
+      <h2 class="title" style="margin:6px 0 22px;">Confirm your email</h2>
       <input type="text" class="auth-input" value="${(user.email || '').replace(/"/g,'&quot;')}" disabled
              style="width:100%;margin-bottom:16px;opacity:0.6;cursor:not-allowed;">
       <button id="ob-email-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
@@ -339,9 +335,8 @@ function showOnboardingModal(user) {
   /* ---- Step 5: Profile photo ---- */
   function renderStepPhoto() {
     card.innerHTML = `
-      <div class="eyebrow">Step 6 of 7</div>
-      <h2 class="title" style="margin:6px 0 6px;">Set your profile photo</h2>
-      <p class="sub" style="margin-bottom:20px;">Appears next to your name across the site.</p>
+      <div class="eyebrow">Step 5 of 6</div>
+      <h2 class="title" style="margin:6px 0 20px;">Set your profile photo</h2>
       <div style="display:flex;justify-content:center;margin-bottom:16px;">
         <div id="ob-av-circle" class="ob-av-circle">
           <div id="ob-av-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);">
@@ -429,8 +424,7 @@ function showOnboardingModal(user) {
   function renderStepBanner() {
     card.innerHTML = `
       <div class="eyebrow">Step 6 of 6</div>
-      <h2 class="title" style="margin:6px 0 6px;">Set your profile banner</h2>
-      <p class="sub" style="margin-bottom:16px;">The banner appears at the top of your profile page.</p>
+      <h2 class="title" style="margin:6px 0 16px;">Set your profile banner</h2>
       <div id="ob-banner-preview" class="ob-banner-preview">
         <div id="ob-banner-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);padding:20px;">
           <i class="ti ti-photo" style="font-size:28px;opacity:.3;"></i>
