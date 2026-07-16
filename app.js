@@ -232,6 +232,29 @@ async function uploadToStorage(dataUrl, path) {
   return ref.getDownloadURL();
 }
 
+/* TEMP DIAGNOSTIC — native alert() can get silently suppressed by some
+   mobile browsers after repeated use, with no visible warning. This is
+   a plain DOM banner instead, which can't be blocked that way. Multiple
+   calls stack in one scrollable strip instead of overlapping each
+   other. Remove once the onboarding photo-save issue is diagnosed. */
+function showDebugBanner(message) {
+  let box = document.getElementById('debugBannerBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'debugBannerBox';
+    box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;'
+      + 'max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:2px;'
+      + 'box-shadow:0 4px 12px rgba(0,0,0,.4);';
+    document.body.appendChild(box);
+  }
+  const el = document.createElement('div');
+  el.style.cssText = 'background:#C1272D;color:#fff;font-family:monospace;font-size:12px;'
+    + 'line-height:1.5;padding:10px 14px;word-break:break-word;border-top:1px solid rgba(255,255,255,.2);';
+  el.textContent = message + '  (tap to dismiss)';
+  el.addEventListener('click', () => el.remove());
+  box.appendChild(el);
+}
+
 function showOnboardingModal(user) {
   let obName = user.displayName || '';
   let obFirstName = '';
@@ -547,6 +570,10 @@ function showOnboardingModal(user) {
 
     const data = { ...textData };
 
+    showDebugBanner('DEBUG state: avatar=' + (obAvatarDataUrl ? ('SET,' + obAvatarDataUrl.length + 'chars') : 'EMPTY')
+      + ' | banner=' + (obBannerDataUrl ? ('SET,' + obBannerDataUrl.length + 'chars') : 'EMPTY')
+      + ' | uid=' + (user.uid || 'MISSING'));
+
     if (obAvatarDataUrl) {
       try {
         data.avatarPhotoUrl = await uploadToStorage(obAvatarDataUrl, `avatars/${user.uid}`);
@@ -555,7 +582,7 @@ function showOnboardingModal(user) {
         data.avatarPosY = obAvatarY;
       } catch (e) {
         console.error('Avatar upload failed:', e);
-        alert('DEBUG avatar upload error: ' + (e.code || '') + ' — ' + (e.message || e));
+        showDebugBanner('DEBUG avatar upload error: ' + (e.code || '') + ' — ' + (e.message || e));
         showToast('Couldn’t upload your profile photo — you can add it later in Settings.');
       }
     }
@@ -567,10 +594,12 @@ function showOnboardingModal(user) {
         data.bannerPosY = obBannerY;
       } catch (e) {
         console.error('Banner upload failed:', e);
-        alert('DEBUG banner upload error: ' + (e.code || '') + ' — ' + (e.message || e));
+        showDebugBanner('DEBUG banner upload error: ' + (e.code || '') + ' — ' + (e.message || e));
         showToast('Couldn’t upload your profile banner — you can add it later in Settings.');
       }
     }
+
+    showDebugBanner('DEBUG before Firestore write: data keys = ' + Object.keys(data).join(', '));
 
     const ref = db.collection('users').doc(user.uid).collection('settings').doc('main');
     if (Object.keys(data).length) {
@@ -578,7 +607,7 @@ function showOnboardingModal(user) {
         await ref.set(data, { merge: true });
       } catch (e) {
         console.error('Onboarding save failed:', e);
-        alert('DEBUG Firestore save error: ' + (e.code || '') + ' — ' + (e.message || e));
+        showDebugBanner('DEBUG Firestore save error: ' + (e.code || '') + ' — ' + (e.message || e));
         showToast('Couldn’t save your profile — you can update it later in Settings.');
         // Keep at least the text fields so a failed write doesn't lose the name.
         if (Object.keys(textData).length) {
