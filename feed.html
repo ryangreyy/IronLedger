@@ -23,7 +23,7 @@
 <style>
 /* ── Feed page wrapper ── */
 .feed-wrap{ max-width:820px; margin:0 auto; padding:14px 20px 120px; }
-#feedActivityWrap{ padding-top:0; }
+#feedActivityWrap{ padding-top:8px; }
 .h2h-wrap{ padding-bottom:0; }
 .feed-head-row{ position:relative; }
 .feed-head-row .eyebrow{ margin-bottom:14px; transform:translateY(-7px); }
@@ -39,21 +39,10 @@
 .friends-section-label{ font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:8px; }
 .feed-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:32px 0; }
 .feed-loading{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:24px 0; }
-.feed-section-card{ padding:18px 18px 20px; }
-.feed-section-head{
-  display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
-  margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border);
-}
-.feed-section-title{ margin:0; font-size:24px; line-height:1; }
-.feed-section-kicker{
-  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--accent-bright); margin-bottom:5px;
-}
-.feed-section-sub{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); text-align:right; }
 
-/* ── Top-level page tabs ── */
+/* ── Top-level page tabs (Head-to-Head Challenges / Leaderboards) ── */
 .feed-toplevel-tabs{
-  display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 18px;
+  display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 24px;
   border-bottom:none;
   overflow:visible; scrollbar-width:none;
 }
@@ -77,7 +66,7 @@
 .feed-day-label{
   font-family:var(--mono); font-size:11px; font-weight:700;
   letter-spacing:0.18em; text-transform:uppercase;
-  color:var(--text-dimmer); margin:24px 0 12px;
+  color:var(--text-dimmer); margin:28px 0 12px;
   padding-bottom:8px; border-bottom:1px solid var(--border);
 }
 .feed-day-label:first-child{ margin-top:0; }
@@ -388,7 +377,7 @@
     min-width:132px; text-align:center; transform:translateY(-7px);
   }
   .feed-add-friend:hover{ transform:translateY(-9px); }
-  .feed-toplevel-tabs{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .feed-toplevel-tabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
   .feed-toplevel-tab{ width:100%; text-align:center; }
   .h2h-create-wrap.active{
     display:block; width:100%; max-width:820px; margin:18px auto 20px;
@@ -399,10 +388,6 @@
 @media(max-width:680px){
   .feed-wrap{ padding:14px 14px 100px; }
   .h2h-wrap{ padding-bottom:0; }
-  .feed-section-card{ padding:15px 14px 16px; }
-  .feed-section-head{ align-items:flex-start; flex-direction:column; gap:4px; margin-bottom:12px; }
-  .feed-section-title{ font-size:20px; }
-  .feed-section-sub{ text-align:left; }
   .feed-grid{ grid-template-columns:1fr; }
   .feed-head-title{ margin-bottom:20px; }
   .feed-add-friend{ padding:8px 12px; font-size:12px; }
@@ -536,8 +521,7 @@
       </div>
 
       <div class="feed-toplevel-tabs" id="feedTopTabs">
-        <button class="feed-toplevel-tab active" data-panel="feed">Activity</button>
-        <button class="feed-toplevel-tab" data-panel="h2h">Challenges</button>
+        <button class="feed-toplevel-tab" data-panel="h2h">Head-to-Head Challenges</button>
         <button class="feed-toplevel-tab" data-panel="lb">Leaderboards</button>
       </div>
 
@@ -548,34 +532,16 @@
       </div>
 
       <div class="feed-toplevel-panel" id="h2hPanel">
-        <div class="card feed-section-card">
-          <div class="feed-section-head">
-            <div>
-              <div class="feed-section-kicker">Compete</div>
-              <h3 class="title feed-section-title">Head-to-Head Challenges</h3>
-            </div>
-            <div class="feed-section-sub">Active matchups and pending invites</div>
-          </div>
-          <div id="h2hList"><p class="feed-loading">Loading…</p></div>
-        </div>
+        <div id="h2hList"><p class="feed-loading">Loading…</p></div>
       </div>
 
       <div class="feed-toplevel-panel" id="lbPanel">
-        <div class="card feed-section-card">
-          <div class="feed-section-head">
-            <div>
-              <div class="feed-section-kicker">Compare</div>
-              <h3 class="title feed-section-title">Leaderboards</h3>
-            </div>
-            <div class="feed-section-sub">Friends ranked by streaks and rank</div>
-          </div>
-          <div class="lb-tabs" id="lbTabs">
-            <button class="lb-tab active" data-lb="streak">Current Streak</button>
-            <button class="lb-tab" data-lb="best">Best Streak</button>
-            <button class="lb-tab" data-lb="rank">Rank</button>
-          </div>
-          <div id="lbList"><p class="feed-loading">Loading…</p></div>
+        <div class="lb-tabs" id="lbTabs">
+          <button class="lb-tab active" data-lb="streak">Current Streak</button>
+          <button class="lb-tab" data-lb="best">Best Streak</button>
+          <button class="lb-tab" data-lb="rank">Rank</button>
         </div>
+        <div id="lbList"><p class="feed-loading">Loading…</p></div>
       </div>
     </div>
 
@@ -611,16 +577,7 @@
     </button>
 
     <div class="feed-wrap feed-toplevel-panel active" id="feedActivityWrap">
-      <div class="card feed-section-card">
-        <div class="feed-section-head">
-          <div>
-            <div class="feed-section-kicker">Activity</div>
-            <h3 class="title feed-section-title">Friends Activity</h3>
-          </div>
-          <div class="feed-section-sub">Recent sessions from your circle</div>
-        </div>
-        <div id="feedContainer"><p class="feed-loading">Loading…</p></div>
-      </div>
+      <div id="feedContainer"><p class="feed-loading">Loading…</p></div>
     </div>
   </div>
 
@@ -1467,28 +1424,32 @@
   const h2hDatePickerApi = h2hCreateDatePicker('h2hEndDateInput', _igLocalISO(h2hDefaultEnd));
   h2hRenderSuggestions();
 
-  /* ── Top-level page tabs (Activity / Challenges / Leaderboards). Data
-     for all sections loads in the background, so switching panels is just
-     a view change. ── */
+  /* ── Top-level page tabs (Head-to-Head Challenges / Leaderboards) —
+     neither is active on load, so landing on the page shows just the
+     Friends Activity feed with the two buttons above it. Clicking a tab
+     opens it; clicking the already-open tab again closes it back to
+     neither. Data for both loads in the background regardless of which
+     (or neither) is shown, so opening a tab is instant. ── */
   document.getElementById('feedTopTabs').addEventListener('click', e => {
     const btn = e.target.closest('.feed-toplevel-tab');
     if (!btn) return;
     const panel = btn.dataset.panel;
+    const alreadyActive = btn.classList.contains('active');
     document.querySelectorAll('.feed-toplevel-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('feedActivityWrap').classList.toggle('active', panel === 'feed');
     document.getElementById('h2hPanel').classList.remove('active');
     document.getElementById('lbPanel').classList.remove('active');
     document.getElementById('h2hCreateWrap').classList.remove('active');
-    if (panel !== 'feed') {
+    if (!alreadyActive) {
+      btn.classList.add('active');
       document.getElementById(panel === 'h2h' ? 'h2hPanel' : 'lbPanel').classList.add('active');
       if (panel === 'h2h') document.getElementById('h2hCreateWrap').classList.add('active');
     }
   });
 
-  /* ── Mobile pill tabs (Feed / Challenges / Ranks). Independent of the
-     desktop tabs above; only one set is ever visible/clickable at a given
-     viewport width, both just toggle the same three panels. ── */
+  /* ── Mobile pill tabs (Feed / Challenges / Ranks) — Feed is the default,
+     matching desktop's "activity always visible" behavior. Independent of
+     the desktop tabs above; only one set is ever visible/clickable at a
+     given viewport width, both just toggle the same three panels. ── */
   document.getElementById('mobilePillTabs').addEventListener('click', e => {
     const btn = e.target.closest('.mobile-pill');
     if (!btn) return;
