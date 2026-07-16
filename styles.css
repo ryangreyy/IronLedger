@@ -110,13 +110,32 @@
 /* Buttons need the same outer-edge lift as cards on light — on dark they
    read as raised via glow/contrast, which does nothing on a light page.
    Tight contact layer (no negative spread, so it wraps every edge) plus a
-   softer cast below. .btn-primary keeps a red-tinted cast so the accent
-   still glows, just ink-grounded rather than the muddy haze a pure red
-   glow becomes on light. */
-[data-theme="light"] .btn{ box-shadow:0 1px 2px rgba(24,30,45,.10), 0 4px 12px -4px rgba(24,30,45,.20); }
-[data-theme="light"] .btn:hover{ box-shadow:0 2px 4px rgba(24,30,45,.12), 0 8px 20px -6px rgba(24,30,45,.26); }
-[data-theme="light"] .btn-primary{ box-shadow:0 1px 2px rgba(24,30,45,.12), 0 6px 18px -6px rgba(193,39,45,.50); }
-[data-theme="light"] .btn-primary:hover{ box-shadow:0 2px 5px rgba(24,30,45,.14), 0 10px 26px -6px rgba(193,39,45,.55); }
+   softer cast below, tuned to sit just under the card elevation so buttons
+   read as raised without competing with the card they sit on.
+
+   Covers three separate button systems that don't share a base class:
+   .btn (primary/ghost/solid/google), .page-tab (the page tab bars —
+   Training Log / Weight Log / Goals / Challenges / Sign In / etc.) and
+   .yoga-tab / .pace-mode-btn (the tab bars on Yoga & Cardio). Segmented
+   toggles (.unit-toggle, .pc-toggle) are deliberately excluded — they sit
+   flush inside a shared track, so a drop shadow on each segment reads as
+   broken rather than raised. */
+[data-theme="light"] .btn,
+[data-theme="light"] .page-tab,
+[data-theme="light"] .yoga-tab,
+[data-theme="light"] .pace-mode-btn{ box-shadow:0 1px 3px rgba(24,30,45,.14), 0 5px 14px -4px rgba(24,30,45,.24); }
+[data-theme="light"] .btn:hover,
+[data-theme="light"] .page-tab:hover,
+[data-theme="light"] .yoga-tab:hover,
+[data-theme="light"] .pace-mode-btn:hover{ box-shadow:0 2px 5px rgba(24,30,45,.16), 0 9px 22px -6px rgba(24,30,45,.30); }
+/* Red-filled variants keep a red-tinted cast so the accent still glows —
+   ink-grounded, rather than the muddy haze a pure red glow becomes on light. */
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .page-tab.active,
+[data-theme="light"] .pace-mode-btn.active{ box-shadow:0 1px 3px rgba(24,30,45,.14), 0 6px 18px -6px rgba(193,39,45,.50); }
+[data-theme="light"] .btn-primary:hover,
+[data-theme="light"] .page-tab.active:hover,
+[data-theme="light"] .pace-mode-btn.active:hover{ box-shadow:0 2px 5px rgba(24,30,45,.16), 0 10px 26px -6px rgba(193,39,45,.55); }
 [data-theme="light"] .hero-link{ border-color:rgba(18,23,33,.18); }
 [data-theme="light"] .hero-link:hover{ color:var(--accent-bright); border-color:var(--accent-bright); background:rgba(193,39,45,.05); }
 /* Red "neon" glows read as muddy haze on a light page — dial them down
