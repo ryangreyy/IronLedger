@@ -1993,36 +1993,103 @@ function initApp(uid) {
     return isTimedSession(s) ? formatTimeSeconds(s.timeSeconds || s.reps) : (s.reps || '');
   }
 
+  function escapeHTML(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function groupedLogRows(sessions) {
+    const groups = [];
+    const byKey = new Map();
+    sessions.forEach(s => {
+      if (s.isRestDay) {
+        groups.push({ type: 'rest', sessions: [s] });
+        return;
+      }
+      const liftKey = (s.lift || '').trim().toLowerCase();
+      const key = `${s.dateRaw || s.date || ''}|${liftKey}`;
+      if (!byKey.has(key)) {
+        const group = { type: 'lift', lift: s.lift || '', date: s.date || '', dateRaw: s.dateRaw || '', sessions: [] };
+        byKey.set(key, group);
+        groups.push(group);
+      }
+      byKey.get(key).sessions.push(s);
+    });
+    return groups;
+  }
+
+  function logSetSummary(s) {
+    const effort = `${s.sets}×${repMetricText(s)}`;
+    const load = s.bodyweight ? 'Bodyweight' : `${s.wt} lbs`;
+    return `${effort} · ${load}`;
+  }
+
+  function renderLogSetLine(s, showDate) {
+    return `
+      <div class="log-set-line" data-id="${s.id}">
+        <div class="log-set-copy">
+          <span class="log-set-summary">${showDate ? escapeHTML(s.date) + ' · ' : ''}${escapeHTML(logSetSummary(s))}</span>
+          ${s.note ? '<span class="log-set-note"><span class="pr-flag">★ ' + escapeHTML(s.note) + '</span></span>' : ''}
+        </div>
+        <div class="log-set-actions">
+          <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
+          <button class="btn-delete" data-id="${s.id}" title="Remove this session">✕</button>
+        </div>
+      </div>`;
+  }
+
   function renderLog(sessions) {
     currentSessions = sessions;
     const logBodyEl = document.getElementById('logBody');
-    const totalPages = Math.max(1, Math.ceil(sessions.length / PAGE_SIZE));
+    const rows = groupedLogRows(sessions);
+    const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
     if (currentPage > totalPages) currentPage = totalPages;
     const start = (currentPage - 1) * PAGE_SIZE;
-    const page  = sessions.slice(start, start + PAGE_SIZE);
+    const page  = rows.slice(start, start + PAGE_SIZE);
 
     if (!logBodyEl) return;
     logBodyEl.innerHTML = sessions.length
-      ? page.map(s => s.isRestDay ? `
+      ? page.map(group => {
+        const s = group.sessions[0];
+        if (group.type === 'rest') return `
           <tr data-id="${s.id}" class="rest-day-row">
             <td class="log-main-cell">
               <span class="pill rest">Rest Day</span>
-              <div class="log-meta-line">${s.date}</div>
+              <div class="log-meta-line">${escapeHTML(s.date)}</div>
             </td>
             <td class="row-actions">
               <button class="btn-delete" data-id="${s.id}" title="Remove">✕</button>
             </td>
-          </tr>` : `
+          </tr>`;
+        if (group.sessions.length === 1) return `
           <tr data-id="${s.id}">
             <td class="log-main-cell">
-              <span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${s.lift}</span>
-              <div class="log-meta-line">${s.date} · ${s.sets}×${repMetricText(s)} · ${s.bodyweight ? 'Bodyweight' : s.wt + ' lbs'}</div>${s.note ? '<div class="log-note-line"><span class="pr-flag">★ ' + s.note + '</span></div>' : ''}
+              <span class="pill ${normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other')}">${escapeHTML(s.lift)}</span>
+              <div class="log-meta-line">${escapeHTML(s.date)} · ${escapeHTML(logSetSummary(s))}</div>${s.note ? '<div class="log-note-line"><span class="pr-flag">★ ' + escapeHTML(s.note) + '</span></div>' : ''}
             </td>
             <td class="row-actions">
               <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
               <button class="btn-delete"   data-id="${s.id}" title="Remove this session">✕</button>
             </td>
-          </tr>`).join('')
+          </tr>`;
+        const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+        return `
+          <tr class="log-group-row" data-group="${escapeHTML((group.dateRaw || group.date) + '|' + (group.lift || '').toLowerCase())}">
+            <td class="log-main-cell" colspan="2">
+              <div class="log-group-head">
+                <span class="pill ${cls}">${escapeHTML(group.lift || '—')}</span>
+                <span class="log-meta-line">${escapeHTML(group.date)} · ${group.sessions.length} entries</span>
+              </div>
+              <div class="log-set-list">
+                ${group.sessions.map(entry => renderLogSetLine(entry, false)).join('')}
+              </div>
+            </td>
+          </tr>`;
+      }).join('')
       : `<tr><td colspan="2" class="log-empty-cell">
            <div class="log-empty-icon">🏋️</div>
            <div class="log-empty-title">No sessions logged yet</div>
@@ -2032,7 +2099,7 @@ function initApp(uid) {
 
     const pag = document.getElementById('log-pagination');
     if (pag) {
-      if (sessions.length > PAGE_SIZE) {
+      if (rows.length > PAGE_SIZE) {
         pag.style.display = '';
         const pi = document.getElementById('log-page-info');
         const lp = document.getElementById('log-prev');
@@ -2054,7 +2121,7 @@ function initApp(uid) {
         <td class="log-main-cell">
           <input id="ed-date" type="hidden" value="${dateVal}">
           <input class="edit-field edit-wide" id="ed-lift" list="lift-options"
-                 value="${s.lift}" autocomplete="off">
+                 value="${escapeHTML(s.lift)}" autocomplete="off">
           <div class="log-edit-meta">
             <input class="edit-field edit-num" id="ed-sets" type="number" value="${s.sets}" min="1">
             <span style="color:var(--text-dimmer)">×</span>
@@ -2062,7 +2129,7 @@ function initApp(uid) {
             <span style="color:var(--text-dimmer)">·</span>
             <input class="edit-field edit-num" id="ed-wt" type="number" value="${s.wt}" step="5" min="1" ${s.bodyweight ? 'disabled' : ''}>
             <span style="color:var(--text-dimmer)">lbs ·</span>
-            <input class="edit-field" id="ed-note" type="text" value="${s.note}" placeholder="PR…" style="width:90px">
+            <input class="edit-field" id="ed-note" type="text" value="${escapeHTML(s.note)}" placeholder="PR…" style="width:90px">
             <label class="bodyweight-toggle" style="margin-top:0;">
               <input id="ed-bodyweight" type="checkbox" ${s.bodyweight ? 'checked' : ''}>
               <span>Bodyweight</span>
@@ -2255,7 +2322,7 @@ function initApp(uid) {
     const editBtn = e.target.closest('.btn-row-edit');
     if (editBtn) {
       const s = currentSessions.find(x => x.id === editBtn.dataset.id);
-      const row = document.querySelector(`tr[data-id="${editBtn.dataset.id}"]`);
+      const row = editBtn.closest('tr');
       if (s && row) {
         row.outerHTML = buildEditRow(s);
         setTimeout(() => createDatePicker('ed-date', s.dateRaw), 30);
@@ -2318,7 +2385,7 @@ function initApp(uid) {
     if (currentPage > 1) { currentPage--; renderLog(currentSessions); }
   });
   document.getElementById('log-next')?.addEventListener('click', () => {
-    const totalPages = Math.ceil(currentSessions.length / PAGE_SIZE);
+    const totalPages = Math.ceil(groupedLogRows(currentSessions).length / PAGE_SIZE);
     if (currentPage < totalPages) { currentPage++; renderLog(currentSessions); }
   });
 
@@ -3211,17 +3278,18 @@ function initApp(uid) {
     // Restore streak — show inline date picker, backfill all dates from chosen start to today
     list.querySelectorAll('.tracker-restore-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const streakSpan = btn.closest('.tracker-row').querySelector('.tracker-row-streak');
+        const row = btn.closest('.tracker-row');
+        const streakSpan = row.querySelector('.tracker-row-streak');
         streakSpan.innerHTML = `
           <span class="tracker-restore-label">Started</span>
           <input type="date" class="tracker-restore-date" max="${todayISO}">
-          <button class="tracker-restore-set" data-id="${btn.dataset.id}">Set</button>
-          <button class="tracker-restore-cancel">✕</button>`;
+          <button type="button" class="tracker-restore-set" data-id="${btn.dataset.id}">Set</button>
+          <button type="button" class="tracker-restore-cancel">✕</button>`;
         /* Row layout just changed (streak controls now wrap onto their own
            line), which can change the label textarea's available width --
            re-run its auto-height calc so a newly-wrapped second line of
            text isn't clipped by the old, shorter height. */
-        const labelInput = btn.closest('.tracker-row').querySelector('.tracker-row-input');
+        const labelInput = row.querySelector('.tracker-row-input');
         if (labelInput) { labelInput.style.height = 'auto'; labelInput.style.height = labelInput.scrollHeight + 'px'; }
         /* The fixed mobile bottom-nav bar can end up physically covering
            this row once it grows taller (date input + Set + Cancel), if
@@ -3229,24 +3297,37 @@ function initApp(uid) {
            "Set" would land on the nav bar instead and silently do
            nothing. Scroll the new controls clear of that bar every time
            the form opens. */
-        btn.closest('.tracker-row').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        const keepControlsVisible = () => row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        keepControlsVisible();
+        const dateInput = streakSpan.querySelector('.tracker-restore-date');
+        dateInput.addEventListener('focus', keepControlsVisible);
+        dateInput.addEventListener('change', () => setTimeout(keepControlsVisible, 0));
         streakSpan.querySelector('.tracker-restore-cancel').addEventListener('click', () => renderTracker());
-        streakSpan.querySelector('.tracker-restore-set').addEventListener('click', () => {
-          const dateVal = streakSpan.querySelector('.tracker-restore-date').value;
+        streakSpan.querySelector('.tracker-restore-set').addEventListener('click', (e) => {
+          const restoreId = e.currentTarget.dataset.id;
+          const dateVal = dateInput.value;
           if (!dateVal) return;
           const dates = [];
           const cur = new Date(dateVal + 'T12:00:00');
           const end = new Date(todayISO + 'T12:00:00');
           while (cur <= end) {
-            dates.push(cur.toISOString().slice(0, 10));
+            dates.push(localDateISO(cur));
             cur.setDate(cur.getDate() + 1);
           }
+          if (!dates.length) return;
+          const prevSettings = currentSettings || {};
           const updated = (currentSettings?.personalTrackers || []).map(t =>
-            t.id !== btn.dataset.id ? t : { ...t, completedDates: dates }
+            t.id !== restoreId ? t : { ...t, completedDates: Array.from(new Set([...(t.completedDates || []), ...dates])).sort() }
           );
+          currentSettings = { ...prevSettings, personalTrackers: updated };
+          renderTracker();
           settingsRef().set({ personalTrackers: updated }, { merge: true })
-            .then(() => showToast('DEBUG: write succeeded, ' + dates.length + ' dates', 'success')) // TEMP
-            .catch(err => { showToast('DEBUG write error: ' + (err.code||'') + ' ' + (err.message||err)); trackerWriteErr(err); }); // TEMP
+            .then(() => showToast('Streak restored.', 'success'))
+            .catch(err => {
+              currentSettings = prevSettings;
+              renderTracker();
+              trackerWriteErr(err);
+            });
         });
       });
     });

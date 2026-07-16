@@ -1121,6 +1121,18 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 .log-main-cell{ width:100%; }
 .log-meta-line{ font-size:12px; color:var(--text-dimmer); margin-top:5px; }
 .log-note-line{ font-size:12px; margin-top:3px; }
+.log-group-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.log-group-head .log-meta-line{ margin-top:0; }
+.log-set-list{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.log-set-line{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:8px 10px; border:1px solid var(--border); border-radius:8px;
+  background:rgba(255,255,255,0.03);
+}
+.log-set-copy{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+.log-set-summary{ font-size:12px; color:var(--text-dim); }
+.log-set-note{ font-size:12px; }
+.log-set-actions{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
 .log-edit-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-top:6px; }
 .log-table tbody tr{ transition:background .15s; }
 .log-table tbody tr:hover td{ background:rgba(193,39,45,.05); color:#fff; }
