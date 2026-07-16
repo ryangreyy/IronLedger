@@ -79,11 +79,14 @@
   --card-top:#FFFFFF;                  /* light cards */
   --card-bot:#F1F3F7;
   --card-metal:linear-gradient(155deg,#c4c9d2 0%,#8f95a0 36%,#adb3bd 58%,#d9dce2 100%); /* dimmed steel edge */
-  /* Bright top glint + a faint gray vignette fading inward from the card's
-     inner trim (the light-mode counterpart to dark mode's inset dark glow),
-     so cards read as raised objects instead of blending into the steel-gray
-     page. Outer drop shadow separates the card from the backdrop. */
-  --card-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 22px rgba(24,30,45,.10), 0 6px 20px -12px rgba(24,30,45,.22);
+  /* Bright top glint + a gray vignette fading inward from the card's inner
+     trim (the light-mode counterpart to dark mode's inset dark glow), so
+     cards read as raised objects instead of blending into the steel-gray
+     page. Two stacked insets: a tight one that defines the trim itself and
+     a wider one that carries the falloff, so the shadow is strongest right
+     at the edge and fades to nothing by the card's centre rather than
+     flatly tinting it. Outer drop shadow separates card from backdrop. */
+  --card-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 7px rgba(24,30,45,.10), inset 0 0 26px rgba(24,30,45,.17), 0 8px 24px -12px rgba(24,30,45,.30);
   --nav-glass:rgba(236,239,244,0.78);  /* light frosted nav */
 }
 
