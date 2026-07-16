@@ -703,6 +703,9 @@
   function applyPhotoAvatars() {
     document.querySelectorAll('.feed-avatar-photo[data-photourl]').forEach(el => {
       const url  = el.dataset.photourl;
+      if (el.dataset.photoApplied === url && el.querySelector('img')) return;
+      el.dataset.photoApplied = url;
+      el.innerHTML = '';
       const zoom = parseFloat(el.dataset.zoom) || 1;
       const posX = parseFloat(el.dataset.posx) || 50;
       const posY = parseFloat(el.dataset.posy) || 50;
@@ -1097,6 +1100,7 @@
         ${statHtml}
       </div>`;
     }).join('') + '</div>';
+    applyPhotoAvatars();
   }
 
   document.getElementById('lbTabs').addEventListener('click', e => {
