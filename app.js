@@ -3226,6 +3226,7 @@ function initApp(uid) {
         streakSpan.querySelector('.tracker-restore-cancel').addEventListener('click', () => renderTracker());
         streakSpan.querySelector('.tracker-restore-set').addEventListener('click', () => {
           const dateVal = streakSpan.querySelector('.tracker-restore-date').value;
+          showToast('DEBUG: Set clicked, dateVal=' + JSON.stringify(dateVal), 'success'); // TEMP
           if (!dateVal) return;
           const dates = [];
           const cur = new Date(dateVal + 'T12:00:00');
@@ -3237,7 +3238,9 @@ function initApp(uid) {
           const updated = (currentSettings?.personalTrackers || []).map(t =>
             t.id !== btn.dataset.id ? t : { ...t, completedDates: dates }
           );
-          settingsRef().set({ personalTrackers: updated }, { merge: true }).catch(trackerWriteErr);
+          settingsRef().set({ personalTrackers: updated }, { merge: true })
+            .then(() => showToast('DEBUG: write succeeded, ' + dates.length + ' dates', 'success')) // TEMP
+            .catch(err => { showToast('DEBUG write error: ' + (err.code||'') + ' ' + (err.message||err)); trackerWriteErr(err); }); // TEMP
         });
       });
     });
