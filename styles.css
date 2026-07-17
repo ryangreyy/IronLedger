@@ -1992,6 +1992,11 @@ html[data-authredirect] body{ visibility:hidden; }
   color-scheme:dark;
 }
 [data-theme="light"] .yoga-session-card input[type="date"]{ color-scheme:light; }
+.yoga-session-card input[type="date"]::-webkit-calendar-picker-indicator,
+.yoga-session-card input[type="date"]::-webkit-clear-button,
+.yoga-session-card input[type="date"]::-webkit-inner-spin-button{
+  margin:0; padding:0; background:transparent;
+}
 @media(max-width:860px){ .yoga-form-grid{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:480px){ .yoga-form-grid{ grid-template-columns:1fr; } }
 .intensity-picker{ display:flex; gap:6px; }
