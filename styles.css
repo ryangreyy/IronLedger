@@ -2045,6 +2045,37 @@ html[data-authredirect] body{ visibility:hidden; }
   #tab-sessions .yoga-session-card input[type="date"]{ width:calc(100% - 12px); max-width:calc(100% - 12px); text-align:left; padding-left:10px; padding-right:10px; }
 }
 @media(max-width:480px){ .yoga-form-grid{ grid-template-columns:1fr; } }
+
+/* Run Log */
+.run-log-card .field,
+.run-log-form-grid > div{ min-width:0; }
+.run-log-card .field input,
+.run-log-card .field select{
+  width:100%;
+  max-width:100%;
+}
+.run-log-card input[type="date"]{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  white-space:nowrap;
+  color-scheme:dark;
+}
+[data-theme="light"] .run-log-card input[type="date"]{ color-scheme:light; }
+.run-log-card input[type="date"]::-webkit-calendar-picker-indicator,
+.run-log-card input[type="date"]::-webkit-clear-button,
+.run-log-card input[type="date"]::-webkit-inner-spin-button{
+  margin:0; padding:0; background:transparent;
+}
+@media(max-width:700px){
+  #logContent,
+  #tab-log .run-log-card{ width:100%; max-width:100%; min-width:0; }
+  #tab-log .run-log-card{ width:calc(100% - 24px); max-width:calc(100% - 24px); margin-left:auto; margin-right:auto; padding:20px 16px 18px !important; }
+  #tab-log .run-log-form-grid{ grid-template-columns:minmax(0,1fr); gap:12px; width:100%; max-width:100%; }
+  #tab-log .run-log-form-grid > div{ grid-column:1 / -1 !important; width:100%; max-width:100%; }
+  #tab-log .run-log-card input[type="date"]{ width:calc(100% - 12px); max-width:calc(100% - 12px); text-align:left; padding-left:10px; padding-right:10px; }
+}
 .intensity-picker{ display:flex; gap:6px; }
 .intensity-btn{ background:var(--bg-2); border:1px solid var(--border); color:var(--text-dim); font-size:13px; font-weight:700; font-family:var(--mono); width:36px; height:36px; border-radius:8px; cursor:pointer; transition:all .15s; }
 .intensity-btn.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
