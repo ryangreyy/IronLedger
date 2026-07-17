@@ -214,6 +214,23 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
   background:rgba(0,0,0,0.35); cursor:grab; z-index:2; display:none;
 }
 .avatar-overlay:active{ cursor:grabbing; }
+/* Reposition mode was functioning correctly already (verified via
+   live debugging) but gave almost no visible feedback -- a subtle tint
+   over a small 100-150px circle, no hint text, unlike the banner's
+   large, obvious overlay. This ring + caption make "you're editing
+   now" unmistakable without touching the working drag/zoom/save
+   mechanics or resizing/repositioning the avatar itself. */
+.profile-avatar.avatar-repositioning{
+  box-shadow:0 0 0 3px var(--accent), 0 0 0 6px var(--accent-bright), 0 0 24px rgba(193,39,45,.5);
+}
+.avatar-repo-hint{
+  display:none; align-items:center; justify-content:center; gap:6px;
+  margin-top:10px; text-align:center;
+  color:var(--text-dim); font-family:var(--mono); font-size:10px;
+  letter-spacing:.08em; text-transform:uppercase;
+}
+.avatar-repo-hint.active{ display:flex; }
+.avatar-repo-hint i{ font-size:14px; opacity:.85; }
 .avatar-repo-toolbar{
   position:fixed; bottom:28px; left:50%;
   transform:translateX(-50%); display:none;
@@ -377,6 +394,10 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
                 <img id="avatarImg" class="profile-avatar-img" alt="">
                 <span id="avatarContent"></span>
                 <div class="avatar-overlay" id="avatarRepoOverlay"></div>
+              </div>
+              <div class="avatar-repo-hint" id="avatarRepoHint">
+                <i class="ti ti-arrows-move" aria-hidden="true"></i>
+                <span>Drag to reposition &middot; Pinch to zoom</span>
               </div>
               <input type="file" id="avatarInput" accept="image/*" style="display:none;">
               <div class="avatar-repo-toolbar" id="avatarRepoToolbar">
@@ -781,43 +802,31 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       } catch (err) { alert('Failed to save photo: ' + (err.message || 'Unknown error')); }
     }
 
-    function showDebugBanner(message) { // TEMP diagnostic
-      let box = document.getElementById('debugBannerBox');
-      if (!box) {
-        box = document.createElement('div');
-        box.id = 'debugBannerBox';
-        box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;'
-          + 'max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:2px;'
-          + 'box-shadow:0 4px 12px rgba(0,0,0,.4);';
-        document.body.appendChild(box);
-      }
-      const el = document.createElement('div');
-      el.style.cssText = 'background:#C1272D;color:#fff;font-family:monospace;font-size:12px;'
-        + 'line-height:1.5;padding:10px 14px;word-break:break-word;border-top:1px solid rgba(255,255,255,.2);';
-      el.textContent = message + '  (tap to dismiss)';
-      el.addEventListener('click', () => el.remove());
-      box.appendChild(el);
-    }
-
     function enterReposMode() {
-      showDebugBanner('DEBUG: enterReposMode called'); // TEMP
       const img = getImg();
-      if (!img || !img.src) { showDebugBanner('DEBUG: blocked by guard, img.src=' + JSON.stringify(img && img.src)); return; } // TEMP
+      if (!img || !img.src) return;
       liveZoom = currentZoom; livePosX = currentPosX; livePosY = currentPosY;
       applyLive();
       const overlay = document.getElementById('avatarRepoOverlay');
       const toolbar = document.getElementById('avatarRepoToolbar');
+      const hint    = document.getElementById('avatarRepoHint');
+      const avatarEl = document.getElementById('profileAvatar');
       if (overlay) overlay.style.display = 'block';
       if (toolbar) toolbar.style.display = 'flex';
-      showDebugBanner('DEBUG: overlay/toolbar set, overlay=' + !!overlay + ' toolbar=' + !!toolbar); // TEMP
+      if (hint) hint.classList.add('active');
+      if (avatarEl) avatarEl.classList.add('avatar-repositioning');
     }
 
     function exitReposMode() {
       dragging = pinching = false;
       const overlay = document.getElementById('avatarRepoOverlay');
       const toolbar = document.getElementById('avatarRepoToolbar');
+      const hint    = document.getElementById('avatarRepoHint');
+      const avatarEl = document.getElementById('profileAvatar');
       if (overlay) overlay.style.display = 'none';
       if (toolbar) toolbar.style.display = 'none';
+      if (hint) hint.classList.remove('active');
+      if (avatarEl) avatarEl.classList.remove('avatar-repositioning');
     }
 
     const overlay = document.getElementById('avatarRepoOverlay');
@@ -882,8 +891,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const epRemoveAv  = document.getElementById('epRemoveAvatar');
     const repoSave    = document.getElementById('avatarRepoSave');
     const repoCancel  = document.getElementById('avatarRepoCancel');
-
-    showDebugBanner('DEBUG: initAvatar wiring — epReposAv found=' + !!epReposAv + ' display=' + (epReposAv ? getComputedStyle(epReposAv).display : 'n/a')); // TEMP
 
     if (epChangeAv) epChangeAv.addEventListener('click', () => avatarInput && avatarInput.click());
     if (epReposAv)  epReposAv.addEventListener('click',  () => enterReposMode());
