@@ -1955,7 +1955,7 @@ html[data-authredirect] body{ visibility:hidden; }
 @media(max-width:860px){ .yoga-form-grid{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:480px){ .yoga-form-grid{ grid-template-columns:1fr; } }
 .intensity-picker{ display:flex; gap:6px; }
-.intensity-btn{ background:#141618; border:1px solid var(--border); color:var(--text-dim); font-size:13px; font-weight:700; font-family:var(--mono); width:36px; height:36px; border-radius:8px; cursor:pointer; transition:all .15s; }
+.intensity-btn{ background:var(--bg-2); border:1px solid var(--border); color:var(--text-dim); font-size:13px; font-weight:700; font-family:var(--mono); width:36px; height:36px; border-radius:8px; cursor:pointer; transition:all .15s; }
 .intensity-btn.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
 .yoga-stats{ display:flex; gap:24px; flex-wrap:wrap; margin-bottom:20px; background:var(--bg-2); border:1px solid var(--border); border-radius:12px; padding:18px 22px; }
 .yoga-stat{ display:flex; flex-direction:column; gap:3px; }
