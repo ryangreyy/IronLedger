@@ -343,6 +343,28 @@
   let currentUsername        = null;
 
   function syncBottomNavAvatarSettings(user, avatarPhotoUrl) {
+    if (window.IGSyncBottomNavAvatar) {
+      window.IGSyncBottomNavAvatar({
+        avatarPhotoUrl,
+        avatarZoom: selectedAvatarZoom,
+        avatarPosX: selectedAvatarPosX,
+        avatarPosY: selectedAvatarPosY,
+        photoURL: user && user.photoURL,
+        displayName: user && user.displayName,
+        email: user && user.email,
+      });
+      return;
+    } else {
+      window.__igBottomNavAvatarState = {
+        avatarPhotoUrl,
+        avatarZoom: selectedAvatarZoom,
+        avatarPosX: selectedAvatarPosX,
+        avatarPosY: selectedAvatarPosY,
+        photoURL: user && user.photoURL,
+        displayName: user && user.displayName,
+        email: user && user.email,
+      };
+    }
     const profileLink = document.querySelector('.mobile-bottom-nav a[href="profile.html"]');
     if (!profileLink) return;
     const old = profileLink.querySelector('i, .mbn-avatar');
@@ -986,7 +1008,7 @@
   })();
 
 </script>
-<script src="nav-auth.js?v=1"></script>
-<script src="nav.js?v=11"></script>
+<script src="nav-auth.js?v=2"></script>
+<script src="nav.js?v=12"></script>
 </body>
 </html>

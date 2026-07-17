@@ -1,4 +1,73 @@
 (function () {
+  var EMBLEMS = {
+    gladius:'ti-sword', scutum:'ti-shield', summit:'ti-mountain', inferno:'ti-flame',
+    surge:'ti-bolt', iron:'ti-barbell', duellum:'ti-swords', target:'ti-target',
+    anchor:'ti-anchor', skull:'ti-skull', securis:'ti-axe', tridens:'ti-spade',
+    serpens:'ti-dna-2', taurus:'ti-chess-rook', corona:'ti-crown', dagger:'ti-tools',
+    storm:'ti-tornado', rex:'ti-chess-king'
+  };
+
+  function profileLink() {
+    return document.querySelector('.mobile-bottom-nav a[href="profile.html"]');
+  }
+
+  function applyPhoto(el, url, zoom, posX, posY) {
+    el.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
+    el.innerHTML = '';
+    var img = document.createElement('img');
+    img.alt = '';
+    img.style.cssText = 'position:absolute;object-fit:fill;display:block;';
+    img.onload = function () {
+      var cW = el.offsetWidth || 24;
+      var cH = el.offsetHeight || 24;
+      var z = zoom != null ? zoom : 1;
+      var px = posX != null ? posX : 50;
+      var py = posY != null ? posY : 50;
+      var base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+      var dW = img.naturalWidth * base * z;
+      var dH = img.naturalHeight * base * z;
+      img.style.width = dW + 'px';
+      img.style.height = dH + 'px';
+      img.style.left = -((dW - cW) * px / 100) + 'px';
+      img.style.top = -((dH - cH) * py / 100) + 'px';
+    };
+    img.src = url;
+    el.appendChild(img);
+  }
+
+  function renderBottomNavAvatar() {
+    var state = window.__igBottomNavAvatarState;
+    var link = profileLink();
+    if (!state || !link) return;
+    var old = link.querySelector('i, .mbn-avatar');
+    if (!old) return;
+    var el = document.createElement('span');
+    el.className = 'mbn-avatar';
+    var profilePhoto = state.avatarPhotoUrl || '';
+    var fallbackPhoto = state.photoURL || '';
+    var icon = state.avatarId && EMBLEMS[state.avatarId];
+    if (profilePhoto) {
+      applyPhoto(el, profilePhoto, state.avatarZoom, state.avatarPosX, state.avatarPosY);
+    } else if (icon) {
+      el.style.cssText = 'background:' + (state.avatarBgColor || '#8b1c1c') +
+        ';box-shadow:inset 0 0 0 2px ' + (state.avatarRingColor || '#d4af37') + ';';
+      el.innerHTML = '<i class="ti ' + icon + '" style="font-size:12px;color:' +
+        (state.avatarIconColor || '#fff') + ';line-height:1;" aria-hidden="true"></i>';
+    } else if (fallbackPhoto) {
+      applyPhoto(el, fallbackPhoto, null, null, null);
+    } else if (state.displayName || state.email) {
+      el.textContent = (state.displayName || state.email || '?').charAt(0).toUpperCase();
+    } else {
+      return;
+    }
+    old.replaceWith(el);
+  }
+
+  window.IGSyncBottomNavAvatar = function (state) {
+    window.__igBottomNavAvatarState = Object.assign({}, window.__igBottomNavAvatarState || {}, state || {});
+    renderBottomNavAvatar();
+  };
+
   var style = document.createElement('style');
   style.textContent =
     '.mobile-bottom-nav{' +
@@ -22,7 +91,7 @@
     '.mbn-item svg{display:block;}' +
     '.mbn-avatar{' +
       'width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;' +
-      'display:flex;align-items:center;justify-content:center;' +
+      'display:flex;align-items:center;justify-content:center;position:relative;' +
       'font-family:"JetBrains Mono",monospace;font-weight:700;font-size:11px;color:#fff;' +
       'background:#8b1c1c;transition:box-shadow .12s;' +
     '}' +
@@ -77,7 +146,7 @@
     '</a>';
   }).join('');
 
-  function mount() { document.body.appendChild(bar); }
+  function mount() { document.body.appendChild(bar); renderBottomNavAvatar(); }
   if (document.body) { mount(); } else { document.addEventListener('DOMContentLoaded', mount); }
 
   /* ---- Prefetch other pages so navigation feels instant ----

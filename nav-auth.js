@@ -50,7 +50,37 @@
 
   /* Mirrors the top-nav avatar into the bottom nav's Profile icon so the
      nav bar visually says "this is you" instead of a generic person icon. */
-  function syncBottomNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl) {
+  function syncBottomNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY) {
+    if (window.IGSyncBottomNavAvatar) {
+      window.IGSyncBottomNavAvatar({
+        avatarId,
+        avatarRingColor: ringColor,
+        avatarBgColor: bgColor,
+        avatarIconColor: iconColor,
+        avatarPhotoUrl,
+        avatarZoom,
+        avatarPosX,
+        avatarPosY,
+        photoURL: user && user.photoURL,
+        displayName: user && user.displayName,
+        email: user && user.email,
+      });
+      return;
+    } else {
+      window.__igBottomNavAvatarState = {
+        avatarId,
+        avatarRingColor: ringColor,
+        avatarBgColor: bgColor,
+        avatarIconColor: iconColor,
+        avatarPhotoUrl,
+        avatarZoom,
+        avatarPosX,
+        avatarPosY,
+        photoURL: user && user.photoURL,
+        displayName: user && user.displayName,
+        email: user && user.email,
+      };
+    }
     const profileLink = document.querySelector('.mobile-bottom-nav a[href="profile.html"]');
     if (!profileLink) return;
     const old = profileLink.querySelector('i, .mbn-avatar');
@@ -72,7 +102,7 @@
   }
 
   function applyAvatar(el, user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY) {
-    syncBottomNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl);
+    syncBottomNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY);
     if (!el) return;
     if (avatarPhotoUrl) {
       applyNavPhoto(el, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY);

@@ -1726,6 +1726,35 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
         const aPY = d.avatarPosY  != null ? d.avatarPosY  : 50;
         applyAvatarPhoto(d.avatarPhotoUrl || null, aZ, aPX, aPY);
         if (initAvatar.setCurrentState) initAvatar.setCurrentState(aZ, aPX, aPY);
+        if (window.IGSyncBottomNavAvatar) {
+          window.IGSyncBottomNavAvatar({
+            avatarId: d.avatarId || null,
+            avatarRingColor: d.avatarRingColor || null,
+            avatarBgColor: d.avatarBgColor || null,
+            avatarIconColor: d.avatarIconColor || null,
+            avatarPhotoUrl: d.avatarPhotoUrl || null,
+            avatarZoom: aZ,
+            avatarPosX: aPX,
+            avatarPosY: aPY,
+            photoURL: user.photoURL || null,
+            displayName: user.displayName || null,
+            email: user.email || null,
+          });
+        } else {
+          window.__igBottomNavAvatarState = {
+            avatarId: d.avatarId || null,
+            avatarRingColor: d.avatarRingColor || null,
+            avatarBgColor: d.avatarBgColor || null,
+            avatarIconColor: d.avatarIconColor || null,
+            avatarPhotoUrl: d.avatarPhotoUrl || null,
+            avatarZoom: aZ,
+            avatarPosX: aPX,
+            avatarPosY: aPY,
+            photoURL: user.photoURL || null,
+            displayName: user.displayName || null,
+            email: user.email || null,
+          };
+        }
         const navAv = document.getElementById('nav-avatar');
         if (navAv && d.avatarPhotoUrl) {
           const navImg = document.createElement('img');
@@ -1844,7 +1873,7 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     }
   });
 </script>
-<script src="nav-auth.js?v=1"></script>
-<script src="nav.js?v=11"></script>
+<script src="nav-auth.js?v=2"></script>
+<script src="nav.js?v=12"></script>
 </body>
 </html>
