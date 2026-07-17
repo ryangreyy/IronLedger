@@ -173,7 +173,7 @@
   // -- covers the desktop/hamburger links (settings, tools, guide,
   // running, yoga) that aren't in the idle-prefetch set above.
   function onIntent(e) {
-    var a = e.target.closest && e.target.closest('a[href$=".html"]');
+    var a = e.target.closest && e.target.closest('a[href*=".html"]');
     if (a) prefetchUrl(a.getAttribute('href'));
   }
   document.addEventListener('touchstart', onIntent, { passive: true });

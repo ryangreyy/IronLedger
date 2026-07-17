@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="styles.css?v=216">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
-<link rel="manifest" href="/manifest.json?v=21">
+<link rel="manifest" href="/manifest.json?v=22">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -36,7 +36,7 @@
         <a href="yoga.html">Yoga &amp; PT</a>
         <a href="guide.html">Workout Schedule Guide</a>
         <a href="running.html">Cardio and Endurance</a>
-        <a href="tools.html" class="nav-current">Tools</a>
+        <a href="tools.html?v=2" class="nav-current">Tools</a>
         <a href="settings.html">Settings</a>
       </div>
       <div class="nav-right">
@@ -178,15 +178,20 @@
   (function setupToolsTabs() {
     const tabs = document.getElementById('toolsPageTabs');
     if (!tabs) return;
-    tabs.addEventListener('click', e => {
-      const btn = e.target.closest('.page-tab');
-      if (!btn) return;
-      const panel = btn.dataset.panel;
-      tabs.querySelectorAll('.page-tab').forEach(tab => tab.classList.toggle('active', tab === btn));
+    function activate(panel, updateHash) {
+      if (!document.getElementById(panel)) panel = 'calc';
+      tabs.querySelectorAll('.page-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.panel === panel));
       document.querySelectorAll('#toolsPageTabs ~ .page-tab-panel').forEach(el => {
         el.classList.toggle('active', el.id === panel);
       });
+      if (updateHash && location.hash !== '#' + panel) history.replaceState(null, '', '#' + panel);
+    }
+    tabs.addEventListener('click', e => {
+      const btn = e.target.closest('.page-tab');
+      if (!btn) return;
+      activate(btn.dataset.panel, true);
     });
+    activate((location.hash || '#calc').slice(1), false);
   })();
 
   /* ── 1RM Calculator ──────────────────────────────────── */
@@ -360,6 +365,6 @@
     els.forEach(el => io.observe(el));
   })();
   </script>
-<script src="nav.js?v=12"></script>
+<script src="nav.js?v=13"></script>
 </body>
 </html>
