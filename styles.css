@@ -1496,7 +1496,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   }
   #trainingPageTabs{ grid-template-columns:repeat(4,minmax(0,1fr)); }
   #dashboardPageTabs{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-  #yogaPageTabs{ grid-template-columns:repeat(5,minmax(0,1fr)); }
+  #yogaPageTabs{ grid-template-columns:repeat(4,minmax(0,1fr)); }
   #runPageTabs{ grid-template-columns:repeat(3,minmax(0,1fr)); }
   #trainingPageTabs .page-tab,
   #dashboardPageTabs .page-tab,
@@ -1976,6 +1976,19 @@ html[data-authredirect] body{ visibility:hidden; }
 
 /* Session Log */
 .yoga-form-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.yoga-session-form-grid{ grid-template-columns:minmax(180px,.85fr) repeat(2,minmax(0,1fr)); align-items:end; }
+.yoga-session-card .field{ margin-bottom:16px; min-width:0; }
+.yoga-session-card .field input,
+.yoga-session-card .field select{
+  min-height:44px;
+  font-size:15px;
+  line-height:1.2;
+  padding:10px 12px;
+}
+.yoga-session-card input[type="date"]{
+  min-width:0;
+  white-space:nowrap;
+}
 @media(max-width:860px){ .yoga-form-grid{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:480px){ .yoga-form-grid{ grid-template-columns:1fr; } }
 .intensity-picker{ display:flex; gap:6px; }
@@ -1994,12 +2007,6 @@ html[data-authredirect] body{ visibility:hidden; }
 .yoga-table tr:last-child td{ border-bottom:none; }
 .yoga-table-empty{ text-align:center; color:var(--text-dimmer); padding:36px 0 !important; font-family:var(--mono); font-size:13px; }
 
-/* Flexibility charts */
-.flex-charts-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
-.flex-chart-card{ background:var(--bg-2); border:1px solid var(--border); border-radius:12px; padding:18px; }
-.flex-chart-title{ font-size:14px; font-weight:700; color:var(--text); margin-bottom:3px; }
-.flex-chart-latest{ font-size:12px; font-family:var(--mono); color:var(--text-dim); margin-bottom:10px; }
-.flex-chart-empty{ font-size:12px; font-family:var(--mono); color:var(--text-dimmer); padding:16px 0; text-align:center; }
 .stretch-section{ margin-bottom:32px; }
 .stretch-section-title{ font-family:var(--mono); font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--accent-bright); margin-bottom:6px; }
 .stretch-section-sub{ font-size:14px; color:var(--text-dim); margin-bottom:14px; }

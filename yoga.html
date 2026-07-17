@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=213">
+<link rel="stylesheet" href="styles.css?v=214">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <link rel="manifest" href="/manifest.json?v=21">
@@ -64,15 +64,13 @@
 
     <div class="eyebrow">Mind, Body, &amp; Recovery</div>
     <h1 class="title" style="margin-bottom:8px;">Yoga &amp; Physical Therapy</h1>
-    <p class="sub" style="margin-bottom:40px;">Explore poses, build flows, find stretches by body part, get post-workout cooldowns, and track your flexibility progress.</p>
 
     <!-- Tab bar -->
-    <div class="page-tabs" id="yogaPageTabs">
+    <div class="page-tabs" id="yogaPageTabs" style="margin-top:28px;">
       <button class="page-tab active" data-tab="library">Pose Library</button>
       <button class="page-tab" data-tab="flow">Flow Builder</button>
       <button class="page-tab" data-tab="stretch">Stretch &amp; PT</button>
       <button class="page-tab" data-tab="sessions">Session Log</button>
-      <button class="page-tab" data-tab="flexibility">Flexibility Tracker</button>
     </div>
 
     <!-- ── POSE LIBRARY ── -->
@@ -180,9 +178,9 @@
         <a href="index.html" class="btn btn-primary">Sign in</a>
       </div>
       <div id="sessions-content" style="display:none;">
-        <div class="card" style="padding:24px 22px 20px;margin-bottom:20px;">
+        <div class="card yoga-session-card" style="padding:24px 22px 20px;margin-bottom:20px;">
           <p class="controls-label">Log a new session</p>
-          <div class="yoga-form-grid">
+          <div class="yoga-form-grid yoga-session-form-grid">
             <div class="field">
               <label for="ysDate">Date</label>
               <input id="ysDate" type="date">
@@ -254,48 +252,6 @@
       </div>
     </div>
 
-    <!-- ── FLEXIBILITY TRACKER ── -->
-    <div class="page-tab-panel" id="tab-flexibility">
-      <div id="flex-auth-gate" class="yoga-auth-gate" style="display:none;">
-        <p>Sign in to track your flexibility.</p>
-        <a href="index.html" class="btn btn-primary">Sign in</a>
-      </div>
-      <div id="flex-content" style="display:none;">
-        <div class="card" style="padding:24px 22px 20px;margin-bottom:20px;">
-          <p class="controls-label">Log a flexibility measurement</p>
-          <div class="yoga-form-grid">
-            <div class="field">
-              <label for="flDate">Date</label>
-              <input id="flDate" type="date">
-            </div>
-            <div class="field">
-              <label for="flBenchmark">Benchmark</label>
-              <select id="flBenchmark">
-                <option value="forward_fold">Forward Fold</option>
-                <option value="hip_opener">Hip Opener</option>
-                <option value="shoulder_reach">Shoulder Reach</option>
-                <option value="splits_left">Left Splits</option>
-                <option value="splits_right">Right Splits</option>
-                <option value="backbend">Backbend</option>
-                <option value="pigeon">Pigeon Pose</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="flScore">Score (1–10)</label>
-              <input id="flScore" type="number" min="1" max="10" step="0.5" placeholder="7">
-            </div>
-            <div class="field" style="grid-column:1/-1;">
-              <label for="flNotes">Notes (optional)</label>
-              <input id="flNotes" type="text" placeholder="e.g. fingers touched floor for the first time">
-            </div>
-          </div>
-          <button class="btn btn-primary" id="flSubmit" style="margin-top:4px;">Save measurement</button>
-        </div>
-        <div id="flexCharts" class="flex-charts-grid"></div>
-      </div>
-    </div>
-
   </div><!-- /wrap -->
 
   <!-- ── POSE DETAIL MODAL ── -->
@@ -337,7 +293,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="nav-auth.js?v=1"></script>
-  <script src="yoga.js?v=8"></script>
+  <script src="yoga.js?v=9"></script>
 <script src="nav.js?v=11"></script>
 </body>
 </html>

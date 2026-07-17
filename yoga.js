@@ -52,12 +52,6 @@
     ashtanga:'Ashtanga', power:'Power Yoga', kundalini:'Kundalini',
     bikram:'Bikram', flow_builder:'Flow Builder', other:'Other',
   };
-  const BENCHMARK_LABELS = {
-    forward_fold:'Forward Fold', hip_opener:'Hip Opener', shoulder_reach:'Shoulder Reach',
-    splits_left:'Left Splits', splits_right:'Right Splits', backbend:'Backbend',
-    pigeon:'Pigeon Pose', other:'Other',
-  };
-
   // ── Favorites ────────────────────────────────────────────────────────────
   let favorites = new Set(JSON.parse(localStorage.getItem('yogaFavorites') || '[]'));
 
@@ -155,7 +149,6 @@
   setupFlowBuilder();
   setupTimerControls();
   setupSessionForm();
-  setupFlexForm();
   setupStretchFinder();
   loadPoses();
 
@@ -164,9 +157,7 @@
     const in_ = !!user;
     show('sessions-auth-gate', !in_);
     show('sessions-content', in_);
-    show('flex-auth-gate', !in_);
-    show('flex-content', in_);
-    if (in_) { loadYogaSessions(); loadFlexLogs(); }
+    if (in_) loadYogaSessions();
   });
 
   function show(id, visible) {
@@ -176,7 +167,7 @@
 
   function setDefaultDates() {
     const today = new Date().toISOString().slice(0, 10);
-    ['ysDate','flDate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today; });
+    ['ysDate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today; });
   }
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -619,95 +610,6 @@
     document.getElementById('statMinutes').textContent   = totalMin;
     document.getElementById('statFaveStyle').textContent = STYLE_LABELS[fave]||fave;
     document.getElementById('statStreak').textContent    = streak;
-  }
-
-  // ── Flexibility Tracker ───────────────────────────────────────────────────
-  function setupFlexForm() {
-    const flDate = document.getElementById('flDate');
-    flDate.addEventListener('click', () => { try { flDate.showPicker(); } catch(e) {} });
-    document.getElementById('flSubmit').addEventListener('click', submitFlexLog);
-  }
-
-  async function submitFlexLog() {
-    if (!currentUser) return;
-    const date      = document.getElementById('flDate').value;
-    const benchmark = document.getElementById('flBenchmark').value;
-    const score     = parseFloat(document.getElementById('flScore').value);
-    const notes     = document.getElementById('flNotes').value.trim();
-    if (!date || !score || score < 1 || score > 10) { alert('Please enter a valid date and score (1–10).'); return; }
-    const btn = document.getElementById('flSubmit');
-    btn.disabled = true; btn.textContent = 'Saving…';
-    try {
-      await db.collection(`users/${currentUser.uid}/flexibilityLogs`).add({
-        date, benchmark, score, notes,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-      document.getElementById('flScore').value = '';
-      document.getElementById('flNotes').value = '';
-      loadFlexLogs();
-    } catch { alert('Error saving. Try again.'); }
-    btn.disabled = false; btn.textContent = 'Save measurement';
-  }
-
-  async function loadFlexLogs() {
-    if (!currentUser) return;
-    try {
-      const snap = await db.collection(`users/${currentUser.uid}/flexibilityLogs`)
-        .orderBy('date', 'asc').limit(500).get();
-      renderFlexCharts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    } catch (e) { console.error(e); }
-  }
-
-  function renderFlexCharts(logs) {
-    const container = document.getElementById('flexCharts');
-    if (!logs.length) {
-      container.innerHTML = '<p style="color:var(--text-dimmer);font-family:var(--mono);font-size:14px;padding:40px 0;text-align:center;grid-column:1/-1;">Log measurements to see your progress charts here.</p>';
-      return;
-    }
-    const groups = {};
-    logs.forEach(l => { if (!groups[l.benchmark]) groups[l.benchmark]=[]; groups[l.benchmark].push(l); });
-    container.innerHTML = Object.entries(groups).map(([bm, entries]) => {
-      const label  = BENCHMARK_LABELS[bm]||bm;
-      const latest = entries[entries.length-1];
-      const prev   = entries[entries.length-2];
-      const trend  = prev ? (latest.score > prev.score ? ' ↑' : latest.score < prev.score ? ' ↓' : ' →') : '';
-      return `<div class="flex-chart-card">
-        <div class="flex-chart-title">${label}</div>
-        <div class="flex-chart-latest">Latest: <strong style="color:var(--accent)">${latest.score}/10</strong>${trend} &nbsp;·&nbsp; ${latest.date}</div>
-        ${sparkline(entries)}
-        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-          <button class="btn-delete" data-del-fl="${latest.id}" title="Remove latest" style="font-size:11px;padding:3px 7px;">✕ Remove latest</button>
-        </div>
-      </div>`;
-    }).join('');
-    container.querySelectorAll('[data-del-fl]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!currentUser) return;
-        await db.doc(`users/${currentUser.uid}/flexibilityLogs/${btn.dataset.delFl}`).delete();
-        loadFlexLogs();
-      });
-    });
-  }
-
-  function sparkline(logs) {
-    if (logs.length < 2) return '<p class="flex-chart-empty">Add more entries to see your trend.</p>';
-    const W=240, H=70, PAD=10;
-    const scores = logs.map(l=>l.score);
-    const minS = Math.min(...scores), maxS = Math.max(...scores);
-    const range = Math.max(maxS - minS, 1);
-    const pts = logs.map((l,i) => ({
-      x: PAD + (i/(logs.length-1))*(W-PAD*2),
-      y: H-PAD - ((l.score-minS)/range)*(H-PAD*2),
-      score: l.score, date: l.date,
-    }));
-    const poly = pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-    const dots = pts.map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="var(--accent)" stroke="var(--bg-2)" stroke-width="1.5"><title>${p.score}/10 · ${p.date}</title></circle>`).join('');
-    return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="overflow:visible;">
-      <polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".65"/>
-      ${dots}
-      <text x="${PAD-3}" y="${H-PAD+1}" font-size="9" fill="var(--text-dimmer)" text-anchor="end">${minS}</text>
-      <text x="${PAD-3}" y="${PAD}"      font-size="9" fill="var(--text-dimmer)" text-anchor="end">${maxS}</text>
-    </svg>`;
   }
 
   // ── Utility ───────────────────────────────────────────────────────────────
