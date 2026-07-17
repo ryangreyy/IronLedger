@@ -209,46 +209,28 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 /* ---- Avatar photo ---- */
 .profile-avatar-wrap{ position:relative; flex-shrink:0; }
 .profile-avatar-img{ position:absolute; display:none; object-fit:fill; }
-.avatar-overlay{
-  position:absolute; inset:0; border-radius:50%;
-  background:rgba(0,0,0,0.35); cursor:grab; z-index:2; display:none;
+/* Reposition modal — mirrors the onboarding profile-photo step
+   (reuses .onboarding-overlay / .onboarding-card / .ob-av-circle /
+   .ob-range from styles.css) so the two flows feel identical.
+   The onboarding card has no light-mode background (--bg-1 is
+   undefined, so it's permanently dark #111214). Onboarding only ever
+   shows to brand-new users on the default dark theme, but this modal
+   can be opened by a light-mode user — so pin the inner text/control
+   tokens to their dark-theme values to avoid dark-on-dark text. */
+#avatarRepoModal{
+  --text:#F4F5F7; --text-dim:#9AA0AC;
+  --bg-2:#101216; --border-strong:rgba(255,255,255,0.14);
 }
-.avatar-overlay:active{ cursor:grabbing; }
-/* Reposition mode was functioning correctly already (verified via
-   live debugging) but gave almost no visible feedback -- a subtle tint
-   over a small 100-150px circle, no hint text, unlike the banner's
-   large, obvious overlay. This ring + caption make "you're editing
-   now" unmistakable without touching the working drag/zoom/save
-   mechanics or resizing/repositioning the avatar itself. */
-.profile-avatar.avatar-repositioning{
-  box-shadow:0 0 0 3px var(--accent), 0 0 0 6px var(--accent-bright), 0 0 24px rgba(193,39,45,.5);
+.arm-img{ position:absolute; object-fit:fill; }
+.arm-zoom-btn{
+  width:32px; height:32px; flex-shrink:0; border-radius:8px;
+  background:var(--bg-2); border:1px solid var(--border-strong);
+  color:var(--text); font-size:19px; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:border .15s, color .15s;
 }
-.avatar-repo-hint{
-  display:none; align-items:center; justify-content:center; gap:6px;
-  margin-top:10px; text-align:center;
-  color:var(--text-dim); font-family:var(--mono); font-size:10px;
-  letter-spacing:.08em; text-transform:uppercase;
-}
-.avatar-repo-hint.active{ display:flex; }
-.avatar-repo-hint i{ font-size:14px; opacity:.85; }
-.avatar-repo-toolbar{
-  position:fixed; bottom:28px; left:50%;
-  transform:translateX(-50%); display:none;
-  gap:8px; white-space:nowrap; z-index:1000;
-  background:rgba(18,18,22,0.92); border:1px solid rgba(255,255,255,0.12);
-  border-radius:12px; padding:8px 10px;
-  backdrop-filter:blur(10px);
-}
-.avatar-tool-btn{
-  font-family:var(--mono); font-size:12px; font-weight:700;
-  letter-spacing:.06em; text-transform:uppercase;
-  border-radius:8px; padding:10px 18px; cursor:pointer;
-  border:1px solid rgba(255,255,255,0.2);
-  background:rgba(255,255,255,0.08); color:#fff; transition:opacity .15s;
-}
-.avatar-tool-btn.save{ background:var(--accent); border-color:var(--accent); }
-.avatar-tool-btn.cancel{ color:#aaa; background:transparent; }
-.avatar-tool-btn:hover{ opacity:.8; }
+.arm-zoom-btn:hover{ border-color:var(--accent-bright); color:var(--accent-bright); }
+.arm-zoom-btn:active{ transform:scale(.94); }
 
 /* Edit Profile section */
 .edit-profile-section{ margin-top:8px; }
@@ -393,19 +375,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
               <div id="profileAvatar" class="profile-avatar">
                 <img id="avatarImg" class="profile-avatar-img" alt="">
                 <span id="avatarContent"></span>
-                <div class="avatar-overlay" id="avatarRepoOverlay"></div>
-              </div>
-              <div class="avatar-repo-hint" id="avatarRepoHint">
-                <i class="ti ti-arrows-move" aria-hidden="true"></i>
-                <span>Drag to reposition &middot; Pinch to zoom</span>
               </div>
               <input type="file" id="avatarInput" accept="image/*" style="display:none;">
-              <div class="avatar-repo-toolbar" id="avatarRepoToolbar">
-                <button class="avatar-tool-btn" id="avatarZoomOut" type="button">−</button>
-                <button class="avatar-tool-btn" id="avatarZoomIn" type="button">+</button>
-                <button class="avatar-tool-btn cancel" id="avatarRepoCancel" type="button">Cancel</button>
-                <button class="avatar-tool-btn save" id="avatarRepoSave" type="button">Save</button>
-              </div>
             </div>
             <div>
               <div class="eyebrow" style="margin-bottom:8px;">Athlete Profile</div>
@@ -416,6 +387,35 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
               <div id="profile-xp-bar"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ── Reposition avatar modal (mirrors onboarding photo step) ── -->
+      <div class="onboarding-overlay" id="avatarRepoModal" style="display:none;">
+        <div class="onboarding-card" style="max-width:400px;">
+          <div class="eyebrow">Reposition</div>
+          <h2 class="title" style="margin:6px 0 20px;">Adjust your avatar</h2>
+          <div style="display:flex;justify-content:center;margin-bottom:18px;">
+            <div id="armCircle" class="ob-av-circle">
+              <img id="armImg" class="arm-img" alt="">
+            </div>
+          </div>
+          <div class="ob-range-row">
+            <label class="ob-range-label">Zoom</label>
+            <button class="arm-zoom-btn" id="armZoomOut" type="button" aria-label="Zoom out">−</button>
+            <input type="range" id="armZoom" class="ob-range" min="1" max="4" step="0.01" value="1">
+            <button class="arm-zoom-btn" id="armZoomIn" type="button" aria-label="Zoom in">+</button>
+          </div>
+          <div class="ob-range-row">
+            <label class="ob-range-label">Horizontal</label>
+            <input type="range" id="armX" class="ob-range" min="0" max="100" step="1" value="50">
+          </div>
+          <div class="ob-range-row">
+            <label class="ob-range-label">Vertical</label>
+            <input type="range" id="armY" class="ob-range" min="0" max="100" step="1" value="50">
+          </div>
+          <button id="armSave" class="btn btn-primary" style="width:100%;margin:8px 0;">Save</button>
+          <button id="armCancel" class="btn btn-ghost" style="width:100%;">Cancel</button>
         </div>
       </div>
 
@@ -749,24 +749,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 
     let currentZoom = 1, currentPosX = 50, currentPosY = 50;
     let liveZoom    = 1, livePosX   = 50, livePosY    = 50;
-    let dragging = false, dragStartX = 0, dragStartY = 0, basePosX = 50, basePosY = 50;
-    let pinching = false, pinchStartDist = 0, pinchStartZoom = 1;
 
     function getImg() { return document.getElementById('avatarImg'); }
-
-    function applyLive() {
-      const img = getImg();
-      if (img) setAvatarTransform(img, liveZoom, livePosX, livePosY);
-    }
-
-    function dragToPct(dx, dy) {
-      const c = document.getElementById('profileAvatar'), img = getImg();
-      if (!c || !img || !img.naturalWidth) return { dpx: 0, dpy: 0 };
-      const base = Math.max(c.offsetWidth / img.naturalWidth, c.offsetHeight / img.naturalHeight);
-      const exW = img.naturalWidth  * base * liveZoom - c.offsetWidth;
-      const exH = img.naturalHeight * base * liveZoom - c.offsetHeight;
-      return { dpx: exW > 0 ? -dx * 100 / exW : 0, dpy: exH > 0 ? -dy * 100 / exH : 0 };
-    }
 
     function compressAvatar(file) {
       return new Promise((resolve, reject) => {
@@ -802,114 +786,75 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       } catch (err) { alert('Failed to save photo: ' + (err.message || 'Unknown error')); }
     }
 
-    function enterReposMode() {
+    /* Modal preview transform — sizes against the modal's own 128px
+       circle (independent of the smaller on-page avatar). Same crop
+       math the onboarding photo step uses. */
+    const modal    = document.getElementById('avatarRepoModal');
+    const armImg    = document.getElementById('armImg');
+    const armZoom   = document.getElementById('armZoom');
+    const armX      = document.getElementById('armX');
+    const armY      = document.getElementById('armY');
+    const armZoomIn = document.getElementById('armZoomIn');
+    const armZoomOut= document.getElementById('armZoomOut');
+
+    function armPreview() {
+      if (!armImg || !armImg.naturalWidth) return;
+      const cW = 128, cH = 128;
+      const base = Math.max(cW / armImg.naturalWidth, cH / armImg.naturalHeight);
+      const dW = armImg.naturalWidth  * base * liveZoom;
+      const dH = armImg.naturalHeight * base * liveZoom;
+      armImg.style.width  = dW + 'px';
+      armImg.style.height = dH + 'px';
+      armImg.style.left   = -((dW - cW) * livePosX / 100) + 'px';
+      armImg.style.top    = -((dH - cH) * livePosY / 100) + 'px';
+    }
+
+    function openReposModal() {
       const img = getImg();
       if (!img || !img.src) return;
       liveZoom = currentZoom; livePosX = currentPosX; livePosY = currentPosY;
-      applyLive();
-      const overlay = document.getElementById('avatarRepoOverlay');
-      const toolbar = document.getElementById('avatarRepoToolbar');
-      const hint    = document.getElementById('avatarRepoHint');
-      const avatarEl = document.getElementById('profileAvatar');
-      if (overlay) overlay.style.display = 'block';
-      if (toolbar) toolbar.style.display = 'flex';
-      if (hint) hint.classList.add('active');
-      if (avatarEl) avatarEl.classList.add('avatar-repositioning');
+      if (armZoom) armZoom.value = liveZoom;
+      if (armX) armX.value = livePosX;
+      if (armY) armY.value = livePosY;
+      if (armImg) {
+        armImg.onload = armPreview;
+        armImg.src = img.src;
+        if (armImg.complete && armImg.naturalWidth) armPreview();
+      }
+      if (modal) modal.style.display = 'flex';
     }
 
-    function exitReposMode() {
-      dragging = pinching = false;
-      const overlay = document.getElementById('avatarRepoOverlay');
-      const toolbar = document.getElementById('avatarRepoToolbar');
-      const hint    = document.getElementById('avatarRepoHint');
-      const avatarEl = document.getElementById('profileAvatar');
-      if (overlay) overlay.style.display = 'none';
-      if (toolbar) toolbar.style.display = 'none';
-      if (hint) hint.classList.remove('active');
-      if (avatarEl) avatarEl.classList.remove('avatar-repositioning');
-    }
+    function closeReposModal() { if (modal) modal.style.display = 'none'; }
 
-    const overlay = document.getElementById('avatarRepoOverlay');
-    if (overlay) {
-      overlay.addEventListener('mousedown', e => {
-        e.preventDefault();
-        dragging = true;
-        dragStartX = e.clientX; dragStartY = e.clientY;
-        basePosX = livePosX; basePosY = livePosY;
-      });
+    if (armZoom) armZoom.addEventListener('input', e => { liveZoom = parseFloat(e.target.value); armPreview(); });
+    if (armX)    armX.addEventListener('input',    e => { livePosX = parseFloat(e.target.value); armPreview(); });
+    if (armY)    armY.addEventListener('input',    e => { livePosY = parseFloat(e.target.value); armPreview(); });
+    if (armZoomIn)  armZoomIn.addEventListener('click',  () => { liveZoom = Math.min(4, +(liveZoom + 0.25).toFixed(2)); if (armZoom) armZoom.value = liveZoom; armPreview(); });
+    if (armZoomOut) armZoomOut.addEventListener('click', () => { liveZoom = Math.max(1, +(liveZoom - 0.25).toFixed(2)); if (armZoom) armZoom.value = liveZoom; armPreview(); });
 
-      window.addEventListener('mousemove', e => {
-        if (!dragging) return;
-        const { dpx, dpy } = dragToPct(e.clientX - dragStartX, e.clientY - dragStartY);
-        livePosX = Math.max(0, Math.min(100, basePosX + dpx));
-        livePosY = Math.max(0, Math.min(100, basePosY + dpy));
-        applyLive();
-      });
-
-      window.addEventListener('mouseup', () => { dragging = false; });
-
-      overlay.addEventListener('touchstart', e => {
-        e.preventDefault();
-        if (e.touches.length === 1) {
-          dragging = true; pinching = false;
-          dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY;
-          basePosX = livePosX; basePosY = livePosY;
-        } else if (e.touches.length === 2) {
-          dragging = false; pinching = true;
-          pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-          pinchStartZoom = liveZoom;
-        }
-      }, { passive: false });
-
-      overlay.addEventListener('touchmove', e => {
-        e.preventDefault();
-        if (dragging && e.touches.length === 1) {
-          const { dpx, dpy } = dragToPct(e.touches[0].clientX - dragStartX, e.touches[0].clientY - dragStartY);
-          livePosX = Math.max(0, Math.min(100, basePosX + dpx));
-          livePosY = Math.max(0, Math.min(100, basePosY + dpy));
-          applyLive();
-        } else if (pinching && e.touches.length === 2) {
-          const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-          liveZoom = Math.max(1, Math.min(4, pinchStartZoom * (dist / pinchStartDist)));
-          applyLive();
-        }
-      }, { passive: false });
-
-      overlay.addEventListener('touchend', e => {
-        if (e.touches.length === 0) { dragging = pinching = false; }
-        else if (e.touches.length < 2) { pinching = false; }
-      });
-    }
-
-    const zoomIn  = document.getElementById('avatarZoomIn');
-    const zoomOut = document.getElementById('avatarZoomOut');
-    if (zoomIn)  zoomIn.addEventListener('click',  () => { liveZoom = Math.min(4, +(liveZoom + 0.25).toFixed(2)); applyLive(); });
-    if (zoomOut) zoomOut.addEventListener('click', () => { liveZoom = Math.max(1, +(liveZoom - 0.25).toFixed(2)); applyLive(); });
+    const armSave   = document.getElementById('armSave');
+    const armCancel = document.getElementById('armCancel');
+    if (armSave) armSave.addEventListener('click', async () => {
+      try {
+        await settingsRef.set({ avatarZoom: liveZoom, avatarPosX: livePosX, avatarPosY: livePosY }, { merge: true });
+        currentZoom = liveZoom; currentPosX = livePosX; currentPosY = livePosY;
+        closeReposModal();
+      } catch (err) { alert('Failed: ' + (err.message || 'Unknown error')); }
+    });
+    if (armCancel) armCancel.addEventListener('click', closeReposModal);
+    if (modal) modal.addEventListener('click', e => { if (e.target === modal) closeReposModal(); });
 
     const epChangeAv  = document.getElementById('epChangeAvatar');
     const epReposAv   = document.getElementById('epRepositionAvatar');
     const epRemoveAv  = document.getElementById('epRemoveAvatar');
-    const repoSave    = document.getElementById('avatarRepoSave');
-    const repoCancel  = document.getElementById('avatarRepoCancel');
 
     if (epChangeAv) epChangeAv.addEventListener('click', () => avatarInput && avatarInput.click());
-    if (epReposAv)  epReposAv.addEventListener('click',  () => enterReposMode());
+    if (epReposAv)  epReposAv.addEventListener('click',  () => openReposModal());
     if (epRemoveAv) epRemoveAv.addEventListener('click', async () => {
       if (!confirm('Remove avatar photo?')) return;
       try {
         await settingsRef.set({ avatarPhotoUrl: null, avatarZoom: 1, avatarPosX: 50, avatarPosY: 50 }, { merge: true });
       } catch (err) { alert('Failed: ' + (err.message || 'Unknown error')); }
-    });
-    if (repoSave) repoSave.addEventListener('click', async () => {
-      try {
-        await settingsRef.set({ avatarZoom: liveZoom, avatarPosX: livePosX, avatarPosY: livePosY }, { merge: true });
-        currentZoom = liveZoom; currentPosX = livePosX; currentPosY = livePosY;
-        exitReposMode();
-      } catch (err) { alert('Failed: ' + (err.message || 'Unknown error')); }
-    });
-    if (repoCancel) repoCancel.addEventListener('click', () => {
-      liveZoom = currentZoom; livePosX = currentPosX; livePosY = currentPosY;
-      applyLive(); exitReposMode();
     });
 
     if (avatarInput) avatarInput.addEventListener('change', e => { doUpload(e.target.files[0]); });
