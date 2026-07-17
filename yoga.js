@@ -134,6 +134,7 @@
   // ── State ─────────────────────────────────────────────────────────────────
   let allPoses = [];
   let flowPoses = []; // [{ pose, duration, setupAfter }]
+  let flowStartSetupSecs = 0;
   let currentUser = null;
   let timerInterval = null;
   let timerPaused = false;
@@ -143,6 +144,7 @@
   let timerPhase = 'pose';
   let timerSetupFromIdx = -1;
   let activeFlowPoses = [];
+  let activeFlowStartSetupSecs = 0;
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   setDefaultDates();
@@ -347,6 +349,19 @@
       if (p) addToFlow(p);
     });
     document.getElementById('flowSequence').addEventListener('click', e => {
+      const setupStartAddBtn = e.target.closest('[data-setup-start-add]');
+      if (setupStartAddBtn) {
+        flowStartSetupSecs = flowStartSetupSecs || 10;
+        renderFlowSequence();
+        requestAnimationFrame(() => document.querySelector('[data-setup-start]')?.focus());
+        return;
+      }
+      const setupStartRemoveBtn = e.target.closest('[data-setup-start-remove]');
+      if (setupStartRemoveBtn) {
+        flowStartSetupSecs = 0;
+        renderFlowSequence();
+        return;
+      }
       const setupAddBtn = e.target.closest('[data-setup-add-idx]');
       if (setupAddBtn) {
         const idx = +setupAddBtn.dataset.setupAddIdx;
@@ -371,11 +386,17 @@
     });
     document.getElementById('flowSequence').addEventListener('input', syncFlowInput);
     document.getElementById('flowSequence').addEventListener('change', syncFlowInput);
-    document.getElementById('flowClear').addEventListener('click', () => { flowPoses = []; renderFlowSequence(); });
+    document.getElementById('flowClear').addEventListener('click', () => { flowPoses = []; flowStartSetupSecs = 0; renderFlowSequence(); });
     document.getElementById('flowStart').addEventListener('click', startFlowTimer);
   }
 
   function syncFlowInput(e) {
+      const setupStartInp = e.target.closest('[data-setup-start]');
+      if (setupStartInp) {
+        flowStartSetupSecs = normalizeSetupDuration(setupStartInp.value);
+        if (flowStartSetupSecs <= 0 && e.type === 'change') renderFlowSequence();
+        return;
+      }
       const durInp = e.target.closest('[data-dur-idx]');
       if (durInp) {
         flowPoses[+durInp.dataset.durIdx].duration = normalizePoseDuration(durInp.value);
@@ -390,6 +411,8 @@
   }
 
   function syncFlowSequenceInputs() {
+    const startInput = document.querySelector('[data-setup-start]');
+    if (startInput) flowStartSetupSecs = normalizeSetupDuration(startInput.value);
     document.querySelectorAll('[data-dur-idx]').forEach(input => {
       const idx = +input.dataset.durIdx;
       if (flowPoses[idx]) flowPoses[idx].duration = normalizePoseDuration(input.value);
@@ -440,6 +463,7 @@
     const el = document.getElementById('flowSequence');
     if (!flowPoses.length) { el.innerHTML = '<p class="flow-empty">Add poses from the left to build your flow.</p>'; return; }
     const rows = [];
+    rows.push(flowStartSetupGapHTML());
     flowPoses.forEach((fp, i) => {
       const img = fp.pose.url_svg || fp.pose.url_png || '';
       const imgEl = img
@@ -462,6 +486,27 @@
       if (i < flowPoses.length - 1) rows.push(flowSetupGapHTML(i));
     });
     el.innerHTML = rows.join('');
+  }
+
+  function flowStartSetupGapHTML() {
+    const secs = normalizeSetupDuration(flowStartSetupSecs);
+    if (secs > 0) {
+      return `<div class="flow-setup-gap flow-setup-start">
+        <span class="flow-setup-line"></span>
+        <div class="flow-setup-pill">
+          <span>Set-up</span>
+          <input type="number" value="${secs}" min="0" max="120" step="5" data-setup-start>
+          <span>s</span>
+          <button class="flow-setup-remove" data-setup-start-remove title="Remove setup time">×</button>
+        </div>
+        <span class="flow-setup-line"></span>
+      </div>`;
+    }
+    return `<div class="flow-setup-gap flow-setup-start">
+      <span class="flow-setup-line"></span>
+      <button class="flow-setup-add" data-setup-start-add title="Add setup time before first pose">+</button>
+      <span class="flow-setup-line"></span>
+    </div>`;
   }
 
   function flowSetupGapHTML(idx) {
@@ -501,12 +546,14 @@
       duration: normalizePoseDuration(fp.duration),
       setupAfter: normalizeSetupDuration(fp.setupAfter),
     }));
+    activeFlowStartSetupSecs = normalizeSetupDuration(flowStartSetupSecs);
     timerIdx = 0; timerPaused = false;
     timerSetupFromIdx = -1;
     document.getElementById('flowTimer').style.display = 'flex';
     const pauseBtn = document.getElementById('flowCtrlPause');
     pauseBtn.textContent = 'Pause'; pauseBtn.classList.remove('paused');
-    showTimerPose(0);
+    if (activeFlowStartSetupSecs > 0) showTimerSetup(-1, 0, activeFlowStartSetupSecs);
+    else showTimerPose(0);
   }
 
   function showTimerPose(idx) {
@@ -598,6 +645,7 @@
     timerPhase = 'pose';
     timerSetupFromIdx = -1;
     activeFlowPoses = [];
+    activeFlowStartSetupSecs = 0;
     document.getElementById('flowTimer').style.display = 'none';
   }
 
@@ -621,6 +669,7 @@
       const activeBtn = document.querySelector('.stretch-btn.active');
       if (!activeBtn) return;
       const poses = getStretchPoses(activeBtn.dataset.stype, activeBtn.dataset.skey);
+      flowStartSetupSecs = 0;
       flowPoses = poses.map(p => ({ pose: p, duration: 30, setupAfter: 0 }));
       renderFlowSequence();
       document.querySelector('#yogaPageTabs .page-tab[data-tab="flow"]').click();
