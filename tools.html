@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=215">
+<link rel="stylesheet" href="styles.css?v=216">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <link rel="manifest" href="/manifest.json?v=21">
@@ -62,8 +62,13 @@
   <div id="main-content">
   <div class="wrap">
 
+    <div class="page-tabs" id="toolsPageTabs" style="margin-top:28px;">
+      <button class="page-tab active" data-panel="calc">One Rep Max</button>
+      <button class="page-tab" data-panel="plates">Plate Calculator</button>
+    </div>
+
     <!-- ================= 1RM CALCULATOR ================= -->
-    <section id="calc" class="reveal" style="padding-top:16px;">
+    <section id="calc" class="page-tab-panel reveal active">
       <div class="eyebrow">Calculate</div>
       <h2 class="title">One&#8209;rep max calculator</h2>
       <p class="sub">Enter a set you did. See your estimated max and working weights for every rep range.</p>
@@ -103,7 +108,7 @@
     </section>
 
     <!-- ================= PLATE CALCULATOR ================= -->
-    <section id="plates" class="reveal" style="padding-top:32px;">
+    <section id="plates" class="page-tab-panel reveal">
       <div class="eyebrow">Bar Setup</div>
       <h2 class="title">Plate calculator</h2>
       <p class="sub">Click to add plates, click again to remove them.</p>
@@ -169,6 +174,21 @@
   <script src="nav-auth.js?v=2"></script>
   <script src="data.js"></script>
   <script>
+  /* ── Page tabs ───────────────────────────────────────── */
+  (function setupToolsTabs() {
+    const tabs = document.getElementById('toolsPageTabs');
+    if (!tabs) return;
+    tabs.addEventListener('click', e => {
+      const btn = e.target.closest('.page-tab');
+      if (!btn) return;
+      const panel = btn.dataset.panel;
+      tabs.querySelectorAll('.page-tab').forEach(tab => tab.classList.toggle('active', tab === btn));
+      document.querySelectorAll('#toolsPageTabs ~ .page-tab-panel').forEach(el => {
+        el.classList.toggle('active', el.id === panel);
+      });
+    });
+  })();
+
   /* ── 1RM Calculator ──────────────────────────────────── */
   (function ormCalc() {
     const ormEl   = document.getElementById('orm');
