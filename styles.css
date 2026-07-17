@@ -1488,40 +1488,56 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .page-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
 @media(min-width:701px){
   #trainingPageTabs,
-  #dashboardPageTabs{
+  #dashboardPageTabs,
+  #yogaPageTabs,
+  #runPageTabs{
     display:grid; gap:10px; margin-bottom:22px;
     width:calc(100% - 56px); max-width:1140px; margin-left:auto; margin-right:auto;
   }
   #trainingPageTabs{ grid-template-columns:repeat(4,minmax(0,1fr)); }
   #dashboardPageTabs{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #yogaPageTabs{ grid-template-columns:repeat(5,minmax(0,1fr)); }
+  #runPageTabs{ grid-template-columns:repeat(3,minmax(0,1fr)); }
   #trainingPageTabs .page-tab,
-  #dashboardPageTabs .page-tab{ width:100%; text-align:center; }
+  #dashboardPageTabs .page-tab,
+  #yogaPageTabs .page-tab,
+  #runPageTabs .page-tab{ width:100%; text-align:center; }
 }
 #trainingPageTabs .page-tab.active,
 #dashboardPageTabs .page-tab.active,
+#yogaPageTabs .page-tab.active,
+#runPageTabs .page-tab.active,
 #goalsPageTabs .page-tab.active{
   opacity:.72;
 }
 #trainingPageTabs .page-tab:not(.active),
-#dashboardPageTabs .page-tab:not(.active){
+#dashboardPageTabs .page-tab:not(.active),
+#yogaPageTabs .page-tab:not(.active),
+#runPageTabs .page-tab:not(.active){
   background:transparent;
   border-color:rgba(255,255,255,.12);
   color:var(--text-dim);
 }
 #trainingPageTabs .page-tab:not(.active):hover,
-#dashboardPageTabs .page-tab:not(.active):hover{
+#dashboardPageTabs .page-tab:not(.active):hover,
+#yogaPageTabs .page-tab:not(.active):hover,
+#runPageTabs .page-tab:not(.active):hover{
   background:rgba(255,255,255,.04);
   border-color:rgba(255,255,255,.28);
   color:var(--text);
 }
 [data-theme="light"] #trainingPageTabs .page-tab:not(.active),
-[data-theme="light"] #dashboardPageTabs .page-tab:not(.active){
+[data-theme="light"] #dashboardPageTabs .page-tab:not(.active),
+[data-theme="light"] #yogaPageTabs .page-tab:not(.active),
+[data-theme="light"] #runPageTabs .page-tab:not(.active){
   background:transparent;
   border-color:rgba(18,23,33,.16);
   color:rgba(18,23,33,.58);
 }
 [data-theme="light"] #trainingPageTabs .page-tab:not(.active):hover,
-[data-theme="light"] #dashboardPageTabs .page-tab:not(.active):hover{
+[data-theme="light"] #dashboardPageTabs .page-tab:not(.active):hover,
+[data-theme="light"] #yogaPageTabs .page-tab:not(.active):hover,
+[data-theme="light"] #runPageTabs .page-tab:not(.active):hover{
   background:rgba(18,23,33,.045);
   border-color:rgba(18,23,33,.30);
   color:rgba(18,23,33,.82);
@@ -1529,13 +1545,21 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .page-tab-panel{ display:none; }
 .page-tab-panel.active{ display:block; }
 #trainingPageTabs ~ .page-tab-panel{ padding-top:36px; }
+#yogaPageTabs ~ .page-tab-panel,
+#runPageTabs ~ .page-tab-panel{ padding-top:36px; }
 .training-mobile-head{ display:none; }
 @media(max-width:700px){
-  #trainingPageTabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 28px 20px !important; }
-  #trainingPageTabs .page-tab{ min-height:42px; padding:8px 10px; font-size:11px; white-space:normal; line-height:1.15; text-align:center; }
+  #trainingPageTabs,
+  #yogaPageTabs,
+  #runPageTabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 28px 20px !important; }
+  #trainingPageTabs .page-tab,
+  #yogaPageTabs .page-tab,
+  #runPageTabs .page-tab{ min-height:42px; padding:8px 10px; font-size:11px; white-space:normal; line-height:1.15; text-align:center; }
   .training-mobile-head{ display:block; max-width:1140px; margin:0 auto; padding:14px 28px 0; }
   .training-mobile-head .eyebrow{ margin-bottom:10px; }
-  #trainingPageTabs ~ .page-tab-panel{ padding-top:3px; }
+  #trainingPageTabs ~ .page-tab-panel,
+  #yogaPageTabs ~ .page-tab-panel,
+  #runPageTabs ~ .page-tab-panel{ padding-top:3px; }
   #trainingPageTabs ~ .page-tab-panel > .eyebrow,
   #trainingPageTabs ~ .page-tab-panel > h2.title{ display:none; }
 }

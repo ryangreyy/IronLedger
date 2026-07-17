@@ -67,16 +67,16 @@
     <p class="sub" style="margin-bottom:40px;">Explore poses, build flows, find stretches by body part, get post-workout cooldowns, and track your flexibility progress.</p>
 
     <!-- Tab bar -->
-    <div class="yoga-tabs" id="yogaTabs">
-      <button class="yoga-tab active" data-tab="library">Pose Library</button>
-      <button class="yoga-tab" data-tab="flow">Flow Builder</button>
-      <button class="yoga-tab" data-tab="stretch">Stretch &amp; PT</button>
-      <button class="yoga-tab" data-tab="sessions">Session Log</button>
-      <button class="yoga-tab" data-tab="flexibility">Flexibility Tracker</button>
+    <div class="page-tabs" id="yogaPageTabs">
+      <button class="page-tab active" data-tab="library">Pose Library</button>
+      <button class="page-tab" data-tab="flow">Flow Builder</button>
+      <button class="page-tab" data-tab="stretch">Stretch &amp; PT</button>
+      <button class="page-tab" data-tab="sessions">Session Log</button>
+      <button class="page-tab" data-tab="flexibility">Flexibility Tracker</button>
     </div>
 
     <!-- ── POSE LIBRARY ── -->
-    <div class="yoga-panel active" id="tab-library">
+    <div class="page-tab-panel active" id="tab-library">
       <div class="yoga-controls">
         <input type="text" id="poseSearch" placeholder="Search poses…" class="yoga-search">
         <div class="pose-filters" id="poseFilters">
@@ -89,7 +89,7 @@
     </div>
 
     <!-- ── FLOW BUILDER ── -->
-    <div class="yoga-panel" id="tab-flow">
+    <div class="page-tab-panel" id="tab-flow">
       <div class="flow-builder">
         <div class="flow-picker">
           <span class="yoga-section-label">Add poses to your flow</span>
@@ -119,7 +119,7 @@
     </div>
 
     <!-- ── STRETCH & PT ── -->
-    <div class="yoga-panel" id="tab-stretch">
+    <div class="page-tab-panel" id="tab-stretch">
       <div class="stretch-section">
         <div class="stretch-section-title">By Body Part</div>
         <p class="stretch-section-sub">I want to stretch my…</p>
@@ -174,7 +174,7 @@
     </div>
 
     <!-- ── SESSION LOG ── -->
-    <div class="yoga-panel" id="tab-sessions">
+    <div class="page-tab-panel" id="tab-sessions">
       <div id="sessions-auth-gate" class="yoga-auth-gate" style="display:none;">
         <p>Sign in to track your yoga sessions.</p>
         <a href="index.html" class="btn btn-primary">Sign in</a>
@@ -255,7 +255,7 @@
     </div>
 
     <!-- ── FLEXIBILITY TRACKER ── -->
-    <div class="yoga-panel" id="tab-flexibility">
+    <div class="page-tab-panel" id="tab-flexibility">
       <div id="flex-auth-gate" class="yoga-auth-gate" style="display:none;">
         <p>Sign in to track your flexibility.</p>
         <a href="index.html" class="btn btn-primary">Sign in</a>

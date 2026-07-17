@@ -181,12 +181,12 @@
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
   function setupTabs() {
-    document.getElementById('yogaTabs').addEventListener('click', e => {
-      const btn = e.target.closest('.yoga-tab');
+    document.getElementById('yogaPageTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.page-tab');
       if (!btn) return;
       const tab = btn.dataset.tab;
-      document.querySelectorAll('.yoga-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-      document.querySelectorAll('.yoga-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tab}`));
+      document.querySelectorAll('#yogaPageTabs .page-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.querySelectorAll('#yogaPageTabs ~ .page-tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tab}`));
     });
   }
 
@@ -333,7 +333,7 @@
     document.getElementById('poseModalAddBtn').addEventListener('click', () => {
       addToFlow(p);
       closePoseModal();
-      document.querySelector('.yoga-tab[data-tab="flow"]').click();
+      document.querySelector('#yogaPageTabs .page-tab[data-tab="flow"]').click();
     });
     document.getElementById('poseModalFavBtn').addEventListener('click', () => {
       toggleFavorite(p.id);
@@ -516,7 +516,7 @@
       const poses = getStretchPoses(activeBtn.dataset.stype, activeBtn.dataset.skey);
       flowPoses = poses.map(p => ({ pose: p, duration: 30 }));
       renderFlowSequence();
-      document.querySelector('.yoga-tab[data-tab="flow"]').click();
+      document.querySelector('#yogaPageTabs .page-tab[data-tab="flow"]').click();
     });
   }
 

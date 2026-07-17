@@ -81,12 +81,12 @@
 
   // ── Tabs ───────────────────────────────────────────────────────────────────
   function setupTabs() {
-    document.getElementById('runTabs').addEventListener('click', e => {
-      const btn = e.target.closest('.yoga-tab');
+    document.getElementById('runPageTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.page-tab');
       if (!btn) return;
       const tab = btn.dataset.tab;
-      document.querySelectorAll('.yoga-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-      document.querySelectorAll('.yoga-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tab}`));
+      document.querySelectorAll('#runPageTabs .page-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.querySelectorAll('#runPageTabs ~ .page-tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tab}`));
     });
   }
 
