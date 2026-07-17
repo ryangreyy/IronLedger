@@ -62,8 +62,8 @@
   <div id="main-content">
   <div class="wrap">
 
-    <div class="eyebrow" style="margin-top:16px;margin-left:25px;">Strength Tools</div>
-    <h2 class="title" style="margin-left:25px;">Tools</h2>
+    <div class="eyebrow" style="margin-top:11px;margin-left:25px;">Strength Tools</div>
+    <h2 class="title" id="toolsPageTitle" style="margin-left:25px;">One Rep Max</h2>
 
     <div class="page-tabs" id="toolsPageTabs" style="margin-top:28px;">
       <button class="page-tab active" data-panel="calc">One Rep Max</button>
@@ -172,13 +172,21 @@
   /* ── Page tabs ───────────────────────────────────────── */
   (function setupToolsTabs() {
     const tabs = document.getElementById('toolsPageTabs');
+    const title = document.getElementById('toolsPageTitle');
     if (!tabs) return;
     function activate(panel, updateHash) {
       if (!document.getElementById(panel)) panel = 'calc';
-      tabs.querySelectorAll('.page-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.panel === panel));
+      let activeText = '';
+      tabs.querySelectorAll('.page-tab').forEach(tab => {
+        const active = tab.dataset.panel === panel;
+        tab.classList.toggle('active', active);
+        if (active) activeText = tab.textContent.trim();
+      });
       document.querySelectorAll('#toolsPageTabs ~ .page-tab-panel').forEach(el => {
         el.classList.toggle('active', el.id === panel);
       });
+      if (title && activeText) title.textContent = activeText;
+      if (activeText) document.title = `IRONGLADIATOR — ${activeText}`;
       if (updateHash && location.hash !== '#' + panel) history.replaceState(null, '', '#' + panel);
     }
     tabs.addEventListener('click', e => {
