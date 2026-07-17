@@ -1561,7 +1561,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #trainingPageTabs,
   #yogaPageTabs,
   #runPageTabs,
-  #toolsPageTabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 28px 20px !important; }
+  #toolsPageTabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; width:calc(100% - 56px); max-width:calc(100% - 56px); margin:10px 28px 20px !important; }
   #trainingPageTabs .page-tab,
   #yogaPageTabs .page-tab,
   #runPageTabs .page-tab,
@@ -1572,6 +1572,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #yogaPageTabs ~ .page-tab-panel,
   #runPageTabs ~ .page-tab-panel,
   #toolsPageTabs ~ .page-tab-panel{ padding-top:3px; }
+  #yogaPageTabs ~ .page-tab-panel{ width:100%; max-width:100%; min-width:0; }
   #trainingPageTabs ~ .page-tab-panel > .eyebrow,
   #trainingPageTabs ~ .page-tab-panel > h2.title{ display:none; }
 }
@@ -1992,12 +1993,17 @@ html[data-authredirect] body{ visibility:hidden; }
 .yoga-session-card .field{ margin-bottom:16px; min-width:0; }
 .yoga-session-card .field input,
 .yoga-session-card .field select{
+  width:100%;
+  max-width:100%;
   min-height:44px;
   font-size:15px;
   line-height:1.2;
   padding:10px 12px;
 }
 .yoga-session-card input[type="date"]{
+  display:block;
+  width:100%;
+  max-width:100%;
   min-width:0;
   white-space:nowrap;
   text-align:center;
@@ -2010,6 +2016,14 @@ html[data-authredirect] body{ visibility:hidden; }
   margin:0; padding:0; background:transparent;
 }
 @media(max-width:860px){ .yoga-form-grid{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:700px){
+  #sessions-content,
+  #tab-sessions .yoga-session-card{ width:100%; max-width:100%; min-width:0; }
+  #tab-sessions .yoga-session-card{ width:calc(100% - 24px); max-width:calc(100% - 24px); margin-left:auto; margin-right:auto; padding:20px 16px 18px !important; }
+  #tab-sessions .yoga-session-form-grid{ grid-template-columns:minmax(0,1fr); gap:12px; width:100%; max-width:100%; }
+  #tab-sessions .yoga-session-form-grid .field{ grid-column:1 / -1 !important; width:100%; max-width:100%; }
+  #tab-sessions .yoga-session-card input[type="date"]{ width:calc(100% - 12px); max-width:calc(100% - 12px); text-align:left; padding-left:10px; padding-right:10px; }
+}
 @media(max-width:480px){ .yoga-form-grid{ grid-template-columns:1fr; } }
 .intensity-picker{ display:flex; gap:6px; }
 .intensity-btn{ background:var(--bg-2); border:1px solid var(--border); color:var(--text-dim); font-size:13px; font-weight:700; font-family:var(--mono); width:36px; height:36px; border-radius:8px; cursor:pointer; transition:all .15s; }
