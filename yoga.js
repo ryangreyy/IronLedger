@@ -142,6 +142,7 @@
   let timerDuration = 0;
   let timerPhase = 'pose';
   let timerSetupFromIdx = -1;
+  let activeFlowPoses = [];
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   setDefaultDates();
@@ -368,21 +369,43 @@
       else if (action === 'up'   && idx > 0)                  { [flowPoses[idx-1], flowPoses[idx]] = [flowPoses[idx], flowPoses[idx-1]]; renderFlowSequence(); }
       else if (action === 'down' && idx < flowPoses.length-1) { [flowPoses[idx+1], flowPoses[idx]] = [flowPoses[idx], flowPoses[idx+1]]; renderFlowSequence(); }
     });
-    document.getElementById('flowSequence').addEventListener('change', e => {
+    document.getElementById('flowSequence').addEventListener('input', syncFlowInput);
+    document.getElementById('flowSequence').addEventListener('change', syncFlowInput);
+    document.getElementById('flowClear').addEventListener('click', () => { flowPoses = []; renderFlowSequence(); });
+    document.getElementById('flowStart').addEventListener('click', startFlowTimer);
+  }
+
+  function syncFlowInput(e) {
       const durInp = e.target.closest('[data-dur-idx]');
       if (durInp) {
-        flowPoses[+durInp.dataset.durIdx].duration = Math.max(5, parseInt(durInp.value, 10) || 30);
+        flowPoses[+durInp.dataset.durIdx].duration = normalizePoseDuration(durInp.value);
         return;
       }
       const setupInp = e.target.closest('[data-setup-idx]');
       if (!setupInp) return;
       const idx = +setupInp.dataset.setupIdx;
-      const secs = Math.min(120, Math.max(0, parseInt(setupInp.value, 10) || 0));
+      const secs = normalizeSetupDuration(setupInp.value);
       flowPoses[idx].setupAfter = secs;
-      if (secs <= 0) renderFlowSequence();
+      if (secs <= 0 && e.type === 'change') renderFlowSequence();
+  }
+
+  function syncFlowSequenceInputs() {
+    document.querySelectorAll('[data-dur-idx]').forEach(input => {
+      const idx = +input.dataset.durIdx;
+      if (flowPoses[idx]) flowPoses[idx].duration = normalizePoseDuration(input.value);
     });
-    document.getElementById('flowClear').addEventListener('click', () => { flowPoses = []; renderFlowSequence(); });
-    document.getElementById('flowStart').addEventListener('click', startFlowTimer);
+    document.querySelectorAll('[data-setup-idx]').forEach(input => {
+      const idx = +input.dataset.setupIdx;
+      if (flowPoses[idx]) flowPoses[idx].setupAfter = normalizeSetupDuration(input.value);
+    });
+  }
+
+  function normalizePoseDuration(value) {
+    return Math.min(300, Math.max(5, parseInt(value, 10) || 30));
+  }
+
+  function normalizeSetupDuration(value) {
+    return Math.min(120, Math.max(0, parseInt(value, 10) || 0));
   }
 
   function renderFlowPicker() {
@@ -472,6 +495,12 @@
 
   function startFlowTimer() {
     if (!flowPoses.length) return;
+    syncFlowSequenceInputs();
+    activeFlowPoses = flowPoses.map(fp => ({
+      pose: fp.pose,
+      duration: normalizePoseDuration(fp.duration),
+      setupAfter: normalizeSetupDuration(fp.setupAfter),
+    }));
     timerIdx = 0; timerPaused = false;
     timerSetupFromIdx = -1;
     document.getElementById('flowTimer').style.display = 'flex';
@@ -482,7 +511,7 @@
 
   function showTimerPose(idx) {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    const fp = flowPoses[idx];
+    const fp = activeFlowPoses[idx];
     if (!fp) { stopFlowTimer(); return; }
     timerIdx = idx;
     timerPhase = 'pose';
@@ -496,7 +525,7 @@
     if (img) { imgEl.src = img; imgEl.style.display = 'block'; emojiEl.style.display = 'none'; }
     else { imgEl.style.display = 'none'; emojiEl.textContent = CAT_EMOJI[p.category_name]||CAT_EMOJI.default; emojiEl.style.display = 'block'; }
 
-    document.getElementById('flowTimerNum').textContent       = `Pose ${idx+1} of ${flowPoses.length}`;
+    document.getElementById('flowTimerNum').textContent       = `Pose ${idx+1} of ${activeFlowPoses.length}`;
     document.getElementById('flowTimerName').textContent      = p.english_name;
     document.getElementById('flowTimerSanskrit').textContent  = p.sanskrit_name_adapted || '';
     document.getElementById('flowTimerCountdown').textContent = timerSecsLeft;
@@ -507,7 +536,7 @@
 
   function showTimerSetup(fromIdx, nextIdx, setupSecs) {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    const nextPose = flowPoses[nextIdx]?.pose;
+    const nextPose = activeFlowPoses[nextIdx]?.pose;
     if (!nextPose) { stopFlowTimer(); return; }
     timerIdx = nextIdx;
     timerPhase = 'setup';
@@ -517,7 +546,7 @@
 
     document.getElementById('flowTimerImg').style.display = 'none';
     document.getElementById('flowTimerEmoji').style.display = 'none';
-    document.getElementById('flowTimerNum').textContent = `Set-up ${nextIdx+1} of ${flowPoses.length}`;
+    document.getElementById('flowTimerNum').textContent = `Set-up ${nextIdx+1} of ${activeFlowPoses.length}`;
     document.getElementById('flowTimerName').textContent = 'Get ready';
     document.getElementById('flowTimerSanskrit').textContent = `Next: ${nextPose.english_name}`;
     document.getElementById('flowTimerCountdown').textContent = timerSecsLeft;
@@ -542,8 +571,8 @@
     if (dir > 0) {
       if (timerPhase === 'setup') { showTimerPose(timerIdx); return; }
       const next = timerIdx + 1;
-      if (next >= flowPoses.length) { stopFlowTimer(); return; }
-      const setupSecs = Math.min(120, Math.max(0, parseInt(flowPoses[timerIdx]?.setupAfter, 10) || 0));
+      if (next >= activeFlowPoses.length) { stopFlowTimer(); return; }
+      const setupSecs = normalizeSetupDuration(activeFlowPoses[timerIdx]?.setupAfter);
       if (setupSecs > 0) showTimerSetup(timerIdx, next, setupSecs);
       else showTimerPose(next);
       return;
@@ -568,6 +597,7 @@
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     timerPhase = 'pose';
     timerSetupFromIdx = -1;
+    activeFlowPoses = [];
     document.getElementById('flowTimer').style.display = 'none';
   }
 
