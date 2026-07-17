@@ -1965,6 +1965,26 @@ html[data-authredirect] body{ visibility:hidden; }
 .flow-seq-btn{ background:transparent; border:none; color:var(--text-dimmer); font-size:13px; padding:3px 5px; cursor:pointer; border-radius:4px; transition:all .12s; }
 .flow-seq-btn:hover{ color:var(--text); background:rgba(255,255,255,.06); }
 .flow-seq-rm:hover{ color:#e55 !important; }
+.flow-setup-gap{ display:flex; align-items:center; gap:8px; padding:2px 12px; }
+.flow-setup-line{ flex:1; height:1px; background:var(--border); opacity:.75; }
+.flow-setup-add{
+  width:26px; height:26px; border-radius:50%; border:1px solid var(--border);
+  background:transparent; color:var(--text-dim); font-size:18px; line-height:1;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .12s;
+}
+.flow-setup-add:hover{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
+.flow-setup-pill{
+  display:flex; align-items:center; gap:6px; border:1px solid rgba(193,39,45,.45);
+  border-radius:999px; padding:4px 8px; background:rgba(193,39,45,.08);
+  color:var(--accent-bright); font-family:var(--mono); font-size:11px; font-weight:700;
+}
+.flow-setup-pill input{
+  width:48px; background:#141618; border:1px solid var(--border); border-radius:6px;
+  padding:3px 6px; color:var(--text); font-size:12px; font-family:var(--mono); outline:none;
+}
+.flow-setup-pill input:focus{ border-color:var(--accent-bright); }
+.flow-setup-remove{ background:transparent; border:none; color:var(--text-dimmer); cursor:pointer; font-size:14px; line-height:1; padding:1px 3px; }
+.flow-setup-remove:hover{ color:#e55; }
 .flow-btns{ display:flex; gap:10px; justify-content:flex-end; }
 
 /* Flow Timer overlay */

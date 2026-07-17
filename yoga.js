@@ -133,7 +133,7 @@
 
   // ── State ─────────────────────────────────────────────────────────────────
   let allPoses = [];
-  let flowPoses = []; // [{ pose, duration }]
+  let flowPoses = []; // [{ pose, duration, setupAfter }]
   let currentUser = null;
   let timerInterval = null;
   let timerPaused = false;
@@ -141,7 +141,7 @@
   let timerSecsLeft = 0;
   let timerDuration = 0;
   let timerPhase = 'pose';
-  let flowSetupSecs = 0;
+  let timerSetupFromIdx = -1;
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   setDefaultDates();
@@ -346,6 +346,20 @@
       if (p) addToFlow(p);
     });
     document.getElementById('flowSequence').addEventListener('click', e => {
+      const setupAddBtn = e.target.closest('[data-setup-add-idx]');
+      if (setupAddBtn) {
+        const idx = +setupAddBtn.dataset.setupAddIdx;
+        flowPoses[idx].setupAfter = flowPoses[idx].setupAfter || 10;
+        renderFlowSequence();
+        requestAnimationFrame(() => document.querySelector(`[data-setup-idx="${idx}"]`)?.focus());
+        return;
+      }
+      const setupRemoveBtn = e.target.closest('[data-setup-remove-idx]');
+      if (setupRemoveBtn) {
+        flowPoses[+setupRemoveBtn.dataset.setupRemoveIdx].setupAfter = 0;
+        renderFlowSequence();
+        return;
+      }
       const item = e.target.closest('[data-flow-idx]');
       if (!item) return;
       const idx = +item.dataset.flowIdx;
@@ -355,9 +369,17 @@
       else if (action === 'down' && idx < flowPoses.length-1) { [flowPoses[idx+1], flowPoses[idx]] = [flowPoses[idx], flowPoses[idx+1]]; renderFlowSequence(); }
     });
     document.getElementById('flowSequence').addEventListener('change', e => {
-      const inp = e.target.closest('[data-dur-idx]');
-      if (!inp) return;
-      flowPoses[+inp.dataset.durIdx].duration = Math.max(5, parseInt(inp.value) || 30);
+      const durInp = e.target.closest('[data-dur-idx]');
+      if (durInp) {
+        flowPoses[+durInp.dataset.durIdx].duration = Math.max(5, parseInt(durInp.value, 10) || 30);
+        return;
+      }
+      const setupInp = e.target.closest('[data-setup-idx]');
+      if (!setupInp) return;
+      const idx = +setupInp.dataset.setupIdx;
+      const secs = Math.min(120, Math.max(0, parseInt(setupInp.value, 10) || 0));
+      flowPoses[idx].setupAfter = secs;
+      if (secs <= 0) renderFlowSequence();
     });
     document.getElementById('flowClear').addEventListener('click', () => { flowPoses = []; renderFlowSequence(); });
     document.getElementById('flowStart').addEventListener('click', startFlowTimer);
@@ -386,26 +408,21 @@
 
   function addToFlow(pose) {
     const dur = parseInt(document.getElementById('flowDefaultDuration').value) || 30;
-    flowPoses.push({ pose, duration: dur });
+    flowPoses.push({ pose, duration: dur, setupAfter: 0 });
     renderFlowSequence();
-  }
-
-  function getFlowSetupDuration() {
-    const input = document.getElementById('flowSetupDuration');
-    const secs = Math.max(0, parseInt(input?.value, 10) || 0);
-    return Math.min(120, secs);
   }
 
   function renderFlowSequence() {
     document.getElementById('flowCount').textContent = `${flowPoses.length} pose${flowPoses.length !== 1 ? 's' : ''}`;
     const el = document.getElementById('flowSequence');
     if (!flowPoses.length) { el.innerHTML = '<p class="flow-empty">Add poses from the left to build your flow.</p>'; return; }
-    el.innerHTML = flowPoses.map((fp, i) => {
+    const rows = [];
+    flowPoses.forEach((fp, i) => {
       const img = fp.pose.url_svg || fp.pose.url_png || '';
       const imgEl = img
         ? `<img src="${img}" alt="" class="flow-seq-img" onerror="this.style.display='none'">`
         : `<div class="flow-seq-emoji">${CAT_EMOJI[fp.pose.category_name]||CAT_EMOJI.default}</div>`;
-      return `<div class="flow-seq-item" data-flow-idx="${i}">
+      rows.push(`<div class="flow-seq-item" data-flow-idx="${i}">
         <span class="flow-seq-num">${i+1}</span>
         ${imgEl}
         <span class="flow-seq-name">${esc(fp.pose.english_name)}</span>
@@ -418,8 +435,31 @@
           <button class="flow-seq-btn" data-action="down"   title="Move down">↓</button>
           <button class="flow-seq-btn flow-seq-rm" data-action="remove" title="Remove">×</button>
         </div>
+      </div>`);
+      if (i < flowPoses.length - 1) rows.push(flowSetupGapHTML(i));
+    });
+    el.innerHTML = rows.join('');
+  }
+
+  function flowSetupGapHTML(idx) {
+    const secs = Math.min(120, Math.max(0, parseInt(flowPoses[idx]?.setupAfter, 10) || 0));
+    if (secs > 0) {
+      return `<div class="flow-setup-gap">
+        <span class="flow-setup-line"></span>
+        <div class="flow-setup-pill">
+          <span>Set-up</span>
+          <input type="number" value="${secs}" min="0" max="120" step="5" data-setup-idx="${idx}">
+          <span>s</span>
+          <button class="flow-setup-remove" data-setup-remove-idx="${idx}" title="Remove setup time">×</button>
+        </div>
+        <span class="flow-setup-line"></span>
       </div>`;
-    }).join('');
+    }
+    return `<div class="flow-setup-gap">
+      <span class="flow-setup-line"></span>
+      <button class="flow-setup-add" data-setup-add-idx="${idx}" title="Add setup time">+</button>
+      <span class="flow-setup-line"></span>
+    </div>`;
   }
 
   // ── Flow Timer ────────────────────────────────────────────────────────────
@@ -433,7 +473,7 @@
   function startFlowTimer() {
     if (!flowPoses.length) return;
     timerIdx = 0; timerPaused = false;
-    flowSetupSecs = getFlowSetupDuration();
+    timerSetupFromIdx = -1;
     document.getElementById('flowTimer').style.display = 'flex';
     const pauseBtn = document.getElementById('flowCtrlPause');
     pauseBtn.textContent = 'Pause'; pauseBtn.classList.remove('paused');
@@ -465,14 +505,15 @@
     timerInterval = setInterval(tick, 1000);
   }
 
-  function showTimerSetup(nextIdx) {
+  function showTimerSetup(fromIdx, nextIdx, setupSecs) {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     const nextPose = flowPoses[nextIdx]?.pose;
     if (!nextPose) { stopFlowTimer(); return; }
     timerIdx = nextIdx;
     timerPhase = 'setup';
-    timerSecsLeft = flowSetupSecs;
-    timerDuration = flowSetupSecs;
+    timerSetupFromIdx = fromIdx;
+    timerSecsLeft = setupSecs;
+    timerDuration = setupSecs;
 
     document.getElementById('flowTimerImg').style.display = 'none';
     document.getElementById('flowTimerEmoji').style.display = 'none';
@@ -502,14 +543,14 @@
       if (timerPhase === 'setup') { showTimerPose(timerIdx); return; }
       const next = timerIdx + 1;
       if (next >= flowPoses.length) { stopFlowTimer(); return; }
-      if (flowSetupSecs > 0) showTimerSetup(next);
+      const setupSecs = Math.min(120, Math.max(0, parseInt(flowPoses[timerIdx]?.setupAfter, 10) || 0));
+      if (setupSecs > 0) showTimerSetup(timerIdx, next, setupSecs);
       else showTimerPose(next);
       return;
     }
 
     if (timerPhase === 'setup') {
-      const prev = timerIdx - 1;
-      if (prev >= 0) showTimerPose(prev);
+      if (timerSetupFromIdx >= 0) showTimerPose(timerSetupFromIdx);
       return;
     }
     const prev = timerIdx - 1;
@@ -526,6 +567,7 @@
   function stopFlowTimer() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     timerPhase = 'pose';
+    timerSetupFromIdx = -1;
     document.getElementById('flowTimer').style.display = 'none';
   }
 
@@ -549,7 +591,7 @@
       const activeBtn = document.querySelector('.stretch-btn.active');
       if (!activeBtn) return;
       const poses = getStretchPoses(activeBtn.dataset.stype, activeBtn.dataset.skey);
-      flowPoses = poses.map(p => ({ pose: p, duration: 30 }));
+      flowPoses = poses.map(p => ({ pose: p, duration: 30, setupAfter: 0 }));
       renderFlowSequence();
       document.querySelector('#yogaPageTabs .page-tab[data-tab="flow"]').click();
     });
