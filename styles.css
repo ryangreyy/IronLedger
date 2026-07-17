@@ -1988,7 +1988,10 @@ html[data-authredirect] body{ visibility:hidden; }
 .yoga-session-card input[type="date"]{
   min-width:0;
   white-space:nowrap;
+  text-align:center;
+  color-scheme:dark;
 }
+[data-theme="light"] .yoga-session-card input[type="date"]{ color-scheme:light; }
 @media(max-width:860px){ .yoga-form-grid{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:480px){ .yoga-form-grid{ grid-template-columns:1fr; } }
 .intensity-picker{ display:flex; gap:6px; }
