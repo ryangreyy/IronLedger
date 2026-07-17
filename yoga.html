@@ -104,6 +104,11 @@
               <input type="number" id="flowDefaultDuration" value="30" min="5" max="300" step="5" class="flow-duration-input">
               <span style="font-size:12px;color:var(--text-dim);">sec</span>
             </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="yoga-section-label" style="margin-bottom:0;">Set-up time</span>
+              <input type="number" id="flowSetupDuration" value="0" min="0" max="120" step="5" class="flow-duration-input">
+              <span style="font-size:12px;color:var(--text-dim);">sec</span>
+            </div>
           </div>
           <div class="flow-sequence" id="flowSequence">
             <p class="flow-empty">Add poses from the left to build your flow.</p>
@@ -293,7 +298,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="nav-auth.js?v=2"></script>
-  <script src="yoga.js?v=9"></script>
+  <script src="yoga.js?v=10"></script>
 <script src="nav.js?v=13"></script>
 </body>
 </html>

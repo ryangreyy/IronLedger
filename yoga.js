@@ -140,6 +140,8 @@
   let timerIdx = 0;
   let timerSecsLeft = 0;
   let timerDuration = 0;
+  let timerPhase = 'pose';
+  let flowSetupSecs = 0;
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   setDefaultDates();
@@ -388,6 +390,12 @@
     renderFlowSequence();
   }
 
+  function getFlowSetupDuration() {
+    const input = document.getElementById('flowSetupDuration');
+    const secs = Math.max(0, parseInt(input?.value, 10) || 0);
+    return Math.min(120, secs);
+  }
+
   function renderFlowSequence() {
     document.getElementById('flowCount').textContent = `${flowPoses.length} pose${flowPoses.length !== 1 ? 's' : ''}`;
     const el = document.getElementById('flowSequence');
@@ -425,6 +433,7 @@
   function startFlowTimer() {
     if (!flowPoses.length) return;
     timerIdx = 0; timerPaused = false;
+    flowSetupSecs = getFlowSetupDuration();
     document.getElementById('flowTimer').style.display = 'flex';
     const pauseBtn = document.getElementById('flowCtrlPause');
     pauseBtn.textContent = 'Pause'; pauseBtn.classList.remove('paused');
@@ -436,6 +445,7 @@
     const fp = flowPoses[idx];
     if (!fp) { stopFlowTimer(); return; }
     timerIdx = idx;
+    timerPhase = 'pose';
     timerSecsLeft = fp.duration;
     timerDuration = fp.duration;
 
@@ -455,6 +465,26 @@
     timerInterval = setInterval(tick, 1000);
   }
 
+  function showTimerSetup(nextIdx) {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    const nextPose = flowPoses[nextIdx]?.pose;
+    if (!nextPose) { stopFlowTimer(); return; }
+    timerIdx = nextIdx;
+    timerPhase = 'setup';
+    timerSecsLeft = flowSetupSecs;
+    timerDuration = flowSetupSecs;
+
+    document.getElementById('flowTimerImg').style.display = 'none';
+    document.getElementById('flowTimerEmoji').style.display = 'none';
+    document.getElementById('flowTimerNum').textContent = `Set-up ${nextIdx+1} of ${flowPoses.length}`;
+    document.getElementById('flowTimerName').textContent = 'Get ready';
+    document.getElementById('flowTimerSanskrit').textContent = `Next: ${nextPose.english_name}`;
+    document.getElementById('flowTimerCountdown').textContent = timerSecsLeft;
+    document.getElementById('flowTimerBar').style.width = '0%';
+
+    timerInterval = setInterval(tick, 1000);
+  }
+
   function tick() {
     if (timerPaused) return;
     timerSecsLeft--;
@@ -464,13 +494,26 @@
   }
 
   function advanceTimer(dir) {
-    const next = timerIdx + dir;
-    if (next >= flowPoses.length) { stopFlowTimer(); return; }
-    if (next < 0) return;
     timerPaused = false;
     const pauseBtn = document.getElementById('flowCtrlPause');
     pauseBtn.textContent = 'Pause'; pauseBtn.classList.remove('paused');
-    showTimerPose(next);
+
+    if (dir > 0) {
+      if (timerPhase === 'setup') { showTimerPose(timerIdx); return; }
+      const next = timerIdx + 1;
+      if (next >= flowPoses.length) { stopFlowTimer(); return; }
+      if (flowSetupSecs > 0) showTimerSetup(next);
+      else showTimerPose(next);
+      return;
+    }
+
+    if (timerPhase === 'setup') {
+      const prev = timerIdx - 1;
+      if (prev >= 0) showTimerPose(prev);
+      return;
+    }
+    const prev = timerIdx - 1;
+    if (prev >= 0) showTimerPose(prev);
   }
 
   function toggleTimerPause() {
@@ -482,6 +525,7 @@
 
   function stopFlowTimer() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    timerPhase = 'pose';
     document.getElementById('flowTimer').style.display = 'none';
   }
 
