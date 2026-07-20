@@ -1577,34 +1577,6 @@ function initApp(uid) {
     if (lifts.length) draw(historySelectedLift || lifts[0]);
   }
 
-  /* ---- 4) ONE-REP-MAX CALCULATOR (only runs when #orm exists — see tools.html) --- */
-  if (document.getElementById('orm')) {
-    const ormEl   = document.getElementById('orm');
-    const pctBody = document.getElementById('pctBody');
-    ['lift','weight','reps'].forEach(id => {
-      const saved = localStorage.getItem('il_calc_' + id);
-      if (saved) document.getElementById(id).value = saved;
-    });
-    function calc() {
-      const w = +document.getElementById('weight').value || 0;
-      const r = +document.getElementById('reps').value   || 1;
-      const orm = r <= 1 ? w : Math.round(w * (1 + r / 30));
-      ormEl.textContent = orm.toLocaleString();
-      pctBody.innerHTML = pctRows.map(row => `
-        <tr>
-          <td>${row.reps}</td>
-          <td class="pct-tag">${row.pct}%</td>
-          <td class="w">${Math.round(orm * row.pct / 100 / 5) * 5} lbs</td>
-          <td style="color:var(--text-dim)">${row.use}</td>
-        </tr>`).join('');
-    }
-    ['lift','weight','reps'].forEach(id => document.getElementById(id).addEventListener('input', e => {
-      localStorage.setItem('il_calc_' + id, e.target.value);
-      calc();
-    }));
-    calc();
-  }
-
   /* ---- 4) TRAINING LOG --------------------------------------------- */
 
   /* Maps a lift name to a pill colour class. Unknown lifts → 'other' (neutral). */
