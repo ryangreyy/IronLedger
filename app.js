@@ -2054,6 +2054,81 @@ function initApp(uid) {
     return s?.repMode === 'time';
   }
 
+  /* Monday-based week start (matches challenges.js's _igWeekStart) so
+     "this week" here agrees with streaks/challenges elsewhere. */
+  function coreWeekStartISO(d) {
+    const x = new Date(d); x.setHours(12, 0, 0, 0);
+    const day = x.getDay();
+    x.setDate(x.getDate() + (day === 0 ? -6 : 1 - day));
+    return localDateISO(x);
+  }
+
+  /* Core is a secondary group kept out of the main-lift analytics, so it
+     gets its own dedicated summary tab instead: session counts, a
+     per-week trend, and the recent core log. Training page only —
+     returns early everywhere else. */
+  function renderCore(sessions) {
+    const weekEl = document.getElementById('coreWeekCount');
+    if (!weekEl) return;
+    const monthEl  = document.getElementById('coreMonthCount');
+    const totalEl  = document.getElementById('coreTotalCount');
+    const trendEl  = document.getElementById('coreTrend');
+    const recentEl = document.getElementById('coreRecent');
+    const emptyEl  = document.getElementById('coreEmpty');
+
+    const core = (sessions || []).filter(s =>
+      s.dateRaw && !s.isRestDay &&
+      normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other') === 'core');
+
+    const today = new Date(); today.setHours(12, 0, 0, 0);
+    const todayISO     = localDateISO(today);
+    const weekStartISO = coreWeekStartISO(today);
+    const monthPrefix  = todayISO.slice(0, 7);
+
+    weekEl.textContent = core.filter(s => s.dateRaw >= weekStartISO && s.dateRaw <= todayISO).length;
+    if (monthEl) monthEl.textContent = core.filter(s => s.dateRaw.slice(0, 7) === monthPrefix).length;
+    if (totalEl) totalEl.textContent = core.length;
+
+    /* Per-week trend — last 8 weeks, current week rightmost. */
+    if (trendEl) {
+      const WEEKS = 8;
+      const weekStartDate = new Date(weekStartISO + 'T12:00:00');
+      const counts = new Array(WEEKS).fill(0);
+      const labels = [];
+      for (let i = 0; i < WEEKS; i++) {
+        const ws = new Date(weekStartDate); ws.setDate(ws.getDate() - (WEEKS - 1 - i) * 7);
+        labels.push(`${ws.getMonth() + 1}/${ws.getDate()}`);
+      }
+      core.forEach(s => {
+        const wsDate = new Date(coreWeekStartISO(new Date(s.dateRaw + 'T12:00:00')) + 'T12:00:00');
+        const weeksAgo = Math.round((weekStartDate - wsDate) / (7 * 86400000));
+        if (weeksAgo >= 0 && weeksAgo < WEEKS) counts[WEEKS - 1 - weeksAgo]++;
+      });
+      const max = Math.max(1, ...counts);
+      trendEl.innerHTML = counts.map((c, i) => `
+        <div class="core-bar-col">
+          <span class="core-bar-val">${c || ''}</span>
+          <div class="core-bar-track"><div class="core-bar" style="height:${Math.round(c / max * 100)}%;${c === 0 ? 'opacity:.2;' : ''}"></div></div>
+          <span class="core-bar-wk">${labels[i]}</span>
+        </div>`).join('');
+    }
+
+    /* Recent core log — newest first. */
+    if (recentEl) {
+      const recent = core.slice()
+        .sort((a, b) => (a.dateRaw < b.dateRaw ? 1 : a.dateRaw > b.dateRaw ? -1 : 0))
+        .slice(0, 12);
+      recentEl.innerHTML = recent.map(s => `
+        <div class="core-row">
+          <span class="pill core">${escapeHTML(s.lift || '—')}</span>
+          <span class="core-row-meta">${s.sets || 1} &times; ${repMetricText(s)}</span>
+          <span class="core-row-date">${escapeHTML(s.date || formatDate(s.dateRaw))}</span>
+        </div>`).join('');
+      recentEl.style.display = recent.length ? '' : 'none';
+      if (emptyEl) emptyEl.style.display = recent.length ? 'none' : '';
+    }
+  }
+
   function parseTimeSeconds(raw) {
     const value = String(raw || '').trim().toLowerCase();
     if (!value) return 0;
@@ -2253,6 +2328,7 @@ function initApp(uid) {
       renderLog(currentSessions);
       renderDonut(liftSessions);
       renderHistoryChart(liftSessions);
+      renderCore(liftSessions);
       updateKPIs();
       renderCalendar();
       igCheckChallenges(uid, db, currentSessions, bwAllEntries, currentSettings?.goals);

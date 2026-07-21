@@ -1351,6 +1351,20 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .pill.press{ background:var(--press-28); border:1px solid var(--press-55); color:#fff; }
 .pill.arm{   background:var(--press-28); border:1px solid var(--press-55); color:#fff; }
 .pill.core{  background:var(--core-28);  border:1px solid var(--core-55);  color:#fff; }
+
+/* ---- Core tab (Training log) ---- */
+.core-trend{ display:flex; align-items:stretch; gap:8px; height:150px; }
+.core-bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0; }
+.core-bar-val{ font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text-dim); line-height:1; height:12px; }
+.core-bar-track{ flex:1; width:100%; max-width:36px; display:flex; align-items:flex-end; }
+.core-bar{ width:100%; min-height:3px; border-radius:5px 5px 0 0;
+  background:linear-gradient(180deg, var(--core) 0%, var(--core-55) 100%); transition:height .3s ease; }
+.core-bar-wk{ font-family:var(--mono); font-size:9px; color:var(--text-dimmer); letter-spacing:.02em; white-space:nowrap; }
+.core-recent{ display:flex; flex-direction:column; }
+.core-row{ display:flex; align-items:center; gap:12px; padding:9px 2px; border-bottom:1px solid var(--border); }
+.core-row:last-child{ border-bottom:none; }
+.core-row-meta{ font-family:var(--mono); font-size:13px; color:var(--text); }
+.core-row-date{ margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--text-dimmer); white-space:nowrap; }
 .pill.other{ background:rgba(154,160,172,0.14); color:var(--text-dim); }
 .pill.rest{  background:rgba(107,114,128,0.15); color:var(--text-dimmer); font-style:italic; }
 /* Light mode: white pill text is invisible on the pale color tints. Use dark
