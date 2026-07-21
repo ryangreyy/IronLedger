@@ -1048,6 +1048,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 #dashboard .grid-kpi{ gap:14px; }
 #dashboard .kpi-forge{ min-height:112px; padding:16px 18px 16px 112px; }
 #dashboard .kpi-forge .forge-medallion{ left:18px; top:50%; width:76px; height:76px; }
+#dashboard .grid-kpi .kpi-forge:not(.kpi-streak-card) .kpi-plate{ opacity:.66; filter:brightness(1.12); }
 #dashboard .kpi-forge .forge-num{ font-size:32px; }
 #dashboard .kpi-forge .forge-cap{ font-size:10px; }
 #dashboard .kpi-forge .label{
@@ -1056,8 +1057,8 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 #dashboard .kpi-forge-header{ display:block; padding-left:0; min-height:0; }
 #dashboard .kpi-forge-header .forge-cap{ position:absolute; right:18px; bottom:16px; max-width:calc(100% - 140px); text-align:right; }
-#dashboard .kpi-streak-card > .label{ padding-left:0; }
-#dashboard .kpi-streak-card .streak-action-stack{ top:16px; right:18px; bottom:16px; max-width:160px; justify-content:space-between; }
+#dashboard .kpi-streak-card > .label{ left:50%; transform:translateX(-50%); padding-left:0; text-align:center; }
+#dashboard .kpi-streak-card .streak-action-stack{ top:auto; right:18px; bottom:16px; max-width:160px; justify-content:flex-end; }
 #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:5px 10px; font-size:11px; }
 /* Light mode: the forged weight-plate medallions are dark steel with near-black
    rings — a dark blob on a light card. Swap to a light steel plate with pale
@@ -1637,7 +1638,8 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #dashboard .kpi-forge .label{ top:12px; left:70px; width:auto; max-width:calc(100% - 80px); font-size:9px; letter-spacing:.04em; line-height:1.15; white-space:normal !important; }
   #dashboard .kpi-forge .forge-cap{ font-size:8px; line-height:1.25; }
   #dashboard .kpi-forge-header .forge-cap{ right:10px; bottom:12px; max-width:calc(100% - 80px); }
-  #dashboard .kpi-streak-card .streak-action-stack{ top:30px; right:10px; bottom:12px; max-width:calc(100% - 80px); gap:4px; }
+  #dashboard .kpi-streak-card > .label{ left:50%; max-width:90px; transform:translateX(-50%); text-align:center; }
+  #dashboard .kpi-streak-card .streak-action-stack{ top:auto; right:10px; bottom:12px; max-width:calc(100% - 80px); gap:4px; }
   #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:4px 7px; font-size:9px; line-height:1.1; }
 }
 @media all and (display-mode:standalone) and (max-width:700px){
