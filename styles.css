@@ -1045,18 +1045,19 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   display:flex; flex-direction:column; align-items:flex-end; gap:7px; max-width:168px; }
 .kpi-streak-card .streak-action-stack .forge-cap{ margin-top:0; text-align:right; line-height:1.35; }
 .kpi-streak-card .streak-action-stack .forge-rest{ position:static; margin-top:0; }
-#dashboard .kpi-forge{ min-height:170px; padding:18px 20px; }
-#dashboard .kpi-forge .forge-medallion{ left:18px; top:58%; width:96px; height:96px; }
-#dashboard .kpi-forge .forge-num{ font-size:38px; }
+#dashboard .grid-kpi{ gap:14px; }
+#dashboard .kpi-forge{ min-height:112px; padding:16px 18px 16px 112px; }
+#dashboard .kpi-forge .forge-medallion{ left:18px; top:50%; width:76px; height:76px; }
+#dashboard .kpi-forge .forge-num{ font-size:32px; }
 #dashboard .kpi-forge .forge-cap{ font-size:10px; }
 #dashboard .kpi-forge .label{
-  position:absolute; top:18px; left:20px; z-index:3;
+  position:absolute; top:16px; left:112px; z-index:3;
   white-space:nowrap !important; width:max-content; max-width:none;
 }
-#dashboard .kpi-forge-header{ display:block; padding-left:0; min-height:28px; }
-#dashboard .kpi-forge-header .forge-cap{ position:absolute; top:18px; right:20px; max-width:44%; }
+#dashboard .kpi-forge-header{ display:block; padding-left:0; min-height:0; }
+#dashboard .kpi-forge-header .forge-cap{ position:absolute; right:18px; bottom:16px; max-width:calc(100% - 140px); text-align:right; }
 #dashboard .kpi-streak-card > .label{ padding-left:0; }
-#dashboard .kpi-streak-card .streak-action-stack{ top:18px; right:18px; max-width:150px; }
+#dashboard .kpi-streak-card .streak-action-stack{ top:16px; right:18px; bottom:16px; max-width:160px; justify-content:space-between; }
 #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:5px 10px; font-size:11px; }
 /* Light mode: the forged weight-plate medallions are dark steel with near-black
    rings — a dark blob on a light card. Swap to a light steel plate with pale
@@ -1618,7 +1619,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 #dashboard{ padding-top:32px; }
 .dashboard-mobile-head{ display:none; }
 @media(max-width:700px){
-  #dashboardPageTabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 28px 20px !important; }
+  #dashboardPageTabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; width:calc(100vw - 56px); max-width:calc(100vw - 56px); margin:10px 28px 20px !important; }
   #dashboardPageTabs .page-tab{ min-height:42px; padding:8px 6px; font-size:10px; white-space:normal; line-height:1.15; text-align:center; }
   .dashboard-mobile-head{ display:block; max-width:1140px; margin:0 auto; padding:14px 28px 0; }
   .dashboard-mobile-head .eyebrow{ margin-bottom:10px; }
@@ -1627,8 +1628,17 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #dashboardPageTabs ~ .page-tab-panel > .eyebrow,
   #dashboardPageTabs ~ .page-tab-panel > h2.title{ display:none; }
   #dashboard .kpi-forge-header{ position:static; }
-  #dashboard .kpi-forge-header .label{ top:18px; left:20px; }
-  #dashboard .kpi-forge-header .forge-cap{ top:18px; right:20px; }
+  #dashboard .grid-kpi{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; width:100%; max-width:calc(100vw - 56px); }
+  #dashboard .grid-kpi > .card{ min-width:0; }
+  #dashboard .grid-kpi .card{ padding-top:12px; }
+  #dashboard .kpi-forge{ min-height:104px; padding:12px 10px 12px 70px; }
+  #dashboard .kpi-forge .forge-medallion{ left:10px; top:50%; width:52px; height:52px; }
+  #dashboard .kpi-forge .forge-num{ font-size:24px; }
+  #dashboard .kpi-forge .label{ top:12px; left:70px; width:auto; max-width:calc(100% - 80px); font-size:9px; letter-spacing:.04em; line-height:1.15; white-space:normal !important; }
+  #dashboard .kpi-forge .forge-cap{ font-size:8px; line-height:1.25; }
+  #dashboard .kpi-forge-header .forge-cap{ right:10px; bottom:12px; max-width:calc(100% - 80px); }
+  #dashboard .kpi-streak-card .streak-action-stack{ top:30px; right:10px; bottom:12px; max-width:calc(100% - 80px); gap:4px; }
+  #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:4px 7px; font-size:9px; line-height:1.1; }
 }
 @media all and (display-mode:standalone) and (max-width:700px){
   #dashboard{ padding-top:3px !important; }
