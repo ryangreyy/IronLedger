@@ -1365,7 +1365,29 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .core-row:last-child{ border-bottom:none; }
 .core-row-meta{ font-family:var(--mono); font-size:13px; color:var(--text); }
 .core-row-date{ margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--text-dimmer); white-space:nowrap; }
-.core-stats{ gap:12px; background:transparent; border:none; padding:0; }
+.core-stats{
+  gap:12px;
+  padding:18px 22px;
+  background:
+    radial-gradient(120% 120% at 30% 12%, var(--card-top) 0%, var(--card-bot) 80%) padding-box,
+    var(--card-metal) border-box;
+  border:1.5px solid transparent;
+  border-radius:14px;
+  box-shadow:var(--card-shadow);
+  position:relative;
+  overflow:hidden;
+}
+.core-stats::after{
+  content:"";
+  position:absolute;
+  left:18px;
+  right:18px;
+  bottom:0;
+  height:2px;
+  background:linear-gradient(90deg, transparent, var(--accent) 35%, var(--accent-bright) 65%, transparent);
+  opacity:.85;
+  pointer-events:none;
+}
 .core-stats .yoga-stat{
   min-width:150px;
   flex:1;
