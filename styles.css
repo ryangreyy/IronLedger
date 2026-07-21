@@ -1047,7 +1047,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .kpi-streak-card .streak-action-stack .forge-rest{ position:static; margin-top:0; }
 #dashboard .grid-kpi{ gap:14px; }
 #dashboard .kpi-forge{ min-height:124px; padding:16px 18px; }
-#dashboard .kpi-forge .forge-medallion{ left:50%; top:58%; width:88px; height:88px; transform:translate(-50%,-50%); }
+#dashboard .kpi-forge .forge-medallion{ left:50%; top:58%; width:104px; height:104px; transform:translate(-50%,-50%); }
 #dashboard .grid-kpi .kpi-forge:not(.kpi-streak-card) .kpi-plate{ opacity:.66; filter:brightness(1.12); }
 #dashboard .kpi-forge .forge-num{ font-size:32px; }
 #dashboard .kpi-forge .forge-cap{ font-size:10px; }
@@ -1634,7 +1634,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #dashboard .grid-kpi > .card{ min-width:0; }
   #dashboard .grid-kpi .card{ padding-top:12px; }
   #dashboard .kpi-forge{ min-height:110px; padding:12px 10px; }
-  #dashboard .kpi-forge .forge-medallion{ left:50%; top:55%; width:58px; height:58px; transform:translate(-50%,-50%); }
+  #dashboard .kpi-forge .forge-medallion{ left:50%; top:55%; width:68px; height:68px; transform:translate(-50%,-50%); }
   #dashboard .kpi-forge .forge-num{ font-size:24px; }
   #dashboard .kpi-forge .label{ top:10px; left:50%; width:auto; max-width:calc(100% - 20px); transform:translateX(-50%); font-size:9px; letter-spacing:.04em; line-height:1.15; white-space:normal !important; text-align:center; }
   #dashboard .kpi-forge .forge-cap{ font-size:8px; line-height:1.25; }
