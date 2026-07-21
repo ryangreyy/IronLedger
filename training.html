@@ -137,7 +137,7 @@
       <button class="page-tab" data-tpanel="weight" data-eyebrow="Bodyweight" data-title="Weight Tracking">Weight Log</button>
       <button class="page-tab" data-tpanel="breakdown" data-eyebrow="Daily Breakdown" data-title="Daily Breakdown">Daily Breakdown</button>
       <button class="page-tab" data-tpanel="history" data-eyebrow="Exercise History" data-title="Exercise History">Exercise History</button>
-      <button class="page-tab" data-tpanel="core" data-eyebrow="Core Training" data-title="Core">Core</button>
+      <button class="page-tab" data-tpanel="core" data-eyebrow="Abs/Core" data-title="Abs/Core">Abs/Core</button>
     </div>
 
     <!-- ================= TRAINING LOG ================= -->
@@ -163,7 +163,7 @@
                 <option value="back">Back</option>
                 <option value="shoulders">Shoulders</option>
                 <option value="arms">Arms</option>
-                <option value="core">Core</option>
+                <option value="core">Abs/Core</option>
               </select>
             </div>
             <div class="lift-wrap">
@@ -374,15 +374,14 @@
 
     <!-- ================= CORE ================= -->
     <section class="page-tab-panel" data-panel="core">
-      <div class="eyebrow" style="margin-bottom:12px;">Core Training</div>
+      <div class="eyebrow" style="margin-bottom:12px;">Abs/Core</div>
       <div class="yoga-stats" id="coreStats">
         <div class="yoga-stat"><span class="yoga-stat-num" id="coreWeekCount">0</span><span class="yoga-stat-label">this week</span></div>
         <div class="yoga-stat"><span class="yoga-stat-num" id="coreMonthCount">0</span><span class="yoga-stat-label">this month</span></div>
-        <div class="yoga-stat"><span class="yoga-stat-num" id="coreTotalCount">0</span><span class="yoga-stat-label">all time</span></div>
       </div>
 
       <div class="card chart-card" style="margin-bottom:20px;">
-        <p class="controls-label" style="margin:0 0 16px;">Core sessions per week</p>
+        <p class="controls-label" style="margin:0 0 16px;">Abs/core sessions per week</p>
         <div class="core-trend" id="coreTrend"></div>
       </div>
 
@@ -418,7 +417,7 @@
 <!-- App data and logic -->
 <script src="data.js"></script>
 <script src="challenges.js?v=101"></script>
-<script src="app.js?v=159"></script>
+<script src="app.js?v=160"></script>
 <script src="nav.js?v=13"></script>
 <script>
   /* ── Page tabs (Training Log / Weight Log / Daily Breakdown / Exercise

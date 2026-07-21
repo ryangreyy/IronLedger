@@ -2071,7 +2071,6 @@ function initApp(uid) {
     const weekEl = document.getElementById('coreWeekCount');
     if (!weekEl) return;
     const monthEl  = document.getElementById('coreMonthCount');
-    const totalEl  = document.getElementById('coreTotalCount');
     const trendEl  = document.getElementById('coreTrend');
     const recentEl = document.getElementById('coreRecent');
     const emptyEl  = document.getElementById('coreEmpty');
@@ -2087,7 +2086,6 @@ function initApp(uid) {
 
     weekEl.textContent = core.filter(s => s.dateRaw >= weekStartISO && s.dateRaw <= todayISO).length;
     if (monthEl) monthEl.textContent = core.filter(s => s.dateRaw.slice(0, 7) === monthPrefix).length;
-    if (totalEl) totalEl.textContent = core.length;
 
     /* Per-week trend — last 8 weeks, current week rightmost. */
     if (trendEl) {
