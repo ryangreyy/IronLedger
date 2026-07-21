@@ -7,10 +7,16 @@
    BOTH the outgoing and incoming page, which is automatic here since
    every page shares this one stylesheet. No-ops silently on browsers
    that don't support it yet (nothing to feature-detect or guard).
+
+   The earlier white flash that led this to be disabled is now handled
+   at its source: every page's <head> paints the dark background inline
+   before styles.css loads, so the incoming page never shows a white
+   frame during the crossfade. Re-enabled here so navigation feels
+   seamless again.
    ============================================================ */
-@view-transition{ navigation:none; }
+@view-transition{ navigation:auto; }
 ::view-transition-old(root),
-::view-transition-new(root){ animation:none; background:#0B0C0E; }
+::view-transition-new(root){ animation-duration:.18s; animation-timing-function:ease-out; }
 
 /* ============================================================
    DESIGN TOKENS — all colors/spacing live here so they're easy
