@@ -2064,9 +2064,8 @@ function initApp(uid) {
   }
 
   /* Core is a secondary group kept out of the main-lift analytics, so it
-     gets its own dedicated summary tab instead: session counts, a
-     per-week trend, and the recent core log. Training page only —
-     returns early everywhere else. */
+     gets its own dedicated summary tab instead: set counts, a daily trend,
+     and the recent core log. */
   function renderCore(sessions) {
     const weekEl = document.getElementById('coreWeekSets');
     if (!weekEl) return;
@@ -2104,20 +2103,22 @@ function initApp(uid) {
       streakEl.textContent = streak;
     }
 
-    /* Per-week trend — last 8 weeks, current week rightmost. */
+    /* Daily trend — last 8 days, today rightmost. Values are total sets,
+       so 3 sets of planks + 2 sets of crunches on one date renders as 5. */
     if (trendEl) {
-      const WEEKS = 8;
-      const weekStartDate = new Date(weekStartISO + 'T12:00:00');
-      const counts = new Array(WEEKS).fill(0);
+      const DAYS = 8;
+      const counts = new Array(DAYS).fill(0);
       const labels = [];
-      for (let i = 0; i < WEEKS; i++) {
-        const ws = new Date(weekStartDate); ws.setDate(ws.getDate() - (WEEKS - 1 - i) * 7);
-        labels.push(`${ws.getMonth() + 1}/${ws.getDate()}`);
+      const dayIndex = new Map();
+      for (let i = 0; i < DAYS; i++) {
+        const d = new Date(today); d.setDate(d.getDate() - (DAYS - 1 - i));
+        const iso = localDateISO(d);
+        dayIndex.set(iso, i);
+        labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
       }
       core.forEach(s => {
-        const wsDate = new Date(coreWeekStartISO(new Date(s.dateRaw + 'T12:00:00')) + 'T12:00:00');
-        const weeksAgo = Math.round((weekStartDate - wsDate) / (7 * 86400000));
-        if (weeksAgo >= 0 && weeksAgo < WEEKS) counts[WEEKS - 1 - weeksAgo]++;
+        const i = dayIndex.get(s.dateRaw);
+        if (i != null) counts[i] += Number(s.sets) || 0;
       });
       const max = Math.max(1, ...counts);
       trendEl.innerHTML = counts.map((c, i) => `
