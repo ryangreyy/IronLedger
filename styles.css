@@ -1046,14 +1046,14 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .kpi-streak-card .streak-action-stack .forge-cap{ margin-top:0; text-align:right; line-height:1.35; }
 .kpi-streak-card .streak-action-stack .forge-rest{ position:static; margin-top:0; }
 #dashboard .grid-kpi{ gap:14px; }
-#dashboard .kpi-forge{ min-height:112px; padding:16px 18px 16px 112px; }
-#dashboard .kpi-forge .forge-medallion{ left:18px; top:50%; width:76px; height:76px; }
+#dashboard .kpi-forge{ min-height:124px; padding:16px 18px; }
+#dashboard .kpi-forge .forge-medallion{ left:50%; top:58%; width:76px; height:76px; transform:translate(-50%,-50%); }
 #dashboard .grid-kpi .kpi-forge:not(.kpi-streak-card) .kpi-plate{ opacity:.66; filter:brightness(1.12); }
 #dashboard .kpi-forge .forge-num{ font-size:32px; }
 #dashboard .kpi-forge .forge-cap{ font-size:10px; }
 #dashboard .kpi-forge .label{
-  position:absolute; top:16px; left:112px; z-index:3;
-  white-space:nowrap !important; width:max-content; max-width:none;
+  position:absolute; top:16px; left:50%; transform:translateX(-50%); z-index:3;
+  white-space:nowrap !important; width:max-content; max-width:calc(100% - 36px); text-align:center;
 }
 #dashboard .kpi-forge-header{ display:block; padding-left:0; min-height:0; }
 #dashboard .kpi-forge-header .forge-cap{ position:absolute; right:18px; bottom:16px; max-width:calc(100% - 140px); text-align:right; }
@@ -1632,15 +1632,16 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #dashboard .grid-kpi{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; width:100%; max-width:calc(100vw - 56px); }
   #dashboard .grid-kpi > .card{ min-width:0; }
   #dashboard .grid-kpi .card{ padding-top:12px; }
-  #dashboard .kpi-forge{ min-height:104px; padding:12px 10px 12px 70px; }
-  #dashboard .kpi-forge .forge-medallion{ left:10px; top:50%; width:52px; height:52px; }
+  #dashboard .kpi-forge{ min-height:110px; padding:12px 10px; }
+  #dashboard .kpi-forge .forge-medallion{ left:50%; top:55%; width:50px; height:50px; transform:translate(-50%,-50%); }
   #dashboard .kpi-forge .forge-num{ font-size:24px; }
-  #dashboard .kpi-forge .label{ top:12px; left:70px; width:auto; max-width:calc(100% - 80px); font-size:9px; letter-spacing:.04em; line-height:1.15; white-space:normal !important; }
+  #dashboard .kpi-forge .label{ top:10px; left:50%; width:auto; max-width:calc(100% - 20px); transform:translateX(-50%); font-size:9px; letter-spacing:.04em; line-height:1.15; white-space:normal !important; text-align:center; }
   #dashboard .kpi-forge .forge-cap{ font-size:8px; line-height:1.25; }
   #dashboard .kpi-forge-header .forge-cap{ right:10px; bottom:12px; max-width:calc(100% - 80px); }
   #dashboard .kpi-streak-card > .label{ left:50%; max-width:90px; transform:translateX(-50%); text-align:center; }
-  #dashboard .kpi-streak-card .streak-action-stack{ top:auto; right:10px; bottom:12px; max-width:calc(100% - 80px); gap:4px; }
-  #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:4px 7px; font-size:9px; line-height:1.1; }
+  #dashboard .kpi-streak-card .forge-medallion{ top:47%; }
+  #dashboard .kpi-streak-card .streak-action-stack{ top:auto; left:50%; right:auto; bottom:7px; max-width:calc(100% - 16px); transform:translateX(-50%); align-items:center; gap:4px; }
+  #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:3px 6px; font-size:8px; line-height:1.1; }
 }
 @media all and (display-mode:standalone) and (max-width:700px){
   #dashboard{ padding-top:3px !important; }
