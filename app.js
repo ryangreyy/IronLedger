@@ -2068,9 +2068,10 @@ function initApp(uid) {
      per-week trend, and the recent core log. Training page only —
      returns early everywhere else. */
   function renderCore(sessions) {
-    const weekEl = document.getElementById('coreWeekCount');
+    const weekEl = document.getElementById('coreWeekSets');
     if (!weekEl) return;
-    const monthEl  = document.getElementById('coreMonthCount');
+    const monthEl  = document.getElementById('coreMonthSets');
+    const streakEl = document.getElementById('coreStreak');
     const trendEl  = document.getElementById('coreTrend');
     const recentEl = document.getElementById('coreRecent');
     const emptyEl  = document.getElementById('coreEmpty');
@@ -2084,8 +2085,24 @@ function initApp(uid) {
     const weekStartISO = coreWeekStartISO(today);
     const monthPrefix  = todayISO.slice(0, 7);
 
-    weekEl.textContent = core.filter(s => s.dateRaw >= weekStartISO && s.dateRaw <= todayISO).length;
-    if (monthEl) monthEl.textContent = core.filter(s => s.dateRaw.slice(0, 7) === monthPrefix).length;
+    const sumSets = arr => arr.reduce((t, s) => t + (Number(s.sets) || 0), 0);
+    weekEl.textContent = sumSets(core.filter(s => s.dateRaw >= weekStartISO && s.dateRaw <= todayISO));
+    if (monthEl) monthEl.textContent = sumSets(core.filter(s => s.dateRaw.slice(0, 7) === monthPrefix));
+
+    /* Core streak — consecutive days (ending today) with a logged core
+       session. Today counts as a grace day: not having done abs yet today
+       doesn't zero the streak, it just counts back from yesterday. */
+    if (streakEl) {
+      const coreDays = new Set(core.map(s => s.dateRaw));
+      let streak = 0; const c = new Date(today);
+      for (let i = 0; i < 366; i++) {
+        const iso = localDateISO(c);
+        if (coreDays.has(iso)) { streak++; c.setDate(c.getDate() - 1); }
+        else if (i === 0)      { c.setDate(c.getDate() - 1); }
+        else break;
+      }
+      streakEl.textContent = streak;
+    }
 
     /* Per-week trend — last 8 weeks, current week rightmost. */
     if (trendEl) {

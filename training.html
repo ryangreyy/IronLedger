@@ -137,7 +137,6 @@
       <button class="page-tab" data-tpanel="weight" data-eyebrow="Bodyweight" data-title="Weight Tracking">Weight Log</button>
       <button class="page-tab" data-tpanel="breakdown" data-eyebrow="Daily Breakdown" data-title="Daily Breakdown">Daily Breakdown</button>
       <button class="page-tab" data-tpanel="history" data-eyebrow="Exercise History" data-title="Exercise History">Exercise History</button>
-      <button class="page-tab" data-tpanel="core" data-eyebrow="Abs/Core" data-title="Abs/Core">Abs/Core</button>
     </div>
 
     <!-- ================= TRAINING LOG ================= -->
@@ -372,29 +371,6 @@
       </div>
     </section>
 
-    <!-- ================= CORE ================= -->
-    <section class="page-tab-panel" data-panel="core">
-      <div class="eyebrow" style="margin-bottom:12px;">Abs/Core</div>
-      <div class="yoga-stats" id="coreStats">
-        <div class="yoga-stat"><span class="yoga-stat-num" id="coreWeekCount">0</span><span class="yoga-stat-label">this week</span></div>
-        <div class="yoga-stat"><span class="yoga-stat-num" id="coreMonthCount">0</span><span class="yoga-stat-label">this month</span></div>
-      </div>
-
-      <div class="card chart-card" style="margin-bottom:20px;">
-        <p class="controls-label" style="margin:0 0 16px;">Abs/core sessions per week</p>
-        <div class="core-trend" id="coreTrend"></div>
-      </div>
-
-      <div class="card chart-card">
-        <p class="controls-label" style="margin:0 0 12px;">Recent core work</p>
-        <div id="coreRecent" class="core-recent"></div>
-        <p id="coreEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
-           padding:40px 0;font-family:var(--mono);font-size:14px;">
-          No core sessions logged yet. Log an ab exercise to get started.
-        </p>
-      </div>
-    </section>
-
     <!-- ================= FOOTER ================= -->
     <footer>
       <div class="foot-inner">
@@ -417,7 +393,7 @@
 <!-- App data and logic -->
 <script src="data.js"></script>
 <script src="challenges.js?v=101"></script>
-<script src="app.js?v=160"></script>
+<script src="app.js?v=161"></script>
 <script src="nav.js?v=13"></script>
 <script>
   /* ── Page tabs (Training Log / Weight Log / Daily Breakdown / Exercise

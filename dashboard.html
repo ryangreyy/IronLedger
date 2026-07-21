@@ -135,6 +135,7 @@
     <div class="page-tabs" id="dashboardPageTabs" style="margin-top:28px;">
       <button class="page-tab active" data-dpanel="overview" data-eyebrow="Overview" data-title="This month at a glance">Overview</button>
       <button class="page-tab" data-dpanel="muscle" data-eyebrow="Recovery" data-title="Muscle Recovery">Muscle Recovery</button>
+      <button class="page-tab" data-dpanel="core" data-eyebrow="Abs/Core" data-title="Abs &amp; Core">Abs/Core</button>
     </div>
 
     <!-- ================= DASHBOARD / KPIs ================= -->
@@ -312,6 +313,31 @@
       </div>
     </section>
 
+    <!-- ================= ABS / CORE ================= -->
+    <section class="page-tab-panel" data-panel="core">
+      <div class="eyebrow">Abs/Core</div>
+      <h2 class="title">Abs &amp; Core</h2>
+      <div class="yoga-stats" id="coreStats" style="margin-top:16px;">
+        <div class="yoga-stat"><span class="yoga-stat-num" id="coreStreak">0</span><span class="yoga-stat-label">streak</span></div>
+        <div class="yoga-stat"><span class="yoga-stat-num" id="coreWeekSets">0</span><span class="yoga-stat-label">sets this week</span></div>
+        <div class="yoga-stat"><span class="yoga-stat-num" id="coreMonthSets">0</span><span class="yoga-stat-label">sets this month</span></div>
+      </div>
+
+      <div class="card chart-card" style="margin-bottom:20px;">
+        <p class="controls-label" style="margin:0 0 16px;">Abs/core sessions per week</p>
+        <div class="core-trend" id="coreTrend"></div>
+      </div>
+
+      <div class="card chart-card">
+        <p class="controls-label" style="margin:0 0 12px;">Recent core work</p>
+        <div id="coreRecent" class="core-recent"></div>
+        <p id="coreEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+           padding:40px 0;font-family:var(--mono);font-size:14px;">
+          No core sessions logged yet. Log an ab exercise to get started.
+        </p>
+      </div>
+    </section>
+
     <!-- ================= FOOTER ================= -->
     <footer>
       <div class="foot-inner">
@@ -335,7 +361,7 @@
 <script src="data.js"></script>
 <script src="challenges.js?v=101"></script>
 <script src="musclemap.js?v=1"></script>
-<script src="app.js?v=160"></script>
+<script src="app.js?v=161"></script>
 <script src="nav.js?v=13"></script>
 <script>
   /* ── Page tabs (Overview / Calendar / Muscle Recovery) ── purely UI —
