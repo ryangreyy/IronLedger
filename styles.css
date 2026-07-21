@@ -8,9 +8,9 @@
    every page shares this one stylesheet. No-ops silently on browsers
    that don't support it yet (nothing to feature-detect or guard).
    ============================================================ */
-@view-transition{ navigation:auto; }
+@view-transition{ navigation:none; }
 ::view-transition-old(root),
-::view-transition-new(root){ animation-duration:.18s; animation-timing-function:ease-out; }
+::view-transition-new(root){ animation:none; background:#0B0C0E; }
 
 /* ============================================================
    DESIGN TOKENS — all colors/spacing live here so they're easy
