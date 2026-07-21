@@ -1638,12 +1638,75 @@ function initApp(uid) {
   const MR_HAIR_COLORS = [
     'rgb(26,18,8)', 'rgb(74,44,26)', 'rgb(196,152,40)', 'rgb(224,219,212)',
   ];
+  /* Coarse fallback — one muscle set per lift *class*. Used for custom
+     lifts and manually color-painted calendar days, where all we know is
+     the broad category (squat / bench / dead / arm). */
   const LIFT_CLS_TO_MUSCLES = {
     squat: ['quadriceps', 'gluteal', 'hamstring', 'calves'],
     bench: ['chest', 'deltoids', 'triceps'],
     dead:  ['upper-back', 'lower-back', 'trapezius', 'hamstring'],
     arm:   ['biceps', 'triceps', 'deltoids', 'forearm'],
   };
+
+  /* Precise per-exercise targeting for the recovery map. Keyed by the same
+     normalized lift names liftToCls() recognizes, so a bicep curl lights up
+     biceps (not the whole "arm" bucket) and a row lights up back (not the
+     hamstrings the old "dead" bucket implied).
+
+     IMPORTANT: only slugs in MuscleMapJS.BASE_MUSCLES (plus the always-
+     visible sub-groups "adductors"/"neck") actually render — sub-group
+     slugs like "upper-chest" or "front-deltoid" are hidden by default and
+     would silently no-op, so they are deliberately avoided here. */
+  const M = {
+    squatPattern: ['quadriceps', 'gluteal', 'hamstring', 'adductors'],
+    hinge:        ['hamstring', 'gluteal', 'lower-back'],
+    press:        ['chest', 'triceps', 'deltoids'],
+    fly:          ['chest', 'deltoids'],
+    rowPull:      ['upper-back', 'trapezius', 'biceps'],
+    verticalPull: ['upper-back', 'biceps', 'forearm'],
+    ohp:          ['deltoids', 'triceps', 'trapezius'],
+    lateral:      ['deltoids'],
+    rearDelt:     ['deltoids', 'upper-back', 'trapezius'],
+    tri:          ['triceps'],
+    bi:           ['biceps', 'forearm'],
+  };
+  const LIFT_TO_MUSCLES = {};
+  const mapLifts = (names, muscles) => names.forEach(n => { LIFT_TO_MUSCLES[n] = muscles; });
+
+  mapLifts(['squat','split squat','bulgarian split squats','hack squat','pendulum squat',
+            'bw squat','smith squat','leg press','lunges'], M.squatPattern);
+  mapLifts(['hip thrust'], ['gluteal', 'hamstring']);
+  mapLifts(['rdl','deadlift','rack pull'], ['hamstring', 'gluteal', 'lower-back', 'trapezius', 'quadriceps']);
+  mapLifts(['leg extension'], ['quadriceps']);
+  mapLifts(['leg curl','seated hamstring curl','lying hamstring curl'], ['hamstring']);
+  mapLifts(['calf raise'], ['calves']);
+  mapLifts(['adductors'], ['adductors']);
+  mapLifts(['abductors'], ['gluteal']);
+
+  mapLifts(['bench','bench press','incline press','db flat press','db incline press',
+            'machine chest press','decline chest press','dips','push-up'], M.press);
+  mapLifts(['chest fly','low chest fly','mid chest fly','high chest fly','pec dec'], M.fly);
+
+  mapLifts(['row','barbell row','cable row','chest supported row','machine row','t-bar row'], M.rowPull);
+  mapLifts(['pulldown','lat pulldown','machine lat pulldown','cable lat pulldown','pull-up'], M.verticalPull);
+  mapLifts(['lat pullover'], ['upper-back', 'chest']);
+  mapLifts(['shrugs'], ['trapezius']);
+
+  mapLifts(['overhead press','ohp','shoulder press','arnold press'], M.ohp);
+  mapLifts(['lateral raise','db lateral raise','cable lateral raise','machine lateral raise','front raise'], M.lateral);
+  mapLifts(['rear delt raise','face pull'], M.rearDelt);
+  mapLifts(['tricep pushdown','single arm tricep pushdown','db tricep extension','cable tricep extension',
+            'machine tricep extension','overhead tricep','skull crusher'], M.tri);
+  mapLifts(['close grip bench','jm press'], ['triceps', 'chest', 'deltoids']);
+  mapLifts(['bicep curl','db bicep curl','cable bicep curl','machine bicep curl',
+            'hammer curl','preacher curl','concentration curl'], M.bi);
+
+  /* Precise muscles for a lift; falls back to the coarse class set for
+     custom/unknown lifts (which still carry a squat/bench/dead/arm cls). */
+  function liftToMuscles(lift, cls) {
+    const n = (lift || '').toLowerCase().trim();
+    return LIFT_TO_MUSCLES[n] || LIFT_CLS_TO_MUSCLES[cls] || [];
+  }
 
   /* ---- Guest mode: render empty card shells for signed-out visitors ----
      All render functions below are function declarations so they're
@@ -1870,42 +1933,55 @@ function initApp(uid) {
     return w;
   }
 
-  function calendarRecoveryClsByDate() {
-    const dayCls = {};
+  /* Resolves each dated day to the set of muscles it worked. Logged
+     sessions use precise per-lift targeting and a day can hold several
+     lifts (legs + arms → both light up). A manually color-painted calendar
+     day has no specific lift, so it falls back to the coarse class set and
+     — matching the old override semantics — replaces whatever the sessions
+     implied for that same day. */
+  function muscleDaysByDate() {
+    const dayMuscles = {};
     (currentSessions || []).forEach(s => {
-      if (!s.dateRaw || dayCls[s.dateRaw]) return;
-      dayCls[s.dateRaw] = s.isRestDay ? 'rest' : normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+      if (!s.dateRaw || s.isRestDay) return;
+      const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+      if (cls === 'rest') return;
+      (dayMuscles[s.dateRaw] || (dayMuscles[s.dateRaw] = new Set()));
+      liftToMuscles(s.lift, cls).forEach(m => dayMuscles[s.dateRaw].add(m));
     });
     const calColors = currentSettings?.calendarColors || {};
-    Object.entries(calColors).forEach(([dateRaw, cls]) => {
-      dayCls[dateRaw] = normalizeLiftCls(cls);
+    Object.entries(calColors).forEach(([dateRaw, clsRaw]) => {
+      const cls = normalizeLiftCls(clsRaw);
+      if (cls && cls !== 'rest' && cls !== 'other') {
+        dayMuscles[dateRaw] = new Set(LIFT_CLS_TO_MUSCLES[cls] || []);
+      } else {
+        delete dayMuscles[dateRaw]; // rest / other / cleared → not training
+      }
     });
-    return dayCls;
+    return dayMuscles;
   }
 
   function renderMuscleMap() {
     if (typeof MuscleMapJS === 'undefined') return;
 
     const today = new Date(); today.setHours(12, 0, 0, 0);
-    const lastSeenCls = {};
     const todayISO = localDateISO(today);
-    Object.entries(calendarRecoveryClsByDate()).forEach(([dateRaw, clsRaw]) => {
+
+    /* Most recent date each individual muscle was trained. */
+    const muscleLastDate = {};
+    Object.entries(muscleDaysByDate()).forEach(([dateRaw, muscles]) => {
       if (!dateRaw || dateRaw > todayISO) return;
-      const cls = normalizeLiftCls(clsRaw);
-      if (!cls || cls === 'other' || cls === 'rest') return;
-      if (!lastSeenCls[cls] || dateRaw > lastSeenCls[cls]) lastSeenCls[cls] = dateRaw;
+      muscles.forEach(m => {
+        if (!muscleLastDate[m] || dateRaw > muscleLastDate[m]) muscleLastDate[m] = dateRaw;
+      });
     });
 
     const muscleData = {};
-    Object.entries(lastSeenCls).forEach(([cls, dateRaw]) => {
-      const days = Math.round((today - new Date(dateRaw + 'T12:00:00')) / 86400000);
+    Object.entries(muscleLastDate).forEach(([m, dateRaw]) => {
+      const days  = Math.round((today - new Date(dateRaw + 'T12:00:00')) / 86400000);
       const color = mrDaysColor(days);
-      if (!color) return;
-      (LIFT_CLS_TO_MUSCLES[cls] || []).forEach(m => {
-        if (!muscleData[m] || days < muscleData[m].days) muscleData[m] = { color, days };
-      });
+      if (color) muscleData[m] = color;
     });
-    mrHighlights = Object.fromEntries(Object.entries(muscleData).map(([m, { color }]) => [m, color]));
+    mrHighlights = muscleData;
 
     if (!mrWidgetFront) mrWidgetFront = mrInitWidget('muscle-map-front', 'front');
     if (!mrWidgetBack)  mrWidgetBack  = mrInitWidget('muscle-map-back',  'back');
