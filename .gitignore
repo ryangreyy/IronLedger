@@ -10,3 +10,14 @@ desktop.ini
 # Temporary files
 *.log
 *.tmp
+
+# Editor / local tooling
+.claude/
+.obsidian/
+
+# Personal notes & working docs (kept local, not part of the app)
+*.docx
+*.canvas
+PROJECT-EXPLAINER.md
+IronGladiator Ideas TXT*.txt
+2026-*.md
