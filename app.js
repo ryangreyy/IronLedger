@@ -1596,6 +1596,11 @@ function initApp(uid) {
          'overhead tricep','skull crusher','close grip bench','jm press',
          'bicep curl','db bicep curl','cable bicep curl','machine bicep curl','hammer curl','preacher curl','concentration curl'].includes(n)) return 'arm';
     if (['leg extension','leg curl','seated hamstring curl','lying hamstring curl','calf raise','adductors','abductors'].includes(n)) return 'squat';
+    /* Core is a secondary/accessory group — its own cls so it reads
+       distinctly across the app, but kept out of the main-lift analytics
+       (Big-3, lift-breakdown bars, calendar paint palette). */
+    if (['crunch','sit-up','cable crunch','hanging leg raise','lying leg raise','plank','side plank',
+         'russian twist','bicycle crunch','ab wheel rollout','cable woodchopper','hollow hold'].includes(n)) return 'core';
     return 'other';
   }
 
@@ -1646,6 +1651,7 @@ function initApp(uid) {
     bench: ['chest', 'deltoids', 'triceps'],
     dead:  ['upper-back', 'lower-back', 'trapezius', 'hamstring'],
     arm:   ['biceps', 'triceps', 'deltoids', 'forearm'],
+    core:  ['abs', 'obliques'],
   };
 
   /* Precise per-exercise targeting for the recovery map. Keyed by the same
@@ -1700,6 +1706,10 @@ function initApp(uid) {
   mapLifts(['close grip bench','jm press'], ['triceps', 'chest', 'deltoids']);
   mapLifts(['bicep curl','db bicep curl','cable bicep curl','machine bicep curl',
             'hammer curl','preacher curl','concentration curl'], M.bi);
+
+  mapLifts(['crunch','sit-up','cable crunch','hanging leg raise','lying leg raise',
+            'plank','ab wheel rollout','hollow hold'], ['abs']);
+  mapLifts(['russian twist','side plank','bicycle crunch','cable woodchopper'], ['abs', 'obliques']);
 
   /* Precise muscles for a lift; falls back to the coarse class set for
      custom/unknown lifts (which still carry a squat/bench/dead/arm cls). */
