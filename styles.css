@@ -1057,8 +1057,9 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 #dashboard .kpi-forge-header{ display:block; padding-left:0; min-height:0; }
 #dashboard .kpi-forge-header .forge-cap{ position:absolute; right:18px; bottom:16px; max-width:calc(100% - 140px); text-align:right; }
+#dashboard .kpi-streak-card{ overflow:visible; }
 #dashboard .kpi-streak-card > .label{ left:50%; transform:translateX(-50%); padding-left:0; text-align:center; }
-#dashboard .kpi-streak-card .streak-action-stack{ top:auto; right:18px; bottom:16px; max-width:160px; justify-content:flex-end; }
+#dashboard .kpi-streak-card .streak-action-stack{ top:0; right:18px; bottom:auto; max-width:160px; justify-content:flex-end; transform:translateY(-50%); }
 #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:5px 10px; font-size:11px; }
 /* Light mode: the forged weight-plate medallions are dark steel with near-black
    rings — a dark blob on a light card. Swap to a light steel plate with pale
@@ -1639,8 +1640,8 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   #dashboard .kpi-forge .forge-cap{ font-size:8px; line-height:1.25; }
   #dashboard .kpi-forge-header .forge-cap{ right:10px; bottom:12px; max-width:calc(100% - 80px); }
   #dashboard .kpi-streak-card > .label{ left:50%; max-width:90px; transform:translateX(-50%); text-align:center; }
-  #dashboard .kpi-streak-card .forge-medallion{ top:47%; }
-  #dashboard .kpi-streak-card .streak-action-stack{ top:auto; left:50%; right:auto; bottom:7px; max-width:calc(100% - 16px); transform:translateX(-50%); align-items:center; gap:4px; }
+  #dashboard .kpi-streak-card .forge-medallion{ top:55%; }
+  #dashboard .kpi-streak-card .streak-action-stack{ top:0; left:auto; right:8px; bottom:auto; max-width:calc(100% - 16px); transform:translateY(-50%); align-items:flex-end; gap:4px; }
   #dashboard .kpi-streak-card .streak-action-stack .forge-rest{ padding:3px 6px; font-size:8px; line-height:1.1; }
 }
 @media all and (display-mode:standalone) and (max-width:700px){
