@@ -65,7 +65,7 @@
       a.classList.toggle('nav-current', pageName(a.getAttribute('href')) === name);
     });
     document.querySelectorAll('.mobile-bottom-nav a[href]').forEach(function (a) {
-      a.classList.toggle('active', pageName(a.getAttribute('href')) === name);
+      a.classList.toggle('mbn-active', pageName(a.getAttribute('href')) === name);
     });
   }
 
