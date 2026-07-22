@@ -31,7 +31,7 @@
   function enabled() { try { return localStorage.getItem(FLAG) === '1'; } catch (e) { return false; } }
   if (!enabled()) return;
 
-  var SOFT_PAGES = ['dashboard.html', 'training.html'];
+  var SOFT_PAGES = ['index.html', 'dashboard.html', 'training.html'];
   var CONTENT = '#main-content';
   var busy = false;
 

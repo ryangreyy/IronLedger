@@ -1316,6 +1316,16 @@ function initApp(uid) {
      down prior listeners immediately below. Captures the live uid. */
   window.__IG_activate = function () { initApp(uid); };
 
+  /* Home page only: the marketing-hero/status-header swap itself is
+     CSS-driven off the persistent html[data-guess-signedin] attribute, so
+     it survives a soft-nav swap with no JS needed. The welcome name text
+     has no CSS equivalent though — the swapped-in element is fresh, empty
+     markup each time — so it's explicitly re-applied here. */
+  const homeWelcomeName = document.getElementById('homeWelcomeName');
+  if (homeWelcomeName && currentUser) {
+    homeWelcomeName.textContent = currentUser.displayName || currentUser.email.split('@')[0];
+  }
+
   /* Tear down any listeners left from a previous session */
   if (unsubscribeSessions)   { unsubscribeSessions();   unsubscribeSessions   = null; }
   if (unsubscribeSettings)   { unsubscribeSettings();   unsubscribeSettings   = null; }
