@@ -82,6 +82,15 @@ const db      = firebase.firestore();
 const auth    = firebase.auth();
 const storage = firebase.storage();
 
+/* Cross-activation cache: unlike initApp()'s own local state (which is
+   fresh/reset on every call — soft-nav re-runs initApp on every swap,
+   even between pages that were already visited this session), this
+   variable lives at the true top level and survives across those calls.
+   Used to paint goals immediately from last-known data on arrival at a
+   page that shows them, instead of an empty list while the settings
+   listener re-subscribes and confirms it moments later. */
+let _igGoalsCache = null;
+
 /* ===== DOM HANDLES ================================================ */
 const authScreen   = document.getElementById('auth-screen');
 const mainContent  = document.getElementById('main-content');
@@ -1349,7 +1358,13 @@ function initApp(uid) {
   let calViewYear = new Date().getFullYear();
   let calViewMonth = new Date().getMonth();
 
-  renderGoals(null);
+  /* _igGoalsCache (declared at true top level, near db/auth/storage) holds
+     whatever goals data was last confirmed — unlike this function's own
+     local state, it survives across repeated initApp() calls, so a
+     soft-nav arrival at a page that shows goals paints them immediately
+     instead of an empty list while the settings listener re-subscribes.
+     Cold start (nothing cached yet) still renders null, same as before. */
+  renderGoals(_igGoalsCache);
 
   document.getElementById('calPrev')?.addEventListener('click', () => {
     calViewMonth--;
@@ -3339,6 +3354,7 @@ function initApp(uid) {
       if (unit)        applyUnit(unit);
       if (defaultLift !== undefined) applyDefaultLift(defaultLift);
       applyColors(currentSettings);
+      _igGoalsCache = currentSettings.goals;
       renderGoals(currentSettings.goals);
       applyCustomLifts(currentSettings.customLifts);
       if (mrValidGender(currentSettings.muscleRecoveryGender) && currentSettings.muscleRecoveryGender !== mrGender) {
@@ -3350,6 +3366,7 @@ function initApp(uid) {
       currentSettings = null;
       renderProfile(0, 0, 0, 185, '');
       applyColors(null);
+      _igGoalsCache = null;
       renderGoals(null);
       applyCustomLifts([]);
     }
