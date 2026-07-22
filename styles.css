@@ -2,21 +2,15 @@
    Design tokens (colors, fonts, spacing) are at the top under :root. */
 
 /* ============================================================
-   PAGE-TO-PAGE VIEW TRANSITIONS — native browser crossfade between
-   pages instead of a hard flash/reload. Needs this rule present on
-   BOTH the outgoing and incoming page, which is automatic here since
-   every page shares this one stylesheet. No-ops silently on browsers
-   that don't support it yet (nothing to feature-detect or guard).
-
-   The earlier white flash that led this to be disabled is now handled
-   at its source: every page's <head> paints the dark background inline
-   before styles.css loads, so the incoming page never shows a white
-   frame during the crossfade. Re-enabled here so navigation feels
-   seamless again.
+   PAGE-TO-PAGE VIEW TRANSITIONS — the browser's native cross-document
+   crossfade. Kept OFF: on these heavy pages mobile Safari janks the
+   whole-page crossfade, which reads as choppy (worst in light mode,
+   which also has to fight the first-paint background). Genuinely
+   seamless navigation needs a client-side content swap driving the
+   transition, not the native full-document crossfade. The inline
+   per-page background guard (theme-aware) is what prevents load flash.
    ============================================================ */
-@view-transition{ navigation:auto; }
-::view-transition-old(root),
-::view-transition-new(root){ animation-duration:.18s; animation-timing-function:ease-out; }
+@view-transition{ navigation:none; }
 
 /* ============================================================
    DESIGN TOKENS — all colors/spacing live here so they're easy
