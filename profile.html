@@ -661,6 +661,22 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const content = document.getElementById('avatarContent');
     const img     = document.getElementById('avatarImg');
     if (!el) return;
+    /* settings is null specifically while the real Firestore settings
+       doc hasn't resolved yet (the very first renderHero(user, null)
+       call on sign-in, before the settings snapshot fires) — as opposed
+       to a loaded doc that's genuinely empty ({}). Rendering ANY
+       placeholder here (default gold/red circle, an initial letter, or
+       stale ring/bg/icon colors saved from before the user switched to
+       a photo avatar) causes a brief flash of the wrong avatar before
+       the real one takes over a moment later. Instead, stay fully
+       transparent/blank until we actually know what to show. */
+    if (settings === null) {
+      el.style.background = 'transparent';
+      el.style.boxShadow = 'none';
+      if (img) { img.style.display = 'none'; }
+      if (content) { content.style.display = 'none'; content.innerHTML = ''; }
+      return;
+    }
     const ringColor = settings?.avatarRingColor || '#d4af37';
     const bgColor   = settings?.avatarBgColor   || '#8b1c1c';
     const iconColor = settings?.avatarIconColor  || '#fff';
