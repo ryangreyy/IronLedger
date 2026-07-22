@@ -50,7 +50,17 @@
     if (e) e.textContent = msg || '';
   }
 
+  /* Guards against a real double-prompt: build() auto-fires attempt()
+     250ms after the lock screen appears, but the "Unlock with Face ID"
+     button ALSO calls attempt() on click. If the user taps the button
+     around that 250ms window (or taps again while a request is still
+     in flight), both calls used to reach navigator.credentials.get()
+     independently, and iOS showed two separate Face ID prompts —
+     one from each in-flight WebAuthn request. */
+  var attemptInFlight = false;
+
   function attempt() {
+    if (attemptInFlight) return;
     var credId;
     try { credId = localStorage.getItem('ig-faceid-cred'); } catch (e) {}
     if (!credId || !window.PublicKeyCredential || !navigator.credentials) {
@@ -58,6 +68,7 @@
       return;
     }
     setErr('');
+    attemptInFlight = true;
     var challenge = new Uint8Array(32);
     (window.crypto || {}).getRandomValues && crypto.getRandomValues(challenge);
     navigator.credentials.get({
@@ -68,8 +79,8 @@
         timeout: 60000,
         rpId: location.hostname
       }
-    }).then(function () { unlock(); })
-      .catch(function () { setErr('Couldn’t verify — tap to try again.'); });
+    }).then(function () { attemptInFlight = false; unlock(); })
+      .catch(function () { attemptInFlight = false; setErr('Couldn’t verify — tap to try again.'); });
   }
 
   /* Fallback: full re-login. Sign out (if Firebase is loaded on this page)
