@@ -75,7 +75,9 @@ function localDateISO(d) {
 }
 
 /* ===== FIREBASE INIT ============================================== */
-firebase.initializeApp(firebaseConfig);
+/* Guarded so app.js can coexist with a persistent shell (soft-nav) that
+   may have already initialized Firebase — matches nav-auth.js/yoga.js. */
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db      = firebase.firestore();
 const auth    = firebase.auth();
 const storage = firebase.storage();
@@ -1308,6 +1310,12 @@ function renderBodyweight() {
 }
 
 function initApp(uid) {
+  /* Re-activation hook for soft-nav: after the router swaps in a new
+     page's content, it calls this to re-wire elements + re-subscribe
+     listeners for the new page. Safe to call repeatedly — initApp tears
+     down prior listeners immediately below. Captures the live uid. */
+  window.__IG_activate = function () { initApp(uid); };
+
   /* Tear down any listeners left from a previous session */
   if (unsubscribeSessions)   { unsubscribeSessions();   unsubscribeSessions   = null; }
   if (unsubscribeSettings)   { unsubscribeSettings();   unsubscribeSettings   = null; }

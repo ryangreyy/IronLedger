@@ -121,6 +121,16 @@
 
           <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
 
+          <!-- Seamless navigation (beta) -->
+          <p class="settings-card-title">Seamless navigation <span style="font-size:10px;font-family:var(--mono);letter-spacing:.08em;color:var(--accent-bright);vertical-align:2px;">BETA</span></p>
+          <p class="settings-card-desc">Flip between Dashboard and Training without a page reload. Experimental — turn it off any time if anything feels off. Saved on this device.</p>
+          <div class="unit-toggle" id="softNavToggle">
+            <button data-softnav="off"><i class="ti ti-player-stop" style="vertical-align:-2px;margin-right:7px;"></i>Off</button>
+            <button data-softnav="on"><i class="ti ti-bolt" style="vertical-align:-2px;margin-right:7px;"></i>On</button>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
+
           <!-- Weight unit -->
           <p class="settings-card-title">Weight unit</p>
           <p class="settings-card-desc">Sets the unit label across the whole app. Enter your weights in whichever unit you train in.</p>
@@ -1005,6 +1015,29 @@
     toggle.addEventListener('click', e => {
       const btn = e.target.closest('button[data-theme-choice]');
       if (btn) apply(btn.dataset.themeChoice);
+    });
+    reflect();
+  })();
+
+  /* ── SEAMLESS NAVIGATION (beta) ── device-local flag read by soft-nav.js.
+     On = swap Dashboard/Training content without a full reload. ── */
+  (function () {
+    const KEY = 'ig-softnav';
+    const toggle = document.getElementById('softNavToggle');
+    if (!toggle) return;
+    function reflect() {
+      const on = (() => { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } })();
+      toggle.querySelectorAll('button').forEach(b =>
+        b.classList.toggle('active', b.dataset.softnav === (on ? 'on' : 'off')));
+    }
+    toggle.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-softnav]');
+      if (!btn) return;
+      try {
+        if (btn.dataset.softnav === 'on') localStorage.setItem(KEY, '1');
+        else localStorage.removeItem(KEY);
+      } catch (e) {}
+      reflect();
     });
     reflect();
   })();
