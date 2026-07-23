@@ -998,8 +998,7 @@ document.getElementById('bw-next')?.addEventListener('click', () => {
 (function(){
   const d = document.getElementById('bwDate');
   if (!d) return;
-  d.value = new Date().toISOString().slice(0, 10);
-  d.addEventListener('click', () => { try { d.showPicker(); } catch(e) {} });
+  createDatePicker('bwDate', localDateISO());
 })();
 
 document.getElementById('bwSubmit')?.addEventListener('click', async () => {

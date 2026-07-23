@@ -1753,6 +1753,10 @@ html[data-authredirect] body{ visibility:hidden; }
 .bw-form{
   display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:20px;
 }
+.bw-form .dp-wrap{
+  flex:0 1 190px;
+  min-width:160px;
+}
 .bw-input{
   width:90px; background:var(--bg-2); border:1px solid var(--border-strong);
   color:var(--text); font-family:var(--mono); font-size:16px; font-weight:700;
