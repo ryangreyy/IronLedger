@@ -40,7 +40,9 @@
 
   function unlock() {
     try { sessionStorage.setItem('ig-unlocked', '1'); } catch (e) {}
+    window.__igFaceIdPromptInFlight = false;
     document.documentElement.removeAttribute('data-locked');
+    try { window.dispatchEvent(new CustomEvent('ig:applock-unlocked')); } catch (e) {}
     var o = document.querySelector('.applock');
     if (o) { o.style.opacity = '0'; setTimeout(function () { if (o.parentNode) o.remove(); }, 200); }
   }
@@ -60,7 +62,7 @@
   var attemptInFlight = false;
 
   function attempt() {
-    if (attemptInFlight) return;
+    if (attemptInFlight || window.__igFaceIdPromptInFlight) return;
     var credId;
     try { credId = localStorage.getItem('ig-faceid-cred'); } catch (e) {}
     if (!credId || !window.PublicKeyCredential || !navigator.credentials) {
@@ -69,6 +71,7 @@
     }
     setErr('');
     attemptInFlight = true;
+    window.__igFaceIdPromptInFlight = true;
     var challenge = new Uint8Array(32);
     (window.crypto || {}).getRandomValues && crypto.getRandomValues(challenge);
     navigator.credentials.get({
@@ -80,7 +83,11 @@
         rpId: location.hostname
       }
     }).then(function () { attemptInFlight = false; unlock(); })
-      .catch(function () { attemptInFlight = false; setErr('Couldn’t verify — tap to try again.'); });
+      .catch(function () {
+        attemptInFlight = false;
+        window.__igFaceIdPromptInFlight = false;
+        setErr('Couldn’t verify — tap to try again.');
+      });
   }
 
   /* Fallback: full re-login. Sign out (if Firebase is loaded on this page)
@@ -88,7 +95,9 @@
      first so they don't get re-locked before they can log back in. */
   function usePassword() {
     try { sessionStorage.setItem('ig-unlocked', '1'); } catch (e) {}
+    window.__igFaceIdPromptInFlight = false;
     document.documentElement.removeAttribute('data-locked');
+    try { window.dispatchEvent(new CustomEvent('ig:applock-unlocked')); } catch (e) {}
     try {
       if (window.firebase && firebase.apps && firebase.apps.length) firebase.auth().signOut();
     } catch (e) {}

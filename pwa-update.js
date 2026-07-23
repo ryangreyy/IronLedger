@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '233';
+  var VERSION = '234';
   var KEY = 'ig-pwa-version';
 
   function isStandalone() {
@@ -58,6 +58,10 @@
        actual reload (or the decision that no reload is needed because the
        URL already carries the current version) — never before. */
     function finish() {
+      if (document.documentElement.hasAttribute('data-locked')) {
+        window.addEventListener('ig:applock-unlocked', finish, { once: true });
+        return;
+      }
       try { localStorage.setItem(KEY, VERSION); } catch (e) {}
       if (!urlIsCurrent) {
         url.searchParams.set('v', VERSION);
