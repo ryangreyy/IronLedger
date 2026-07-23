@@ -1767,8 +1767,9 @@ html[data-authredirect] body{ visibility:hidden; }
   background:var(--bg-2); border:1px solid var(--border-strong);
   color:var(--text); font-family:var(--mono); font-size:14px;
   padding:10px 12px; border-radius:10px; outline:none; transition:border .2s;
-  color-scheme:light;
+  color-scheme:dark;
 }
+[data-theme="light"] .bw-date-input{ color-scheme:light; }
 .bw-date-input:focus{ border-color:var(--accent-bright); }
 .bw-month-nav{
   display:flex; align-items:center; justify-content:center; gap:14px;
