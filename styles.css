@@ -106,6 +106,14 @@
 /* Yoga pose thumbnails: dark tile in dark mode, light tile in light mode
    (the cream spotlight circle behind each pose icon stays either way). */
 [data-theme="light"] .pose-card-img-wrap{ background:#E3E7EE; }
+/* Yoga Flow Builder + Rank cards: hardcoded dark surface tiles with no
+   light equivalent (found in an app-wide audit) — same light steel
+   tones used elsewhere for elevated surfaces, dark mode untouched. */
+[data-theme="light"] .flow-duration-input,
+[data-theme="light"] .flow-setup-pill input,
+[data-theme="light"] .rank-lift{ background:#E6E9EF; }
+[data-theme="light"] .flow-seq-item,
+[data-theme="light"] .flow-pose-item:hover{ background:#EDF0F5; }
 /* Hero secondary buttons/links use white glints that vanish on light —
    give them a dark-ink surface and border instead. */
 [data-theme="light"] .btn-solid{ background:rgba(18,23,33,.05); border-color:rgba(18,23,33,.16); }
