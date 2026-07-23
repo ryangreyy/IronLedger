@@ -995,11 +995,14 @@ document.getElementById('bw-next')?.addEventListener('click', () => {
   const totalBWPages = Math.max(1, Math.ceil(monthCount / BW_PAGE_SIZE));
   if (bwCurrentPage < totalBWPages) { bwCurrentPage++; renderBodyweight(); }
 });
-(function(){
+
+function initBodyweightDatePicker() {
   const d = document.getElementById('bwDate');
   if (!d) return;
-  createDatePicker('bwDate', localDateISO());
-})();
+  createDatePicker('bwDate', d.value || localDateISO());
+}
+
+initBodyweightDatePicker();
 
 document.getElementById('bwSubmit')?.addEventListener('click', async () => {
   if (!currentUser) return;
@@ -1063,6 +1066,12 @@ function createDatePicker(inputId, initialDate) {
   const input = document.getElementById(inputId);
   if (!input) return;
 
+  const existingWrap = input.closest('.dp-wrap');
+  if (existingWrap && existingWrap.querySelector('.dp-trigger')) {
+    if (!input.value) input.value = initialDate || localDateISO();
+    return;
+  }
+
   const MONTHS = ['January','February','March','April','May','June',
                   'July','August','September','October','November','December'];
   const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
@@ -1076,6 +1085,7 @@ function createDatePicker(inputId, initialDate) {
   /* Hide native input, keep it in DOM so existing code still reads its value */
   input.type  = 'hidden';
   input.value = startISO;
+  input.dataset.datePickerReady = '1';
 
   /* Build wrapper */
   const wrap = document.createElement('div');
@@ -1191,7 +1201,7 @@ let unsubscribeDaily      = null;
 let unsubscribeWeekly     = null;
 let unsubscribeXP         = null;
 
-let bwCurrentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+let bwCurrentMonth = localDateISO().slice(0, 7); // YYYY-MM
 let bwAllEntries   = [];
 let bwCurrentPage  = 1;
 const BW_PAGE_SIZE = 6;
@@ -2349,6 +2359,7 @@ function initApp(uid) {
 
   /* Custom white calendar picker — no external libraries needed */
   createDatePicker('logDate');
+  initBodyweightDatePicker();
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
