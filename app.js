@@ -2045,6 +2045,17 @@ function initApp(uid) {
     }
   }
 
+  /* The widgets are constructed while the Muscle Recovery tab panel is
+     still display:none (it isn't the default active dashboard tab), so
+     their canvases measure a 0x0 container at construction time. Some
+     WebKit versions don't fire ResizeObserver when a container comes out
+     of display:none, so the canvas can stay permanently blank until an
+     explicit resize — call this when the tab becomes visible. */
+  window.igResizeMuscleMap = function () {
+    if (mrWidgetFront) mrWidgetFront.resize();
+    if (mrWidgetBack)  mrWidgetBack.resize();
+  };
+
   function renderFreq() {
     const container = document.getElementById('freqBars');
     if (!container) return;
