@@ -1417,7 +1417,11 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   font-family:var(--body); font-size:13px; padding:7px 10px; border-radius:8px;
   cursor:pointer; min-width:120px; flex-shrink:0; }
 .color-sel:focus{ outline:none; border-color:var(--accent-bright); }
-.color-harmony-row{ display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+.color-harmony-row{ display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap; }
+/* The two nowrap/flex-shrink:0 buttons never shrink, so on a narrow phone their
+   combined width plus the select's 120px min-width overflows the card — let
+   the row wrap instead of clipping the last button off the edge. */
+.color-harmony-row .color-sel{ min-width:0; flex-basis:140px; }
 .color-save-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; margin-top:6px; }
 .color-inp{ width:38px; height:38px; border:2px solid var(--border-strong); border-radius:8px;
   background:none; padding:2px; cursor:pointer; flex-shrink:0; }
@@ -1475,6 +1479,13 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   background:var(--bg-2); border:1px solid var(--border-strong);
   color:var(--text); font-family:var(--mono); font-size:14px; font-weight:700;
   padding:9px 14px; border-radius:10px; outline:none; cursor:pointer;
+  /* A <select> sizes itself to fit its longest option's text and won't
+     shrink for its flex container on its own — the "Log a session to
+     see your breakdown" / "Log sessions to see history" empty-state
+     placeholders are long enough to push it past the card edge on a
+     narrow phone. Cap it to the available width and truncate instead. */
+  max-width:100%; box-sizing:border-box;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .breakdown-date-sel:focus{ border-color:var(--accent-bright); }
 .donut-wrap{
@@ -1687,7 +1698,11 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   justify-content:center; margin-bottom:10px;
 }
 #authTabs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 22px; }
-#authTabs .page-tab{ text-align:center; }
+/* .page-tab's default 18px side padding leaves "Create Account" (nearly
+   2x "Sign In"'s length) almost no margin in a 2-up equal-width grid on
+   a narrow phone — confirmed clipping on a smaller device. Trim the
+   padding here specifically so both labels get real breathing room. */
+#authTabs .page-tab{ text-align:center; padding-left:8px; padding-right:8px; }
 .auth-sub{
   text-align:center; color:var(--text-dim); font-size:15px;
   margin-bottom:28px; line-height:1.5;
@@ -2370,7 +2385,7 @@ html[data-authredirect] body{ visibility:hidden; }
 .ch-reroll-item{ display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05); cursor:pointer; }
 .ch-reroll-item:last-of-type{ border-bottom:none; }
 .ch-reroll-item input[type=checkbox]{ margin-top:3px; accent-color:var(--accent-bright); flex-shrink:0; }
-.ch-reroll-text{ display:flex; flex-direction:column; gap:2px; }
+.ch-reroll-text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
 .ch-reroll-name{ font-size:13px; font-weight:600; color:var(--text); }
 .ch-reroll-desc{ font-size:11px; color:var(--text-dim); }
 .ch-reroll-actions{ display:flex; gap:10px; margin-top:12px; }
