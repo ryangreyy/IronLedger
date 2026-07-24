@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=4"></script>
-<script src="pwa-update.js?v=12"></script>
+<script src="pwa-update.js?v=13"></script>
 <style>
 /* ---- Profile hero ---- */
 .profile-hero-card{ padding:0; }
@@ -552,10 +552,11 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="firebase-init.js?v=1"></script>
 <script src="data.js"></script>
 <script src="challenges.js?v=101"></script>
 <script>
-  firebase.initializeApp(firebaseConfig);
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const auth    = firebase.auth();
   const db      = firebase.firestore();
   const storage = firebase.storage();
