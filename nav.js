@@ -105,6 +105,13 @@
     '@media(max-width:700px){' +
       '.mobile-bottom-nav{display:flex;}' +
       'body{padding-bottom:calc(58px + max(env(safe-area-inset-bottom,0px),20px)) !important;}' +
+    '}' +
+    /* Six evenly-split flex items leave the longest label ("Dashboard")
+       very little margin on the narrowest current iPhones — trims the
+       label size a touch so there's real breathing room instead of a
+       near-exact fit that a small rendering difference could tip over. */
+    '@media(max-width:400px){' +
+      '.mbn-item{font-size:8px;letter-spacing:.03em;}' +
     '}';
   document.head.appendChild(style);
 
