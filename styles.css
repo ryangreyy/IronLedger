@@ -472,7 +472,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 html[data-guess-signedin="true"] .mobile-brand-header,
 html[data-guess-signedin="true"] #homeHero{ display:none; }
 html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
-.home-greeting-row{ display:flex; align-items:center; justify-content:flex-start; gap:18px; margin-bottom:26px; }
+.home-greeting-row{ display:flex; align-items:center; justify-content:flex-start; gap:18px; margin-bottom:26px; transform:translateY(-7px); }
 .home-avatar{
   --home-avatar-fill:#8b1c1c;
   width:82px; height:82px; border-radius:50%; flex-shrink:0; overflow:hidden;
