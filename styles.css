@@ -489,6 +489,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-stat-side .stat-tile{ flex:1; text-align:center; align-items:center; justify-content:center; }
 .home-stat-side .st-value{ font-size:22px; }
 .crew-strip-card{
+  border-radius:14px;
   display:flex; align-items:center; gap:10px; padding:14px 16px; margin-top:14px; text-align:left;
 }
 .crew-strip-card .crew-avatars{ display:flex; flex-shrink:0; }
