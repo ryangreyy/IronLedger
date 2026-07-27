@@ -407,7 +407,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   }
   .mobile-brand-icon{ width:52px; height:52px; flex-shrink:0; display:block; transform:translateY(-8px); }
   .mobile-brand-text{ display:flex; flex-direction:column; gap:4px; justify-content:center; min-width:0; transform:translateY(-6px); }
-  .goals-wrap{ padding:49px 28px 56px !important; }
+  .goals-wrap{ padding:34px 28px 56px !important; }
   .mobile-brand-title{
     font-family:var(--display); font-size:32px; font-weight:400;
     letter-spacing:2px; text-transform:uppercase;
