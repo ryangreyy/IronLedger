@@ -219,7 +219,7 @@ function syncHomeAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPho
   }
   if (emb) {
     el.style.cssText = `background:${bgColor||'#8b1c1c'};box-shadow:inset 0 0 0 2.5px ${ringColor||'#d4af37'};display:flex;align-items:center;justify-content:center;`;
-    el.innerHTML = `<i class="ti ${emb.icon}" style="font-size:20px;color:${iconColor||'#fff'};line-height:1;" aria-hidden="true"></i>`;
+    el.innerHTML = `<i class="ti ${emb.icon}" style="font-size:26px;color:${iconColor||'#fff'};line-height:1;" aria-hidden="true"></i>`;
   } else if (user) {
     el.style.cssText = 'background:#8b1c1c;box-shadow:inset 0 0 0 2.5px #d4af37;display:flex;align-items:center;justify-content:center;';
     el.innerHTML = '';
