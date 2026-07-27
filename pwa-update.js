@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '249';
+  var VERSION = '250';
   var KEY = 'ig-pwa-version';
 
   function isStandalone() {
@@ -28,15 +28,11 @@
     var urlIsCurrent = url.searchParams.get('v') === VERSION;
 
     /* Both must already be true to skip — the stored flag AND the URL
-       itself carrying the current version marker. Previously the flag was
-       written unconditionally up front, before it was known whether the
-       forced reload below would actually run. If isStandalone() ever came
-       back false on that first pass (a real risk right at PWA cold-launch,
-       where display-mode can be momentarily unsettled), the shell would
-       mark itself "current" without ever having reloaded — and every
-       future launch would then skip this whole block forever, permanently
-       stuck on stale cached HTML/JS with no way to self-heal. */
-    if (localStorage.getItem(KEY) === VERSION && urlIsCurrent) return;
+       itself carrying the current version marker. If either is stale,
+       force one full navigation through a cache-busted URL so installed
+       shells cannot keep running an old HTML/app.js pair. */
+    var storedIsCurrent = localStorage.getItem(KEY) === VERSION;
+    if (storedIsCurrent && urlIsCurrent) return;
 
     var cleanups = [];
 
@@ -55,18 +51,16 @@
     }
 
     /* Only recorded as "handled" right here, in the same step as the
-       actual reload (or the decision that no reload is needed because the
-       URL already carries the current version) — never before. */
+       actual cache-busted reload — never before. */
     function finish() {
       if (document.documentElement.hasAttribute('data-locked')) {
         window.addEventListener('ig:applock-unlocked', finish, { once: true });
         return;
       }
       try { localStorage.setItem(KEY, VERSION); } catch (e) {}
-      if (!urlIsCurrent) {
-        url.searchParams.set('v', VERSION);
-        window.location.replace(url.href);
-      }
+      url.searchParams.set('v', VERSION);
+      url.searchParams.set('pwa-refresh', Date.now().toString(36));
+      window.location.replace(url.href);
     }
 
     Promise.all(cleanups).then(finish, finish);
