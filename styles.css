@@ -500,13 +500,19 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-hero-tile{
   min-height:150px; padding:18px; display:flex; flex-direction:column;
   align-items:center; justify-content:center; text-align:center;
+  position:relative; overflow:hidden;
 }
-.home-hero-tile .st-label{ color:var(--accent-bright); }
-.home-hero-tile .st-value{ font-size:76px; line-height:1; margin:4px 0; }
-.home-hero-sub{ font-family:var(--mono); font-size:11.5px; color:var(--text-dimmer); }
+.home-hero-tile::before{
+  content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(60% 60% at 50% 55%, rgba(240,86,91,.24) 0%, rgba(240,86,91,0) 70%);
+}
+.home-hero-tile > *{ position:relative; z-index:2; }
+.home-hero-tile .st-label{ color:var(--accent-bright); font-size:14px !important; }
+.home-stat-hero .home-hero-tile .st-value{ font-size:76px; line-height:1; margin:4px 0; filter:drop-shadow(0 0 18px rgba(240,86,91,.45)); }
+.home-hero-sub{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); }
 .home-stat-side{ display:flex; flex-direction:column; gap:14px; }
 .home-stat-side .stat-tile{ flex:1; text-align:center; align-items:center; justify-content:center; }
-.home-stat-side .st-value{ font-size:22px; }
+.home-stat-hero .home-stat-side .st-value{ font-size:22px; }
 .sugg-cols{ display:flex; width:100%; justify-content:space-around; margin-top:6px; }
 .sugg-col{ text-align:center; }
 .sugg-col .name{ font-size:14px; font-weight:800; }
@@ -558,12 +564,13 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   .home-avatar{ width:50px; height:50px; font-size:18px; }
   .home-stat-hero{ gap:8px; }
   .home-hero-tile{ min-height:118px; padding:14px; }
-  .home-hero-tile .st-value{ font-size:56px; }
-  .home-hero-sub{ font-size:10px; }
+  .home-stat-hero .home-hero-tile .st-value{ font-size:56px; }
+  .home-hero-sub{ font-size:11px; }
   .home-stat-side{ gap:8px; }
   .home-stat-side .stat-tile{ padding:12px 8px; }
-  .home-stat-side .st-value{ font-size:17px; }
+  .home-stat-hero .home-stat-side .st-value{ font-size:17px; }
   .home-status-header .st-label{ font-size:9px; }
+  .home-hero-tile .st-label{ font-size:12px !important; }
   .sugg-col .name{ font-size:12px; }
   .sugg-col .days2{ font-size:9px; }
   .home-rank-tile{ gap:6px; }
