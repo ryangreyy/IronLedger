@@ -200,8 +200,8 @@ function syncHomeAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPho
     img.alt = '';
     img.style.cssText = 'position:absolute;object-fit:fill;';
     img.onload = function () {
-      const cW = el.offsetWidth  || 48;
-      const cH = el.offsetHeight || 48;
+      const cW = el.clientWidth  || el.offsetWidth  || 48;
+      const cH = el.clientHeight || el.offsetHeight || 48;
       const z  = avatarZoom != null ? avatarZoom : 1;
       const px = avatarPosX != null ? avatarPosX : 50;
       const py = avatarPosY != null ? avatarPosY : 50;
