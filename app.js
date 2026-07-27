@@ -972,30 +972,6 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
   });
 })();
 
-/* ===== BODYWEIGHT: month nav + log submit ========================= */
-document.getElementById('bwPrev')?.addEventListener('click', () => {
-  const [yr, mo] = bwCurrentMonth.split('-').map(Number);
-  const d = new Date(yr, mo - 2, 1);
-  bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  bwCurrentPage = 1;
-  renderBodyweight();
-});
-document.getElementById('bwNext')?.addEventListener('click', () => {
-  const [yr, mo] = bwCurrentMonth.split('-').map(Number);
-  const d = new Date(yr, mo, 1);
-  bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  bwCurrentPage = 1;
-  renderBodyweight();
-});
-document.getElementById('bw-prev')?.addEventListener('click', () => {
-  if (bwCurrentPage > 1) { bwCurrentPage--; renderBodyweight(); }
-});
-document.getElementById('bw-next')?.addEventListener('click', () => {
-  const monthCount = bwAllEntries.filter(e => e.date && e.date.startsWith(bwCurrentMonth)).length;
-  const totalBWPages = Math.max(1, Math.ceil(monthCount / BW_PAGE_SIZE));
-  if (bwCurrentPage < totalBWPages) { bwCurrentPage++; renderBodyweight(); }
-});
-
 function initBodyweightDatePicker() {
   const d = document.getElementById('bwDate');
   if (!d) return;
@@ -1004,26 +980,60 @@ function initBodyweightDatePicker() {
 
 initBodyweightDatePicker();
 
-document.getElementById('bwSubmit')?.addEventListener('click', async () => {
-  /* Every one of these guards used to fail completely silently — tap the
-     button while a fresh sign-in was still resolving, or with no weight
-     typed in, and nothing happened at all with no error, no toast,
-     nothing to explain why. Indistinguishable from a dead button. */
-  if (!currentUser) { showToast('Still signing you in — try again in a moment.'); return; }
-  const weightVal = parseFloat(document.getElementById('bwInput').value);
-  const dateVal   = document.getElementById('bwDate').value;
-  if (!weightVal || weightVal <= 0) { showToast('Enter a valid weight first.'); return; }
-  if (!dateVal) { showToast('Pick a date first.'); return; }
-  try {
-    await db.collection('users').doc(currentUser.uid).collection('bodyweight').add({
-      weight: weightVal,
-      date:   dateVal,
-      ts:     firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    document.getElementById('bwInput').value = '';
-    bwCurrentMonth = dateVal.slice(0, 7);
-  } catch(err) { showToast('Could not save weight entry — ' + (err?.message || 'check your connection.')); }
-});
+/* ===== BODYWEIGHT: month nav + log submit =========================
+   Registered inside initApp() (called below, and again from initApp
+   itself) rather than once at top level — soft-nav swaps replace
+   #main-content's innerHTML on every Training navigation, destroying
+   and recreating these buttons. A listener attached once at module
+   load targets a node that no longer exists after the first swap,
+   leaving Log weight (and the month/page nav arrows) permanently dead
+   until a full page reload — the button looks broken with zero
+   feedback because there's no listener on it at all anymore. */
+function initBodyweightControls() {
+  document.getElementById('bwPrev')?.addEventListener('click', () => {
+    const [yr, mo] = bwCurrentMonth.split('-').map(Number);
+    const d = new Date(yr, mo - 2, 1);
+    bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    bwCurrentPage = 1;
+    renderBodyweight();
+  });
+  document.getElementById('bwNext')?.addEventListener('click', () => {
+    const [yr, mo] = bwCurrentMonth.split('-').map(Number);
+    const d = new Date(yr, mo, 1);
+    bwCurrentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    bwCurrentPage = 1;
+    renderBodyweight();
+  });
+  document.getElementById('bw-prev')?.addEventListener('click', () => {
+    if (bwCurrentPage > 1) { bwCurrentPage--; renderBodyweight(); }
+  });
+  document.getElementById('bw-next')?.addEventListener('click', () => {
+    const monthCount = bwAllEntries.filter(e => e.date && e.date.startsWith(bwCurrentMonth)).length;
+    const totalBWPages = Math.max(1, Math.ceil(monthCount / BW_PAGE_SIZE));
+    if (bwCurrentPage < totalBWPages) { bwCurrentPage++; renderBodyweight(); }
+  });
+  document.getElementById('bwSubmit')?.addEventListener('click', async () => {
+    /* Every one of these guards used to fail completely silently — tap
+       the button while a fresh sign-in was still resolving, or with no
+       weight typed in, and nothing happened at all with no error, no
+       toast, nothing to explain why. Indistinguishable from a dead
+       button. */
+    if (!currentUser) { showToast('Still signing you in — try again in a moment.'); return; }
+    const weightVal = parseFloat(document.getElementById('bwInput').value);
+    const dateVal   = document.getElementById('bwDate').value;
+    if (!weightVal || weightVal <= 0) { showToast('Enter a valid weight first.'); return; }
+    if (!dateVal) { showToast('Pick a date first.'); return; }
+    try {
+      await db.collection('users').doc(currentUser.uid).collection('bodyweight').add({
+        weight: weightVal,
+        date:   dateVal,
+        ts:     firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      document.getElementById('bwInput').value = '';
+      bwCurrentMonth = dateVal.slice(0, 7);
+    } catch(err) { showToast('Could not save weight entry — ' + (err?.message || 'check your connection.')); }
+  });
+}
 
 /* ── TOAST NOTIFICATIONS ──────────────────────────────────────────────────── */
 function showToast(message, type = 'error') {
@@ -2376,6 +2386,7 @@ function initApp(uid) {
   /* Custom white calendar picker — no external libraries needed */
   createDatePicker('logDate');
   initBodyweightDatePicker();
+  initBodyweightControls();
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
