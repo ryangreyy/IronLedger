@@ -472,16 +472,44 @@ html[data-guess-signedin="true"] #homeHero{ display:none; }
 html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-status-header .eyebrow{ justify-content:center; margin-bottom:10px; transform:translateY(-5px); }
 .home-status-header .title{ margin-bottom:22px; transform:translateY(-3px); }
-.home-stat-strip{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-.home-stat-strip .stat-tile{ text-align:center; align-items:center; justify-content:center; }
-.home-stat-strip .stat-tile{
+.home-status-header .stat-tile,
+.crew-strip-card{
   background:
     radial-gradient(120% 120% at 30% 12%,var(--card-top) 0%,var(--card-bot) 80%) padding-box,
     var(--card-metal) border-box;
   border:1.5px solid transparent;
   box-shadow:var(--card-shadow);
 }
-.home-stat-strip .st-value{ font-size:26px; }
+.home-stat-hero{ display:grid; grid-template-columns:1.3fr 1fr; gap:14px; text-align:left; }
+.home-hero-tile{ padding:22px 20px; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; }
+.home-hero-tile .st-label{ color:var(--accent-bright); }
+.home-hero-tile .st-value{ font-size:44px; line-height:1; }
+.home-hero-sub{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); margin-top:6px; }
+.home-stat-side{ display:flex; flex-direction:column; gap:14px; }
+.home-stat-side .stat-tile{ flex:1; text-align:center; align-items:center; justify-content:center; }
+.home-stat-side .st-value{ font-size:22px; }
+.crew-strip-card{
+  display:flex; align-items:center; gap:10px; padding:14px 16px; margin-top:14px; text-align:left;
+}
+.crew-strip-card .crew-avatars{ display:flex; flex-shrink:0; }
+.crew-strip-card .crew-av{
+  width:30px; height:30px; border-radius:50%; border:2px solid var(--bg-2);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  font-family:var(--mono); font-size:11px; font-weight:800; margin-left:-8px; background:#3a3e46; color:var(--text);
+}
+.crew-strip-card .crew-av:first-child{ margin-left:0; }
+.crew-strip-card .crew-icon{
+  width:30px; height:30px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,.04);
+  border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+  color:var(--text-dimmer); font-size:15px;
+}
+.crew-strip-card .crew-text{ flex:1; min-width:0; }
+.crew-strip-card .crew-t1{ font-size:13px; font-weight:700; }
+.crew-strip-card .crew-t2{
+  font-family:var(--mono); font-size:11px; color:var(--text-dimmer); margin-top:1px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.crew-strip-card .crew-link{ font-family:var(--mono); font-size:11px; color:var(--accent-bright); font-weight:700; white-space:nowrap; flex-shrink:0; }
 .home-rank-tile{ align-items:center !important; justify-content:center; gap:8px; }
 .home-rank-name{
   width:100%; max-width:100%; display:flex; align-items:center; justify-content:center;
@@ -502,15 +530,22 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 [data-theme="light"] .home-rank-badge{ background:rgba(18,23,33,.04); border-color:rgba(18,23,33,.13); box-shadow:inset 0 1px 0 rgba(255,255,255,.75); }
 @media(max-width:480px){
   .home-status-header{ padding:6px 20px 0; }
-  .home-stat-strip{ gap:8px; }
-  .home-stat-strip .stat-tile{ padding:14px 8px; }
-  .home-stat-strip .st-value{ font-size:20px; }
-  .home-stat-strip .st-label{ font-size:9px; }
+  .home-stat-hero{ gap:8px; }
+  .home-hero-tile{ padding:16px 14px; }
+  .home-hero-tile .st-value{ font-size:32px; }
+  .home-hero-sub{ font-size:9.5px; }
+  .home-stat-side{ gap:8px; }
+  .home-stat-side .stat-tile{ padding:12px 8px; }
+  .home-stat-side .st-value{ font-size:17px; }
+  .home-status-header .st-label{ font-size:9px; }
   .home-rank-tile{ gap:6px; }
   .home-rank-name{ font-size:11px !important; letter-spacing:.06em; }
   .home-rank-badge-slot{ min-height:42px; transform:none; }
   .home-rank-badge{ gap:5px; padding:3px 5px; font-size:10px; letter-spacing:.035em; border-radius:10px; transform:translateX(-2px); }
   .home-rank-badge svg{ width:36px !important; height:42px !important; }
+  .crew-strip-card{ padding:12px 14px; gap:8px; }
+  .crew-strip-card .crew-t1{ font-size:12px; }
+  .crew-strip-card .crew-t2{ font-size:10px; }
 }
 
 .goals-wrap{ max-width:1140px; margin:0 auto; padding:0 28px 56px; }

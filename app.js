@@ -1906,6 +1906,7 @@ function initApp(uid) {
     } else {
       setHTML('kpi-streak-delta', '');
     }
+    set('homeStatBest', streak ? (bestStreak > streak ? `longest streak: ${bestStreak} days` : 'personal best!') : '');
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
 
     const banner = document.getElementById('welcome-banner');
@@ -2383,10 +2384,66 @@ function initApp(uid) {
       </tr>`;
   }
 
+  /* Home page only: "N friends trained today" strip below the KPI cards.
+     Registered here (not at top level) for the same reason as
+     initBodyweightControls() above — soft-nav swaps replace
+     #main-content's innerHTML on every Home navigation, so this has to
+     re-run on every initApp() call rather than attach once. Cheap
+     per-friend query: an existence check for today's date, not a full
+     session fetch. */
+  function loadHomeCrewStrip(forUid) {
+    const card = document.getElementById('homeCrewStrip');
+    if (!card) return;
+    const todayISO = localDateISO();
+    Promise.all([
+      db.collection('friendRequests').where('fromUid', '==', forUid).where('status', '==', 'accepted').get(),
+      db.collection('friendRequests').where('toUid',   '==', forUid).where('status', '==', 'accepted').get(),
+    ]).then(([sentSnap, recvSnap]) => {
+      const friends = [
+        ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
+        ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername })),
+      ];
+      if (!friends.length) { card.style.display = 'none'; return; }
+      return Promise.all(friends.map(f =>
+        db.collection(`users/${f.uid}/sessions`).where('dateRaw', '==', todayISO).limit(1).get()
+          .then(snap => ({ ...f, trainedToday: !snap.empty }))
+          .catch(() => ({ ...f, trainedToday: false }))
+      )).then(results => renderHomeCrewStrip(card, results.filter(r => r.trainedToday)));
+    }).catch(() => { card.style.display = 'none'; });
+  }
+
+  function renderHomeCrewStrip(card, trained) {
+    card.style.display = 'flex';
+    if (!trained.length) {
+      card.innerHTML = `
+        <div class="crew-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
+        <div class="crew-text">
+          <div class="crew-t1">No one's trained today yet</div>
+          <div class="crew-t2">Be the first to log a session</div>
+        </div>`;
+      return;
+    }
+    const shown = trained.slice(0, 3);
+    const extra = trained.length - shown.length;
+    const avatarsHtml = shown.map(f =>
+      `<div class="crew-av">${escapeHTML((f.username || '?').slice(0, 2).toUpperCase())}</div>`
+    ).join('') + (extra > 0 ? `<div class="crew-av">+${extra}</div>` : '');
+    const names = trained.slice(0, 2).map(f => '@' + f.username).join(', ')
+      + (trained.length > 2 ? ` & ${trained.length - 2} other${trained.length - 2 === 1 ? '' : 's'}` : '');
+    card.innerHTML = `
+      <div class="crew-avatars">${avatarsHtml}</div>
+      <div class="crew-text">
+        <div class="crew-t1">${trained.length} friend${trained.length === 1 ? '' : 's'} trained today</div>
+        <div class="crew-t2">${escapeHTML(names)}</div>
+      </div>
+      <a href="feed.html" class="crew-link">See feed →</a>`;
+  }
+
   /* Custom white calendar picker — no external libraries needed */
   createDatePicker('logDate');
   initBodyweightDatePicker();
   initBodyweightControls();
+  loadHomeCrewStrip(uid);
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
