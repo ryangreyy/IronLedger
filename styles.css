@@ -507,7 +507,10 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   background:radial-gradient(60% 60% at 50% 55%, rgba(240,86,91,.24) 0%, rgba(240,86,91,0) 70%);
 }
 .home-hero-tile > *{ position:relative; z-index:2; }
-.home-hero-tile .st-label{ color:var(--accent); font-size:14px !important; }
+.home-hero-tile .st-label{
+  color:var(--accent-bright) !important; font-size:12px !important; letter-spacing:0.22em !important;
+  text-shadow:0 0 12px rgba(193,39,45,.55),0 0 28px rgba(193,39,45,.25);
+}
 .home-stat-hero .home-hero-tile .st-value{
   font-size:76px; line-height:1; margin:4px 0;
   background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent;
@@ -548,10 +551,14 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-rank-name{
   width:100%; max-width:100%; display:flex; align-items:center; justify-content:center;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  color:var(--accent) !important; font-size:14px !important; font-weight:800;
-  text-align:center;
+  color:var(--accent-bright) !important; font-size:12px !important; font-weight:400;
+  letter-spacing:0.22em !important; text-align:center;
+  text-shadow:0 0 12px rgba(193,39,45,.55),0 0 28px rgba(193,39,45,.25);
 }
-.home-sugg-tile .st-label{ color:var(--accent); }
+.home-sugg-tile .st-label{
+  color:var(--accent-bright) !important; font-size:12px !important; letter-spacing:0.22em !important;
+  text-shadow:0 0 12px rgba(193,39,45,.55),0 0 28px rgba(193,39,45,.25);
+}
 .home-rank-badge-slot{ width:100%; display:flex; align-items:center; justify-content:center; min-height:52px; line-height:1; transform:none; }
 .home-rank-badge{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
@@ -575,11 +582,12 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   .home-stat-side .stat-tile{ padding:12px 8px; }
   .home-stat-hero .home-stat-side .st-value{ font-size:17px; }
   .home-status-header .st-label{ font-size:9px; }
-  .home-hero-tile .st-label{ font-size:12px !important; }
+  .home-hero-tile .st-label{ font-size:11px !important; letter-spacing:0.18em !important; }
+  .home-sugg-tile .st-label{ font-size:11px !important; letter-spacing:0.18em !important; }
   .sugg-col .name{ font-size:12px; }
   .sugg-col .days2{ font-size:9px; }
   .home-rank-tile{ gap:6px; }
-  .home-rank-name{ font-size:11px !important; letter-spacing:.06em; }
+  .home-rank-name{ font-size:11px !important; letter-spacing:0.18em !important; }
   .home-rank-badge-slot{ min-height:42px; transform:none; }
   .home-rank-badge{ gap:5px; padding:3px 5px; font-size:10px; letter-spacing:.035em; border-radius:10px; transform:translateX(-2px); }
   .home-rank-badge svg{ width:36px !important; height:42px !important; }
