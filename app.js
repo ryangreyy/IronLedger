@@ -1954,9 +1954,8 @@ function initApp(uid) {
   }
 
   /* Home page only: "Suggested" side card — the two lift categories
-     with the longest gap since last trained, each in its real category
-     color (same one used in the calendar legend/pills/charts). A
-     category never trained at all outranks any number of days. */
+     with the longest gap since last trained, resolved from the same
+     date->group source of truth the overview calendar paints. */
   const SUGGESTED_CATS = ['squat', 'bench', 'dead', 'arm', 'core'];
   const SUGGESTED_LABELS = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms', core: 'Core' };
   const SUGGESTED_ORDER = SUGGESTED_CATS.reduce((acc, cls, index) => {
@@ -1964,18 +1963,32 @@ function initApp(uid) {
     return acc;
   }, {});
 
-  function rankSuggestedGroups(sessions, todayISO = localDateISO()) {
+  function calendarGroupsByDate(sessions = currentSessions, calColors = currentSettings?.calendarColors || {}) {
+    const byDate = {};
+    (Array.isArray(sessions) ? sessions : []).forEach(s => {
+      if (!s || !s.dateRaw || byDate[s.dateRaw]) return;
+      byDate[s.dateRaw] = s.isRestDay ? 'rest' : normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+    });
+    Object.entries(calColors || {}).forEach(([dateRaw, clsRaw]) => {
+      const cls = normalizeLiftCls(clsRaw);
+      if (cls) byDate[dateRaw] = cls;
+      else delete byDate[dateRaw];
+    });
+    return byDate;
+  }
+
+  function rankSuggestedGroups(sessions, todayISO = localDateISO(), calColors = currentSettings?.calendarColors || {}) {
     const today = new Date(todayISO + 'T12:00:00');
     const lastDate = SUGGESTED_CATS.reduce((acc, cls) => {
       acc[cls] = '';
       return acc;
     }, {});
 
-    (Array.isArray(sessions) ? sessions : []).forEach(s => {
-      if (!s || !s.dateRaw || s.isRestDay || s.dateRaw > todayISO) return;
-      const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+    Object.entries(calendarGroupsByDate(sessions, calColors)).forEach(([dateRaw, clsRaw]) => {
+      if (!dateRaw || dateRaw > todayISO) return;
+      const cls = normalizeLiftCls(clsRaw);
       if (!Object.prototype.hasOwnProperty.call(lastDate, cls)) return;
-      if (!lastDate[cls] || s.dateRaw > lastDate[cls]) lastDate[cls] = s.dateRaw;
+      if (!lastDate[cls] || dateRaw > lastDate[cls]) lastDate[cls] = dateRaw;
     });
 
     return SUGGESTED_CATS.map(cls => {
@@ -1986,8 +1999,8 @@ function initApp(uid) {
       return { cls, days, last };
     }).sort((a, b) => {
       if (a.days == null && b.days == null) return SUGGESTED_ORDER[a.cls] - SUGGESTED_ORDER[b.cls];
-      if (a.days == null) return -1;
-      if (b.days == null) return 1;
+      if (a.days == null) return 1;
+      if (b.days == null) return -1;
       return (b.days - a.days) || (SUGGESTED_ORDER[a.cls] - SUGGESTED_ORDER[b.cls]);
     });
   }
