@@ -2573,8 +2573,8 @@ function initApp(uid) {
       img.alt = '';
       img.style.cssText = 'position:absolute;object-fit:fill;';
       img.onload = function () {
-        const cW = el.offsetWidth || 30;
-        const cH = el.offsetHeight || 30;
+        const cW = el.clientWidth || el.offsetWidth || 30;
+        const cH = el.clientHeight || el.offsetHeight || 30;
         const zoom = clampHomeCrewNumber(el.dataset.zoom, 1, 1, 4);
         const posX = clampHomeCrewNumber(el.dataset.posx, 50, 0, 100);
         const posY = clampHomeCrewNumber(el.dataset.posy, 50, 0, 100);
