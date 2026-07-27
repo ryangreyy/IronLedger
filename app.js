@@ -1463,8 +1463,13 @@ function initApp(uid) {
      the sessions listener or the settings listener rendered first. */
   function normalizeLiftCls(cls) {
     if (!cls) return '';
-    if (cls === 'press') return 'arm';
-    return cls;
+    const key = String(cls).toLowerCase().trim();
+    if (key === 'legs') return 'squat';
+    if (key === 'chest') return 'bench';
+    if (key === 'back') return 'dead';
+    if (key === 'press' || key === 'arms' || key === 'shoulders') return 'arm';
+    if (key === 'abs' || key === 'ab' || key === 'abs/core') return 'core';
+    return key;
   }
 
   function colorKeyForCls(cls) {
@@ -1954,31 +1959,45 @@ function initApp(uid) {
      category never trained at all outranks any number of days. */
   const SUGGESTED_CATS = ['squat', 'bench', 'dead', 'arm', 'core'];
   const SUGGESTED_LABELS = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms', core: 'Core' };
+  const SUGGESTED_ORDER = SUGGESTED_CATS.reduce((acc, cls, index) => {
+    acc[cls] = index;
+    return acc;
+  }, {});
+
+  function rankSuggestedGroups(sessions, todayISO = localDateISO()) {
+    const today = new Date(todayISO + 'T12:00:00');
+    const lastDate = SUGGESTED_CATS.reduce((acc, cls) => {
+      acc[cls] = '';
+      return acc;
+    }, {});
+
+    (Array.isArray(sessions) ? sessions : []).forEach(s => {
+      if (!s || !s.dateRaw || s.isRestDay || s.dateRaw > todayISO) return;
+      const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+      if (!Object.prototype.hasOwnProperty.call(lastDate, cls)) return;
+      if (!lastDate[cls] || s.dateRaw > lastDate[cls]) lastDate[cls] = s.dateRaw;
+    });
+
+    return SUGGESTED_CATS.map(cls => {
+      const last = lastDate[cls];
+      const days = last
+        ? Math.max(0, Math.round((today - new Date(last + 'T12:00:00')) / 86400000))
+        : null;
+      return { cls, days, last };
+    }).sort((a, b) => {
+      if (a.days == null && b.days == null) return SUGGESTED_ORDER[a.cls] - SUGGESTED_ORDER[b.cls];
+      if (a.days == null) return -1;
+      if (b.days == null) return 1;
+      return (b.days - a.days) || (SUGGESTED_ORDER[a.cls] - SUGGESTED_ORDER[b.cls]);
+    });
+  }
 
   function renderHomeSuggested() {
     const card = document.getElementById('homeSuggested');
     const cols = document.getElementById('homeSuggCols');
     if (!card || !cols) return;
 
-    const today = new Date(); today.setHours(12, 0, 0, 0);
-    const lastDate = {};
-    currentSessions.forEach(s => {
-      if (!s.dateRaw || s.isRestDay) return;
-      const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
-      if (!SUGGESTED_CATS.includes(cls)) return;
-      if (!lastDate[cls] || s.dateRaw > lastDate[cls]) lastDate[cls] = s.dateRaw;
-    });
-
-    const ranked = SUGGESTED_CATS.map(cls => {
-      const last = lastDate[cls];
-      const days = last ? Math.round((today - new Date(last + 'T12:00:00')) / 86400000) : null;
-      return { cls, days };
-    }).sort((a, b) => {
-      if (a.days == null && b.days == null) return 0;
-      if (a.days == null) return -1;
-      if (b.days == null) return 1;
-      return b.days - a.days;
-    });
+    const ranked = rankSuggestedGroups(currentSessions);
 
     if (!ranked.length) { card.style.display = 'none'; return; }
 
