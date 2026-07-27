@@ -187,8 +187,49 @@ function syncBottomNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avat
   old.replaceWith(el);
 }
 
+/* Home page only: the greeting-row avatar next to "Welcome back". No-op
+   on every other page since #homeAvatar only exists in index.html. */
+function syncHomeAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY) {
+  const el = document.getElementById('homeAvatar');
+  if (!el) return;
+  const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
+  if (avatarPhotoUrl || (user && user.photoURL && !emb)) {
+    el.style.cssText = 'overflow:hidden;background:transparent;position:relative;box-shadow:inset 0 0 0 2.5px #d4af37;';
+    el.innerHTML = '';
+    const img = document.createElement('img');
+    img.alt = '';
+    img.style.cssText = 'position:absolute;object-fit:fill;';
+    img.onload = function () {
+      const cW = el.offsetWidth  || 48;
+      const cH = el.offsetHeight || 48;
+      const z  = avatarZoom != null ? avatarZoom : 1;
+      const px = avatarPosX != null ? avatarPosX : 50;
+      const py = avatarPosY != null ? avatarPosY : 50;
+      const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+      const dW = img.naturalWidth  * base * z;
+      const dH = img.naturalHeight * base * z;
+      img.style.width  = dW + 'px';
+      img.style.height = dH + 'px';
+      img.style.left   = -((dW - cW) * px / 100) + 'px';
+      img.style.top    = -((dH - cH) * py / 100) + 'px';
+    };
+    img.src = avatarPhotoUrl || user.photoURL;
+    el.appendChild(img);
+    return;
+  }
+  if (emb) {
+    el.style.cssText = `background:${bgColor||'#8b1c1c'};box-shadow:inset 0 0 0 2.5px ${ringColor||'#d4af37'};display:flex;align-items:center;justify-content:center;`;
+    el.innerHTML = `<i class="ti ${emb.icon}" style="font-size:20px;color:${iconColor||'#fff'};line-height:1;" aria-hidden="true"></i>`;
+  } else if (user) {
+    el.style.cssText = 'background:#8b1c1c;box-shadow:inset 0 0 0 2.5px #d4af37;display:flex;align-items:center;justify-content:center;';
+    el.innerHTML = '';
+    el.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+  }
+}
+
 function applyNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY, doReveal) {
   syncBottomNavAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY);
+  syncHomeAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPhotoUrl, avatarZoom, avatarPosX, avatarPosY);
   if (!navAvatar) return;
   if (avatarPhotoUrl) {
     navAvatar.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
