@@ -499,6 +499,10 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-stat-side{ display:flex; flex-direction:column; gap:14px; }
 .home-stat-side .stat-tile{ flex:1; text-align:center; align-items:center; justify-content:center; }
 .home-stat-side .st-value{ font-size:22px; }
+.sugg-cols{ display:flex; width:100%; justify-content:space-around; margin-top:6px; }
+.sugg-col{ text-align:center; }
+.sugg-col .name{ font-size:14px; font-weight:800; }
+.sugg-col .days2{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); margin-top:2px; }
 .crew-strip-card{
   border-radius:14px;
   display:flex; align-items:center; gap:10px; padding:14px 16px; margin-top:14px; text-align:left;
@@ -552,6 +556,8 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   .home-stat-side .stat-tile{ padding:12px 8px; }
   .home-stat-side .st-value{ font-size:17px; }
   .home-status-header .st-label{ font-size:9px; }
+  .sugg-col .name{ font-size:12px; }
+  .sugg-col .days2{ font-size:9px; }
   .home-rank-tile{ gap:6px; }
   .home-rank-name{ font-size:11px !important; letter-spacing:.06em; }
   .home-rank-badge-slot{ min-height:42px; transform:none; }

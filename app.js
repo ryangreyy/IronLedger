@@ -1890,14 +1890,6 @@ function initApp(uid) {
     const s = currentSettings;
     const big3 = s ? (s.squatMax || 0) + (s.benchMax || 0) + (s.deadMax || 0) : 0;
 
-    /* Sessions this week — Monday-start, same boundary challenges.js uses,
-       so this matches whatever "this week" means elsewhere in the app. */
-    const weekStart   = _igWeekStart(todayISO);
-    const sessionsWeek = new Set(
-      currentSessions.filter(s => !s.isRestDay && s.dateRaw && s.dateRaw >= weekStart && s.dateRaw <= todayISO)
-        .map(s => s.dateRaw)
-    ).size;
-
     /* Update the four cards */
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
@@ -1908,7 +1900,6 @@ function initApp(uid) {
 
     /* Home page status header (no-op elsewhere — elements don't exist) */
     set('homeStatStreak', streak || '0');
-    set('homeStatWeek',   sessionsWeek || '0');
 
     /* Editorial card captions — real month-over-month trend + best-ever streak */
     const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
@@ -1949,11 +1940,54 @@ function initApp(uid) {
     }
     set('homeStatBest', streak ? (bestStreak > streak ? `longest streak: ${bestStreak} days` : 'personal best!') : '');
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
+    renderHomeSuggested();
 
     const banner = document.getElementById('welcome-banner');
     if (banner) banner.style.display = currentSessions.filter(s => !s.isRestDay).length === 0 ? 'block' : 'none';
     renderFreq();
     renderMuscleMap();
+  }
+
+  /* Home page only: "Suggested" side card — the two lift categories
+     with the longest gap since last trained, each in its real category
+     color (same one used in the calendar legend/pills/charts). A
+     category never trained at all outranks any number of days. */
+  const SUGGESTED_CATS = ['squat', 'bench', 'dead', 'arm', 'core'];
+  const SUGGESTED_LABELS = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms', core: 'Core' };
+
+  function renderHomeSuggested() {
+    const card = document.getElementById('homeSuggested');
+    const cols = document.getElementById('homeSuggCols');
+    if (!card || !cols) return;
+
+    const today = new Date(); today.setHours(12, 0, 0, 0);
+    const lastDate = {};
+    currentSessions.forEach(s => {
+      if (!s.dateRaw || s.isRestDay) return;
+      const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+      if (!SUGGESTED_CATS.includes(cls)) return;
+      if (!lastDate[cls] || s.dateRaw > lastDate[cls]) lastDate[cls] = s.dateRaw;
+    });
+
+    const ranked = SUGGESTED_CATS.map(cls => {
+      const last = lastDate[cls];
+      const days = last ? Math.round((today - new Date(last + 'T12:00:00')) / 86400000) : null;
+      return { cls, days };
+    }).sort((a, b) => {
+      if (a.days == null && b.days == null) return 0;
+      if (a.days == null) return -1;
+      if (b.days == null) return 1;
+      return b.days - a.days;
+    });
+
+    if (!ranked.length) { card.style.display = 'none'; return; }
+
+    card.style.display = 'flex';
+    cols.innerHTML = ranked.slice(0, 2).map(r => `
+      <div class="sugg-col">
+        <div class="name" style="color:${clsColor(r.cls)};">${SUGGESTED_LABELS[r.cls]}</div>
+        <div class="days2">${r.days == null ? 'not yet' : r.days === 0 ? 'today' : r.days + 'd rest'}</div>
+      </div>`).join('');
   }
 
   /* ---- MUSCLE RECOVERY CARD ------------------------------------------------ */
