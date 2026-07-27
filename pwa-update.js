@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '245';
+  var VERSION = '246';
   var KEY = 'ig-pwa-version';
 
   function isStandalone() {
