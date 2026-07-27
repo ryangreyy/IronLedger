@@ -1005,10 +1005,15 @@ function initBodyweightDatePicker() {
 initBodyweightDatePicker();
 
 document.getElementById('bwSubmit')?.addEventListener('click', async () => {
-  if (!currentUser) return;
+  /* Every one of these guards used to fail completely silently — tap the
+     button while a fresh sign-in was still resolving, or with no weight
+     typed in, and nothing happened at all with no error, no toast,
+     nothing to explain why. Indistinguishable from a dead button. */
+  if (!currentUser) { showToast('Still signing you in — try again in a moment.'); return; }
   const weightVal = parseFloat(document.getElementById('bwInput').value);
   const dateVal   = document.getElementById('bwDate').value;
-  if (!weightVal || weightVal <= 0 || !dateVal) return;
+  if (!weightVal || weightVal <= 0) { showToast('Enter a valid weight first.'); return; }
+  if (!dateVal) { showToast('Pick a date first.'); return; }
   try {
     await db.collection('users').doc(currentUser.uid).collection('bodyweight').add({
       weight: weightVal,
