@@ -38,6 +38,7 @@
   --up:#7CE38B;
   --down:#FF6B6B;
   --steel:linear-gradient(180deg,#ffffff 0%,#d2d5dd 44%,#9a9ea8 60%,#eef0f4 100%); /* brushed-metal text fill */
+  --steel-red:linear-gradient(180deg,#ffb3b6 0%,#f0565b 44%,#c1272d 60%,#ffd6d8 100%); /* red brushed-metal text fill */
   --shadow:0 24px 60px -20px rgba(0,0,0,0.7);
   --display:'Anton', 'Arial Narrow', sans-serif;
   --body:'Manrope', system-ui, -apple-system, sans-serif;
@@ -75,6 +76,7 @@
   --up:#1F9D57;              /* darkened for contrast on light */
   --down:#D63B3B;
   --steel:linear-gradient(180deg,#3b4048 0%,#71777f 42%,#2b2f36 60%,#565c65 100%); /* dark brushed metal */
+  --steel-red:linear-gradient(180deg,#8a2020 0%,#c1272d 42%,#7a1a1e 60%,#a13236 100%); /* dark brushed red metal */
   --shadow:0 20px 48px -22px rgba(24,30,45,0.28);
 
   --grid-line:rgba(18,23,33,0.035);    /* dark grid lines on light backdrop */
@@ -508,7 +510,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 .home-hero-tile > *{ position:relative; z-index:2; }
 .home-hero-tile .st-label{
-  background:var(--steel) !important; -webkit-background-clip:text !important; background-clip:text !important;
+  background:var(--steel-red) !important; -webkit-background-clip:text !important; background-clip:text !important;
   color:transparent !important; font-size:12px !important; letter-spacing:0.22em !important;
 }
 .home-stat-hero .home-hero-tile .st-value{
@@ -551,12 +553,12 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-rank-name{
   width:100%; max-width:100%; display:flex; align-items:center; justify-content:center;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  background:var(--steel) !important; -webkit-background-clip:text !important; background-clip:text !important;
+  background:var(--steel-red) !important; -webkit-background-clip:text !important; background-clip:text !important;
   color:transparent !important; font-size:12px !important; font-weight:400;
   letter-spacing:0.22em !important; text-align:center;
 }
 .home-sugg-tile .st-label{
-  background:var(--steel) !important; -webkit-background-clip:text !important; background-clip:text !important;
+  background:var(--steel-red) !important; -webkit-background-clip:text !important; background-clip:text !important;
   color:transparent !important; font-size:12px !important; letter-spacing:0.22em !important;
 }
 .home-rank-badge-slot{ width:100%; display:flex; align-items:center; justify-content:center; min-height:52px; line-height:1; transform:none; }
