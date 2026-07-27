@@ -508,8 +508,8 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 .home-hero-tile > *{ position:relative; z-index:2; }
 .home-hero-tile .st-label{
-  color:var(--accent-bright) !important; font-size:12px !important; letter-spacing:0.22em !important;
-  text-shadow:0 0 12px rgba(193,39,45,.55),0 0 28px rgba(193,39,45,.25);
+  background:var(--steel) !important; -webkit-background-clip:text !important; background-clip:text !important;
+  color:transparent !important; font-size:12px !important; letter-spacing:0.22em !important;
 }
 .home-stat-hero .home-hero-tile .st-value{
   font-size:76px; line-height:1; margin:4px 0;
@@ -551,13 +551,13 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-rank-name{
   width:100%; max-width:100%; display:flex; align-items:center; justify-content:center;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  color:var(--accent-bright) !important; font-size:12px !important; font-weight:400;
+  background:var(--steel) !important; -webkit-background-clip:text !important; background-clip:text !important;
+  color:transparent !important; font-size:12px !important; font-weight:400;
   letter-spacing:0.22em !important; text-align:center;
-  text-shadow:0 0 12px rgba(193,39,45,.55),0 0 28px rgba(193,39,45,.25);
 }
 .home-sugg-tile .st-label{
-  color:var(--accent-bright) !important; font-size:12px !important; letter-spacing:0.22em !important;
-  text-shadow:0 0 12px rgba(193,39,45,.55),0 0 28px rgba(193,39,45,.25);
+  background:var(--steel) !important; -webkit-background-clip:text !important; background-clip:text !important;
+  color:transparent !important; font-size:12px !important; letter-spacing:0.22em !important;
 }
 .home-rank-badge-slot{ width:100%; display:flex; align-items:center; justify-content:center; min-height:52px; line-height:1; transform:none; }
 .home-rank-badge{
