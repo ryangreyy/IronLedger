@@ -194,7 +194,7 @@ function syncHomeAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPho
   if (!el) return;
   const emb = avatarId && EMBLEMS.find(e => e.id === avatarId);
   if (avatarPhotoUrl || (user && user.photoURL && !emb)) {
-    el.style.cssText = 'overflow:hidden;background:transparent;position:relative;';
+    el.style.cssText = '--home-avatar-fill:transparent;overflow:hidden;position:relative;';
     el.innerHTML = '';
     const img = document.createElement('img');
     img.alt = '';
@@ -218,10 +218,10 @@ function syncHomeAvatar(user, avatarId, ringColor, bgColor, iconColor, avatarPho
     return;
   }
   if (emb) {
-    el.style.cssText = `background:${bgColor||'#8b1c1c'};display:flex;align-items:center;justify-content:center;`;
+    el.style.cssText = `--home-avatar-fill:${bgColor||'#8b1c1c'};display:flex;align-items:center;justify-content:center;`;
     el.innerHTML = `<i class="ti ${emb.icon}" style="font-size:26px;color:${iconColor||'#fff'};line-height:1;" aria-hidden="true"></i>`;
   } else if (user) {
-    el.style.cssText = 'background:#8b1c1c;display:flex;align-items:center;justify-content:center;';
+    el.style.cssText = '--home-avatar-fill:#8b1c1c;display:flex;align-items:center;justify-content:center;';
     el.innerHTML = '';
     el.textContent = (user.displayName || user.email || '?').charAt(0).toUpperCase();
   }
