@@ -2511,12 +2511,84 @@ function initApp(uid) {
         ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername })),
       ];
       if (!friends.length) { card.style.display = 'none'; return; }
-      return Promise.all(friends.map(f =>
-        db.collection(`users/${f.uid}/sessions`).where('dateRaw', '==', todayISO).limit(1).get()
-          .then(snap => ({ ...f, trainedToday: !snap.empty }))
-          .catch(() => ({ ...f, trainedToday: false }))
-      )).then(results => renderHomeCrewStrip(card, results.filter(r => r.trainedToday)));
+      return Promise.all(friends.map(f => {
+        const sessionCheck = db.collection(`users/${f.uid}/sessions`).where('dateRaw', '==', todayISO).limit(1).get()
+          .then(snap => !snap.empty)
+          .catch(() => false);
+        const settingsCheck = db.doc(`users/${f.uid}/settings/main`).get()
+          .then(snap => snap.exists ? snap.data() : {})
+          .catch(() => ({}));
+        return Promise.all([sessionCheck, settingsCheck]).then(([trainedToday, settings]) => ({
+          ...f,
+          username: settings.username || settings.displayName || f.username || 'Athlete',
+          settings,
+          trainedToday,
+        }));
+      })).then(results => {
+        const trained = results.filter(r => r.trainedToday);
+        renderHomeCrewStrip(card, trained);
+        if (trained.length) applyHomeCrewPhotoAvatars(card);
+      });
     }).catch(() => { card.style.display = 'none'; });
+  }
+
+  function clampHomeCrewNumber(value, fallback, min, max) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.min(max, Math.max(min, n));
+  }
+
+  function safeHomeCrewColor(value, fallback) {
+    const raw = String(value || '').trim();
+    return /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(raw) ? raw : fallback;
+  }
+
+  function buildHomeCrewAvatar(f) {
+    const settings = f.settings || {};
+    const username = settings.username || settings.displayName || f.username || 'Athlete';
+    const title = `@${escapeHTML(username)}`;
+    if (settings.avatarPhotoUrl) {
+      return `<div class="crew-av crew-av-photo" title="${title}" data-photourl="${escapeHTML(settings.avatarPhotoUrl)}" data-zoom="${clampHomeCrewNumber(settings.avatarZoom, 1, 1, 4)}" data-posx="${clampHomeCrewNumber(settings.avatarPosX, 50, 0, 100)}" data-posy="${clampHomeCrewNumber(settings.avatarPosY, 50, 0, 100)}"></div>`;
+    }
+    const emb = settings.avatarId && EMBLEMS.find(e => e.id === settings.avatarId);
+    if (emb) {
+      const ring = safeHomeCrewColor(settings.avatarRingColor, '#d4af37');
+      const bg = safeHomeCrewColor(settings.avatarBgColor, '#8b1c1c');
+      const icon = safeHomeCrewColor(settings.avatarIconColor, '#fff');
+      return `<div class="crew-av crew-av-emblem" title="${title}" style="background:${bg};box-shadow:inset 0 0 0 2px ${ring};"><i class="ti ${emb.icon}" style="font-size:13px;color:${icon};line-height:1;" aria-hidden="true"></i></div>`;
+    }
+    return `<div class="crew-av" title="${title}">${escapeHTML(username.slice(0, 2).toUpperCase())}</div>`;
+  }
+
+  function applyHomeCrewPhotoAvatars(card) {
+    card.querySelectorAll('.crew-av-photo[data-photourl]').forEach(el => {
+      const url = el.dataset.photourl;
+      if (el.dataset.photoApplied === url && el.querySelector('img')) return;
+      el.dataset.photoApplied = url;
+      el.innerHTML = '';
+      el.style.position = 'relative';
+      el.style.overflow = 'hidden';
+      el.style.background = 'transparent';
+      const img = document.createElement('img');
+      img.alt = '';
+      img.style.cssText = 'position:absolute;object-fit:fill;';
+      img.onload = function () {
+        const cW = el.offsetWidth || 30;
+        const cH = el.offsetHeight || 30;
+        const zoom = clampHomeCrewNumber(el.dataset.zoom, 1, 1, 4);
+        const posX = clampHomeCrewNumber(el.dataset.posx, 50, 0, 100);
+        const posY = clampHomeCrewNumber(el.dataset.posy, 50, 0, 100);
+        const base = Math.max(cW / img.naturalWidth, cH / img.naturalHeight);
+        const dW = img.naturalWidth * base * zoom;
+        const dH = img.naturalHeight * base * zoom;
+        img.style.width = dW + 'px';
+        img.style.height = dH + 'px';
+        img.style.left = -((dW - cW) * posX / 100) + 'px';
+        img.style.top = -((dH - cH) * posY / 100) + 'px';
+      };
+      img.src = url;
+      el.appendChild(img);
+    });
   }
 
   function renderHomeCrewStrip(card, trained) {
@@ -2532,9 +2604,7 @@ function initApp(uid) {
     }
     const shown = trained.slice(0, 3);
     const extra = trained.length - shown.length;
-    const avatarsHtml = shown.map(f =>
-      `<div class="crew-av">${escapeHTML((f.username || '?').slice(0, 2).toUpperCase())}</div>`
-    ).join('') + (extra > 0 ? `<div class="crew-av">+${extra}</div>` : '');
+    const avatarsHtml = shown.map(buildHomeCrewAvatar).join('') + (extra > 0 ? `<div class="crew-av">+${extra}</div>` : '');
     const names = trained.slice(0, 2).map(f => '@' + f.username).join(', ')
       + (trained.length > 2 ? ` & ${trained.length - 2} other${trained.length - 2 === 1 ? '' : 's'}` : '');
     card.innerHTML = `
