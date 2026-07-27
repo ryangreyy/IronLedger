@@ -2591,8 +2591,27 @@ function initApp(uid) {
     });
   }
 
+  function armHomeCrewStripLink(card) {
+    card.dataset.href = 'feed.html';
+    card.setAttribute('role', 'link');
+    card.tabIndex = 0;
+    if (card.dataset.clickBound === '1') return;
+    card.dataset.clickBound = '1';
+    const go = () => { window.location.href = card.dataset.href || 'feed.html'; };
+    card.addEventListener('click', e => {
+      if (e.target.closest('a, button, input, label, select, textarea')) return;
+      go();
+    });
+    card.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      go();
+    });
+  }
+
   function renderHomeCrewStrip(card, trained) {
     card.style.display = 'flex';
+    armHomeCrewStripLink(card);
     if (!trained.length) {
       card.innerHTML = `
         <div class="crew-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
