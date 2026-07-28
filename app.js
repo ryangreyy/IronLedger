@@ -1943,7 +1943,7 @@ function initApp(uid) {
     } else {
       setHTML('kpi-streak-delta', '');
     }
-    set('homeStatBest', streak ? (bestStreak > streak ? `longest streak: ${bestStreak} days` : 'personal best!') : '');
+    renderHomeStreakRing(streak);
     set('kpi-big3-delta',     s && big3 ? `${s.squatMax} + ${s.benchMax} + ${s.deadMax} lbs` : 'Set your maxes in Standards below');
     renderHomeSuggested();
 
@@ -1951,6 +1951,33 @@ function initApp(uid) {
     if (banner) banner.style.display = currentSessions.filter(s => !s.isRestDay).length === 0 ? 'block' : 'none';
     renderFreq();
     renderMuscleMap();
+  }
+
+  /* Home page only: streak progress ring — fills from the last
+     milestone crossed toward the next one, rather than a flat percent
+     of some single fixed target. */
+  const STREAK_MILESTONES = [7, 14, 30, 60, 100, 200, 365];
+  function streakMilestoneProgress(streak) {
+    let prev = 0, next = STREAK_MILESTONES[0];
+    for (const m of STREAK_MILESTONES) {
+      if (streak < m) { next = m; break; }
+      prev = m; next = m;
+    }
+    if (streak >= STREAK_MILESTONES[STREAK_MILESTONES.length - 1]) {
+      prev = STREAK_MILESTONES[STREAK_MILESTONES.length - 1];
+      next = prev * 2;
+    }
+    const pct = next > prev ? Math.min(1, (streak - prev) / (next - prev)) : 1;
+    return { next, daysToNext: Math.max(0, next - streak), pct };
+  }
+
+  function renderHomeStreakRing(streak) {
+    const ring = document.getElementById('homeStreakRing');
+    const sub  = document.getElementById('homeStatBest');
+    if (!ring || !sub) return;
+    const { next, daysToNext, pct } = streakMilestoneProgress(streak);
+    ring.style.background = `conic-gradient(var(--accent-bright) ${(pct * 360).toFixed(1)}deg, rgba(255,255,255,.08) 0)`;
+    sub.textContent = `${daysToNext} day${daysToNext === 1 ? '' : 's'} to next milestone (${next})`;
   }
 
   /* Home page only: "Suggested" side card — the two lift categories
