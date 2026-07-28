@@ -1971,19 +1971,19 @@ function initApp(uid) {
     return { next, daysToNext: Math.max(0, next - streak), pct };
   }
 
+  const RING_CIRCUMFERENCE = 2 * Math.PI * 52;
+
   function renderHomeStreakRing(streak) {
     const ring = document.getElementById('homeStreakRing');
     const sub  = document.getElementById('homeStatBest');
     if (!ring || !sub) return;
     const { next, daysToNext, pct } = streakMilestoneProgress(streak);
-    /* Same red-metallic stops as --steel-red, swept around the filled
-       arc instead of top-to-bottom, so the ring reads as brushed metal
-       rather than a flat color fill. */
-    const deg = pct * 360;
-    const d1 = (deg * 0.28).toFixed(1);
-    const d2 = (deg * 0.55).toFixed(1);
-    const d3 = (deg * 0.8).toFixed(1);
-    ring.style.background = `conic-gradient(#ffb3b6 0deg, #f0565b ${d1}deg, #c1272d ${d2}deg, #f0565b ${d3}deg, #ffd6d8 ${deg.toFixed(1)}deg, rgba(255,255,255,.08) 0)`;
+    /* An actual SVG stroke with a real linear gradient (matching
+       --steel-red, same as the dashboard's weight-plate medallions)
+       reads as brushed metal — a CSS conic-gradient sweeping through
+       those same colors doesn't, since a gradient cycling around a
+       circle has no consistent "light source" and just looks banded. */
+    ring.style.strokeDashoffset = (RING_CIRCUMFERENCE * (1 - pct)).toFixed(1);
     sub.textContent = `${daysToNext} day${daysToNext === 1 ? '' : 's'} to next milestone (${next})`;
   }
 

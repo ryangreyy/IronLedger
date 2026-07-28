@@ -16,17 +16,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=256">
+<link rel="stylesheet" href="styles.css?v=257">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
-<link rel="manifest" href="/manifest.json?v=57">
+<link rel="manifest" href="/manifest.json?v=58">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=4"></script>
-<script src="pwa-update.js?v=47"></script>
+<script src="pwa-update.js?v=48"></script>
 </head>
 <body class="index-page">
 
@@ -165,6 +165,13 @@
       </div>
     </section>
 
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+      <linearGradient id="ig-ring-red" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffb3b6"/><stop offset="0.44" stop-color="#f0565b"/>
+        <stop offset="0.6" stop-color="#c1272d"/><stop offset="1" stop-color="#ffd6d8"/>
+      </linearGradient>
+    </defs></svg>
+
     <!-- ================= STATUS HEADER (signed-in) ================= -->
     <section class="home-status-header" id="homeStatusHeader">
       <div class="home-greeting-row">
@@ -178,7 +185,10 @@
         <div class="stat-tile home-hero-tile">
           <div class="st-label">Day streak</div>
           <div class="home-ring-wrap">
-            <div class="home-ring-bg" id="homeStreakRing"></div>
+            <svg class="home-ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="home-ring-track" cx="60" cy="60" r="52"/>
+              <circle class="home-ring-fill" id="homeStreakRing" cx="60" cy="60" r="52"/>
+            </svg>
             <div class="home-ring-inner">
               <span class="home-ring-num" id="homeStatStreak">0</span>
               <span class="home-ring-unit">days</span>
@@ -280,7 +290,7 @@
 <!-- App data and logic -->
 <script src="data.js"></script>
 <script src="challenges.js?v=101"></script>
-<script src="app.js?v=187"></script>
+<script src="app.js?v=188"></script>
 <script src="nav.js?v=14"></script>
 <script src="soft-nav.js?v=3"></script>
 <script>
