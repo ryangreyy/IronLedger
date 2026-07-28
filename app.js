@@ -1430,6 +1430,7 @@ function initApp(uid) {
      instead of an empty list while the settings listener re-subscribes.
      Cold start (nothing cached yet) still renders null, same as before. */
   renderGoals(_igGoalsCache);
+  loadHomeCrewStrip(uid);
 
   document.getElementById('calPrev')?.addEventListener('click', () => {
     calViewMonth--;
@@ -2545,34 +2546,60 @@ function initApp(uid) {
     const card = document.getElementById('homeCrewStrip');
     if (!card) return;
     const todayISO = localDateISO();
+    const loadId = `${Date.now()}-${Math.random()}`;
+    card.dataset.loadId = loadId;
+    renderHomeCrewStripLoading(card);
+
+    const stillCurrent = () => card.dataset.loadId === loadId;
+
     Promise.all([
       db.collection('friendRequests').where('fromUid', '==', forUid).where('status', '==', 'accepted').get(),
       db.collection('friendRequests').where('toUid',   '==', forUid).where('status', '==', 'accepted').get(),
     ]).then(([sentSnap, recvSnap]) => {
-      const friends = [
+      if (!stillCurrent()) return;
+      const friendMap = new Map();
+      [
         ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
         ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername })),
-      ];
-      if (!friends.length) { card.style.display = 'none'; return; }
-      return Promise.all(friends.map(f => {
-        const sessionCheck = db.collection(`users/${f.uid}/sessions`).where('dateRaw', '==', todayISO).limit(1).get()
-          .then(snap => !snap.empty)
-          .catch(() => false);
-        const settingsCheck = db.doc(`users/${f.uid}/settings/main`).get()
-          .then(snap => snap.exists ? snap.data() : {})
-          .catch(() => ({}));
-        return Promise.all([sessionCheck, settingsCheck]).then(([trainedToday, settings]) => ({
-          ...f,
-          username: settings.username || settings.displayName || f.username || 'Athlete',
-          settings,
-          trainedToday,
-        }));
-      })).then(results => {
-        const trained = results.filter(r => r.trainedToday);
-        renderHomeCrewStrip(card, trained);
-        if (trained.length) applyHomeCrewPhotoAvatars(card);
+      ].forEach(f => {
+        if (f.uid && f.uid !== forUid && !friendMap.has(f.uid)) friendMap.set(f.uid, f);
       });
-    }).catch(() => { card.style.display = 'none'; });
+      const friends = [...friendMap.values()];
+      if (!friends.length) { card.style.display = 'none'; card.classList.remove('crew-loading'); return; }
+
+      return Promise.all(friends.map(f =>
+        db.collection(`users/${f.uid}/sessions`).where('dateRaw', '==', todayISO).limit(1).get()
+          .then(snap => snap.empty ? null : f)
+          .catch(() => null)
+      )).then(trainedBase => {
+        if (!stillCurrent()) return;
+        const trainedFriends = trainedBase.filter(Boolean);
+        if (!trainedFriends.length) {
+          renderHomeCrewStrip(card, []);
+          return;
+        }
+
+        return Promise.all(trainedFriends.map(f => db.doc(`users/${f.uid}/settings/main`).get()
+          .then(snap => ({
+            ...f,
+            settings: snap.exists ? snap.data() : {},
+          }))
+          .catch(() => ({
+            ...f,
+            settings: {},
+          }))
+        )).then(results => {
+          if (!stillCurrent()) return;
+          const trained = results.filter(Boolean).map(r => ({
+            ...r,
+            username: r.settings.username || r.settings.displayName || r.username || 'Athlete',
+            trainedToday: true,
+          }));
+          renderHomeCrewStrip(card, trained);
+          if (trained.length) applyHomeCrewPhotoAvatars(card);
+        });
+      });
+    }).catch(() => { if (stillCurrent()) { card.style.display = 'none'; card.classList.remove('crew-loading'); } });
   }
 
   function clampHomeCrewNumber(value, fallback, min, max) {
@@ -2652,8 +2679,24 @@ function initApp(uid) {
     });
   }
 
+  function renderHomeCrewStripLoading(card) {
+    card.style.display = 'flex';
+    card.classList.add('crew-loading');
+    armHomeCrewStripLink(card);
+    card.innerHTML = `
+      <div class="crew-skel-avatars">
+        <span class="crew-skel-av"></span><span class="crew-skel-av"></span><span class="crew-skel-av"></span>
+      </div>
+      <div class="crew-text">
+        <div class="crew-skel-line wide"></div>
+        <div class="crew-skel-line"></div>
+      </div>
+      <div class="crew-skel-chip"></div>`;
+  }
+
   function renderHomeCrewStrip(card, trained) {
     card.style.display = 'flex';
+    card.classList.remove('crew-loading');
     armHomeCrewStripLink(card);
     if (!trained.length) {
       card.innerHTML = `
@@ -2682,7 +2725,6 @@ function initApp(uid) {
   createDatePicker('logDate');
   initBodyweightDatePicker();
   initBodyweightControls();
-  loadHomeCrewStrip(uid);
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()

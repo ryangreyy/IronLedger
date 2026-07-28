@@ -569,6 +569,25 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .crew-strip-card .crew-av-photo img{ display:block; }
 .crew-strip-card .crew-av-emblem{ color:#fff; }
 .crew-strip-card .crew-av:first-child{ margin-left:0; }
+.crew-strip-card.crew-loading{ pointer-events:none; }
+.crew-strip-card.crew-loading:hover{ filter:none; }
+.crew-skel-avatars{ display:flex; flex-shrink:0; }
+.crew-skel-av{
+  width:30px; height:30px; border-radius:50%; margin-left:-8px;
+  border:2px solid var(--bg-2); background:rgba(255,255,255,.08);
+}
+.crew-skel-av:first-child{ margin-left:0; }
+.crew-skel-line,
+.crew-skel-chip{
+  display:block; border-radius:999px;
+  background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(255,255,255,.14),rgba(255,255,255,.06));
+  background-size:180% 100%;
+  animation:crewSkeleton 1.05s ease-in-out infinite;
+}
+.crew-skel-line{ width:118px; height:11px; margin-top:2px; }
+.crew-skel-line.wide{ width:174px; height:13px; margin-bottom:7px; }
+.crew-skel-chip{ width:58px; height:12px; flex-shrink:0; }
+@keyframes crewSkeleton{ 0%{background-position:100% 0;} 100%{background-position:-80% 0;} }
 .crew-strip-card .crew-icon{
   width:30px; height:30px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,.04);
   border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
