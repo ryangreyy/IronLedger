@@ -1976,7 +1976,14 @@ function initApp(uid) {
     const sub  = document.getElementById('homeStatBest');
     if (!ring || !sub) return;
     const { next, daysToNext, pct } = streakMilestoneProgress(streak);
-    ring.style.background = `conic-gradient(var(--accent-bright) ${(pct * 360).toFixed(1)}deg, rgba(255,255,255,.08) 0)`;
+    /* Same red-metallic stops as --steel-red, swept around the filled
+       arc instead of top-to-bottom, so the ring reads as brushed metal
+       rather than a flat color fill. */
+    const deg = pct * 360;
+    const d1 = (deg * 0.28).toFixed(1);
+    const d2 = (deg * 0.55).toFixed(1);
+    const d3 = (deg * 0.8).toFixed(1);
+    ring.style.background = `conic-gradient(#ffb3b6 0deg, #f0565b ${d1}deg, #c1272d ${d2}deg, #f0565b ${d3}deg, #ffd6d8 ${deg.toFixed(1)}deg, rgba(255,255,255,.08) 0)`;
     sub.textContent = `${daysToNext} day${daysToNext === 1 ? '' : 's'} to next milestone (${next})`;
   }
 
