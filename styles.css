@@ -508,28 +508,28 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 .home-stat-hero{ display:grid; grid-template-columns:1.3fr 1fr; gap:14px; text-align:left; }
 .home-hero-tile{
-  min-height:150px; padding:16px 18px; display:flex !important; flex-direction:row !important;
-  align-items:center; gap:16px !important; position:relative; overflow:hidden;
+  min-height:190px; padding:18px; display:flex !important; flex-direction:column !important;
+  align-items:center !important; justify-content:center; gap:12px !important;
+  text-align:center !important; position:relative; overflow:hidden;
 }
-.home-ring-wrap{ position:relative; width:104px; height:104px; flex-shrink:0; }
+.home-ring-wrap{ position:relative; width:88px; height:88px; flex-shrink:0; }
 .home-ring-bg{ position:absolute; inset:0; border-radius:50%; transition:background 1s ease; }
 .home-ring-inner{
-  position:absolute; inset:9px; border-radius:50%; background:var(--card-bot);
+  position:absolute; inset:8px; border-radius:50%; background:var(--card-bot);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
 }
 .home-ring-num{
-  font-family:var(--display); font-size:32px; line-height:1;
+  font-family:var(--display); font-size:28px; line-height:1;
   background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 .home-ring-unit{
-  font-family:var(--mono); font-size:9px; color:var(--text-dimmer);
+  font-family:var(--mono); font-size:8px; color:var(--text-dimmer);
   letter-spacing:.1em; text-transform:uppercase; margin-top:2px;
 }
-.home-hero-copy{ text-align:left; }
 .home-hero-tile .st-label{
   font-family:var(--mono); font-size:14px !important; letter-spacing:0.24em !important;
-  text-transform:uppercase; margin-bottom:4px;
-  display:flex; align-items:center; justify-content:flex-start; gap:10px;
+  text-transform:uppercase; margin-bottom:0;
+  display:flex; align-items:center; justify-content:center; gap:10px;
   background:var(--steel-red) !important; -webkit-background-clip:text !important; background-clip:text !important;
   color:transparent !important;
 }
@@ -610,16 +610,16 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
   .home-greeting-text .eyebrow{ font-size:11px; letter-spacing:0.2em; margin-bottom:3px; }
   .home-greeting-text .title{ font-size:clamp(34px,10vw,46px); }
   .home-stat-hero{ gap:8px; }
-  .home-hero-tile{ min-height:118px; padding:12px; gap:10px !important; }
-  .home-ring-wrap{ width:78px; height:78px; }
-  .home-ring-num{ font-size:24px; }
-  .home-ring-unit{ font-size:8px; }
+  .home-hero-tile{ min-height:160px; padding:14px; gap:8px !important; }
+  .home-ring-wrap{ width:72px; height:72px; }
+  .home-ring-num{ font-size:22px; }
+  .home-ring-unit{ font-size:7px; }
   .home-hero-sub{ font-size:11px; }
   .home-stat-side{ gap:8px; }
   .home-stat-side .stat-tile{ padding:12px 8px; }
   .home-stat-hero .home-stat-side .st-value{ font-size:17px; }
   .home-status-header .st-label{ font-size:9px; }
-  .home-hero-tile .st-label{ font-size:11px !important; letter-spacing:0.2em !important; margin-bottom:3px; }
+  .home-hero-tile .st-label{ font-size:11px !important; letter-spacing:0.2em !important; margin-bottom:0; }
   .home-sugg-tile .st-label{ font-size:11px !important; letter-spacing:0.2em !important; margin-bottom:3px; }
   .sugg-col .name{ font-size:12px; }
   .sugg-col .days2{ font-size:9px; }
