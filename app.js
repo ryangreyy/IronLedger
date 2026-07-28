@@ -1477,6 +1477,11 @@ function initApp(uid) {
     return normalized === 'arm' ? 'press' : normalized;   // Arms share the saved 'press' color
   }
 
+  function overviewCalendarCls(cls) {
+    const normalized = normalizeLiftCls(cls);
+    return normalized === 'core' ? '' : normalized;
+  }
+
   function clsColor(cls) {
     const key = colorKeyForCls(cls);
     const v = getComputedStyle(document.documentElement)
@@ -1990,8 +1995,8 @@ function initApp(uid) {
   /* Home page only: "Suggested" side card — the two lift categories
      with the longest gap since last trained, resolved from the same
      date->group source of truth the overview calendar paints. */
-  const SUGGESTED_CATS = ['squat', 'bench', 'dead', 'arm', 'core'];
-  const SUGGESTED_LABELS = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms', core: 'Core' };
+  const SUGGESTED_CATS = ['squat', 'bench', 'dead', 'arm'];
+  const SUGGESTED_LABELS = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms' };
   const SUGGESTED_ORDER = SUGGESTED_CATS.reduce((acc, cls, index) => {
     acc[cls] = index;
     return acc;
@@ -2001,12 +2006,14 @@ function initApp(uid) {
     const byDate = {};
     (Array.isArray(sessions) ? sessions : []).forEach(s => {
       if (!s || !s.dateRaw || byDate[s.dateRaw]) return;
-      byDate[s.dateRaw] = s.isRestDay ? 'rest' : normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+      const cls = overviewCalendarCls(s.isRestDay ? 'rest' : (s.cls || liftToCls(s.lift) || 'other'));
+      if (cls) byDate[s.dateRaw] = cls;
     });
     Object.entries(calColors || {}).forEach(([dateRaw, clsRaw]) => {
-      const cls = normalizeLiftCls(clsRaw);
+      const normalized = normalizeLiftCls(clsRaw);
+      if (!normalized) { delete byDate[dateRaw]; return; }
+      const cls = overviewCalendarCls(normalized);
       if (cls) byDate[dateRaw] = cls;
-      else delete byDate[dateRaw];
     });
     return byDate;
   }
@@ -2228,7 +2235,8 @@ function initApp(uid) {
       if (!s.dateRaw || s.isRestDay) return;
       const [y, m, dayNum] = s.dateRaw.split('-').map(Number);
       if (y !== thisYear || m - 1 !== thisMonth) return;
-      if (!sessionMap[dayNum]) sessionMap[dayNum] = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+      const cls = overviewCalendarCls(s.cls || liftToCls(s.lift) || 'other');
+      if (cls && !sessionMap[dayNum]) sessionMap[dayNum] = cls;
     });
 
     // Merge with manual calendar overrides — same priority as renderCalendar
@@ -2238,7 +2246,8 @@ function initApp(uid) {
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${thisYear}-${monthPad}-${String(d).padStart(2, '0')}`;
-      const cls     = normalizeLiftCls(calColors[dateStr] || sessionMap[d]);
+      const manualCls = overviewCalendarCls(calColors[dateStr]);
+      const cls       = manualCls || sessionMap[d];
       if (cls && cls !== 'rest' && cls !== 'other' && cls in counts) counts[cls]++;
     }
 
@@ -3488,14 +3497,16 @@ function initApp(uid) {
     // Manual overrides stored in settings take priority over session-derived colors
     const calColors = currentSettings?.calendarColors || {};
 
-    // Build day→cls map from sessions
+    // Build day→cls map from sessions. Core is tracked in the Abs/Core tab,
+    // but it is intentionally not a dashboard overview calendar paint class.
     const sessionMap = {};
     (currentSessions || []).forEach(s => {
       if (!s.dateRaw) return;
       const parts = s.dateRaw.split('-').map(Number);
       if (parts[0] === year && parts[1] - 1 === month) {
         const day = parts[2];
-        if (!sessionMap[day]) sessionMap[day] = s.isRestDay ? 'rest' : normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
+        const cls = overviewCalendarCls(s.isRestDay ? 'rest' : (s.cls || liftToCls(s.lift) || 'other'));
+        if (cls && !sessionMap[day]) sessionMap[day] = cls;
       }
     });
 
@@ -3527,12 +3538,13 @@ function initApp(uid) {
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr  = `${year}-${monthPad}-${String(d).padStart(2,'0')}`;
       const el       = document.createElement('div');
-      const cls      = normalizeLiftCls(calColors[dateStr] || sessionMap[d]);
+      const manualCls = overviewCalendarCls(calColors[dateStr]);
+      const cls       = manualCls || sessionMap[d] || '';
       const isToday  = isThisMonth && d === todayDate;
       const isFuture = isFutureMonth || (isThisMonth && d > todayDate);
 
       const hasSession = !!sessionMap[d];
-      const isPlanned  = !!calColors[dateStr] && !hasSession;
+      const isPlanned  = !!manualCls && !hasSession;
 
       let classes = 'cal-day clickable';
       if (isFuture) classes += ' future';
