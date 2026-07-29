@@ -1962,7 +1962,7 @@ function initApp(uid) {
   /* Home page only: streak progress ring — fills from the last
      milestone crossed toward the next one, rather than a flat percent
      of some single fixed target. */
-  const STREAK_MILESTONES = [7, 14, 30, 60, 100, 200, 365];
+  const STREAK_MILESTONES = [3, 7, 14, 21, 30, 45, 60, 90, 120, 180, 365];
   function streakMilestoneProgress(streak) {
     let prev = 0, next = STREAK_MILESTONES[0];
     for (const m of STREAK_MILESTONES) {
