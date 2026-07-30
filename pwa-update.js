@@ -2,11 +2,11 @@
 (function () {
   'use strict';
 
-  var VERSION = '284';
+  var VERSION = '285';
   var KEY = 'ig-pwa-version';
-  var EXPECTED_UPDATER = 'pwa-update.js?v=60';
-  var EXPECTED_MANIFEST = 'manifest.json?v=70';
-  var EXPECTED_APP = 'app.js?v=194';
+  var EXPECTED_UPDATER = 'pwa-update.js?v=61';
+  var EXPECTED_MANIFEST = 'manifest.json?v=71';
+  var EXPECTED_APP = 'app.js?v=195';
 
   function isStandalone() {
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||

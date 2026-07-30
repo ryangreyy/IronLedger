@@ -1755,6 +1755,7 @@ function initApp(uid) {
   let mrSkin   = 0;
   let mrHairColor = 'rgb(26,18,8)';
   let mrHighlights = {};
+  let mrLibraryLoading = false;
   const MR_SKIN_TONES = [
     'rgb(245,201,160)', 'rgb(212,149,106)', 'rgb(156,100,64)', 'rgb(92,51,32)',
   ];
@@ -2166,7 +2167,43 @@ function initApp(uid) {
     return rect.width > 0 && rect.height > 0;
   }
 
+  function mrHasContainers() {
+    return !!(document.getElementById('muscle-map-front') && document.getElementById('muscle-map-back'));
+  }
+
+  function mrOnLibraryReady() {
+    mrLibraryLoading = false;
+    renderMuscleMap();
+    if (window.__igMuscleMapResizeQueued || mrMusclePanelActive()) {
+      window.igResizeMuscleMap();
+    }
+  }
+
+  function mrEnsureLibrary() {
+    if (typeof MuscleMapJS !== 'undefined') return true;
+    if (!mrHasContainers()) return false;
+    if (mrLibraryLoading) return false;
+
+    const existing = document.querySelector('script[src*="musclemap.js"]');
+    if (existing) {
+      mrLibraryLoading = true;
+      existing.addEventListener('load', mrOnLibraryReady, { once: true });
+      existing.addEventListener('error', () => { mrLibraryLoading = false; }, { once: true });
+      return false;
+    }
+
+    mrLibraryLoading = true;
+    const script = document.createElement('script');
+    script.src = 'musclemap.js?v=1';
+    script.async = true;
+    script.onload = mrOnLibraryReady;
+    script.onerror = () => { mrLibraryLoading = false; };
+    document.head.appendChild(script);
+    return false;
+  }
+
   function mrEnsureWidgets() {
+    if (!mrEnsureLibrary()) return false;
     if (typeof MuscleMapJS === 'undefined') return false;
     if (!mrWidgetFront) mrWidgetFront = mrInitWidget('muscle-map-front', 'front');
     if (!mrWidgetBack) mrWidgetBack = mrInitWidget('muscle-map-back', 'back');
@@ -2262,7 +2299,7 @@ function initApp(uid) {
   }
 
   function renderMuscleMap() {
-    if (typeof MuscleMapJS === 'undefined') return;
+    if (!mrEnsureLibrary()) return;
 
     const today = new Date(); today.setHours(12, 0, 0, 0);
     const todayISO = localDateISO(today);
@@ -2301,6 +2338,7 @@ function initApp(uid) {
   window.igResizeMuscleMap = function () {
     window.__igMuscleMapResizeQueued = true;
     const run = () => {
+      if (!mrEnsureLibrary()) return;
       if (!mrMusclePanelActive()) return;
       if (mrRefreshVisibleWidgets()) window.__igMuscleMapResizeQueued = false;
     };
