@@ -2097,6 +2097,9 @@ function initApp(uid) {
   function mrApplyHighlights() {
     [mrWidgetFront, mrWidgetBack].forEach(w => {
       if (!w) return;
+      if (typeof w.clearSelection === 'function') {
+        try { w.clearSelection(); } catch (_) {}
+      }
       w.clearHighlights();
       Object.entries(mrHighlights).forEach(([muscle, color]) => {
         try { w.highlight(muscle, color, 0.92); } catch (_) {}
@@ -2147,8 +2150,11 @@ function initApp(uid) {
   function mrInitWidget(containerId, side) {
     const container = document.getElementById(containerId);
     if (!mrContainerReady(container)) return null;
-    const w = new MuscleMapJS.MuscleMapWidget(container, { gender: mrGender, side });
+    const w = new MuscleMapJS.MuscleMapWidget(container, { gender: mrGender, side, interactive: false });
     w.setStyle(mrBuildStyle());
+    if (typeof w.clearSelection === 'function') {
+      try { w.clearSelection(); } catch (_) {}
+    }
     w.on('muscleEnter', e => {
       const el = document.getElementById('mr-muscle-label');
       if (el) el.textContent = e.displayName || e.muscle;
