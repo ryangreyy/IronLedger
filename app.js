@@ -2277,29 +2277,15 @@ function initApp(uid) {
     }
   }
 
-  /* Resolves each dated day to the set of muscles it worked. Logged
-     sessions use precise per-lift targeting and a day can hold several
-     lifts (legs + arms → both light up). A manually color-painted calendar
-     day has no specific lift, so it falls back to the coarse class set and
-     — matching the old override semantics — replaces whatever the sessions
-     implied for that same day. */
+  /* Resolve muscle recovery directly from the same date->group source the
+     overview calendar and home Suggested card use. The body map should be
+     a visual reflection of the calendar, not a separate per-exercise read. */
   function muscleDaysByDate() {
     const dayMuscles = {};
-    (currentSessions || []).forEach(s => {
-      if (!s.dateRaw || s.isRestDay) return;
-      const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
-      if (cls === 'rest') return;
-      (dayMuscles[s.dateRaw] || (dayMuscles[s.dateRaw] = new Set()));
-      liftToMuscles(s.lift, cls).forEach(m => dayMuscles[s.dateRaw].add(m));
-    });
-    const calColors = currentSettings?.calendarColors || {};
-    Object.entries(calColors).forEach(([dateRaw, clsRaw]) => {
-      const cls = normalizeLiftCls(clsRaw);
-      if (cls && cls !== 'rest' && cls !== 'other') {
-        dayMuscles[dateRaw] = new Set(LIFT_CLS_TO_MUSCLES[cls] || []);
-      } else {
-        delete dayMuscles[dateRaw]; // rest / other / cleared → not training
-      }
+    Object.entries(calendarGroupsByDate(currentSessions, currentSettings?.calendarColors || {})).forEach(([dateRaw, clsRaw]) => {
+      const cls = overviewCalendarCls(clsRaw);
+      const muscles = LIFT_CLS_TO_MUSCLES[cls];
+      if (muscles && muscles.length) dayMuscles[dateRaw] = new Set(muscles);
     });
     return dayMuscles;
   }
