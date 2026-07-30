@@ -2136,7 +2136,7 @@ function initApp(uid) {
 
   function mrInitWidget(containerId, side) {
     const container = document.getElementById(containerId);
-    if (!container) return null;
+    if (!mrContainerReady(container)) return null;
     const w = new MuscleMapJS.MuscleMapWidget(container, { gender: mrGender, side });
     w.setStyle(mrBuildStyle());
     w.on('muscleEnter', e => {
@@ -2147,7 +2147,26 @@ function initApp(uid) {
       const el = document.getElementById('mr-muscle-label');
       if (el) el.textContent = 'Hover a muscle';
     });
+    requestAnimationFrame(() => w.resize());
     return w;
+  }
+
+  function mrContainerReady(container) {
+    if (!container || !container.isConnected) return false;
+    const rect = container.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
+  function mrEnsureWidgets() {
+    if (typeof MuscleMapJS === 'undefined') return false;
+    if (!mrWidgetFront) mrWidgetFront = mrInitWidget('muscle-map-front', 'front');
+    if (!mrWidgetBack) mrWidgetBack = mrInitWidget('muscle-map-back', 'back');
+    return !!(mrWidgetFront && mrWidgetBack);
+  }
+
+  function mrResizeWidgets() {
+    if (mrWidgetFront) mrWidgetFront.resize();
+    if (mrWidgetBack) mrWidgetBack.resize();
   }
 
   /* Resolves each dated day to the set of muscles it worked. Logged
@@ -2200,9 +2219,10 @@ function initApp(uid) {
     });
     mrHighlights = muscleData;
 
-    if (!mrWidgetFront) mrWidgetFront = mrInitWidget('muscle-map-front', 'front');
-    if (!mrWidgetBack)  mrWidgetBack  = mrInitWidget('muscle-map-back',  'back');
-    mrApplyHighlights();
+    if (mrEnsureWidgets()) {
+      mrApplyHighlights();
+      mrResizeWidgets();
+    }
 
     const labelEl = document.getElementById('mr-muscle-label');
     if (labelEl && Object.keys(mrHighlights).length === 0) {
@@ -2217,8 +2237,16 @@ function initApp(uid) {
      of display:none, so the canvas can stay permanently blank until an
      explicit resize — call this when the tab becomes visible. */
   window.igResizeMuscleMap = function () {
-    if (mrWidgetFront) mrWidgetFront.resize();
-    if (mrWidgetBack)  mrWidgetBack.resize();
+    const run = () => {
+      if (!mrEnsureWidgets()) return;
+      mrApplyHighlights();
+      mrResizeWidgets();
+    };
+    run();
+    requestAnimationFrame(run);
+    requestAnimationFrame(() => requestAnimationFrame(run));
+    setTimeout(run, 80);
+    setTimeout(run, 220);
   };
 
   function renderFreq() {
