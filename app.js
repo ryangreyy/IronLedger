@@ -18,6 +18,15 @@ requestAnimationFrame(() => {
   });
 });
 
+/* The dashboard tab handler can run before auth/data has called initApp().
+   Keep that first muscle-map open request so initApp can fulfill it later. */
+window.__igMuscleMapResizeQueued = false;
+if (typeof window.igResizeMuscleMap !== 'function') {
+  window.igResizeMuscleMap = function () {
+    window.__igMuscleMapResizeQueued = true;
+  };
+}
+
 /* ===== CONFETTI BURST =============================================
    Spawns small particles that fly outward from the center of anchorEl. */
 function spawnConfetti(anchorEl) {
@@ -2169,6 +2178,62 @@ function initApp(uid) {
     if (mrWidgetBack) mrWidgetBack.resize();
   }
 
+  function mrMusclePanelActive() {
+    const panel = document.querySelector('.page-tab-panel[data-panel="muscle"]');
+    return !!(panel && panel.classList.contains('active'));
+  }
+
+  function mrRefreshVisibleWidgets() {
+    if (!mrEnsureWidgets()) return false;
+    mrApplyHighlights();
+    mrResizeWidgets();
+    return true;
+  }
+
+  function mrInstallVisibilityHooks() {
+    const front = document.getElementById('muscle-map-front');
+    const back = document.getElementById('muscle-map-back');
+    const panel = document.querySelector('.page-tab-panel[data-panel="muscle"]');
+    if (!front || !back || !panel) return;
+
+    if (window.__igMuscleMapHookCleanup) window.__igMuscleMapHookCleanup();
+    if (window.__igMuscleMapMutationObserver) window.__igMuscleMapMutationObserver.disconnect();
+    if (window.__igMuscleMapResizeObserver) window.__igMuscleMapResizeObserver.disconnect();
+
+    const schedule = () => {
+      if (typeof window.igResizeMuscleMap === 'function') window.igResizeMuscleMap();
+    };
+    const cleanups = [];
+    const listen = (target, type, fn) => {
+      target.addEventListener(type, fn);
+      cleanups.push(() => target.removeEventListener(type, fn));
+    };
+    window.__igMuscleMapHookCleanup = () => {
+      cleanups.forEach(fn => fn());
+      window.__igMuscleMapHookCleanup = null;
+    };
+
+    listen(window, 'ig:applock-unlocked', schedule);
+    listen(window, 'pageshow', schedule);
+    listen(window, 'resize', schedule);
+    listen(document, 'visibilitychange', () => {
+      if (!document.hidden) schedule();
+    });
+
+    const mo = new MutationObserver(schedule);
+    mo.observe(panel, { attributes: true, attributeFilter: ['class', 'style'] });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-locked'] });
+    window.__igMuscleMapMutationObserver = mo;
+
+    if ('ResizeObserver' in window) {
+      const ro = new ResizeObserver(schedule);
+      ro.observe(front);
+      ro.observe(back);
+      ro.observe(panel);
+      window.__igMuscleMapResizeObserver = ro;
+    }
+  }
+
   /* Resolves each dated day to the set of muscles it worked. Logged
      sessions use precise per-lift targeting and a day can hold several
      lifts (legs + arms → both light up). A manually color-painted calendar
@@ -2219,10 +2284,7 @@ function initApp(uid) {
     });
     mrHighlights = muscleData;
 
-    if (mrEnsureWidgets()) {
-      mrApplyHighlights();
-      mrResizeWidgets();
-    }
+    mrRefreshVisibleWidgets();
 
     const labelEl = document.getElementById('mr-muscle-label');
     if (labelEl && Object.keys(mrHighlights).length === 0) {
@@ -2237,17 +2299,23 @@ function initApp(uid) {
      of display:none, so the canvas can stay permanently blank until an
      explicit resize — call this when the tab becomes visible. */
   window.igResizeMuscleMap = function () {
+    window.__igMuscleMapResizeQueued = true;
     const run = () => {
-      if (!mrEnsureWidgets()) return;
-      mrApplyHighlights();
-      mrResizeWidgets();
+      if (!mrMusclePanelActive()) return;
+      if (mrRefreshVisibleWidgets()) window.__igMuscleMapResizeQueued = false;
     };
     run();
     requestAnimationFrame(run);
     requestAnimationFrame(() => requestAnimationFrame(run));
     setTimeout(run, 80);
     setTimeout(run, 220);
+    setTimeout(run, 500);
+    setTimeout(run, 1000);
   };
+  mrInstallVisibilityHooks();
+  if (window.__igMuscleMapResizeQueued || mrMusclePanelActive()) {
+    window.igResizeMuscleMap();
+  }
 
   function renderFreq() {
     const container = document.getElementById('freqBars');
