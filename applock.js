@@ -104,13 +104,20 @@
     location.href = '/index.html';
   }
 
+  function lightTitleStyle() {
+    var light = document.documentElement.getAttribute('data-theme') === 'light';
+    try { light = light || localStorage.getItem('ig-theme') === 'light'; } catch (e) {}
+    if (!light) return '';
+    return ' style="background:linear-gradient(180deg,#ffffff 0%,#ffffff 28%,#dfe6ee 43%,#ffffff 52%,#f8fafc 72%,#edf2f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;-webkit-text-stroke:.45px rgba(0,0,0,.86);filter:drop-shadow(0 0 18px rgba(193,39,45,.25));"';
+  }
+
   function build() {
     if (document.querySelector('.applock')) return;
     var wrap = document.createElement('div');
     wrap.className = 'applock';
     wrap.innerHTML =
       '<img class="applock-logo" src="/favicon.svg" alt="">' +
-      '<div class="applock-title">IRONGLADIATOR</div>' +
+      '<div class="applock-title"' + lightTitleStyle() + '>IRONGLADIATOR</div>' +
       '<div class="applock-sub">Locked</div>' +
       '<button class="applock-btn" id="applock-go">Unlock with Face ID</button>' +
       '<div class="applock-err" id="applock-err"></div>' +
