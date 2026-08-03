@@ -75,7 +75,7 @@
   --accent-bright:#A81E24;   /* darker red so accent text stays legible on light */
   --up:#1F9D57;              /* darkened for contrast on light */
   --down:#D63B3B;
-  --steel:linear-gradient(180deg,#3b4048 0%,#71777f 42%,#2b2f36 60%,#565c65 100%); /* dark brushed metal */
+  --steel:linear-gradient(180deg,#ffffff 0%,#ffffff 28%,#dfe6ee 43%,#ffffff 52%,#f8fafc 72%,#edf2f7 100%); /* glossy white metal */
   --steel-red:linear-gradient(180deg,#8a2020 0%,#c1272d 42%,#7a1a1e 60%,#a13236 100%); /* dark brushed red metal */
   --shadow:0 20px 48px -22px rgba(24,30,45,0.28);
 
@@ -181,8 +181,31 @@
 [data-theme="light"] .eyebrow,
 [data-theme="light"] .goals-eyebrow{ text-shadow:0 0 10px rgba(193,39,45,.16); }
 [data-theme="light"] h2.title{ filter:drop-shadow(0 0 10px rgba(193,39,45,.10)); }
+[data-theme="light"] h1.title,
+[data-theme="light"] h2.title,
+[data-theme="light"] #nav-streak-count,
+[data-theme="light"] .mobile-brand-title,
+[data-theme="light"] .hero h1 .lime,
+[data-theme="light"] .home-ring-num,
+[data-theme="light"] .kpi-forge .forge-num,
+[data-theme="light"] .result-big .num,
+[data-theme="light"] .stat-tile.highlight .st-value,
+[data-theme="light"] .stat-tile.forged.highlight .st-value,
+[data-theme="light"] .onboarding-card h2,
+[data-theme="light"] .guide-title,
+[data-theme="light"] .rank-overall-meta .rank-name,
+[data-theme="light"] .applock-title{
+  -webkit-text-fill-color:transparent;
+  -webkit-text-stroke:.45px rgba(0,0,0,.86);
+  filter:drop-shadow(0 0 18px rgba(193,39,45,.25));
+}
+[data-theme="light"] .result-big .num small,
+[data-theme="light"] .stat-tile .st-value span{
+  -webkit-text-fill-color:var(--text-dimmer);
+  -webkit-text-stroke:0;
+}
 [data-theme="light"] .home-greeting-text .title{
-  background:linear-gradient(180deg,#ffffff 0%,#ffffff 28%,#dfe6ee 43%,#ffffff 52%,#f8fafc 72%,#edf2f7 100%);
+  background:var(--steel);
   -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
   -webkit-text-stroke:.45px rgba(0,0,0,.86);
   filter:drop-shadow(0 0 18px rgba(193,39,45,.25));
