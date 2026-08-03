@@ -182,9 +182,9 @@
 [data-theme="light"] .goals-eyebrow{ text-shadow:0 0 10px rgba(193,39,45,.16); }
 [data-theme="light"] h2.title{ filter:drop-shadow(0 0 10px rgba(193,39,45,.10)); }
 [data-theme="light"] .home-greeting-text .title{
-  background:#FFFFFF;
+  background:linear-gradient(180deg,#ffffff 0%,#ffffff 68%,#f8fafc 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
-  -webkit-text-stroke:.35px rgba(0,0,0,.82);
+  -webkit-text-stroke:.45px rgba(0,0,0,.86);
   filter:drop-shadow(0 0 18px rgba(193,39,45,.25));
 }
 [data-theme="light"] .result-big .num{ filter:drop-shadow(0 0 12px rgba(193,39,45,.14)); }
