@@ -964,11 +964,11 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
    card's own header instead of separate medallion cards. */
 .calfirst-card{ padding:20px 22px; }
 .calfirst-header{
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-  flex-wrap:wrap; margin-bottom:16px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  margin-bottom:16px;
 }
-.calfirst-header .cal-header{ margin-bottom:0; }
-.calfirst-badges{ display:flex; gap:10px; }
+.calfirst-header .cal-header{ margin-bottom:0; justify-content:center; }
+.calfirst-badges{ display:flex; gap:10px; justify-content:center; }
 .calfirst-badge{
   display:flex; align-items:center; gap:8px; background:var(--bg-2); border:1px solid var(--border-strong);
   border-radius:100px; padding:6px 14px 6px 6px;
@@ -993,7 +993,6 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 .calfirst-footer .cal-legend{ margin-top:0; }
 @media(max-width:480px){
-  .calfirst-header{ flex-direction:column; align-items:flex-start; }
   .calfirst-footer{ flex-direction:column; align-items:stretch; }
   .calfirst-footer .btn-rest-day{ width:100%; text-align:center; }
 }
