@@ -1574,12 +1574,24 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .log-stepper{
   background:var(--bg-2); border:1px solid var(--border-strong); border-radius:12px;
   padding:12px 8px 10px; text-align:center; transition:opacity .15s; min-width:0;
+  display:flex; flex-direction:column; align-items:center;
 }
 .log-stepper-label{
   font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase;
   color:var(--text-dimmer); margin-bottom:9px; line-height:1.3; white-space:nowrap;
 }
-.log-stepper-controls{ display:flex; align-items:center; justify-content:center; gap:6px; }
+/* Number sits on its own full-width row so a 2-digit value never has to
+   compete with the +/- buttons for horizontal space — the buttons live in
+   their own row underneath instead. */
+.log-stepper-val{
+  width:100%; min-width:0; background:transparent; border:none; outline:none;
+  font-family:var(--display); font-size:22px; color:var(--text); text-align:center; padding:0;
+  -moz-appearance:textfield;
+}
+.log-stepper-val::-webkit-outer-spin-button,
+.log-stepper-val::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+.log-stepper-val::placeholder{ color:var(--text-dimmer); opacity:.6; }
+.log-stepper-controls{ display:flex; align-items:center; justify-content:center; gap:10px; margin-top:8px; }
 .log-stepper-btn{
   width:26px; height:26px; border-radius:50%; border:1px solid var(--border-strong); background:var(--surface);
   color:var(--text); font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center;
@@ -1588,19 +1600,13 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .log-stepper-btn:hover{ border-color:var(--accent-bright); color:var(--accent-bright); }
 .log-stepper-btn:active{ transform:scale(0.92); }
-.log-stepper-val{
-  width:52px; min-width:0; flex:1; background:transparent; border:none; outline:none;
-  font-family:var(--display); font-size:22px; color:var(--text); text-align:center; padding:0;
-  -moz-appearance:textfield;
-}
-.log-stepper-val::-webkit-outer-spin-button,
-.log-stepper-val::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-.log-stepper-val::placeholder{ color:var(--text-dimmer); opacity:.6; }
 
 /* Reps stepper swaps to a plain text field when "Time instead of reps" is on —
-   MM:SS doesn't make sense to step through with +/-. */
-.log-stepper--plain .log-stepper-btn{ display:none; }
-.log-stepper--plain .log-stepper-val{ font-family:var(--mono); font-size:15px; font-weight:700; width:100%; }
+   MM:SS doesn't make sense to step through with +/-. Weight is permanently
+   plain (no +/- at all, and no .log-stepper-controls row to hide). Both
+   keep the same font/size as the Sets/Reps number since they share the
+   same .log-stepper-val rule above. */
+.log-stepper--plain .log-stepper-controls{ display:none; }
 
 .log-stepper--disabled{ opacity:.4; pointer-events:none; }
 
@@ -1620,6 +1626,11 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   .log-ticket-actions{ flex-direction:column-reverse; align-items:stretch; }
   .log-ticket-actions .btn{ width:100%; text-align:center; }
   .log-ticket-actions .calc-hint-link{ text-align:center; }
+  /* Sets/Reps need real width for their +/- buttons plus a 2-digit number —
+     three-abreast with Weight leaves them too cramped on narrow phones, so
+     Weight (which has no buttons to fit) drops to its own full-width row. */
+  .log-stepper-trio{ grid-template-columns:1fr 1fr; }
+  .log-stepper-trio .log-stepper:nth-child(3){ grid-column:1 / -1; }
 }
 
 /* ---------- DELETE BUTTON ---------- */

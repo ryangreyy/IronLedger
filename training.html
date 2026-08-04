@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=275">
+<link rel="stylesheet" href="styles.css?v=276">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <link rel="manifest" href="/manifest.json?v=78">
@@ -263,25 +263,23 @@
           <div class="log-stepper-trio">
             <div class="log-stepper" data-target="logSets" data-step="1" data-min="1" data-max="20">
               <div class="log-stepper-label">Sets</div>
+              <input id="logSets" type="number" min="1" max="20" placeholder="3" class="log-stepper-val" inputmode="numeric">
               <div class="log-stepper-controls">
                 <button type="button" class="log-stepper-btn" data-dir="-1" aria-label="Decrease sets">&#8722;</button>
-                <input id="logSets" type="number" min="1" max="20" placeholder="3" class="log-stepper-val" inputmode="numeric">
                 <button type="button" class="log-stepper-btn" data-dir="1" aria-label="Increase sets">+</button>
               </div>
             </div>
             <div class="log-stepper" data-target="logReps" data-step="1" data-min="1" data-max="50">
               <div class="log-stepper-label" id="logRepsLabel">Reps</div>
+              <input id="logReps" type="number" min="1" max="50" placeholder="5" class="log-stepper-val" inputmode="numeric">
               <div class="log-stepper-controls">
                 <button type="button" class="log-stepper-btn" data-dir="-1" aria-label="Decrease reps">&#8722;</button>
-                <input id="logReps" type="number" min="1" max="50" placeholder="5" class="log-stepper-val" inputmode="numeric">
                 <button type="button" class="log-stepper-btn" data-dir="1" aria-label="Increase reps">+</button>
               </div>
             </div>
             <div class="log-stepper log-stepper--plain">
               <div class="log-stepper-label">Weight (<span class="unit-label">lbs</span>)</div>
-              <div class="log-stepper-controls">
-                <input id="logWeight" type="number" min="1" step="5" placeholder="225" class="log-stepper-val" inputmode="numeric">
-              </div>
+              <input id="logWeight" type="number" min="1" step="5" placeholder="225" class="log-stepper-val" inputmode="numeric">
             </div>
           </div>
 
