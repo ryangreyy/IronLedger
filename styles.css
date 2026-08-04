@@ -959,6 +959,45 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 }
 .cal-legend-dot{ width:10px; height:10px; border-radius:3px; flex-shrink:0; }
 
+/* ---------- CALENDAR-FIRST OVERVIEW (dashboard.html) ----------
+   Days Lifted + Current Streak live as compact badges in the calendar
+   card's own header instead of separate medallion cards. */
+.calfirst-card{ padding:20px 22px; }
+.calfirst-header{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  flex-wrap:wrap; margin-bottom:16px;
+}
+.calfirst-header .cal-header{ margin-bottom:0; }
+.calfirst-badges{ display:flex; gap:10px; }
+.calfirst-badge{
+  display:flex; align-items:center; gap:8px; background:var(--bg-2); border:1px solid var(--border-strong);
+  border-radius:100px; padding:6px 14px 6px 6px;
+}
+.calfirst-badge-icon{
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; background:var(--surface);
+  font-size:13px; color:var(--accent-bright);
+}
+.calfirst-badge-icon.hot{ color:#f0905b; }
+.calfirst-badge-num{ font-family:var(--display); font-size:19px; color:var(--text); line-height:1; }
+.calfirst-badge-num.hot{
+  background:linear-gradient(180deg,#ffffff 0%,#ffd9a8 38%,#f0905b 62%,#ffe8cf 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.calfirst-badge-label{ font-family:var(--mono); font-size:8px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-dimmer); }
+.calfirst-grid-wrap{ max-width:420px; margin:0 auto; }
+.calfirst-grid-wrap .cal-grid{ max-width:none; }
+.calfirst-footer{
+  display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  margin-top:16px;
+}
+.calfirst-footer .cal-legend{ margin-top:0; }
+@media(max-width:480px){
+  .calfirst-header{ flex-direction:column; align-items:flex-start; }
+  .calfirst-footer{ flex-direction:column; align-items:stretch; }
+  .calfirst-footer .btn-rest-day{ width:100%; text-align:center; }
+}
+
 /* ---------- KPI LOWER ROW (calendar + freq side by side) ---------- */
 .kpi-lower-row{
   display:flex; gap:18px; margin-top:18px; align-items:stretch; flex-wrap:wrap;

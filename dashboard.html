@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=279">
+<link rel="stylesheet" href="styles.css?v=280">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <link rel="manifest" href="/manifest.json?v=82">
@@ -188,48 +188,12 @@
         </div>
       </div>
 
-      <div class="grid-kpi" style="margin-top:16px;">
-        <!-- Days Lifted — editorial forged medallion -->
-        <div class="card kpi forged kpi-forge">
-          <div class="kpi-forge-header">
-            <div class="label">Days Lifted</div>
-          </div>
-          <div class="forge-medallion">
-            <svg class="kpi-plate" viewBox="0 0 120 120" aria-hidden="true">
-              <circle cx="60" cy="60" r="56" fill="url(#kplate)" stroke="#c9cdd6" stroke-width="1" stroke-opacity=".4"/>
-              <circle cx="60" cy="60" r="50" fill="none" stroke="#0a0c10" stroke-width="3" stroke-opacity=".7"/>
-              <circle cx="60" cy="60" r="37" fill="url(#kplate)" stroke="#3a3e46" stroke-width="1"/>
-              <g fill="#0c0e12" stroke="#2a2e36" stroke-width="0.8">
-                <circle cx="104" cy="60" r="3"/><circle cx="82" cy="98.1" r="3"/><circle cx="38" cy="98.1" r="3"/>
-                <circle cx="16" cy="60" r="3"/><circle cx="38" cy="21.9" r="3"/><circle cx="82" cy="21.9" r="3"/>
-              </g>
-            </svg>
-            <div class="forge-num" id="kpi-sessions">—</div>
-          </div>
-        </div>
-
-        <!-- Current Streak — editorial forged medallion, red-hot -->
-        <div class="card kpi forged kpi-forge kpi-streak-card">
-          <div class="label">Current Streak</div>
-          <div class="forge-medallion">
-            <svg class="kpi-plate" viewBox="0 0 120 120" aria-hidden="true">
-              <circle cx="60" cy="60" r="58" fill="none" stroke="#f0565b" stroke-width="3" stroke-opacity=".2"/>
-              <circle cx="60" cy="60" r="56" fill="url(#kplate)" stroke="url(#khot)" stroke-width="1.4"/>
-              <circle cx="60" cy="60" r="50" fill="none" stroke="#c1272d" stroke-width="2.5" stroke-opacity=".5"/>
-              <circle cx="60" cy="60" r="37" fill="url(#kplate)" stroke="#7a4a30" stroke-width="1"/>
-            </svg>
-            <div class="forge-num hot" id="kpi-streak">—</div>
-          </div>
-          <div class="streak-action-stack">
-            <button id="restDayBtn" class="btn-rest-day forge-rest">Log Rest Day</button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Calendar + Lift Frequency row -->
-      <div class="kpi-lower-row" style="margin-top:16px;">
-        <div class="cal-card">
+      <!-- Calendar-first: Days Lifted + Current Streak live as compact
+           badges in the calendar's own header instead of separate
+           medallion cards, and the rest-day button + legend share a
+           footer row underneath the grid. -->
+      <div class="card calfirst-card" style="margin-top:16px;">
+        <div class="calfirst-header">
           <div class="cal-header">
             <span class="cal-eyebrow">Calendar</span>
             <div class="cal-month-nav">
@@ -238,13 +202,23 @@
               <button class="cal-nav-btn" id="calNext">&#8594;</button>
             </div>
           </div>
-          <div class="cal-grid" id="calGrid"></div>
-          <div class="cal-legend" id="calLegend"></div>
+          <div class="calfirst-badges">
+            <div class="calfirst-badge">
+              <div class="calfirst-badge-icon"><i class="ti ti-calendar-check" aria-hidden="true"></i></div>
+              <div><div class="calfirst-badge-num" id="kpi-sessions">—</div><div class="calfirst-badge-label">Days</div></div>
+            </div>
+            <div class="calfirst-badge">
+              <div class="calfirst-badge-icon hot"><i class="ti ti-flame" aria-hidden="true"></i></div>
+              <div><div class="calfirst-badge-num hot" id="kpi-streak">—</div><div class="calfirst-badge-label">Streak</div></div>
+            </div>
+          </div>
         </div>
-        <div class="freq-card">
-          <div class="freq-eyebrow">Lift Frequency</div>
-          <div class="freq-sub">This month</div>
-          <div class="freq-bars" id="freqBars"></div>
+        <div class="calfirst-grid-wrap">
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="calfirst-footer">
+            <div class="cal-legend" id="calLegend"></div>
+            <button id="restDayBtn" class="btn-rest-day" style="margin-top:0;">Log Rest Day</button>
+          </div>
         </div>
       </div>
     </section>
