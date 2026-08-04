@@ -1595,6 +1595,7 @@ function initApp(uid) {
     const details = document.getElementById('historyDetails');
     const empty   = document.getElementById('historyEmpty');
     const note    = document.getElementById('historyNote');
+    const pag     = document.getElementById('history-pagination');
     if (!sel || !svg) return;
 
     const lifts = [...new Set(sessions.filter(s => s.lift).map(s => s.lift))].sort();
@@ -1602,27 +1603,46 @@ function initApp(uid) {
       ? lifts.map(l => `<option value="${l}"${l === historySelectedLift ? ' selected' : ''}>${l}</option>`).join('')
       : '<option value="">Log sessions to see history</option>';
 
-    if (!historySelectedLift && lifts.length) historySelectedLift = lifts[0];
+    if (lifts.length && (!historySelectedLift || !lifts.includes(historySelectedLift))) {
+      historySelectedLift = lifts[0];
+      historyPage = 1;
+    }
     if (historySelectedLift && lifts.includes(historySelectedLift)) sel.value = historySelectedLift;
+    if (!lifts.length) {
+      historySelectedLift = '';
+      historyPage = 1;
+      svg.innerHTML = '';
+      if (details) details.innerHTML = '';
+      if (empty)   empty.style.display = '';
+      if (note)    note.textContent = '';
+      if (pag)     pag.style.display = 'none';
+      return;
+    }
 
     function draw(liftName) {
       if (!liftName) return;
       historySelectedLift = liftName;
 
-      const liftSessions = sessions
+      const allLiftSessions = sessions
         .filter(s => s.lift === liftName && s.dateRaw)
-        .sort((a, b) => a.dateRaw.localeCompare(b.dateRaw))
-        .slice(-5);
+        .sort((a, b) => a.dateRaw.localeCompare(b.dateRaw));
+      const totalPages = Math.max(1, Math.ceil(allLiftSessions.length / PAGE_SIZE));
+      if (historyPage > totalPages) historyPage = totalPages;
+      if (historyPage < 1) historyPage = 1;
+      const newestFirst = allLiftSessions.slice().reverse();
+      const pageRows = newestFirst.slice((historyPage - 1) * PAGE_SIZE, historyPage * PAGE_SIZE);
+      const liftSessions = pageRows.slice().reverse();
 
       if (!liftSessions.length) {
         svg.innerHTML = '';
         if (details) details.innerHTML = '';
         if (empty)   empty.style.display = '';
         if (note)    note.textContent = '';
+        if (pag)     pag.style.display = 'none';
         return;
       }
       if (empty) empty.style.display = 'none';
-      if (note)  note.textContent = `Last ${liftSessions.length} session${liftSessions.length !== 1 ? 's' : ''}`;
+      if (note)  note.textContent = `${allLiftSessions.length} total session${allLiftSessions.length !== 1 ? 's' : ''}`;
 
       const historyCls = normalizeLiftCls(liftSessions[0]?.cls || liftToCls(liftName) || 'other');
       const historyColor = clsColor(historyCls);
@@ -1681,7 +1701,7 @@ function initApp(uid) {
         dots + labels;
 
       if (details) {
-        details.innerHTML = liftSessions.slice().reverse().map(s => `
+        details.innerHTML = pageRows.map(s => `
           <div class="history-detail-row">
             <span class="history-date">${fmtDateDisplay(s.dateRaw)}</span>
             <span class="history-wt">${s.bodyweight ? 'Bodyweight' : s.wt + ' lbs'}</span>
@@ -1689,9 +1709,22 @@ function initApp(uid) {
             <span class="history-note${s.note ? ' has-note' : ''}">${s.note ? '★ ' + s.note : '—'}</span>
           </div>`).join('');
       }
+      if (pag) {
+        if (allLiftSessions.length > PAGE_SIZE) {
+          pag.style.display = '';
+          const pi = document.getElementById('history-page-info');
+          const hp = document.getElementById('history-prev');
+          const hn = document.getElementById('history-next');
+          if (pi) pi.textContent = `Page ${historyPage} of ${totalPages}`;
+          if (hp) hp.disabled = historyPage <= 1;
+          if (hn) hn.disabled = historyPage >= totalPages;
+        } else {
+          pag.style.display = 'none';
+        }
+      }
     }
 
-    sel.onchange = () => draw(sel.value);
+    sel.onchange = () => { historyPage = 1; draw(sel.value); };
     if (lifts.length) draw(historySelectedLift || lifts[0]);
   }
 
@@ -1731,6 +1764,7 @@ function initApp(uid) {
   let currentSessions = [];
   let currentSettings = null;
   let historySelectedLift = '';
+  let historyPage = 1;
   let currentPage = 1;
   const PAGE_SIZE = 6;
 
@@ -3001,6 +3035,7 @@ function initApp(uid) {
     const lift = liftVal.trim();
     const cls  = liftToCls(lift);
     currentPage = 1;
+    historyPage = 1;
     /* PR check: does this beat the best weight ever logged for this exact lift? */
     const prevBest = (currentSessions || [])
       .filter(s => (s.lift || '').toLowerCase() === lift.toLowerCase())
@@ -3090,6 +3125,26 @@ function initApp(uid) {
   document.getElementById('log-next')?.addEventListener('click', () => {
     const totalPages = Math.ceil(groupedLogRows(currentSessions).length / PAGE_SIZE);
     if (currentPage < totalPages) { currentPage++; renderLog(currentSessions); }
+  });
+
+  document.addEventListener('click', e => {
+    const historyPrev = e.target.closest('#history-prev');
+    if (historyPrev) {
+      if (historyPage > 1) {
+        historyPage--;
+        renderHistoryChart(currentSessions.filter(s => !s.isRestDay));
+      }
+      return;
+    }
+
+    const historyNext = e.target.closest('#history-next');
+    if (historyNext) {
+      const totalPages = Math.ceil(currentSessions.filter(s => !s.isRestDay && s.lift === historySelectedLift && s.dateRaw).length / PAGE_SIZE);
+      if (historyPage < totalPages) {
+        historyPage++;
+        renderHistoryChart(currentSessions.filter(s => !s.isRestDay));
+      }
+    }
   });
 
   document.getElementById('goals-prev')?.addEventListener('click', () => {
