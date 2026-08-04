@@ -3092,7 +3092,7 @@ function initApp(uid) {
     if (!input || !toggle) return;
     const timed = !!toggle.checked;
     input.type = timed ? 'text' : 'number';
-    input.placeholder = timed ? '0:45' : '5';
+    input.placeholder = timed ? '0:45' : '—';
     input.value = '';
     delete input.dataset.timeDigits;
     const label = input.id === 'logReps' ? document.getElementById('logRepsLabel') : null;
