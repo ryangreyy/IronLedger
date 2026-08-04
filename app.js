@@ -1067,6 +1067,51 @@ function initLogSteppers() {
   });
 }
 
+/* Microwave-style digit entry: each typed digit shifts in from the
+   right instead of needing the separator typed manually — 1, 4, 5
+   reads as 1:45 for time (last two digits are seconds) or 12.5 for
+   weight (last digit is the decimal). The raw digit buffer is tracked
+   separately in a dataset attribute rather than re-derived from the
+   formatted text on every keystroke — stripping digits back out of an
+   already-separated value would pick up the mask's own padding as if
+   it'd been typed, corrupting the next keystroke (e.g. "0:01" + "4"
+   -> digits "0014" -> "00:14" instead of "0:14"). beforeinput (not
+   input) is used so the native keystroke can be cancelled and fully
+   replaced by the reformatted value in one step. Top-level (not inside
+   initApp) since both initApp's own code (Reps time-mask) and
+   initBodyweightControls (bodyweight-log mask) need it. */
+function timeMaskDigits(digits) {
+  if (!digits) return '';
+  const d = digits.slice(-4);
+  const secs = d.slice(-2).padStart(2, '0');
+  const mins = d.slice(0, -2) || '0';
+  return `${mins}:${secs}`;
+}
+function weightMaskDigits(digits) {
+  if (!digits) return '';
+  const d = digits.slice(-4);
+  const decimal = d.slice(-1);
+  const whole = d.slice(0, -1) || '0';
+  return `${whole}.${decimal}`;
+}
+function applyDigitMaskBuffer(input, digits, formatFn) {
+  input.dataset.maskDigits = digits;
+  input.value = formatFn(digits);
+  const end = input.value.length;
+  input.setSelectionRange(end, end);
+}
+function handleDigitMaskBeforeInput(input, e, formatFn) {
+  if (input.type !== 'text') return;
+  const type = e.inputType || '';
+  e.preventDefault();
+  if (type === 'deleteContentBackward' || type === 'deleteContentForward') {
+    applyDigitMaskBuffer(input, (input.dataset.maskDigits || '').slice(0, -1), formatFn);
+  } else if (type.startsWith('insert')) {
+    const added = (e.data || '').replace(/\D/g, '');
+    if (added) applyDigitMaskBuffer(input, ((input.dataset.maskDigits || '') + added).slice(-4), formatFn);
+  }
+}
+
 function initBodyweightDatePicker() {
   const d = document.getElementById('bwDate');
   if (!d) return;
@@ -1085,6 +1130,10 @@ initBodyweightDatePicker();
    until a full page reload — the button looks broken with zero
    feedback because there's no listener on it at all anymore. */
 function initBodyweightControls() {
+  const bwInput = document.getElementById('bwInput');
+  bwInput?.addEventListener('beforeinput', e => handleDigitMaskBeforeInput(bwInput, e, weightMaskDigits));
+  bwInput?.addEventListener('focus', () => bwInput.select());
+
   document.getElementById('bwPrev')?.addEventListener('click', () => {
     const [yr, mo] = bwCurrentMonth.split('-').map(Number);
     const d = new Date(yr, mo - 2, 1);
@@ -1124,7 +1173,8 @@ function initBodyweightControls() {
         date:   dateVal,
         ts:     firebase.firestore.FieldValue.serverTimestamp(),
       });
-      document.getElementById('bwInput').value = '';
+      delete bwInput.dataset.maskDigits;
+      bwInput.value = '';
       bwCurrentMonth = dateVal.slice(0, 7);
     } catch(err) { showToast('Could not save weight entry — ' + (err?.message || 'check your connection.')); }
   });
@@ -2589,56 +2639,10 @@ function initApp(uid) {
     return mins ? `${mins}:${String(secs).padStart(2, '0')}` : `${secs}s`;
   }
 
-  /* Microwave-style digit entry: each typed digit shifts in from the
-     right instead of needing the separator typed manually — 1, 4, 5
-     reads as 1:45 for time (last two digits are seconds) or 12.5 for
-     weight (last digit is the decimal). The raw digit buffer is tracked
-     separately in a dataset attribute rather than re-derived from the
-     formatted text on every keystroke — stripping digits back out of an
-     already-separated value would pick up the mask's own padding as if
-     it'd been typed, corrupting the next keystroke (e.g. "0:01" + "4"
-     -> digits "0014" -> "00:14" instead of "0:14"). beforeinput (not
-     input) is used so the native keystroke can be cancelled and fully
-     replaced by the reformatted value in one step. */
-  function timeMaskDigits(digits) {
-    if (!digits) return '';
-    const d = digits.slice(-4);
-    const secs = d.slice(-2).padStart(2, '0');
-    const mins = d.slice(0, -2) || '0';
-    return `${mins}:${secs}`;
-  }
-  function weightMaskDigits(digits) {
-    if (!digits) return '';
-    const d = digits.slice(-4);
-    const decimal = d.slice(-1);
-    const whole = d.slice(0, -1) || '0';
-    return `${whole}.${decimal}`;
-  }
-  function applyDigitMaskBuffer(input, digits, formatFn) {
-    input.dataset.maskDigits = digits;
-    input.value = formatFn(digits);
-    const end = input.value.length;
-    input.setSelectionRange(end, end);
-  }
-  function handleDigitMaskBeforeInput(input, e, formatFn) {
-    if (input.type !== 'text') return;
-    const type = e.inputType || '';
-    e.preventDefault();
-    if (type === 'deleteContentBackward' || type === 'deleteContentForward') {
-      applyDigitMaskBuffer(input, (input.dataset.maskDigits || '').slice(0, -1), formatFn);
-    } else if (type.startsWith('insert')) {
-      const added = (e.data || '').replace(/\D/g, '');
-      if (added) applyDigitMaskBuffer(input, ((input.dataset.maskDigits || '') + added).slice(-4), formatFn);
-    }
-  }
   function initTimeMask() {
     const logReps = document.getElementById('logReps');
     logReps?.addEventListener('beforeinput', e => handleDigitMaskBeforeInput(logReps, e, timeMaskDigits));
     logReps?.addEventListener('focus', () => { if (logReps.type === 'text') logReps.select(); });
-
-    const logWeight = document.getElementById('logWeight');
-    logWeight?.addEventListener('beforeinput', e => handleDigitMaskBeforeInput(logWeight, e, weightMaskDigits));
-    logWeight?.addEventListener('focus', () => logWeight.select());
   }
 
   function repMetricText(s) {
@@ -3097,7 +3101,7 @@ function initApp(uid) {
   const logRepsTimeEl = document.getElementById('logRepsTime');
   logBwEl?.addEventListener('change', () => {
     logWtEl.disabled = logBwEl.checked;
-    if (logBwEl.checked) { logWtEl.value = ''; delete logWtEl.dataset.maskDigits; }
+    if (logBwEl.checked) logWtEl.value = '';
     logWtEl.closest('.log-stepper')?.classList.toggle('log-stepper--disabled', logBwEl.checked);
   });
   function syncRepsInputMode(input, toggle) {
@@ -3150,7 +3154,6 @@ function initApp(uid) {
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
       .then(() => {
         ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = '');
-        delete logWtEl.dataset.maskDigits;
         if (logRepsTimeEl) { logRepsTimeEl.checked = false; syncRepsInputMode(logRepsEl, logRepsTimeEl); }
         if (logBwEl) { logBwEl.checked = false; logWtEl.disabled = false; }
         if (isPR) showPrStamp(lift, wt);
