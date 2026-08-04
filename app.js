@@ -960,17 +960,26 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
 /* Sign out */
 document.getElementById('signOut').addEventListener('click', () => auth.signOut());
 
-/* Custom lift dropdown — bypasses unreliable native datalist on mobile */
-(function() {
-  const input  = document.getElementById('logLift');
-  const btn    = document.getElementById('liftDropdownBtn');
-  const list   = document.getElementById('liftDropdownList');
+/* Custom lift dropdown — bypasses unreliable native datalist on mobile.
+   Defined here but only wired up from inside initApp() (see initLiftPicker
+   call near the other training-page inits): #logLift/#liftDropdownList/
+   #liftCatPills all live inside #main-content, which soft-nav destroys and
+   recreates on every Training navigation. A one-time top-level attachment
+   would go dead after the first swap, same as the bodyweight-controls
+   gotcha documented below. */
+function initLiftPicker() {
+  if (window.__igLiftPickerCleanup) { window.__igLiftPickerCleanup(); window.__igLiftPickerCleanup = null; }
+
+  const input     = document.getElementById('logLift');
+  const btn       = document.getElementById('liftDropdownBtn');
+  const list      = document.getElementById('liftDropdownList');
+  const pillsWrap = document.getElementById('liftCatPills');
   if (!input || !btn || !list) return;
 
   /* Detach native datalist so only our custom dropdown shows */
   input.removeAttribute('list');
 
-  const catFilter = document.getElementById('liftCatFilter');
+  let activeCat = '';
 
   function allLifts() {
     return Array.from(document.querySelectorAll('#lift-options option')).map(o => ({
@@ -981,9 +990,8 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
 
   function render(filter) {
     const q   = (filter || '').toLowerCase();
-    const cat = catFilter ? catFilter.value : '';
     const opts = allLifts().filter(o =>
-      (!cat || o.cat === cat) && (!q || o.value.toLowerCase().includes(q))
+      (!activeCat || o.cat === activeCat) && (!q || o.value.toLowerCase().includes(q))
     );
     list.innerHTML = opts.length
       ? opts.map(o => `<div class="lift-opt">${o.value}</div>`).join('')
@@ -1006,10 +1014,16 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
     isOpen() ? close() : open();
   });
 
-  if (catFilter) {
-    catFilter.addEventListener('change', () => {
-      input.value = '';
-      open();
+  if (pillsWrap) {
+    pillsWrap.querySelectorAll('.log-cat-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        pillsWrap.querySelectorAll('.log-cat-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeCat = pill.dataset.cat || '';
+        input.value = '';
+        open();
+        input.focus();
+      });
     });
   }
 
@@ -1017,10 +1031,41 @@ document.getElementById('signOut').addEventListener('click', () => auth.signOut(
   input.addEventListener('input', () => { if (isOpen()) render(input.value); });
   input.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 
-  document.addEventListener('pointerdown', e => {
-    if (!e.target.closest('.lift-wrap') && !e.target.closest('#liftCatFilter')) close();
+  const outsideHandler = e => {
+    if (!e.target.closest('.lift-wrap') && !e.target.closest('#liftCatPills')) close();
+  };
+  document.addEventListener('pointerdown', outsideHandler);
+  window.__igLiftPickerCleanup = () => document.removeEventListener('pointerdown', outsideHandler);
+}
+
+/* Sets/Reps/Weight tap-to-adjust +/- steppers on the training log form.
+   Re-queries .log-stepper wrappers fresh each call — safe to call
+   repeatedly on soft-nav reactivation since it only attaches listeners
+   directly to freshly-created nodes (no document-level listener to leak). */
+function initLogSteppers() {
+  document.querySelectorAll('.log-stepper').forEach(wrap => {
+    const targetId = wrap.dataset.target;
+    const inputEl  = document.getElementById(targetId);
+    if (!inputEl) return;
+    const step = +wrap.dataset.step || 1;
+    const min  = wrap.dataset.min !== undefined ? +wrap.dataset.min : null;
+    const max  = wrap.dataset.max !== undefined ? +wrap.dataset.max : null;
+    wrap.querySelectorAll('.log-stepper-btn').forEach(stepBtn => {
+      stepBtn.addEventListener('click', () => {
+        if (inputEl.disabled || inputEl.type !== 'number') return;
+        const dir  = +stepBtn.dataset.dir;
+        let base   = parseFloat(inputEl.value);
+        if (isNaN(base)) base = 0;
+        let next = base + step * dir;
+        if (min !== null) next = Math.max(min, next);
+        if (max !== null) next = Math.min(max, next);
+        inputEl.value = next;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    });
   });
-})();
+}
 
 function initBodyweightDatePicker() {
   const d = document.getElementById('bwDate');
@@ -2885,6 +2930,8 @@ function initApp(uid) {
   createDatePicker('logDate');
   initBodyweightDatePicker();
   initBodyweightControls();
+  initLiftPicker();
+  initLogSteppers();
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
@@ -2998,6 +3045,7 @@ function initApp(uid) {
   logBwEl?.addEventListener('change', () => {
     logWtEl.disabled = logBwEl.checked;
     if (logBwEl.checked) logWtEl.value = '';
+    logWtEl.closest('.log-stepper')?.classList.toggle('log-stepper--disabled', logBwEl.checked);
   });
   function syncRepsInputMode(input, toggle) {
     if (!input || !toggle) return;
@@ -3013,6 +3061,7 @@ function initApp(uid) {
       input.min = '1';
       input.max = '50';
     }
+    input.closest('.log-stepper')?.classList.toggle('log-stepper--plain', timed);
   }
   logRepsTimeEl?.addEventListener('change', () => syncRepsInputMode(logRepsEl, logRepsTimeEl));
   syncRepsInputMode(logRepsEl, logRepsTimeEl);

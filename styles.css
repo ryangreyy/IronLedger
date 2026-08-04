@@ -1543,6 +1543,84 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .add-session-grid .field input,
 .add-session-grid .field select{ font-size:15px; padding:11px 13px; }
 
+/* ---------- LOG SESSION TICKET CARD (training.html "Log a new session") ---------- */
+.log-ticket-card{ padding:0; overflow:hidden; }
+.log-ticket-head{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding:18px 22px; background:linear-gradient(180deg,rgba(193,39,45,.14),rgba(193,39,45,.03));
+  border-bottom:1px solid var(--border);
+}
+.log-ticket-head-label{
+  font-family:var(--mono); font-size:12px; letter-spacing:0.18em; text-transform:uppercase;
+  background:var(--steel-red); -webkit-background-clip:text; background-clip:text; color:transparent;
+  display:flex; align-items:center; gap:8px; white-space:nowrap;
+}
+.log-ticket-head-label i{ font-size:15px; color:var(--accent-bright); }
+.log-cat-pills{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.log-cat-pill{
+  font-family:var(--mono); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+  padding:5px 11px; border-radius:100px; border:1px solid var(--border-strong); color:var(--text-dim);
+  cursor:pointer; transition:all .15s; background:var(--bg-2);
+}
+.log-cat-pill:hover{ color:var(--text); border-color:var(--accent-bright); }
+.log-cat-pill.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.log-ticket-body{ padding:22px; }
+.log-ticket-row1{ display:grid; grid-template-columns:1fr 1.4fr; gap:14px; margin-bottom:20px; }
+.log-ticket-body .field input,
+.log-ticket-body .field select{ font-size:15px; padding:11px 13px; }
+
+.log-stepper-trio{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.log-stepper{
+  background:var(--bg-2); border:1px solid var(--border-strong); border-radius:12px;
+  padding:12px 8px 10px; text-align:center; transition:opacity .15s;
+}
+.log-stepper-label{
+  font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--text-dimmer); margin-bottom:9px; white-space:nowrap;
+}
+.log-stepper-controls{ display:flex; align-items:center; justify-content:center; gap:6px; }
+.log-stepper-btn{
+  width:26px; height:26px; border-radius:50%; border:1px solid var(--border-strong); background:var(--surface);
+  color:var(--text); font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; flex-shrink:0; line-height:1; transition:border-color .15s, color .15s;
+}
+.log-stepper-btn:hover{ border-color:var(--accent-bright); color:var(--accent-bright); }
+.log-stepper-btn:active{ transform:scale(0.92); }
+.log-stepper-val{
+  width:52px; min-width:0; flex:1; background:transparent; border:none; outline:none;
+  font-family:var(--display); font-size:22px; color:var(--text); text-align:center; padding:0;
+  -moz-appearance:textfield;
+}
+.log-stepper-val::-webkit-outer-spin-button,
+.log-stepper-val::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+.log-stepper-val::placeholder{ color:var(--text-dimmer); opacity:.6; }
+
+/* Reps stepper swaps to a plain text field when "Time instead of reps" is on —
+   MM:SS doesn't make sense to step through with +/-. */
+.log-stepper--plain .log-stepper-btn{ display:none; }
+.log-stepper--plain .log-stepper-val{ font-family:var(--mono); font-size:15px; font-weight:700; width:100%; }
+
+.log-stepper--disabled{ opacity:.4; pointer-events:none; }
+
+.log-ticket-divider{ height:1px; background:var(--border); margin:18px 0; }
+.log-ticket-toggles{ display:flex; gap:18px; flex-wrap:wrap; margin-bottom:18px; }
+.log-ticket-actions{
+  display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  padding:16px 22px; background:var(--bg-2); border-top:1px solid var(--border);
+}
+
+@media(max-width:600px){
+  .log-ticket-head{ flex-direction:column; align-items:flex-start; gap:12px; }
+  .log-cat-pills{ justify-content:flex-start; overflow-x:auto; flex-wrap:nowrap; width:100%; padding-bottom:2px; }
+  .log-cat-pill{ flex-shrink:0; }
+}
+@media(max-width:480px){
+  .log-ticket-row1{ grid-template-columns:1fr; }
+  .log-ticket-actions{ flex-direction:column-reverse; align-items:stretch; }
+  .log-ticket-actions .btn{ width:100%; text-align:center; }
+  .log-ticket-actions .calc-hint-link{ text-align:center; }
+}
+
 /* ---------- DELETE BUTTON ---------- */
 .btn-delete{
   background:transparent; border:none; color:var(--text-dimmer);
