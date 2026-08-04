@@ -1561,6 +1561,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   font-family:var(--mono); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
   padding:5px 11px; border-radius:100px; border:1px solid var(--border-strong); color:var(--text-dim);
   cursor:pointer; transition:all .15s; background:var(--bg-2);
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none;
 }
 .log-cat-pill:hover{ color:var(--text); border-color:var(--accent-bright); }
 .log-cat-pill.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
@@ -1572,17 +1573,18 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .log-stepper-trio{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
 .log-stepper{
   background:var(--bg-2); border:1px solid var(--border-strong); border-radius:12px;
-  padding:12px 8px 10px; text-align:center; transition:opacity .15s;
+  padding:12px 8px 10px; text-align:center; transition:opacity .15s; min-width:0;
 }
 .log-stepper-label{
   font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--text-dimmer); margin-bottom:9px; white-space:nowrap;
+  color:var(--text-dimmer); margin-bottom:9px; line-height:1.3;
 }
 .log-stepper-controls{ display:flex; align-items:center; justify-content:center; gap:6px; }
 .log-stepper-btn{
   width:26px; height:26px; border-radius:50%; border:1px solid var(--border-strong); background:var(--surface);
   color:var(--text); font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center;
   cursor:pointer; flex-shrink:0; line-height:1; transition:border-color .15s, color .15s;
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none;
 }
 .log-stepper-btn:hover{ border-color:var(--accent-bright); color:var(--accent-bright); }
 .log-stepper-btn:active{ transform:scale(0.92); }
@@ -1611,8 +1613,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 
 @media(max-width:600px){
   .log-ticket-head{ flex-direction:column; align-items:flex-start; gap:12px; }
-  .log-cat-pills{ justify-content:flex-start; overflow-x:auto; flex-wrap:nowrap; width:100%; padding-bottom:2px; }
-  .log-cat-pill{ flex-shrink:0; }
+  .log-cat-pills{ justify-content:flex-start; flex-wrap:wrap; width:100%; }
 }
 @media(max-width:480px){
   .log-ticket-row1{ grid-template-columns:1fr; }
