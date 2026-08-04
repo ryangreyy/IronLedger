@@ -2589,6 +2589,46 @@ function initApp(uid) {
     return mins ? `${mins}:${String(secs).padStart(2, '0')}` : `${secs}s`;
   }
 
+  /* Microwave-style time entry: each typed digit shifts in from the right,
+     so pressing 1, 4, 5 reads as 1:45 (last two digits are seconds, the
+     rest are minutes) instead of needing the colon typed manually. The
+     raw digit buffer is tracked separately in a dataset attribute rather
+     than re-derived from the formatted "M:SS" text on every keystroke —
+     stripping digits back out of an already-colon-formatted value would
+     pick up padding zeros as if they'd been typed, corrupting the next
+     keystroke (e.g. "0:01" + "4" -> digits "0014" -> "00:14" instead of
+     "0:14"). beforeinput (not input) is used so the native keystroke can
+     be cancelled and fully replaced by the reformatted value in one step. */
+  function timeMaskDigits(digits) {
+    if (!digits) return '';
+    const d = digits.slice(-4);
+    const secs = d.slice(-2).padStart(2, '0');
+    const mins = d.slice(0, -2) || '0';
+    return `${mins}:${secs}`;
+  }
+  function applyTimeMaskBuffer(input, digits) {
+    input.dataset.timeDigits = digits;
+    input.value = timeMaskDigits(digits);
+    const end = input.value.length;
+    input.setSelectionRange(end, end);
+  }
+  function handleTimeMaskBeforeInput(input, e) {
+    if (input.type !== 'text') return;
+    const type = e.inputType || '';
+    e.preventDefault();
+    if (type === 'deleteContentBackward' || type === 'deleteContentForward') {
+      applyTimeMaskBuffer(input, (input.dataset.timeDigits || '').slice(0, -1));
+    } else if (type.startsWith('insert')) {
+      const added = (e.data || '').replace(/\D/g, '');
+      if (added) applyTimeMaskBuffer(input, ((input.dataset.timeDigits || '') + added).slice(-4));
+    }
+  }
+  function initTimeMask() {
+    const logReps = document.getElementById('logReps');
+    logReps?.addEventListener('beforeinput', e => handleTimeMaskBeforeInput(logReps, e));
+    logReps?.addEventListener('focus', () => { if (logReps.type === 'text') logReps.select(); });
+  }
+
   function repMetricText(s) {
     return isTimedSession(s) ? formatTimeSeconds(s.timeSeconds || s.reps) : (s.reps || '—');
   }
@@ -2932,6 +2972,7 @@ function initApp(uid) {
   initBodyweightControls();
   initLiftPicker();
   initLogSteppers();
+  initTimeMask();
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
@@ -3052,6 +3093,8 @@ function initApp(uid) {
     const timed = !!toggle.checked;
     input.type = timed ? 'text' : 'number';
     input.placeholder = timed ? '0:45' : '5';
+    input.value = '';
+    delete input.dataset.timeDigits;
     const label = input.id === 'logReps' ? document.getElementById('logRepsLabel') : null;
     if (label) label.textContent = timed ? 'Time' : 'Reps';
     if (timed) {
@@ -3167,6 +3210,16 @@ function initApp(uid) {
       }
     }
   });
+
+  /* Time-mask the edit row's reps field too — it's built fresh into
+     #logBody on every edit click, so this has to be delegated rather
+     than attached directly like initTimeMask() does for #logReps. */
+  document.getElementById('logBody')?.addEventListener('beforeinput', e => {
+    if (e.target.id === 'ed-reps') handleTimeMaskBeforeInput(e.target, e);
+  });
+  document.getElementById('logBody')?.addEventListener('focus', e => {
+    if (e.target.id === 'ed-reps' && e.target.type === 'text') e.target.select();
+  }, true);
 
   document.getElementById('log-prev')?.addEventListener('click', () => {
     if (currentPage > 1) { currentPage--; renderLog(currentSessions); }
