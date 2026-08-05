@@ -211,7 +211,7 @@
   filter:drop-shadow(0 0 18px rgba(193,39,45,.25));
 }
 [data-theme="light"] .home-ring-num{
-  background:linear-gradient(180deg,#f8fafc 0%,#eef2f7 30%,#cbd3dd 48%,#dfe5ec 68%,#f1f4f8 100%);
+  background:linear-gradient(180deg,#f3f6fa 0%,#e2e8f0 30%,#aeb9c7 48%,#cfd8e3 68%,#e6ebf2 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
 }
 [data-theme="light"] .result-big .num{ filter:drop-shadow(0 0 12px rgba(193,39,45,.14)); }
