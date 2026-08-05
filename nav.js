@@ -168,16 +168,53 @@
   if (document.body) { mount(); } else { document.addEventListener('DOMContentLoaded', mount); }
 
   /* ---- Feed notification dot ----
-     Lit whenever a friend has trained today or there's a pending
-     incoming head-to-head challenge. Lives here (not app.js) since
-     nav.js is the only script guaranteed to load on every page --
-     app.js only loads on dashboard/index/training. A plain state
-     check (not a live listener) run on auth change + whenever the tab
-     regains visibility, same lightweight refresh pattern as
-     pwa-update.js's watchForNextVersion. */
+     Lit only for NEW stuff — a friend training today or a challenge
+     landing that the user hasn't already seen — not for "is this
+     still true right now." A plain state check (pending challenge
+     exists / friend trained today) would never clear on its own: a
+     friend who trained at 8am is still "trained today" at 8pm even
+     after the user has already looked, so the dot would sit lit all
+     day regardless of whether anything was actually new to them.
+     Instead this fingerprints the current set of (pending challenge
+     ids + friend uids who trained today) and compares it against the
+     last fingerprint stored in localStorage. Visiting feed.html — the
+     page that actually shows this stuff — stamps the current
+     fingerprint as "seen" and clears the dot; the dot only reappears
+     once the fingerprint changes again (a new challenge, or another
+     friend training). Lives here (not app.js) since nav.js is the
+     only script guaranteed to load on every page. */
   function igLocalISO(d) {
     var x = d || new Date();
     return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  }
+
+  function igFeedSeenKey(uid) { return 'ig-feed-seen-' + uid; }
+
+  function igComputeFeedSignal(fdb, uid, todayISO) {
+    var challengeIdsP = fdb.collection('headToHead')
+      .where('opponentUid', '==', uid).where('status', '==', 'pending').get()
+      .then(function (snap) { return snap.docs.map(function (d) { return d.id; }).sort(); })
+      .catch(function () { return []; });
+
+    var friendUidsTodayP = Promise.all([
+      fdb.collection('friendRequests').where('fromUid', '==', uid).where('status', '==', 'accepted').get(),
+      fdb.collection('friendRequests').where('toUid',   '==', uid).where('status', '==', 'accepted').get(),
+    ]).then(function (res) {
+      var friendUids = {};
+      res[0].docs.forEach(function (d) { var f = d.data().toUid;   if (f && f !== uid) friendUids[f] = true; });
+      res[1].docs.forEach(function (d) { var f = d.data().fromUid; if (f && f !== uid) friendUids[f] = true; });
+      var uids = Object.keys(friendUids);
+      if (!uids.length) return [];
+      return Promise.all(uids.map(function (fUid) {
+        return fdb.collection('users/' + fUid + '/sessions').where('dateRaw', '==', todayISO).limit(1).get()
+          .then(function (snap) { return snap.empty ? null : fUid; })
+          .catch(function () { return null; });
+      })).then(function (results) { return results.filter(Boolean).sort(); });
+    }).catch(function () { return []; });
+
+    return Promise.all([challengeIdsP, friendUidsTodayP]).then(function (res) {
+      return { challengeIds: res[0], friendUids: res[1] };
+    });
   }
 
   function checkFeedNotifications() {
@@ -187,31 +224,22 @@
     if (!user) { dot.style.display = 'none'; return; }
     var fdb = firebase.firestore();
     var uid = user.uid;
-    var todayISO = igLocalISO();
+    var onFeedPage = (location.pathname.split('/').pop() || 'index.html') === 'feed.html';
 
-    var hasPendingChallenge = fdb.collection('headToHead')
-      .where('opponentUid', '==', uid).where('status', '==', 'pending').limit(1).get()
-      .then(function (snap) { return !snap.empty; })
-      .catch(function () { return false; });
+    igComputeFeedSignal(fdb, uid, igLocalISO()).then(function (signal) {
+      var hasAnything = signal.challengeIds.length > 0 || signal.friendUids.length > 0;
+      var signalStr = JSON.stringify(signal);
+      var key = igFeedSeenKey(uid);
 
-    var hasFriendActivityToday = Promise.all([
-      fdb.collection('friendRequests').where('fromUid', '==', uid).where('status', '==', 'accepted').get(),
-      fdb.collection('friendRequests').where('toUid',   '==', uid).where('status', '==', 'accepted').get(),
-    ]).then(function (res) {
-      var friendUids = {};
-      res[0].docs.forEach(function (d) { var f = d.data().toUid;   if (f && f !== uid) friendUids[f] = true; });
-      res[1].docs.forEach(function (d) { var f = d.data().fromUid; if (f && f !== uid) friendUids[f] = true; });
-      var uids = Object.keys(friendUids);
-      if (!uids.length) return false;
-      return Promise.all(uids.map(function (fUid) {
-        return fdb.collection('users/' + fUid + '/sessions').where('dateRaw', '==', todayISO).limit(1).get()
-          .then(function (snap) { return !snap.empty; })
-          .catch(function () { return false; });
-      })).then(function (results) { return results.some(Boolean); });
-    }).catch(function () { return false; });
-
-    Promise.all([hasPendingChallenge, hasFriendActivityToday]).then(function (res) {
-      dot.style.display = (res[0] || res[1]) ? 'block' : 'none';
+      if (onFeedPage) {
+        try { localStorage.setItem(key, signalStr); } catch (e) {}
+        dot.style.display = 'none';
+        return;
+      }
+      if (!hasAnything) { dot.style.display = 'none'; return; }
+      var seen = null;
+      try { seen = localStorage.getItem(key); } catch (e) {}
+      dot.style.display = (signalStr !== seen) ? 'block' : 'none';
     });
   }
   window.igCheckFeedNotifications = checkFeedNotifications;
