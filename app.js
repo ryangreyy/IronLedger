@@ -4101,6 +4101,14 @@ function initApp(uid) {
     const trackers = currentSettings?.personalTrackers || [];
     const todayISO = localDateISO();
 
+    /* Trackers tab dot — lit whenever at least one tracker hasn't been
+       checked off yet today. No count, just on/off. */
+    const trackersTabDot = document.getElementById('trackersTabBadge');
+    if (trackersTabDot) {
+      const hasActiveUndone = trackers.some(t => !(t.completedDates || []).includes(todayISO));
+      trackersTabDot.style.display = hasActiveUndone ? 'block' : 'none';
+    }
+
     if (!trackers.length) {
       list.innerHTML = `<div class="tracker-empty">No trackers yet — hit + Add to create one.</div>`;
       return;

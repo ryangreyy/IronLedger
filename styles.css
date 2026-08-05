@@ -1881,6 +1881,14 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   color:#fff; font-family:var(--mono); font-size:10px; font-weight:800;
   display:flex; align-items:center; justify-content:center; line-height:1;
 }
+/* Plain dot (no count) — lit whenever at least one tracker hasn't been
+   checked off yet today. Green so it reads distinctly from the
+   Challenges tab's blue count badge. */
+.tab-dot{
+  position:absolute; top:-3px; right:-3px; z-index:1;
+  width:12px; height:12px; border-radius:50%;
+  background:#22c55e; border:2px solid var(--bg); box-sizing:border-box;
+}
 @media(min-width:701px){
   #trainingPageTabs,
   #dashboardPageTabs,
