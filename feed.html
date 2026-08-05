@@ -286,6 +286,11 @@
 .h2h-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:2px; }
 .h2h-card-title{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text); }
 .h2h-card-sub{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); margin-top:3px; }
+.h2h-card-message{
+  font-family:var(--body); font-size:13px; font-style:italic; color:var(--text-dim);
+  margin-top:8px; padding:8px 10px; border-radius:8px; background:var(--bg-2);
+  border-left:2px solid var(--accent);
+}
 .h2h-badge{
   font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
   padding:3px 9px; border-radius:20px; flex-shrink:0; white-space:nowrap;
@@ -620,8 +625,20 @@
           <input id="h2hLiftInput" type="text" placeholder="e.g. Bench Press" maxlength="40" autocomplete="off">
         </div>
         <div class="field">
+          <label>Metric</label>
+          <div class="log-cat-pills" id="h2hMetricPills">
+            <button type="button" class="log-cat-pill active" data-metric="weight">Max Weight</button>
+            <button type="button" class="log-cat-pill" data-metric="volume">Total Volume</button>
+            <button type="button" class="log-cat-pill" data-metric="reps">Total Reps</button>
+          </div>
+        </div>
+        <div class="field">
           <label>Ends on</label>
           <input id="h2hEndDateInput" type="text">
+        </div>
+        <div class="field">
+          <label>Message <span style="opacity:.6;font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <input id="h2hMessageInput" type="text" placeholder="Talk a little trash…" maxlength="80" autocomplete="off">
         </div>
         <div class="h2h-form-actions">
           <button class="btn btn-primary" id="h2hSendBtn">Send challenge</button>
@@ -1214,10 +1231,22 @@
         const sessSnap = await db.collection(`users/${myUid}/sessions`)
           .where('dateRaw', '>=', c.startDate).get();
         const liftLower = (c.lift || '').toLowerCase();
-        const myBest = sessSnap.docs
+        const matching = sessSnap.docs
           .map(d => d.data())
-          .filter(s => !s.isRestDay && (s.lift || '').toLowerCase() === liftLower && s.dateRaw <= c.endDate)
-          .reduce((m, s) => Math.max(m, +s.wt || 0), 0);
+          .filter(s => !s.isRestDay && (s.lift || '').toLowerCase() === liftLower && s.dateRaw <= c.endDate);
+
+        /* Older challenges predate the metric field — treat those as
+           "weight" (the original, only behavior) rather than breaking. */
+        const metric = c.metric || 'weight';
+        const repCount = s => s.repMode === 'time' ? 1 : (+s.reps || 0);
+        let myBest = 0;
+        if (metric === 'volume') {
+          myBest = matching.reduce((sum, s) => sum + ((+s.sets || 0) * repCount(s) * (+s.wt || 0)), 0);
+        } else if (metric === 'reps') {
+          myBest = matching.reduce((sum, s) => sum + ((+s.sets || 0) * repCount(s)), 0);
+        } else {
+          myBest = matching.reduce((m, s) => Math.max(m, +s.wt || 0), 0);
+        }
 
         const myField = c.myRole === 'challenger' ? 'challengerBest' : 'opponentBest';
         if (myBest > (c[myField] || 0)) {
@@ -1273,14 +1302,18 @@
       const myBest    = c.myRole === 'challenger' ? c.challengerBest     : c.opponentBest;
       const otherBest = c.myRole === 'challenger' ? c.opponentBest       : c.challengerBest;
       const byLabel   = c.endDate ? 'by ' + h2hFmtDate(c.endDate) : '';
+      const unit      = H2H_METRIC_LABELS[c.metric] || H2H_METRIC_LABELS.weight;
 
       if (c.status === 'pending') {
         if (c.myRole === 'opponent') {
+          const messageHtml = c.message
+            ? `<div class="h2h-card-message">"${feedEscapeHTML(c.message)}"</div>` : '';
           return `<div class="h2h-card">
             <div class="h2h-card-head">
               <div>
                 <div class="h2h-card-title">${c.challengerUsername} challenged you</div>
                 <div class="h2h-card-sub">${c.lift} · ${byLabel}</div>
+                ${messageHtml}
               </div>
               <span class="h2h-badge pending">Pending</span>
             </div>
@@ -1315,12 +1348,12 @@
           <div class="h2h-progress-row">
             <div class="h2h-progress-name">You</div>
             <div class="h2h-progress-track"><div class="h2h-progress-fill" style="width:${myBest / maxVal * 100}%"></div></div>
-            <div class="h2h-progress-val">${myBest || '—'} lbs</div>
+            <div class="h2h-progress-val">${myBest || '—'} ${unit}</div>
           </div>
           <div class="h2h-progress-row">
             <div class="h2h-progress-name">${otherName}</div>
             <div class="h2h-progress-track"><div class="h2h-progress-fill" style="width:${otherBest / maxVal * 100}%"></div></div>
-            <div class="h2h-progress-val">${otherBest || '—'} lbs</div>
+            <div class="h2h-progress-val">${otherBest || '—'} ${unit}</div>
           </div>
         </div>`;
       }
@@ -1334,7 +1367,7 @@
         <div class="h2h-card-head">
           <div>
             <div class="h2h-card-title">${c.lift} vs ${otherName}</div>
-            <div class="h2h-card-sub">You ${myBest} lbs · ${otherName} ${otherBest} lbs</div>
+            <div class="h2h-card-sub">You ${myBest} ${unit} · ${otherName} ${otherBest} ${unit}</div>
           </div>
           <span class="h2h-badge ${badgeCls}">${badgeTxt}</span>
         </div>
@@ -1550,12 +1583,25 @@
     document.getElementById('h2hFriendSel').focus();
   });
 
+  const H2H_METRIC_LABELS = { weight: 'lbs', volume: 'lbs vol', reps: 'reps' };
+  function h2hSelectedMetric() {
+    return document.querySelector('#h2hMetricPills .log-cat-pill.active')?.dataset.metric || 'weight';
+  }
+  document.getElementById('h2hMetricPills').addEventListener('click', e => {
+    const pill = e.target.closest('.log-cat-pill');
+    if (!pill) return;
+    document.querySelectorAll('#h2hMetricPills .log-cat-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+  });
+
   document.getElementById('h2hSendBtn').addEventListener('click', async () => {
-    const friendUid = document.getElementById('h2hFriendSel').value;
-    const lift       = document.getElementById('h2hLiftInput').value.trim();
-    const endDate    = document.getElementById('h2hEndDateInput').value;
-    const msg        = document.getElementById('h2hFormMsg');
-    const btn        = document.getElementById('h2hSendBtn');
+    const friendUid  = document.getElementById('h2hFriendSel').value;
+    const lift        = document.getElementById('h2hLiftInput').value.trim();
+    const metric      = h2hSelectedMetric();
+    const endDate     = document.getElementById('h2hEndDateInput').value;
+    const message     = document.getElementById('h2hMessageInput').value.trim();
+    const msg         = document.getElementById('h2hFormMsg');
+    const btn         = document.getElementById('h2hSendBtn');
 
     if (!friendUid)                     { msg.style.color = 'var(--down)'; msg.textContent = 'Pick a friend.'; return; }
     if (!lift)                          { msg.style.color = 'var(--down)'; msg.textContent = 'Enter a lift.'; return; }
@@ -1567,7 +1613,7 @@
       await db.collection('headToHead').add({
         challengerUid: h2hMyUid, challengerUsername: h2hMyUsername,
         opponentUid: friendUid,  opponentUsername: friend ? friend.username : 'Athlete',
-        lift,
+        lift, metric, message,
         startDate: null, endDate,
         status: 'pending',
         challengerBest: 0, opponentBest: 0,
@@ -1578,6 +1624,9 @@
       msg.style.color = 'var(--up)'; msg.textContent = 'Challenge sent!';
       document.getElementById('h2hFriendSel').value = '';
       document.getElementById('h2hLiftInput').value = '';
+      document.getElementById('h2hMessageInput').value = '';
+      document.querySelectorAll('#h2hMetricPills .log-cat-pill').forEach(p => p.classList.remove('active'));
+      document.querySelector('#h2hMetricPills .log-cat-pill[data-metric="weight"]').classList.add('active');
       setTimeout(() => { msg.textContent = ''; }, 2500);
       setTimeout(h2hCloseSheet, 1100);
       loadHeadToHead(h2hMyUid);
