@@ -59,6 +59,14 @@
 }
 .feed-toplevel-tab:hover{ background:var(--bg-2); color:var(--text); border-color:var(--accent); }
 .feed-toplevel-tab.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
+/* Lit whenever there's a pending incoming head-to-head challenge —
+   same red as the bottom-nav Feed dot, but scoped to this specific tab
+   so it points straight at where the challenge actually lives. */
+.h2h-notif-dot{
+  position:absolute; top:-4px; right:-4px; z-index:1;
+  width:9px; height:9px; border-radius:50%;
+  background:#ef4444; border:2px solid var(--bg); box-sizing:border-box;
+}
 .feed-toplevel-panel{ display:none; }
 .feed-toplevel-panel.active{ display:block; }
 @media(max-width:480px){
@@ -464,7 +472,7 @@
   }
   .mobile-pill{
     flex:1; text-align:center; padding:9px 8px; background:var(--surface);
-    border:1px solid var(--border-strong); cursor:pointer;
+    border:1px solid var(--border-strong); cursor:pointer; position:relative;
     font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-dim);
     border-radius:10px; opacity:1; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
     transition:background-color .12s ease, border-color .12s ease, color .12s ease, box-shadow .12s ease;
@@ -584,13 +592,13 @@
       </div>
 
       <div class="feed-toplevel-tabs" id="feedTopTabs">
-        <button class="feed-toplevel-tab" data-panel="h2h">Head-to-Head Challenges</button>
+        <button class="feed-toplevel-tab" data-panel="h2h">Head-to-Head Challenges<span class="h2h-notif-dot" id="h2hTabDotDesktop" style="display:none;"></span></button>
         <button class="feed-toplevel-tab" data-panel="lb">Leaderboards</button>
       </div>
 
       <div class="mobile-pill-tabs" id="mobilePillTabs">
         <button class="mobile-pill active" data-mpanel="feed">Feed</button>
-        <button class="mobile-pill" data-mpanel="h2h">Challenges</button>
+        <button class="mobile-pill" data-mpanel="h2h">Challenges<span class="h2h-notif-dot" id="h2hTabDotMobile" style="display:none;"></span></button>
         <button class="mobile-pill" data-mpanel="lb">Ranks</button>
       </div>
 
@@ -1279,10 +1287,24 @@
       }
 
       renderH2HList(challenges);
+      updateH2HTabDot(challenges);
     } catch (err) {
       console.error('Head-to-head load failed:', err);
       list.innerHTML = '<p class="h2h-empty">Couldn\'t load challenges right now.</p>';
     }
+  }
+
+  /* Red dot on the Challenges tab itself — lit only while there's a
+     pending challenge someone else sent you (not ones you're waiting
+     on a friend to accept). Separate from the bottom-nav Feed dot
+     (nav.js), which flags "something's new on Feed" more broadly. */
+  function updateH2HTabDot(challenges) {
+    const hasPendingIncoming = challenges.some(c => c.status === 'pending' && c.myRole === 'opponent');
+    const display = hasPendingIncoming ? 'block' : 'none';
+    const desktopDot = document.getElementById('h2hTabDotDesktop');
+    const mobileDot  = document.getElementById('h2hTabDotMobile');
+    if (desktopDot) desktopDot.style.display = display;
+    if (mobileDot)  mobileDot.style.display  = display;
   }
 
   function renderH2HList(challenges) {
