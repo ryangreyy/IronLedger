@@ -1261,6 +1261,7 @@
     const list = document.getElementById('h2hList');
     if (!list) return;
     h2hMyUid = myUid;
+    Object.keys(h2hDetailCache).forEach(k => delete h2hDetailCache[k]);
     list.innerHTML = '<p class="feed-loading">Loading…</p>';
 
     try {
@@ -1286,34 +1287,34 @@
         ...asOpponent.docs.map(d => ({ id: d.id, ...d.data(), myRole: 'opponent' })),
       ];
 
-      /* Update my own side's best weight on active challenges, and
-         resolve any whose window has passed. */
+      /* Recalculate both sides from current sessions on every load. Totals
+         can go down after a delete/edit, so stored challenge values must be
+         exact snapshots of the live logs, not only ever-increasing bests. */
       const today = _igLocalISO();
       await Promise.all(challenges.filter(c => c.status === 'active').map(async c => {
-        const sessSnap = await db.collection(`users/${myUid}/sessions`)
-          .where('dateRaw', '>=', c.startDate).get();
-        const liftLower = (c.lift || '').toLowerCase();
-        const matching = sessSnap.docs
-          .map(d => d.data())
-          .filter(s => !s.isRestDay && (s.lift || '').toLowerCase() === liftLower && s.dateRaw <= c.endDate);
-
         /* Older challenges predate the metric field — treat those as
            "weight" (the original, only behavior) rather than breaking. */
         const metric = c.metric || 'weight';
-        const repCount = s => s.repMode === 'time' ? 1 : (+s.reps || 0);
-        let myBest = 0;
-        if (metric === 'volume') {
-          myBest = matching.reduce((sum, s) => sum + ((+s.sets || 0) * repCount(s) * (+s.wt || 0)), 0);
-        } else if (metric === 'reps') {
-          myBest = matching.reduce((sum, s) => sum + ((+s.sets || 0) * repCount(s)), 0);
-        } else {
-          myBest = matching.reduce((m, s) => Math.max(m, +s.wt || 0), 0);
+        const liftLower = (c.lift || '').toLowerCase();
+        async function scoreFor(uid) {
+          const sessSnap = await db.collection(`users/${uid}/sessions`)
+            .where('dateRaw', '>=', c.startDate).get();
+          const matching = sessSnap.docs
+            .map(d => d.data())
+            .filter(s => !s.isRestDay && (s.lift || '').toLowerCase() === liftLower && s.dateRaw <= c.endDate);
+          return h2hSideScore(matching, metric);
         }
 
-        const myField = c.myRole === 'challenger' ? 'challengerBest' : 'opponentBest';
-        if (myBest > (c[myField] || 0)) {
-          await db.doc(`headToHead/${c.id}`).update({ [myField]: myBest });
-          c[myField] = myBest;
+        const [challengerBest, opponentBest] = await Promise.all([
+          scoreFor(c.challengerUid),
+          scoreFor(c.opponentUid),
+        ]);
+        const scoreUpdate = {};
+        if ((+c.challengerBest || 0) !== challengerBest) scoreUpdate.challengerBest = challengerBest;
+        if ((+c.opponentBest || 0) !== opponentBest) scoreUpdate.opponentBest = opponentBest;
+        if (Object.keys(scoreUpdate).length) {
+          await db.doc(`headToHead/${c.id}`).update(scoreUpdate);
+          Object.assign(c, scoreUpdate);
         }
 
         if (c.endDate < today) {
