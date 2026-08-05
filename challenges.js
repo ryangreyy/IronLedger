@@ -97,7 +97,7 @@ function rankHexBadge(rank, xpTotal) {
     <defs>${defs}</defs>
     <polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="${plateFill}" stroke="${style.stroke}" stroke-width="2" ${glowStyle}/>
     ${ring1}${ring3}${ring2}${ticks}${rivets}
-    <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="${numFill}">${numeral}</text>
+    <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" letter-spacing="3" fill="${numFill}">${numeral}</text>
   </svg>`;
 }
 
