@@ -337,21 +337,44 @@
   margin-top:12px; padding-top:12px; border-top:1px solid var(--border);
 }
 .h2h-sessions-detail.open{ display:grid; }
+.h2h-sessions-col{ --h2h-side-accent:var(--accent-bright); min-width:0; }
+.h2h-side-other{ --h2h-side-accent:var(--bench); }
 .h2h-sessions-col-label{
   font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
   color:var(--text-dim); margin-bottom:8px;
 }
-.h2h-session-row{
-  display:flex; align-items:center; justify-content:space-between; gap:8px;
-  padding:6px 0; font-family:var(--mono); font-size:11px; border-bottom:1px solid var(--border);
+.h2h-side-summary{
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:10px;
 }
+.h2h-side-stat{
+  padding:7px 8px; border-radius:8px; background:rgba(255,255,255,.035);
+  border:1px solid var(--border); box-shadow:inset 2px 0 0 var(--h2h-side-accent); min-width:0;
+}
+.h2h-side-stat span{
+  display:block; font-family:var(--mono); font-size:9px; color:var(--text-dimmer);
+  text-transform:uppercase; letter-spacing:.06em; white-space:nowrap;
+}
+.h2h-side-stat strong{
+  display:block; margin-top:2px; font-family:var(--mono); font-size:12px; color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.h2h-session-row{
+  display:grid; grid-template-columns:auto minmax(0,1fr); gap:8px 10px;
+  padding:8px 0; font-family:var(--mono); font-size:11px; border-bottom:1px solid var(--border);
+}
+.h2h-session-row.h2h-session-best{ background:rgba(193,39,45,.055); margin:0 -8px; padding:8px; border-radius:8px; border-bottom-color:transparent; box-shadow:inset 2px 0 0 var(--h2h-side-accent); }
 .h2h-session-row:last-child{ border-bottom:none; }
 .h2h-session-date{ color:var(--text-dimmer); flex-shrink:0; }
+.h2h-session-main{ min-width:0; }
 .h2h-session-stat{ color:var(--text); font-weight:700; text-align:right; }
+.h2h-session-meta{ margin-top:3px; color:var(--text-dimmer); font-size:10px; line-height:1.35; text-align:right; }
+.h2h-session-note{ grid-column:1 / -1; color:var(--accent-bright); font-family:var(--body); font-size:12px; line-height:1.35; }
+.h2h-session-best-tag{ color:var(--accent-bright); font-size:9px; text-transform:uppercase; letter-spacing:.06em; margin-left:6px; }
 .h2h-session-empty{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); padding:6px 0; }
 .h2h-detail-loading{ grid-column:1 / -1; font-family:var(--mono); font-size:12px; color:var(--text-dimmer); }
 @media(max-width:480px){
   .h2h-sessions-detail{ grid-template-columns:1fr; gap:16px; }
+  .h2h-side-summary{ grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
 
 .h2h-subhead{
@@ -1393,6 +1416,7 @@
         const otherUid = c.myRole === 'challenger' ? c.opponentUid : c.challengerUid;
         return `<div class="h2h-card h2h-card-expandable" data-h2h-expand="${c.id}"
              data-h2h-lift="${feedEscapeHTML(c.lift)}" data-h2h-start="${c.startDate}" data-h2h-end="${c.endDate}"
+             data-h2h-metric="${feedEscapeHTML(c.metric || 'weight')}"
              data-h2h-other-uid="${otherUid}" data-h2h-other-name="${feedEscapeHTML(otherName)}">
           <div class="h2h-card-head">
             <div>
@@ -1701,18 +1725,68 @@
      refetch; the cache naturally clears on a full page load. ── */
   const h2hDetailCache = {};
 
-  function h2hFormatSession(s) {
-    const dateLabel = h2hFmtDate(s.dateRaw);
-    let stat;
-    if (s.repMode === 'time') {
-      const secs = +s.timeSeconds || 0;
-      stat = `${s.sets}×${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
-    } else if (s.bodyweight) {
-      stat = `${s.sets}×${s.reps} · bodyweight`;
-    } else {
-      stat = `${s.sets}×${s.reps} @ ${s.wt} lbs`;
+  function h2hRepCount(s) {
+    return s.repMode === 'time' ? 1 : (+s.reps || 0);
+  }
+
+  function h2hSessionScore(s, metric) {
+    const sets = +s.sets || 0;
+    if (metric === 'volume') return sets * h2hRepCount(s) * (+s.wt || 0);
+    if (metric === 'reps') return sets * h2hRepCount(s);
+    return +s.wt || 0;
+  }
+
+  function h2hSideScore(sessions, metric) {
+    if (metric === 'volume' || metric === 'reps') {
+      return sessions.reduce((sum, s) => sum + h2hSessionScore(s, metric), 0);
     }
-    return `<div class="h2h-session-row"><span class="h2h-session-date">${dateLabel}</span><span class="h2h-session-stat">${stat}</span></div>`;
+    return sessions.reduce((max, s) => Math.max(max, h2hSessionScore(s, metric)), 0);
+  }
+
+  function h2hBestSessionScore(sessions, metric) {
+    return sessions.reduce((max, s) => Math.max(max, h2hSessionScore(s, metric)), 0);
+  }
+
+  function h2hFormatScore(value, metric) {
+    if (!value) return '--';
+    if (metric === 'volume') return `${Math.round(value).toLocaleString()} lbs`;
+    if (metric === 'reps') return `${Math.round(value)} reps`;
+    return `${Math.round(value)} lbs`;
+  }
+
+  function h2hSessionLoadText(s) {
+    return s.bodyweight ? 'Bodyweight' : `${+s.wt || 0} lbs`;
+  }
+
+  function h2hSideSummary(name, sessions, metric) {
+    const score = h2hSideScore(sessions, metric);
+    const bestSession = sessions.reduce((best, s) => h2hSessionScore(s, metric) > h2hSessionScore(best, metric) ? s : best, sessions[0] || null);
+    const latest = sessions[0] ? h2hFmtDate(sessions[0].dateRaw) : '--';
+    const scoreLabel = metric === 'weight' ? 'Score' : 'Total';
+    const bestLabel = metric === 'weight' ? 'Top set' : 'Best set';
+    return `<div class="h2h-sessions-col-label">${feedEscapeHTML(name)} &middot; ${sessions.length} session${sessions.length === 1 ? '' : 's'}</div>
+      <div class="h2h-side-summary">
+        <div class="h2h-side-stat"><span>${scoreLabel}</span><strong>${h2hFormatScore(score, metric)}</strong></div>
+        <div class="h2h-side-stat"><span>${bestLabel}</span><strong>${bestSession ? h2hFormatScore(h2hSessionScore(bestSession, metric), metric) : '--'}</strong></div>
+        <div class="h2h-side-stat"><span>Latest</span><strong>${latest}</strong></div>
+      </div>`;
+  }
+
+  function h2hFormatSession(s, metric, topScore) {
+    const dateLabel = h2hFmtDate(s.dateRaw);
+    const repsText = feedRepMetricText(s);
+    const score = h2hSessionScore(s, metric);
+    const isBest = topScore > 0 && score === topScore;
+    const effort = `${+s.sets || 0}x${repsText || '--'}`;
+    const scoreLabel = metric === 'weight' ? 'Max load' : (metric === 'volume' ? 'Volume' : 'Rep total');
+    return `<div class="h2h-session-row${isBest ? ' h2h-session-best' : ''}">
+      <span class="h2h-session-date">${dateLabel}</span>
+      <div class="h2h-session-main">
+        <div class="h2h-session-stat">${h2hFormatScore(score, metric)}${isBest ? '<span class="h2h-session-best-tag">Best</span>' : ''}</div>
+        <div class="h2h-session-meta">${scoreLabel} &middot; ${effort} &middot; ${h2hSessionLoadText(s)}</div>
+      </div>
+      ${s.note ? `<div class="h2h-session-note">${feedEscapeHTML(s.note)}</div>` : ''}
+    </div>`;
   }
 
   async function h2hToggleDetail(cardEl) {
@@ -1731,6 +1805,7 @@
     const lift      = cardEl.dataset.h2hLift;
     const startDate = cardEl.dataset.h2hStart;
     const endDate    = cardEl.dataset.h2hEnd;
+    const metric     = cardEl.dataset.h2hMetric || 'weight';
     const otherUid   = cardEl.dataset.h2hOtherUid;
     const otherName  = cardEl.dataset.h2hOtherName;
     const liftLower  = lift.toLowerCase();
@@ -1747,14 +1822,16 @@
       ]);
       const mySessions    = filterSort(mySnap);
       const otherSessions = filterSort(otherSnap);
+      const myTopScore    = h2hBestSessionScore(mySessions, metric);
+      const otherTopScore = h2hBestSessionScore(otherSessions, metric);
       const html = `
-        <div class="h2h-sessions-col">
-          <div class="h2h-sessions-col-label">You · ${mySessions.length}</div>
-          ${mySessions.length ? mySessions.map(h2hFormatSession).join('') : '<div class="h2h-session-empty">No sessions yet</div>'}
+        <div class="h2h-sessions-col h2h-side-you">
+          ${h2hSideSummary('You', mySessions, metric)}
+          ${mySessions.length ? mySessions.map(s => h2hFormatSession(s, metric, myTopScore)).join('') : '<div class="h2h-session-empty">No sessions yet</div>'}
         </div>
-        <div class="h2h-sessions-col">
-          <div class="h2h-sessions-col-label">${otherName} · ${otherSessions.length}</div>
-          ${otherSessions.length ? otherSessions.map(h2hFormatSession).join('') : '<div class="h2h-session-empty">No sessions yet</div>'}
+        <div class="h2h-sessions-col h2h-side-other">
+          ${h2hSideSummary(otherName, otherSessions, metric)}
+          ${otherSessions.length ? otherSessions.map(s => h2hFormatSession(s, metric, otherTopScore)).join('') : '<div class="h2h-session-empty">No sessions yet</div>'}
         </div>`;
       h2hDetailCache[id] = html;
       detail.innerHTML = html;
