@@ -868,13 +868,14 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
   const dailyAssigned  = dailyData?.assigned  || [];
   const weeklyAssigned = weeklyData?.assigned || [];
   const activeDaily    = dailyAssigned.filter(e => !e.completed);
+  const activeWeekly   = weeklyAssigned.filter(e => !e.completed);
+  const activeTotal    = activeDaily.length + activeWeekly.length;
 
-  /* Challenges tab badge — count of daily challenges still completable
-     today. Weekly ones don't count since they're not tied to "today". */
+  /* Challenges tab badge — count of daily and weekly challenges still completable. */
   const tabBadge = document.getElementById('challengesTabBadge');
   if (tabBadge) {
-    if (activeDaily.length) {
-      tabBadge.textContent = activeDaily.length;
+    if (activeTotal) {
+      tabBadge.textContent = activeTotal;
       tabBadge.style.display = 'flex';
     } else {
       tabBadge.style.display = 'none';
