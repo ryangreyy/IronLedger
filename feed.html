@@ -323,6 +323,37 @@
 .h2h-decline-btn:hover{ border-color:var(--down) !important; color:var(--down); }
 .h2h-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:16px 0; }
 
+.h2h-card-expandable{ cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.h2h-card-expandable:hover{ border-color:var(--border-strong); background:rgba(255,255,255,.045); }
+.h2h-expand-hint{
+  display:flex; align-items:center; gap:5px; margin-top:10px; padding-top:9px;
+  border-top:1px solid var(--border); font-family:var(--mono); font-size:10px;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--text-dimmer);
+}
+.h2h-expand-hint i{ font-size:13px; transition:transform .15s; }
+.h2h-card-expandable.h2h-expanded .h2h-expand-hint i{ transform:rotate(180deg); }
+.h2h-sessions-detail{
+  display:none; grid-template-columns:1fr 1fr; gap:14px;
+  margin-top:12px; padding-top:12px; border-top:1px solid var(--border);
+}
+.h2h-sessions-detail.open{ display:grid; }
+.h2h-sessions-col-label{
+  font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--text-dim); margin-bottom:8px;
+}
+.h2h-session-row{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:6px 0; font-family:var(--mono); font-size:11px; border-bottom:1px solid var(--border);
+}
+.h2h-session-row:last-child{ border-bottom:none; }
+.h2h-session-date{ color:var(--text-dimmer); flex-shrink:0; }
+.h2h-session-stat{ color:var(--text); font-weight:700; text-align:right; }
+.h2h-session-empty{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); padding:6px 0; }
+.h2h-detail-loading{ grid-column:1 / -1; font-family:var(--mono); font-size:12px; color:var(--text-dimmer); }
+@media(max-width:480px){
+  .h2h-sessions-detail{ grid-template-columns:1fr; gap:16px; }
+}
+
 .h2h-subhead{
   font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.14em;
   text-transform:uppercase; color:var(--text-dimmer); margin:26px 0 12px;
@@ -1359,7 +1390,10 @@
       if (c.status === 'active') {
         const daysLeft = h2hDaysLeft(c.endDate);
         const maxVal   = Math.max(myBest, otherBest, 1);
-        return `<div class="h2h-card">
+        const otherUid = c.myRole === 'challenger' ? c.opponentUid : c.challengerUid;
+        return `<div class="h2h-card h2h-card-expandable" data-h2h-expand="${c.id}"
+             data-h2h-lift="${feedEscapeHTML(c.lift)}" data-h2h-start="${c.startDate}" data-h2h-end="${c.endDate}"
+             data-h2h-other-uid="${otherUid}" data-h2h-other-name="${feedEscapeHTML(otherName)}">
           <div class="h2h-card-head">
             <div>
               <div class="h2h-card-title">${c.lift}</div>
@@ -1377,6 +1411,8 @@
             <div class="h2h-progress-track"><div class="h2h-progress-fill" style="width:${otherBest / maxVal * 100}%"></div></div>
             <div class="h2h-progress-val">${otherBest || '—'} ${unit}</div>
           </div>
+          <div class="h2h-expand-hint"><i class="ti ti-chevron-down" aria-hidden="true"></i> Tap to see sessions</div>
+          <div class="h2h-sessions-detail" id="h2hDetail-${c.id}"></div>
         </div>`;
       }
 
@@ -1659,9 +1695,78 @@
     }
   });
 
+  /* ── Active-challenge session detail — expands to show the actual
+     logged sessions behind each side's number, not just the total.
+     Cached per challenge id so re-toggling open/closed doesn't
+     refetch; the cache naturally clears on a full page load. ── */
+  const h2hDetailCache = {};
+
+  function h2hFormatSession(s) {
+    const dateLabel = h2hFmtDate(s.dateRaw);
+    let stat;
+    if (s.repMode === 'time') {
+      const secs = +s.timeSeconds || 0;
+      stat = `${s.sets}×${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+    } else if (s.bodyweight) {
+      stat = `${s.sets}×${s.reps} · bodyweight`;
+    } else {
+      stat = `${s.sets}×${s.reps} @ ${s.wt} lbs`;
+    }
+    return `<div class="h2h-session-row"><span class="h2h-session-date">${dateLabel}</span><span class="h2h-session-stat">${stat}</span></div>`;
+  }
+
+  async function h2hToggleDetail(cardEl) {
+    const id     = cardEl.dataset.h2hExpand;
+    const detail = document.getElementById(`h2hDetail-${id}`);
+    if (!detail) return;
+
+    const isOpen = detail.classList.contains('open');
+    detail.classList.toggle('open', !isOpen);
+    cardEl.classList.toggle('h2h-expanded', !isOpen);
+    if (isOpen) return;
+
+    if (h2hDetailCache[id]) { detail.innerHTML = h2hDetailCache[id]; return; }
+    detail.innerHTML = '<p class="h2h-detail-loading">Loading sessions…</p>';
+
+    const lift      = cardEl.dataset.h2hLift;
+    const startDate = cardEl.dataset.h2hStart;
+    const endDate    = cardEl.dataset.h2hEnd;
+    const otherUid   = cardEl.dataset.h2hOtherUid;
+    const otherName  = cardEl.dataset.h2hOtherName;
+    const liftLower  = lift.toLowerCase();
+
+    const filterSort = snap => snap.docs
+      .map(d => d.data())
+      .filter(s => !s.isRestDay && (s.lift || '').toLowerCase() === liftLower && s.dateRaw >= startDate && s.dateRaw <= endDate)
+      .sort((a, b) => a.dateRaw < b.dateRaw ? 1 : -1);
+
+    try {
+      const [mySnap, otherSnap] = await Promise.all([
+        db.collection(`users/${h2hMyUid}/sessions`).where('dateRaw', '>=', startDate).get(),
+        db.collection(`users/${otherUid}/sessions`).where('dateRaw', '>=', startDate).get(),
+      ]);
+      const mySessions    = filterSort(mySnap);
+      const otherSessions = filterSort(otherSnap);
+      const html = `
+        <div class="h2h-sessions-col">
+          <div class="h2h-sessions-col-label">You · ${mySessions.length}</div>
+          ${mySessions.length ? mySessions.map(h2hFormatSession).join('') : '<div class="h2h-session-empty">No sessions yet</div>'}
+        </div>
+        <div class="h2h-sessions-col">
+          <div class="h2h-sessions-col-label">${otherName} · ${otherSessions.length}</div>
+          ${otherSessions.length ? otherSessions.map(h2hFormatSession).join('') : '<div class="h2h-session-empty">No sessions yet</div>'}
+        </div>`;
+      h2hDetailCache[id] = html;
+      detail.innerHTML = html;
+    } catch (err) {
+      detail.innerHTML = '<p class="h2h-detail-loading">Couldn\'t load sessions.</p>';
+    }
+  }
+
   document.getElementById('h2hList').addEventListener('click', async e => {
     const acceptBtn  = e.target.closest('[data-h2h-accept]');
     const declineBtn = e.target.closest('[data-h2h-decline]');
+    const expandCard = e.target.closest('[data-h2h-expand]');
     if (acceptBtn) {
       const id = acceptBtn.dataset.h2hAccept;
       acceptBtn.textContent = '…'; acceptBtn.disabled = true;
@@ -1681,6 +1786,8 @@
       await db.doc(`headToHead/${id}`).delete();
       loadHeadToHead(h2hMyUid);
       window.igCheckFeedNotifications?.();
+    } else if (expandCard) {
+      h2hToggleDetail(expandCard);
     }
   });
 
