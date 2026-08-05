@@ -1653,10 +1653,12 @@
       }
       await db.doc(`headToHead/${id}`).update({ status: 'active', startDate: today });
       loadHeadToHead(h2hMyUid);
+      window.igCheckFeedNotifications?.();
     } else if (declineBtn) {
       const id = declineBtn.dataset.h2hDecline;
       await db.doc(`headToHead/${id}`).delete();
       loadHeadToHead(h2hMyUid);
+      window.igCheckFeedNotifications?.();
     }
   });
 
@@ -1959,6 +1961,6 @@
   });
 </script>
 <script src="nav-auth.js?v=2"></script>
-<script src="nav.js?v=14"></script>
+<script src="nav.js?v=15"></script>
 </body>
 </html>

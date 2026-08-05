@@ -89,6 +89,12 @@
     '}' +
     '.mbn-item i{font-size:22px;line-height:1;}' +
     '.mbn-item svg{display:block;}' +
+    '.mbn-icon-wrap{position:relative;display:inline-flex;}' +
+    '.mbn-notif-dot{' +
+      'position:absolute;top:-2px;right:-4px;width:9px;height:9px;border-radius:50%;' +
+      'background:#ef4444;border:1.5px solid #0d0f12;box-sizing:border-box;' +
+    '}' +
+    '[data-theme="light"] .mbn-notif-dot{border-color:#EEF1F5;}' +
     '.mbn-avatar{' +
       'width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;' +
       'display:flex;align-items:center;justify-content:center;position:relative;' +
@@ -147,14 +153,76 @@
 
   bar.innerHTML = items.map(function (item) {
     var active = item[3].indexOf(p) >= 0 ? ' mbn-active' : '';
+    var icon = iconHtml(item[1]);
+    if (item[0] === 'feed.html') {
+      icon = '<span class="mbn-icon-wrap">' + icon +
+        '<span class="mbn-notif-dot" id="mbnFeedNotifDot" style="display:none;"></span></span>';
+    }
     return '<a href="' + item[0] + '" class="mbn-item' + active + '">' +
-      iconHtml(item[1]) +
+      icon +
       '<span>' + item[2] + '</span>' +
     '</a>';
   }).join('');
 
   function mount() { document.body.appendChild(bar); renderBottomNavAvatar(); }
   if (document.body) { mount(); } else { document.addEventListener('DOMContentLoaded', mount); }
+
+  /* ---- Feed notification dot ----
+     Lit whenever a friend has trained today or there's a pending
+     incoming head-to-head challenge. Lives here (not app.js) since
+     nav.js is the only script guaranteed to load on every page --
+     app.js only loads on dashboard/index/training. A plain state
+     check (not a live listener) run on auth change + whenever the tab
+     regains visibility, same lightweight refresh pattern as
+     pwa-update.js's watchForNextVersion. */
+  function igLocalISO(d) {
+    var x = d || new Date();
+    return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  }
+
+  function checkFeedNotifications() {
+    var dot = document.getElementById('mbnFeedNotifDot');
+    if (!dot || typeof firebase === 'undefined' || !firebase.apps.length) return;
+    var user = firebase.auth().currentUser;
+    if (!user) { dot.style.display = 'none'; return; }
+    var fdb = firebase.firestore();
+    var uid = user.uid;
+    var todayISO = igLocalISO();
+
+    var hasPendingChallenge = fdb.collection('headToHead')
+      .where('opponentUid', '==', uid).where('status', '==', 'pending').limit(1).get()
+      .then(function (snap) { return !snap.empty; })
+      .catch(function () { return false; });
+
+    var hasFriendActivityToday = Promise.all([
+      fdb.collection('friendRequests').where('fromUid', '==', uid).where('status', '==', 'accepted').get(),
+      fdb.collection('friendRequests').where('toUid',   '==', uid).where('status', '==', 'accepted').get(),
+    ]).then(function (res) {
+      var friendUids = {};
+      res[0].docs.forEach(function (d) { var f = d.data().toUid;   if (f && f !== uid) friendUids[f] = true; });
+      res[1].docs.forEach(function (d) { var f = d.data().fromUid; if (f && f !== uid) friendUids[f] = true; });
+      var uids = Object.keys(friendUids);
+      if (!uids.length) return false;
+      return Promise.all(uids.map(function (fUid) {
+        return fdb.collection('users/' + fUid + '/sessions').where('dateRaw', '==', todayISO).limit(1).get()
+          .then(function (snap) { return !snap.empty; })
+          .catch(function () { return false; });
+      })).then(function (results) { return results.some(Boolean); });
+    }).catch(function () { return false; });
+
+    Promise.all([hasPendingChallenge, hasFriendActivityToday]).then(function (res) {
+      dot.style.display = (res[0] || res[1]) ? 'block' : 'none';
+    });
+  }
+  window.igCheckFeedNotifications = checkFeedNotifications;
+
+  if (typeof firebase !== 'undefined' && firebase.apps.length) {
+    firebase.auth().onAuthStateChanged(function () { checkFeedNotifications(); });
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) checkFeedNotifications();
+  });
+  window.addEventListener('pageshow', function () { checkFeedNotifications(); });
 
   /* ---- Prefetch other pages so navigation feels instant ----
      Plain fetch() (not <link rel=prefetch>) so this actually works on
