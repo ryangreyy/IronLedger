@@ -7,22 +7,97 @@
 const RANKS    = ['Recruit','Bronze','Silver','Gold','Elite','Titan','Legend','Gladiator'];
 const RANK_XP  = [0, 300, 1000, 2500, 5000, 10000, 20000, 40000];
 
-const RANK_HEX_COLS = [
-  ['#4B5563','#9AA0AC'], // Recruit
-  ['#7D4A1E','#CD7F32'], // Bronze
-  ['#6B7280','#C8CAD0'], // Silver
-  ['#92700A','#FFD700'], // Gold
-  ['#1E40AF','#60A5FA'], // Elite
-  ['#5B21B6','#A78BFA'], // Titan
-  ['#9A3412','#FB923C'], // Legend
-  ['#C1272D','#F0565B'], // Gladiator
+/* Each rank's ornament is strictly additive on top of the previous rank's --
+   Recruit is a flat plate, Gladiator has everything layered on at once.
+   dark0/dark1 are the radial-gradient plate stops; stroke/fill double as
+   the plate border and the brushed-numeral gradient's midtone. */
+const RANK_STYLES = [
+  { stroke:'#4B5563', fill:'#9AA0AC', dark0:'#2a2f36', dark1:'#1a1d21' }, // Recruit
+  { stroke:'#7D4A1E', fill:'#CD7F32', dark0:'#3a2a15', dark1:'#2c1f10' }, // Bronze
+  { stroke:'#6B7280', fill:'#C8CAD0', dark0:'#3a3d42', dark1:'#24262a' }, // Silver
+  { stroke:'#92700A', fill:'#FFD700', dark0:'#4a3a05', dark1:'#2c2203' }, // Gold
+  { stroke:'#1E40AF', fill:'#60A5FA', dark0:'#142a5c', dark1:'#0d1a38' }, // Elite
+  { stroke:'#5B21B6', fill:'#A78BFA', dark0:'#331360', dark1:'#200b3a' }, // Titan
+  { stroke:'#166534', fill:'#4ADE80', dark0:'#0e2e1a', dark1:'#081c10' }, // Legend
+  { stroke:'#C1272D', fill:'#F0565B', dark0:'#4a0d10', dark1:'#2c0709' }, // Gladiator
 ];
-function rankHexBadge(idx) {
-  const [stroke, fill] = RANK_HEX_COLS[idx] || RANK_HEX_COLS[0];
-  const num = ['I','II','III','IV','V','VI','VII','VIII'][idx] || 'I';
-  return `<svg style="width:28px;height:32px;flex-shrink:0;" viewBox="0 0 60 70" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="#15171c" stroke="${stroke}" stroke-width="2.5"/>
-    <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="${fill}">${num}</text>
+const RANK_SUBTIER_ROMAN = { 4:'IV', 3:'III', 2:'II', 1:'I' };
+
+function rankLighten(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, ((n >> 16) & 255) + 130);
+  const g = Math.min(255, ((n >> 8) & 255) + 130);
+  const b = Math.min(255, (n & 255) + 130);
+  return `rgb(${r},${g},${b})`;
+}
+function rankDarken(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, ((n >> 16) & 255) - amt);
+  const g = Math.max(0, ((n >> 8) & 255) - amt);
+  const b = Math.max(0, (n & 255) - amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+/* Sub-tier within a rank counts DOWN as XP climbs -- IV on entering the
+   rank, I right before promotion -- same convention as the ladder
+   preview. Max rank (no nextXP) has nowhere left to climb toward, so it
+   just sits at I. */
+function rankSubTier(rank, xpTotal) {
+  if (!rank || !rank.nextXP) return 1;
+  const span = rank.nextXP - rank.thisXP;
+  const progress = span > 0 ? Math.min(0.999, Math.max(0, (xpTotal - rank.thisXP) / span)) : 0;
+  return 4 - Math.floor(progress * 4);
+}
+
+let _rankBadgeUid = 0;
+function rankHexBadge(rank, xpTotal) {
+  const idx = rank && typeof rank.rankIndex === 'number' ? rank.rankIndex : 0;
+  const style = RANK_STYLES[idx] || RANK_STYLES[0];
+  const numeral = RANK_SUBTIER_ROMAN[rankSubTier(rank, xpTotal || 0)];
+
+  const uid = 'rb' + (_rankBadgeUid++);
+  const plateGradId = `${uid}-p`;
+  const numGradId = `${uid}-n`;
+
+  const showForged = idx >= 1; // Bronze+: forged plate & brushed numeral
+  const showRing1  = idx >= 2; // Silver+: first bevel ring
+  const showTicks  = idx >= 3; // Gold+: corner facet ticks
+  const showRivets = idx >= 4; // Elite+: rivet studs
+  const showGlow   = idx >= 5; // Titan+: ember glow
+  const showRing2  = idx >= 6; // Legend+: second bevel ring
+  const showRing3  = idx >= 7; // Gladiator: third bevel ring
+
+  const plateFill = showForged ? `url(#${plateGradId})` : '#1c1e22';
+  const numFill   = showForged ? `url(#${numGradId})`   : style.fill;
+
+  const defs = `
+    <radialGradient id="${plateGradId}" cx="0.4" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="${style.dark0}"/><stop offset="0.55" stop-color="${style.stroke}"/><stop offset="1" stop-color="${style.dark1}"/>
+    </radialGradient>
+    <linearGradient id="${numGradId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${rankLighten(style.fill)}"/><stop offset="0.44" stop-color="${style.fill}"/><stop offset="0.6" stop-color="${rankDarken(style.stroke,40)}"/><stop offset="1" stop-color="${rankLighten(style.stroke)}"/>
+    </linearGradient>`;
+
+  const glowStyle = showGlow ? `style="filter:drop-shadow(0 0 ${5 + (idx - 5) * 2}px ${style.fill}99);"` : '';
+  const ring1 = showRing1 ? `<polygon points="30,7 51,20 51,50 30,63 9,50 9,20" fill="none" stroke="${style.stroke}" stroke-width="0.8" opacity="0.65"/>` : '';
+  const ring2 = showRing2 ? `<polygon points="30,11 46,22 46,48 30,59 14,48 14,22" fill="none" stroke="${rankLighten(style.stroke)}" stroke-width="0.7" opacity="0.55"/>` : '';
+  const ring3 = showRing3 ? `<polygon points="30,9 48.5,21 48.5,49 30,61 11.5,49 11.5,21" fill="none" stroke="${style.stroke}" stroke-width="0.9" opacity="0.7"/>` : '';
+  const ticks = showTicks ? `
+    <g stroke="${rankLighten(style.stroke)}" stroke-width="1" opacity="0.8">
+      <path d="M30 3 L30 9"/><path d="M56 18 L50 21"/><path d="M56 52 L50 49"/>
+      <path d="M30 67 L30 61"/><path d="M4 52 L10 49"/><path d="M4 18 L10 21"/>
+    </g>` : '';
+  const rivets = showRivets ? `
+    <g fill="${style.dark1}" stroke="${rankDarken(style.fill,80)}" stroke-width="0.5">
+      <circle cx="30" cy="9" r="2"/><circle cx="50" cy="21" r="2"/><circle cx="50" cy="49" r="2"/>
+      <circle cx="30" cy="61" r="2"/><circle cx="10" cy="49" r="2"/><circle cx="10" cy="21" r="2"/>
+    </g>` : '';
+
+  return `<svg style="width:28px;height:32px;flex-shrink:0;overflow:visible;" viewBox="0 0 60 70" xmlns="http://www.w3.org/2000/svg">
+    <defs>${defs}</defs>
+    <polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="${plateFill}" stroke="${style.stroke}" stroke-width="2" ${glowStyle}/>
+    ${ring1}${ring3}${ring2}${ticks}${rivets}
+    <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="${numFill}">${numeral}</text>
   </svg>`;
 }
 
@@ -949,7 +1024,7 @@ function igRenderXPBar(xpTotal) {
     <div class="ch-xp-card" style="margin-top:16px;padding:18px 20px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;">
       <div class="ch-xp-row">
         <div style="display:flex;align-items:center;gap:10px;">
-          ${rankHexBadge(rank.rankIndex)}
+          ${rankHexBadge(rank, total)}
           <div class="ch-rank-name">${rank.rankName}</div>
         </div>
         <div class="ch-xp-nums">${total.toLocaleString()} / ${rank.nextXP ? rank.nextXP.toLocaleString() : '—'} XP</div>

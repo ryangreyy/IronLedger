@@ -3087,7 +3087,7 @@ function initApp(uid) {
         homeRankEl.textContent = rank.rankName;
         if (homeRankBadgeEl) {
           homeRankBadgeEl.innerHTML = typeof rankHexBadge === 'function'
-            ? `<span class="home-rank-badge">${rankHexBadge(rank.rankIndex)}</span>`
+            ? `<span class="home-rank-badge">${rankHexBadge(rank, _xpTotal)}</span>`
             : '';
         }
       }
