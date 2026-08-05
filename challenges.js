@@ -869,6 +869,18 @@ function igRenderChallenges(dailyData, weeklyData, xpTotal) {
   const weeklyAssigned = weeklyData?.assigned || [];
   const activeDaily    = dailyAssigned.filter(e => !e.completed);
 
+  /* Challenges tab badge — count of daily challenges still completable
+     today. Weekly ones don't count since they're not tied to "today". */
+  const tabBadge = document.getElementById('challengesTabBadge');
+  if (tabBadge) {
+    if (activeDaily.length) {
+      tabBadge.textContent = activeDaily.length;
+      tabBadge.style.display = 'flex';
+    } else {
+      tabBadge.style.display = 'none';
+    }
+  }
+
   section.innerHTML = `
     <div class="eyebrow" style="margin-bottom:14px;">Challenges</div>
 
