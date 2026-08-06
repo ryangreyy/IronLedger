@@ -13,17 +13,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=289">
+<link rel="stylesheet" href="styles.css?v=290">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
-<link rel="manifest" href="/manifest.json?v=85">
+<link rel="manifest" href="/manifest.json?v=86">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=5"></script>
-<script src="pwa-update.js?v=75"></script>
+<script src="pwa-update.js?v=76"></script>
 </head>
 <body>
 
@@ -351,11 +351,97 @@
     <!-- ================= CARDIO LOG ================= -->
     <section class="page-tab-panel" data-panel="cardio">
       <div class="eyebrow" style="margin-bottom:12px;">Cardio Log</div>
-      <div class="card chart-card">
-        <p style="text-align:center;color:var(--text-dimmer);
-           padding:40px 0;font-family:var(--mono);font-size:14px;">
-          Cardio logging is coming soon.
-        </p>
+
+      <!-- Add cardio session form -->
+      <div class="card log-ticket-card" style="margin-top:16px;">
+        <div class="log-ticket-head">
+          <div class="log-ticket-head-label"><i class="ti ti-heartbeat" aria-hidden="true"></i>Log a cardio session</div>
+          <div class="log-cat-pills" id="cardioCatPills">
+            <button type="button" class="log-cat-pill active" data-cat="">All</button>
+            <button type="button" class="log-cat-pill" data-cat="machine">Machine</button>
+            <button type="button" class="log-cat-pill" data-cat="outdoor">Outdoor</button>
+            <button type="button" class="log-cat-pill" data-cat="other">Other</button>
+          </div>
+        </div>
+        <div class="log-ticket-body">
+        <div class="log-ticket-row1">
+          <div class="field" style="margin-bottom:0;">
+            <label for="cardioDate">Date</label>
+            <input id="cardioDate" type="date">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="cardioActivity">Activity</label>
+            <div class="lift-wrap">
+              <input id="cardioActivity" list="cardio-options" placeholder="Type or pick an activity…" autocomplete="off">
+              <button type="button" id="cardioDropdownBtn" class="lift-dropdown-btn" tabindex="-1" aria-label="Show activity options">
+                <svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div id="cardioDropdownList" class="lift-dropdown-list" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+
+          <datalist id="cardio-options">
+            <!-- Machine -->
+            <option value="Treadmill" data-cat="machine">
+            <option value="Stairmaster" data-cat="machine">
+            <option value="Elliptical" data-cat="machine">
+            <option value="Stationary Bike" data-cat="machine">
+            <option value="Rowing Machine" data-cat="machine">
+            <option value="Ski Erg" data-cat="machine">
+            <!-- Outdoor -->
+            <option value="Running" data-cat="outdoor">
+            <option value="Walking" data-cat="outdoor">
+            <option value="Incline Walk" data-cat="outdoor">
+            <option value="Cycling" data-cat="outdoor">
+            <option value="Hiking" data-cat="outdoor">
+            <!-- Other -->
+            <option value="Jump Rope" data-cat="other">
+            <option value="Swimming" data-cat="other">
+            <option value="HIIT Circuit" data-cat="other">
+            <option value="Sports" data-cat="other">
+          </datalist>
+
+          <div class="log-stepper-trio">
+            <div class="log-stepper log-stepper--plain">
+              <div class="log-stepper-label">Duration (min:sec)</div>
+              <input id="cardioDuration" type="text" placeholder="—" class="log-stepper-val" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="log-stepper log-stepper--plain">
+              <div class="log-stepper-label">Distance (<span class="unit-label">mi</span>)</div>
+              <input id="cardioDistance" type="number" min="0" step="0.1" placeholder="—" class="log-stepper-val" inputmode="decimal">
+            </div>
+            <div class="log-stepper log-stepper--plain">
+              <div class="log-stepper-label">Calories</div>
+              <input id="cardioCalories" type="number" min="0" step="1" placeholder="—" class="log-stepper-val" inputmode="numeric">
+            </div>
+          </div>
+
+          <div class="log-ticket-divider"></div>
+
+          <div class="field" style="margin-bottom:0;">
+            <label for="cardioNote">Note (optional)</label>
+            <input id="cardioNote" type="text" placeholder="Felt strong, incline 8%…">
+          </div>
+        </div>
+        <div class="log-ticket-actions" style="justify-content:flex-end;">
+          <button id="addCardioSession" class="btn btn-primary">Add session</button>
+        </div>
+      </div>
+
+      <!-- Cardio log table -->
+      <div class="card log-table-card" style="margin-top:18px;padding:8px 8px 4px;">
+        <table class="log-table">
+          <thead>
+            <tr><th>Session</th><th></th></tr>
+          </thead>
+          <tbody id="cardioLogBody"></tbody>
+        </table>
+        <div id="cardio-pagination" class="log-pagination" style="display:none;">
+          <button id="cardio-prev" class="btn-page">&#8592; Prev</button>
+          <span id="cardio-page-info" class="page-info">Page 1 of 1</span>
+          <button id="cardio-next" class="btn-page">Next &#8594;</button>
+        </div>
       </div>
     </section>
 
@@ -410,7 +496,7 @@
 <script src="data.js"></script>
 <script src="challenges.js?v=105"></script>
 <script src="musclemap.js?v=1"></script>
-<script src="app.js?v=206"></script>
+<script src="app.js?v=207"></script>
 <script src="nav.js?v=16"></script>
 <script src="soft-nav.js?v=3"></script>
 <script>

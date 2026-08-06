@@ -1038,6 +1038,80 @@ function initLiftPicker() {
   window.__igLiftPickerCleanup = () => document.removeEventListener('pointerdown', outsideHandler);
 }
 
+/* Same custom dropdown as initLiftPicker() above, wired to the Cardio Log
+   form instead (#cardioActivity/#cardioDropdownList/#cardioCatPills). Kept
+   as its own function rather than parameterizing initLiftPicker so the
+   well-tested lift picker stays untouched. */
+function initCardioPicker() {
+  if (window.__igCardioPickerCleanup) { window.__igCardioPickerCleanup(); window.__igCardioPickerCleanup = null; }
+
+  const input     = document.getElementById('cardioActivity');
+  const btn       = document.getElementById('cardioDropdownBtn');
+  const list      = document.getElementById('cardioDropdownList');
+  const pillsWrap = document.getElementById('cardioCatPills');
+  if (!input || !btn || !list) return;
+
+  input.removeAttribute('list');
+
+  let activeCat = '';
+
+  function allActivities() {
+    return Array.from(document.querySelectorAll('#cardio-options option')).map(o => ({
+      value: o.value,
+      cat: o.dataset.cat || ''
+    }));
+  }
+
+  function render(filter) {
+    const q   = (filter || '').toLowerCase();
+    const opts = allActivities().filter(o =>
+      (!activeCat || o.cat === activeCat) && (!q || o.value.toLowerCase().includes(q))
+    );
+    list.innerHTML = opts.length
+      ? opts.map(o => `<div class="lift-opt">${o.value}</div>`).join('')
+      : '<div class="lift-opt lift-opt-empty">No matches</div>';
+    list.querySelectorAll('.lift-opt:not(.lift-opt-empty)').forEach(el => {
+      el.addEventListener('click', () => {
+        input.value = el.textContent;
+        close();
+        input.focus();
+      });
+    });
+  }
+
+  function open() { render(input.value); list.style.display = ''; list.scrollTop = 0; }
+  function close() { list.style.display = 'none'; }
+  function isOpen() { return list.style.display !== 'none'; }
+
+  btn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    isOpen() ? close() : open();
+  });
+
+  if (pillsWrap) {
+    pillsWrap.querySelectorAll('.log-cat-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        pillsWrap.querySelectorAll('.log-cat-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeCat = pill.dataset.cat || '';
+        input.value = '';
+        open();
+        input.focus();
+      });
+    });
+  }
+
+  input.addEventListener('focus', () => open());
+  input.addEventListener('input', () => { if (isOpen()) render(input.value); });
+  input.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+  const outsideHandler = e => {
+    if (!e.target.closest('.lift-wrap') && !e.target.closest('#cardioCatPills')) close();
+  };
+  document.addEventListener('pointerdown', outsideHandler);
+  window.__igCardioPickerCleanup = () => document.removeEventListener('pointerdown', outsideHandler);
+}
+
 /* Sets/Reps/Weight tap-to-adjust +/- steppers on the training log form.
    Re-queries .log-stepper wrappers fresh each call — safe to call
    repeatedly on soft-nav reactivation since it only attaches listeners
@@ -1360,6 +1434,7 @@ let unsubscribeBodyweight = null;
 let unsubscribeDaily      = null;
 let unsubscribeWeekly     = null;
 let unsubscribeXP         = null;
+let unsubscribeCardio     = null;
 
 let bwCurrentMonth = localDateISO().slice(0, 7); // YYYY-MM
 let bwAllEntries   = [];
@@ -1511,11 +1586,13 @@ function initApp(uid) {
   if (unsubscribeDaily)      { unsubscribeDaily();      unsubscribeDaily      = null; }
   if (unsubscribeWeekly)     { unsubscribeWeekly();     unsubscribeWeekly     = null; }
   if (unsubscribeXP)         { unsubscribeXP();         unsubscribeXP         = null; }
+  if (unsubscribeCardio)     { unsubscribeCardio();     unsubscribeCardio     = null; }
   bwAllEntries = [];
 
   /* Shorthand helpers for this user's Firestore sub-collections */
   const sessionsRef = () => db.collection('users').doc(uid).collection('sessions');
   const settingsRef = () => db.collection('users').doc(uid).collection('settings').doc('main');
+  const cardioSessionsRef = () => db.collection('users').doc(uid).collection('cardioSessions');
 
   let goalsDonePage = 1;
   let goalsDoneFilter = 'all';
@@ -1862,6 +1939,9 @@ function initApp(uid) {
   let historyPage = 1;
   let currentPage = 1;
   const PAGE_SIZE = 6;
+  let currentCardioSessions = [];
+  let cardioCurrentPage = 1;
+  const CARDIO_PAGE_SIZE = 6;
 
   /* Muscle recovery card state (declared here so guest-mode renderMuscleMap() can access them) */
   let mrWidgetFront = null;
@@ -2639,10 +2719,27 @@ function initApp(uid) {
     return mins ? `${mins}:${String(secs).padStart(2, '0')}` : `${secs}s`;
   }
 
+  /* Cardio duration always renders as M:SS (never the bare "45s" shorthand
+     formatTimeSeconds uses) so it matches what the digit-mask itself
+     produces while typing — a mismatch there would show "45s" then jump
+     to "0:45" the instant the field is edited. */
+  function formatDurationMMSS(seconds) {
+    const total = Math.max(0, Math.round(+seconds || 0));
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  }
+
   function initTimeMask() {
     const logReps = document.getElementById('logReps');
     logReps?.addEventListener('beforeinput', e => handleDigitMaskBeforeInput(logReps, e, timeMaskDigits));
     logReps?.addEventListener('focus', () => { if (logReps.type === 'text') logReps.select(); });
+  }
+
+  function initCardioDurationMask() {
+    const cardioDuration = document.getElementById('cardioDuration');
+    cardioDuration?.addEventListener('beforeinput', e => handleDigitMaskBeforeInput(cardioDuration, e, timeMaskDigits));
+    cardioDuration?.addEventListener('focus', () => cardioDuration.select());
   }
 
   function repMetricText(s) {
@@ -2787,6 +2884,116 @@ function initApp(uid) {
               <input id="ed-reps-time" type="checkbox" ${isTimedSession(s) ? 'checked' : ''}>
               <span>Time</span>
             </label>
+          </div>
+        </td>
+        <td class="row-actions">
+          <button class="btn-save-edit" data-id="${s.id}" title="Save changes">Save</button>
+          <button class="btn-cancel-edit btn-delete" data-id="${s.id}" title="Cancel">✕</button>
+        </td>
+      </tr>`;
+  }
+
+  /* ===== CARDIO LOG ===================================================
+     Mirrors the lift log's group/render/edit-row pattern above (same
+     grouped-by-date+name table, same inline edit/save/cancel/delete),
+     but against its own cardioSessions collection and fields. */
+  function groupedCardioRows(sessions) {
+    const groups = [];
+    const byKey = new Map();
+    sessions.forEach(s => {
+      const actKey = (s.activity || '').trim().toLowerCase();
+      const key = `${s.dateRaw || s.date || ''}|${actKey}`;
+      if (!byKey.has(key)) {
+        const group = { activity: s.activity || '', date: s.date || '', dateRaw: s.dateRaw || '', sessions: [] };
+        byKey.set(key, group);
+        groups.push(group);
+      }
+      byKey.get(key).sessions.push(s);
+    });
+    return groups;
+  }
+
+  function cardioEntrySummary(s) {
+    const parts = [formatDurationMMSS(s.durationSeconds)];
+    if (s.distance)  parts.push(`${s.distance} mi`);
+    if (s.calories)  parts.push(`${s.calories} cal`);
+    return parts.join(' · ');
+  }
+
+  function renderCardioSetLine(s) {
+    return `
+      <div class="log-set-line" data-id="${s.id}">
+        <div class="log-set-copy">
+          <span class="log-set-summary">${escapeHTML(cardioEntrySummary(s))}</span>
+          ${s.note ? '<span class="log-set-note"><span class="pr-flag">★ ' + escapeHTML(s.note) + '</span></span>' : ''}
+        </div>
+        <div class="log-set-actions">
+          <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
+          <button class="btn-delete" data-id="${s.id}" title="Remove this session">✕</button>
+        </div>
+      </div>`;
+  }
+
+  function renderCardioLog(sessions) {
+    currentCardioSessions = sessions;
+    const bodyEl = document.getElementById('cardioLogBody');
+    const rows = groupedCardioRows(sessions);
+    const totalPages = Math.max(1, Math.ceil(rows.length / CARDIO_PAGE_SIZE));
+    if (cardioCurrentPage > totalPages) cardioCurrentPage = totalPages;
+    const start = (cardioCurrentPage - 1) * CARDIO_PAGE_SIZE;
+    const page  = rows.slice(start, start + CARDIO_PAGE_SIZE);
+
+    if (!bodyEl) return;
+    bodyEl.innerHTML = sessions.length
+      ? page.map(group => `
+          <tr class="log-group-row" data-group="${escapeHTML((group.dateRaw || group.date) + '|' + group.activity.toLowerCase())}">
+            <td class="log-main-cell" colspan="2">
+              <div class="log-group-head">
+                <span class="pill cardio">${escapeHTML(group.activity || '—')}</span>
+                <span class="log-meta-line">${escapeHTML(group.date)}${group.sessions.length > 1 ? ' · ' + group.sessions.length + ' entries' : ''}</span>
+              </div>
+              <div class="log-set-list">
+                ${group.sessions.map(entry => renderCardioSetLine(entry)).join('')}
+              </div>
+            </td>
+          </tr>`).join('')
+      : `<tr><td colspan="2" class="log-empty-cell">
+           <div class="log-empty-icon">🏃</div>
+           <div class="log-empty-title">No cardio logged yet</div>
+           <div class="log-empty-sub">Your cardio history will appear here</div>
+         </td></tr>`;
+
+    const pag = document.getElementById('cardio-pagination');
+    if (pag) {
+      if (rows.length > CARDIO_PAGE_SIZE) {
+        pag.style.display = '';
+        const pi = document.getElementById('cardio-page-info');
+        const lp = document.getElementById('cardio-prev');
+        const ln = document.getElementById('cardio-next');
+        if (pi) pi.textContent = `Page ${cardioCurrentPage} of ${totalPages}`;
+        if (lp) lp.disabled = cardioCurrentPage <= 1;
+        if (ln) ln.disabled = cardioCurrentPage >= totalPages;
+      } else {
+        pag.style.display = 'none';
+      }
+    }
+  }
+
+  /* Builds an inline-editable version of a cardio row */
+  function buildCardioEditRow(s) {
+    return `
+      <tr data-id="${s.id}" class="editing-row">
+        <td class="log-main-cell">
+          <input class="edit-field edit-wide" id="ed-cardio-activity" list="cardio-options"
+                 value="${escapeHTML(s.activity)}" autocomplete="off">
+          <div class="log-edit-meta">
+            <input class="edit-field edit-num" id="ed-cardio-duration" type="text" value="${formatDurationMMSS(s.durationSeconds)}">
+            <span style="color:var(--text-dimmer)">·</span>
+            <input class="edit-field edit-num" id="ed-cardio-distance" type="number" value="${s.distance || ''}" step="0.1" min="0" placeholder="mi" style="width:56px">
+            <span style="color:var(--text-dimmer)">·</span>
+            <input class="edit-field edit-num" id="ed-cardio-calories" type="number" value="${s.calories || ''}" step="1" min="0" placeholder="cal" style="width:56px">
+            <span style="color:var(--text-dimmer)">·</span>
+            <input class="edit-field" id="ed-cardio-note" type="text" value="${escapeHTML(s.note)}" placeholder="Note…" style="width:90px">
           </div>
         </td>
         <td class="row-actions">
@@ -2984,11 +3191,14 @@ function initApp(uid) {
 
   /* Custom white calendar picker — no external libraries needed */
   createDatePicker('logDate');
+  createDatePicker('cardioDate');
   initBodyweightDatePicker();
   initBodyweightControls();
   initLiftPicker();
   initLogSteppers();
   initTimeMask();
+  initCardioPicker();
+  initCardioDurationMask();
 
   /* Live listener — rebuilds table instantly on any Firestore change */
   unsubscribeSessions = sessionsRef()
@@ -3026,6 +3236,17 @@ function initApp(uid) {
       updateKPIs();
       renderCalendar();
       showToast('Could not load your training log — check your connection.');
+    });
+
+  /* Live listener — Cardio Log (separate collection from lift sessions) */
+  unsubscribeCardio = cardioSessionsRef()
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(snap => {
+      renderCardioLog(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, err => {
+      console.error('Cardio sessions error:', err.code, err.message);
+      renderCardioLog([]);
+      showToast('Could not load your cardio log — check your connection.');
     });
 
   /* Bodyweight listener */
@@ -3243,6 +3464,90 @@ function initApp(uid) {
   document.getElementById('log-next')?.addEventListener('click', () => {
     const totalPages = Math.ceil(groupedLogRows(currentSessions).length / PAGE_SIZE);
     if (currentPage < totalPages) { currentPage++; renderLog(currentSessions); }
+  });
+
+  /* ===== CARDIO LOG: add / edit / delete / pagination — mirrors the
+     lift log wiring above against the separate cardioSessions collection. */
+  document.getElementById('addCardioSession')?.addEventListener('click', () => {
+    const dateVal  = document.getElementById('cardioDate').value;
+    const activity = document.getElementById('cardioActivity').value.trim();
+    const durationSeconds = parseTimeSeconds(document.getElementById('cardioDuration').value);
+    const distance = +document.getElementById('cardioDistance').value || 0;
+    const calories = +document.getElementById('cardioCalories').value || 0;
+    const note     = document.getElementById('cardioNote').value.trim();
+    if (!dateVal || !activity || !durationSeconds) {
+      showToast('Please fill in date, activity, and duration.'); return;
+    }
+    cardioCurrentPage = 1;
+    cardioSessionsRef().add({
+      date: formatDate(dateVal), dateRaw: dateVal, activity, durationSeconds, distance, calories, note,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }).then(() => {
+      ['cardioActivity','cardioDistance','cardioCalories','cardioNote'].forEach(id => document.getElementById(id).value = '');
+      const durationEl = document.getElementById('cardioDuration');
+      durationEl.value = '';
+      delete durationEl.dataset.maskDigits;
+    }).catch(err => showToast('Could not save cardio session — ' + (err?.message || 'check your connection.')));
+  });
+
+  document.getElementById('cardioLogBody')?.addEventListener('click', e => {
+
+    /* ── Edit button: swap row to inline edit mode ── */
+    const editBtn = e.target.closest('.btn-row-edit');
+    if (editBtn) {
+      const s = currentCardioSessions.find(x => x.id === editBtn.dataset.id);
+      const row = editBtn.closest('tr');
+      if (s && row) row.outerHTML = buildCardioEditRow(s);
+      return;
+    }
+
+    /* ── Save button: write edited values back to Firestore ── */
+    const saveBtn = e.target.closest('.btn-save-edit');
+    if (saveBtn) {
+      const id = saveBtn.dataset.id;
+      const s  = currentCardioSessions.find(x => x.id === id);
+      const activity = document.getElementById('ed-cardio-activity').value.trim();
+      const durationSeconds = parseTimeSeconds(document.getElementById('ed-cardio-duration').value);
+      const distance = +document.getElementById('ed-cardio-distance').value || 0;
+      const calories = +document.getElementById('ed-cardio-calories').value || 0;
+      const note     = document.getElementById('ed-cardio-note').value.trim();
+      if (!activity || !durationSeconds) { showToast('Please fill in activity and duration.'); return; }
+      cardioSessionsRef().doc(id)
+        .update({ activity, durationSeconds, distance, calories, note, dateRaw: s?.dateRaw, date: s?.date })
+        .catch(err => showToast('Could not update cardio session — ' + (err?.message || 'check your connection.')));
+      return;
+    }
+
+    /* ── Cancel button: restore original row without saving ── */
+    const cancelBtn = e.target.closest('.btn-cancel-edit');
+    if (cancelBtn) { renderCardioLog(currentCardioSessions); return; }
+
+    /* ── Delete button ── */
+    const deleteBtn = e.target.closest('.btn-delete');
+    if (deleteBtn) {
+      if (confirm('Remove this cardio session?')) {
+        cardioSessionsRef().doc(deleteBtn.dataset.id).delete()
+          .catch(err => showToast('Could not delete cardio session — ' + (err?.message || 'check your connection.')));
+      }
+    }
+  });
+
+  /* Duration mask on the edit row too — built fresh into #cardioLogBody
+     on every edit click, so this has to be delegated (same reason as the
+     #ed-reps delegation above). */
+  document.getElementById('cardioLogBody')?.addEventListener('beforeinput', e => {
+    if (e.target.id === 'ed-cardio-duration') handleDigitMaskBeforeInput(e.target, e, timeMaskDigits);
+  });
+  document.getElementById('cardioLogBody')?.addEventListener('focus', e => {
+    if (e.target.id === 'ed-cardio-duration') e.target.select();
+  }, true);
+
+  document.getElementById('cardio-prev')?.addEventListener('click', () => {
+    if (cardioCurrentPage > 1) { cardioCurrentPage--; renderCardioLog(currentCardioSessions); }
+  });
+  document.getElementById('cardio-next')?.addEventListener('click', () => {
+    const totalPages = Math.ceil(groupedCardioRows(currentCardioSessions).length / CARDIO_PAGE_SIZE);
+    if (cardioCurrentPage < totalPages) { cardioCurrentPage++; renderCardioLog(currentCardioSessions); }
   });
 
   document.addEventListener('click', e => {

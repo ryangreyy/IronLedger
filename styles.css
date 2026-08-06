@@ -1729,6 +1729,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .pill.other{ background:rgba(154,160,172,0.14); color:var(--text-dim); }
 .pill.rest{  background:rgba(107,114,128,0.15); color:var(--text-dimmer); font-style:italic; }
+.pill.cardio{ background:rgba(193,39,45,0.16); border:1px solid rgba(193,39,45,0.5); color:#fff; }
 /* Light mode: white pill text is invisible on the pale color tints. Use dark
    ink text and lean on the colored fill + border for group identity. Works
    with any custom lift color. */
@@ -1738,6 +1739,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 [data-theme="light"] .pill.press,
 [data-theme="light"] .pill.arm{   background:var(--press-55); border-color:var(--press); color:var(--text); }
 [data-theme="light"] .pill.core{  background:var(--core-55);  border-color:var(--core);  color:var(--text); }
+[data-theme="light"] .pill.cardio{ background:rgba(193,39,45,0.4); border-color:var(--accent); color:var(--text); }
 
 /* ---------- PERSONALIZATION COLOR GROUPS ---------- */
 .color-group-list{ display:flex; flex-direction:column; gap:22px; margin-top:20px; }
