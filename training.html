@@ -136,7 +136,7 @@
     <div class="page-tabs" id="trainingPageTabs" style="margin-top:28px;">
       <button class="page-tab active" data-tpanel="log" data-eyebrow="Recent Activity" data-title="Training log">Training Log</button>
       <button class="page-tab" data-tpanel="weight" data-eyebrow="Bodyweight" data-title="Weight Tracking">Weight Log</button>
-      <button class="page-tab" data-tpanel="breakdown" data-eyebrow="Daily Breakdown" data-title="Daily Breakdown">Daily Breakdown</button>
+      <button class="page-tab" data-tpanel="cardio" data-eyebrow="Cardio Log" data-title="Cardio Log">Cardio Log</button>
       <button class="page-tab" data-tpanel="history" data-eyebrow="Exercise History" data-title="Exercise History">Exercise History</button>
     </div>
 
@@ -348,23 +348,13 @@
       </div>
     </section>
 
-    <!-- ================= DAILY BREAKDOWN ================= -->
-    <section class="page-tab-panel" data-panel="breakdown">
-      <div class="eyebrow" style="margin-bottom:12px;">Daily Breakdown</div>
+    <!-- ================= CARDIO LOG ================= -->
+    <section class="page-tab-panel" data-panel="cardio">
+      <div class="eyebrow" style="margin-bottom:12px;">Cardio Log</div>
       <div class="card chart-card">
-        <div class="chart-head">
-          <select id="breakdownDate" class="breakdown-date-sel">
-            <option>Log a session to see your breakdown</option>
-          </select>
-          <div class="legend-note" id="breakdownNote"></div>
-        </div>
-        <div class="donut-wrap" id="donutWrap">
-          <svg id="donutChart" viewBox="0 0 300 300" width="220" height="220" style="flex-shrink:0;"></svg>
-          <div id="donutLegend" class="donut-legend"></div>
-        </div>
-        <p id="donutEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+        <p style="text-align:center;color:var(--text-dimmer);
            padding:40px 0;font-family:var(--mono);font-size:14px;">
-          No sessions logged for this date yet.
+          Cardio logging is coming soon.
         </p>
       </div>
     </section>
@@ -424,10 +414,10 @@
 <script src="nav.js?v=16"></script>
 <script src="soft-nav.js?v=3"></script>
 <script>
-  /* ── Page tabs (Training Log / Weight Log / Daily Breakdown / Exercise
+  /* ── Page tabs (Training Log / Weight Log / Cardio Log / Exercise
      History) ── purely UI — shows/hides the existing sections. Doesn't
      touch app.js: its render functions (renderLog, bodyweight chart,
-     donut, history chart) already populate these elements regardless of
+     history chart) already populate these elements regardless of
      display state, so data is ready the moment a panel is opened. */
   document.getElementById('trainingPageTabs').addEventListener('click', e => {
     const btn = e.target.closest('.page-tab');

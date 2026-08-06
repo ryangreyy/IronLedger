@@ -137,6 +137,7 @@
       <button class="page-tab active" data-dpanel="overview" data-eyebrow="Overview" data-title="This month at a glance">Overview</button>
       <button class="page-tab" data-dpanel="muscle" data-eyebrow="Recovery" data-title="Muscle Recovery">Muscle Recovery</button>
       <button class="page-tab" data-dpanel="core" data-eyebrow="Abs/Core" data-title="Abs &amp; Core">Abs/Core</button>
+      <button class="page-tab" data-dpanel="breakdown" data-eyebrow="Daily Breakdown" data-title="Daily Breakdown">Daily Breakdown</button>
     </div>
 
     <!-- ================= DASHBOARD / KPIs ================= -->
@@ -311,6 +312,28 @@
       </div>
     </section>
 
+    <!-- ================= DAILY BREAKDOWN ================= -->
+    <section class="page-tab-panel" data-panel="breakdown">
+      <div class="eyebrow">Daily Breakdown</div>
+      <h2 class="title">Daily Breakdown</h2>
+      <div class="card chart-card" style="margin-top:16px;">
+        <div class="chart-head">
+          <select id="breakdownDate" class="breakdown-date-sel">
+            <option>Log a session to see your breakdown</option>
+          </select>
+          <div class="legend-note" id="breakdownNote"></div>
+        </div>
+        <div class="donut-wrap" id="donutWrap">
+          <svg id="donutChart" viewBox="0 0 300 300" width="220" height="220" style="flex-shrink:0;"></svg>
+          <div id="donutLegend" class="donut-legend"></div>
+        </div>
+        <p id="donutEmpty" style="display:none;text-align:center;color:var(--text-dimmer);
+           padding:40px 0;font-family:var(--mono);font-size:14px;">
+          No sessions logged for this date yet.
+        </p>
+      </div>
+    </section>
+
     <!-- ================= FOOTER ================= -->
     <footer>
       <div class="foot-inner">
@@ -339,11 +362,11 @@
 <script src="nav.js?v=16"></script>
 <script src="soft-nav.js?v=3"></script>
 <script>
-  /* ── Page tabs (Overview / Calendar / Muscle Recovery) ── purely UI —
-     shows/hides the existing sections. Doesn't touch app.js: its render
-     functions (KPIs, calendar, muscle map) already populate these
-     elements regardless of display state, so data is ready the moment
-     a panel is opened. */
+  /* ── Page tabs (Overview / Muscle Recovery / Abs/Core / Daily
+     Breakdown) ── purely UI — shows/hides the existing sections. Doesn't
+     touch app.js: its render functions (KPIs, calendar, muscle map,
+     donut) already populate these elements regardless of display state,
+     so data is ready the moment a panel is opened. */
   document.getElementById('dashboardPageTabs').addEventListener('click', e => {
     const btn = e.target.closest('.page-tab');
     if (!btn) return;
