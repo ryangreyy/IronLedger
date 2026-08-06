@@ -2915,8 +2915,9 @@ function initApp(uid) {
 
   function cardioEntrySummary(s) {
     const parts = [formatDurationMMSS(s.durationSeconds)];
-    if (s.distance)  parts.push(`${s.distance} mi`);
-    if (s.calories)  parts.push(`${s.calories} cal`);
+    if (s.distance)   parts.push(`${s.distance} mi`);
+    if (s.incline)    parts.push(`${s.incline}% incline`);
+    if (s.resistance) parts.push(`Lvl ${s.resistance} resistance`);
     return parts.join(' · ');
   }
 
@@ -2991,7 +2992,9 @@ function initApp(uid) {
             <span style="color:var(--text-dimmer)">·</span>
             <input class="edit-field edit-num" id="ed-cardio-distance" type="number" value="${s.distance || ''}" step="0.1" min="0" placeholder="mi" style="width:56px">
             <span style="color:var(--text-dimmer)">·</span>
-            <input class="edit-field edit-num" id="ed-cardio-calories" type="number" value="${s.calories || ''}" step="1" min="0" placeholder="cal" style="width:56px">
+            <input class="edit-field edit-num" id="ed-cardio-incline" type="number" value="${s.incline || ''}" step="0.5" min="0" placeholder="% incline" style="width:70px">
+            <span style="color:var(--text-dimmer)">·</span>
+            <input class="edit-field edit-num" id="ed-cardio-resistance" type="number" value="${s.resistance || ''}" step="1" min="0" placeholder="resistance" style="width:70px">
             <span style="color:var(--text-dimmer)">·</span>
             <input class="edit-field" id="ed-cardio-note" type="text" value="${escapeHTML(s.note)}" placeholder="Note…" style="width:90px">
           </div>
@@ -3472,18 +3475,19 @@ function initApp(uid) {
     const dateVal  = document.getElementById('cardioDate').value;
     const activity = document.getElementById('cardioActivity').value.trim();
     const durationSeconds = parseTimeSeconds(document.getElementById('cardioDuration').value);
-    const distance = +document.getElementById('cardioDistance').value || 0;
-    const calories = +document.getElementById('cardioCalories').value || 0;
+    const distance   = +document.getElementById('cardioDistance').value || 0;
+    const incline    = +document.getElementById('cardioIncline').value || 0;
+    const resistance = +document.getElementById('cardioResistance').value || 0;
     const note     = document.getElementById('cardioNote').value.trim();
     if (!dateVal || !activity || !durationSeconds) {
       showToast('Please fill in date, activity, and duration.'); return;
     }
     cardioCurrentPage = 1;
     cardioSessionsRef().add({
-      date: formatDate(dateVal), dateRaw: dateVal, activity, durationSeconds, distance, calories, note,
+      date: formatDate(dateVal), dateRaw: dateVal, activity, durationSeconds, distance, incline, resistance, note,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     }).then(() => {
-      ['cardioActivity','cardioDistance','cardioCalories','cardioNote'].forEach(id => document.getElementById(id).value = '');
+      ['cardioActivity','cardioDistance','cardioIncline','cardioResistance','cardioNote'].forEach(id => document.getElementById(id).value = '');
       const durationEl = document.getElementById('cardioDuration');
       durationEl.value = '';
       delete durationEl.dataset.maskDigits;
@@ -3508,12 +3512,13 @@ function initApp(uid) {
       const s  = currentCardioSessions.find(x => x.id === id);
       const activity = document.getElementById('ed-cardio-activity').value.trim();
       const durationSeconds = parseTimeSeconds(document.getElementById('ed-cardio-duration').value);
-      const distance = +document.getElementById('ed-cardio-distance').value || 0;
-      const calories = +document.getElementById('ed-cardio-calories').value || 0;
+      const distance   = +document.getElementById('ed-cardio-distance').value || 0;
+      const incline    = +document.getElementById('ed-cardio-incline').value || 0;
+      const resistance = +document.getElementById('ed-cardio-resistance').value || 0;
       const note     = document.getElementById('ed-cardio-note').value.trim();
       if (!activity || !durationSeconds) { showToast('Please fill in activity and duration.'); return; }
       cardioSessionsRef().doc(id)
-        .update({ activity, durationSeconds, distance, calories, note, dateRaw: s?.dateRaw, date: s?.date })
+        .update({ activity, durationSeconds, distance, incline, resistance, note, dateRaw: s?.dateRaw, date: s?.date })
         .catch(err => showToast('Could not update cardio session — ' + (err?.message || 'check your connection.')));
       return;
     }

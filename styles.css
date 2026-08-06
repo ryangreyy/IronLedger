@@ -1624,6 +1624,7 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 .log-ticket-body .field select{ font-size:15px; padding:11px 13px; }
 
 .log-stepper-trio{ display:grid; grid-template-columns:1fr 1fr 1.25fr; gap:12px; }
+.log-stepper-quad{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; }
 .log-stepper{
   background:var(--bg-2); border:1px solid var(--border-strong); border-radius:12px;
   padding:12px 8px 10px; text-align:center; transition:opacity .15s; min-width:0;
@@ -1681,6 +1682,8 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
      Weight (which has no buttons to fit) drops to its own full-width row. */
   .log-stepper-trio{ grid-template-columns:1fr 1fr; }
   .log-stepper-trio .log-stepper:nth-child(3){ grid-column:1 / -1; }
+  /* Four cardio fields settle naturally into a 2x2 grid on narrow phones. */
+  .log-stepper-quad{ grid-template-columns:1fr 1fr; }
 }
 
 /* ---------- DELETE BUTTON ---------- */
