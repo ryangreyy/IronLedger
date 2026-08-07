@@ -2913,21 +2913,24 @@ function initApp(uid) {
     return groups;
   }
 
-  /* Distance's unit (mi/km/m/yd/ft) is self-descriptive on its own, so
-     it needs no extra label. "Lvl N" alone is ambiguous between incline
-     and resistance, so that variant gets an explicit suffix; lbs/kg
-     resistance is self-descriptive like distance. */
+  /* Kept as short as the units allow -- "Lvl 8 resistance" was long
+     enough to push the bottom stat row into needing a scroll on a
+     narrow phone, which read as the word getting cut off. Duration and
+     Distance already get away with no field-name label at all (a
+     fixed left-to-right position is enough context, same as a table
+     column), so Incline/Resistance follow the same convention now
+     instead of spelling themselves out. */
   function cardioDistanceText(s) {
     return `${s.distance} ${s.distanceUnit || 'mi'}`;
   }
   function cardioInclineText(s) {
-    return (s.inclineUnit || '%') === 'level' ? `Lvl ${s.incline} incline` : `${s.incline}% incline`;
+    return (s.inclineUnit || '%') === 'level' ? `Lvl ${s.incline}` : `${s.incline}%`;
   }
   function cardioResistanceText(s) {
     const unit = s.resistanceUnit || 'level';
     if (unit === 'lbs') return `${s.resistance} lbs`;
     if (unit === 'kg')  return `${s.resistance} kg`;
-    return `Lvl ${s.resistance} resistance`;
+    return `Lvl ${s.resistance}`;
   }
 
   function renderCardioSetLine(s) {
