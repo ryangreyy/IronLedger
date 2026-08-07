@@ -237,11 +237,11 @@
 [data-theme="light"] .goal-due-pill,
 [data-theme="light"] .tracker-restore-btn,
 [data-theme="light"] .tracker-restore-date,
-[data-theme="light"] .yoga-tab{ border-color:rgba(18,23,33,.20); }
+[data-theme="light"] .yoga-tab{ border-color:rgba(18,23,33,.22); }
 [data-theme="light"] .goal-due-pill:hover,
 [data-theme="light"] .goal-due-pill.has-date,
 [data-theme="light"] .tracker-restore-btn:hover,
-[data-theme="light"] .yoga-tab:hover{ border-color:rgba(18,23,33,.42); }
+[data-theme="light"] .yoga-tab:hover{ border-color:rgba(18,23,33,.46); }
 [data-theme="light"] .btn-google{ border-color:rgba(18,23,33,.18) !important; }
 [data-theme="light"] .log-table tbody tr:hover td,
 [data-theme="light"] .yoga-table tbody tr:hover td{ color:var(--text); }
@@ -1936,6 +1936,14 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 #goalsPageTabs .page-tab.active{
   opacity:.72;
 }
+[data-theme="light"] #trainingPageTabs .page-tab.active,
+[data-theme="light"] #dashboardPageTabs .page-tab.active,
+[data-theme="light"] #yogaPageTabs .page-tab.active,
+[data-theme="light"] #runPageTabs .page-tab.active,
+[data-theme="light"] #toolsPageTabs .page-tab.active,
+[data-theme="light"] #goalsPageTabs .page-tab.active{
+  opacity:.79;
+}
 #trainingPageTabs .page-tab:not(.active),
 #dashboardPageTabs .page-tab:not(.active),
 #yogaPageTabs .page-tab:not(.active),
@@ -1960,17 +1968,17 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 [data-theme="light"] #runPageTabs .page-tab:not(.active),
 [data-theme="light"] #toolsPageTabs .page-tab:not(.active){
   background:transparent;
-  border-color:rgba(18,23,33,.16);
-  color:rgba(18,23,33,.58);
+  border-color:rgba(18,23,33,.18);
+  color:rgba(18,23,33,.64);
 }
 [data-theme="light"] #trainingPageTabs .page-tab:not(.active):hover,
 [data-theme="light"] #dashboardPageTabs .page-tab:not(.active):hover,
 [data-theme="light"] #yogaPageTabs .page-tab:not(.active):hover,
 [data-theme="light"] #runPageTabs .page-tab:not(.active):hover,
 [data-theme="light"] #toolsPageTabs .page-tab:not(.active):hover{
-  background:rgba(18,23,33,.045);
-  border-color:rgba(18,23,33,.30);
-  color:rgba(18,23,33,.82);
+  background:rgba(18,23,33,.05);
+  border-color:rgba(18,23,33,.33);
+  color:rgba(18,23,33,.90);
 }
 .page-tab-panel{ display:none; }
 .page-tab-panel.active{ display:block; }
@@ -2256,6 +2264,9 @@ html[data-authredirect] body{ visibility:hidden; }
 .guide-pill{ background:var(--bg-3,rgba(255,255,255,0.04)); border:1px solid var(--border); border-radius:8px; padding:7px 13px; cursor:pointer; font-size:12px; color:var(--text-dim); transition:all .15s; user-select:none; }
 .guide-pill:hover{ border-color:var(--border-strong); }
 .guide-pill.on{ border-color:var(--accent-bright); background:rgba(193,39,45,.08); color:var(--accent-bright); font-weight:600; }
+[data-theme="light"] .guide-pill{ background:rgba(18,23,33,.044); border-color:rgba(18,23,33,.13); }
+[data-theme="light"] .guide-pill:hover{ border-color:rgba(18,23,33,.24); }
+[data-theme="light"] .guide-pill.on{ background:rgba(193,39,45,.088); }
 .guide-winput{ background:var(--bg-3,rgba(255,255,255,0.04)); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; color:var(--text); width:110px; outline:none; font-family:var(--mono); }
 .guide-winput:focus{ border-color:rgba(193,39,45,.5); }
 .guide-winput::placeholder{ color:var(--text-dimmer); }
