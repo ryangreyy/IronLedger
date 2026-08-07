@@ -1509,8 +1509,8 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 
 /* Unit picker sitting to the right of the Distance/Incline/Resistance
    digit in the add-session form and its inline edit row. */
-.cardio-unit-field{ display:flex; align-items:center; gap:2px; width:100%; }
-.cardio-unit-field .log-stepper-val{ flex:1; min-width:0; text-align:right; }
+.cardio-unit-field{ display:flex; align-items:center; gap:12px; width:100%; }
+.cardio-unit-field .log-stepper-val{ flex:1; min-width:0; text-align:center; }
 .cardio-unit-select{
   flex-shrink:0; background:transparent; border:none; outline:none;
   font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text-dim);
