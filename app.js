@@ -2913,20 +2913,16 @@ function initApp(uid) {
     return groups;
   }
 
-  function cardioEntrySummary(s) {
-    const parts = [formatDurationMMSS(s.durationSeconds)];
-    if (s.distance)   parts.push(`${s.distance} mi`);
-    if (s.incline)    parts.push(`${s.incline}% incline`);
-    if (s.resistance) parts.push(`Lvl ${s.resistance} resistance`);
-    return parts.join(' · ');
-  }
-
   function renderCardioSetLine(s) {
+    const stats = [`<span class="cardio-stat cardio-stat-primary">${escapeHTML(formatDurationMMSS(s.durationSeconds))}</span>`];
+    if (s.distance)   stats.push(`<span class="cardio-stat">${escapeHTML(String(s.distance))} mi</span>`);
+    if (s.incline)    stats.push(`<span class="cardio-stat">${escapeHTML(String(s.incline))}% incline</span>`);
+    if (s.resistance) stats.push(`<span class="cardio-stat">Lvl ${escapeHTML(String(s.resistance))} resistance</span>`);
     return `
-      <div class="log-set-line" data-id="${s.id}">
-        <div class="log-set-copy">
-          <span class="log-set-summary">${escapeHTML(cardioEntrySummary(s))}</span>
-          ${s.note ? '<span class="log-set-note"><span class="pr-flag">★ ' + escapeHTML(s.note) + '</span></span>' : ''}
+      <div class="cardio-set-line" data-id="${s.id}">
+        <div class="cardio-set-body">
+          <div class="cardio-stat-row">${stats.join('')}</div>
+          ${s.note ? `<div class="cardio-set-note">${escapeHTML(s.note)}</div>` : ''}
         </div>
         <div class="log-set-actions">
           <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
@@ -2953,7 +2949,7 @@ function initApp(uid) {
                 <span class="pill cardio">${escapeHTML(group.activity || '—')}</span>
                 <span class="log-meta-line">${escapeHTML(group.date)}${group.sessions.length > 1 ? ' · ' + group.sessions.length + ' entries' : ''}</span>
               </div>
-              <div class="log-set-list">
+              <div class="cardio-set-list">
                 ${group.sessions.map(entry => renderCardioSetLine(entry)).join('')}
               </div>
             </td>

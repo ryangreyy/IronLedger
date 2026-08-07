@@ -1469,6 +1469,32 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 .pill.dead{  background:var(--dead-28);  border:1px solid var(--dead-55);  color:#fff; }
 .pr-flag{color:var(--accent-bright); font-family:var(--body); font-weight:700; font-size:12px;}
 
+/* ---------- CARDIO LOG ROWS ----------
+   The lift log's terse "3x10 · 135 lbs" summary line gets cramped once
+   a cardio entry has 3-4 pieces of data (duration/distance/incline/
+   resistance) — each metric gets its own breathing-room chip instead
+   of one long dot-joined string, and duration (the one field every
+   entry always has) reads as the visually primary stat. */
+.cardio-set-list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+.cardio-set-line{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding:13px 15px; border:1px solid var(--border); border-radius:10px;
+  background:rgba(255,255,255,0.03);
+}
+.cardio-set-body{ display:flex; flex-direction:column; gap:8px; min-width:0; flex:1; }
+.cardio-stat-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.cardio-stat{
+  font-family:var(--mono); font-size:12px; color:var(--text-dim); line-height:1.2;
+  background:var(--bg-2); border:1px solid var(--border-strong); border-radius:8px;
+  padding:5px 11px; white-space:nowrap;
+}
+.cardio-stat-primary{
+  font-size:14px; font-weight:700; color:#fff;
+  background:rgba(193,39,45,0.16); border-color:rgba(193,39,45,0.5);
+}
+.cardio-set-note{ font-size:12px; color:var(--text-dim); font-style:italic; }
+[data-theme="light"] .cardio-stat-primary{ background:rgba(193,39,45,0.4); border-color:var(--accent); color:var(--text); }
+
 /* ---------- ATHLETE PROFILE (WHERE YOU STAND) ---------- */
 .profile-inputs{
   display:grid; grid-template-columns:repeat(5,1fr); gap:14px;
