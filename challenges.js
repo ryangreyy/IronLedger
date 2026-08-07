@@ -49,6 +49,13 @@ function rankSubTier(rank, xpTotal) {
   return 4 - Math.floor(progress * 4);
 }
 
+/* Reworked so even Recruit starts as a fully forged plate with a bevel
+   ring (the old version was nearly flat until Bronze) -- each tier still
+   adds exactly one new element on top of that richer floor, ending with
+   Gladiator having everything. Legend's addition is a specular sheen
+   (a lighting/finish effect) rather than another shape -- several literal
+   icon ideas (laurel wreath, rays, crossed blades, a diamond, a nested
+   hexagon) were tried there and rejected before landing on this. */
 let _rankBadgeUid = 0;
 function rankHexBadge(rank, xpTotal) {
   const idx = rank && typeof rank.rankIndex === 'number' ? rank.rankIndex : 0;
@@ -58,17 +65,16 @@ function rankHexBadge(rank, xpTotal) {
   const uid = 'rb' + (_rankBadgeUid++);
   const plateGradId = `${uid}-p`;
   const numGradId = `${uid}-n`;
+  const sheenGradId = `${uid}-s`;
+  const clipId = `${uid}-c`;
 
-  const showForged = idx >= 1; // Bronze+: forged plate & brushed numeral
-  const showRing1  = idx >= 2; // Silver+: first bevel ring
-  const showTicks  = idx >= 3; // Gold+: corner facet ticks
-  const showRivets = idx >= 4; // Elite+: rivet studs
-  const showGlow   = idx >= 5; // Titan+: ember glow
-  const showRing2  = idx >= 6; // Legend+: second bevel ring
-  const showRing3  = idx >= 7; // Gladiator: third bevel ring
-
-  const plateFill = showForged ? `url(#${plateGradId})` : '#1c1e22';
-  const numFill   = showForged ? `url(#${numGradId})`   : style.fill;
+  const showTicks  = idx >= 1; // Bronze+: corner facet ticks
+  const showRivets = idx >= 2; // Silver+: rivet studs
+  const showRing2  = idx >= 3; // Gold+: second bevel ring
+  const showGlow   = idx >= 4; // Elite+: ember glow
+  const showRing3  = idx >= 5; // Titan+: third bevel ring
+  const showSheen  = idx >= 6; // Legend+: specular sheen across the plate
+  const showRing4  = idx >= 7; // Gladiator: bright trim ring at the plate edge
 
   const defs = `
     <radialGradient id="${plateGradId}" cx="0.4" cy="0.3" r="0.9">
@@ -76,28 +82,34 @@ function rankHexBadge(rank, xpTotal) {
     </radialGradient>
     <linearGradient id="${numGradId}" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="${rankLighten(style.fill)}"/><stop offset="0.44" stop-color="${style.fill}"/><stop offset="0.6" stop-color="${rankDarken(style.stroke,40)}"/><stop offset="1" stop-color="${rankLighten(style.stroke)}"/>
-    </linearGradient>`;
+    </linearGradient>
+    ${showSheen ? `<radialGradient id="${sheenGradId}" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <clipPath id="${clipId}"><polygon points="30,3 56,18 56,52 30,67 4,52 4,18"/></clipPath>` : ''}`;
 
-  const glowStyle = showGlow ? `style="filter:drop-shadow(0 0 ${5 + (idx - 5) * 2}px ${style.fill}99);"` : '';
-  const ring1 = showRing1 ? `<polygon points="30,7 51,20 51,50 30,63 9,50 9,20" fill="none" stroke="${style.stroke}" stroke-width="0.8" opacity="0.65"/>` : '';
-  const ring2 = showRing2 ? `<polygon points="30,11 46,22 46,48 30,59 14,48 14,22" fill="none" stroke="${rankLighten(style.stroke)}" stroke-width="0.7" opacity="0.55"/>` : '';
-  const ring3 = showRing3 ? `<polygon points="30,9 48.5,21 48.5,49 30,61 11.5,49 11.5,21" fill="none" stroke="${style.stroke}" stroke-width="0.9" opacity="0.7"/>` : '';
+  const glowStyle = showGlow ? `style="filter:drop-shadow(0 0 ${5 + (idx - 4) * 2}px ${style.fill}99);"` : '';
+  const sheen = showSheen ? `<ellipse cx="22" cy="15" rx="17" ry="8" fill="url(#${sheenGradId})" opacity="0.5" transform="rotate(-22 22 15)" clip-path="url(#${clipId})"/>` : '';
+  const ring1 = `<polygon points="30,6.2 53.4,19.7 53.4,50.3 30,63.8 6.6,50.3 6.6,19.7" fill="none" stroke="${style.stroke}" stroke-width="0.9" opacity="0.7"/>`;
+  const ring2 = showRing2 ? `<polygon points="30,9.4 50.8,21.4 50.8,48.6 30,60.6 9.2,48.6 9.2,21.4" fill="none" stroke="${rankLighten(style.stroke)}" stroke-width="0.7" opacity="0.55"/>` : '';
+  const ring3 = showRing3 ? `<polygon points="30,12.6 48.2,23.1 48.2,46.9 30,57.4 11.8,46.9 11.8,23.1" fill="none" stroke="${style.stroke}" stroke-width="0.6" opacity="0.5"/>` : '';
+  const ring4 = showRing4 ? `<polygon points="30,4.12 55.09,18.6 55.09,51.4 30,65.88 4.91,51.4 4.91,18.6" fill="none" stroke="${rankLighten(style.fill)}" stroke-width="1.1" opacity="0.85"/>` : '';
   const ticks = showTicks ? `
-    <g stroke="${rankLighten(style.stroke)}" stroke-width="1" opacity="0.8">
-      <path d="M30 3 L30 9"/><path d="M56 18 L50 21"/><path d="M56 52 L50 49"/>
-      <path d="M30 67 L30 61"/><path d="M4 52 L10 49"/><path d="M4 18 L10 21"/>
+    <g stroke="${rankLighten(style.stroke)}" stroke-width="1" opacity="0.85">
+      <path d="M30 3 L30 6.2"/><path d="M56 18 L53.4 19.7"/><path d="M56 52 L53.4 50.3"/>
+      <path d="M30 67 L30 63.8"/><path d="M4 52 L6.6 50.3"/><path d="M4 18 L6.6 19.7"/>
     </g>` : '';
   const rivets = showRivets ? `
     <g fill="${style.dark1}" stroke="${rankDarken(style.fill,80)}" stroke-width="0.5">
-      <circle cx="30" cy="9" r="2"/><circle cx="50" cy="21" r="2"/><circle cx="50" cy="49" r="2"/>
-      <circle cx="30" cy="61" r="2"/><circle cx="10" cy="49" r="2"/><circle cx="10" cy="21" r="2"/>
+      <circle cx="30" cy="6.2" r="1.9"/><circle cx="53.4" cy="19.7" r="1.9"/><circle cx="53.4" cy="50.3" r="1.9"/>
+      <circle cx="30" cy="63.8" r="1.9"/><circle cx="6.6" cy="50.3" r="1.9"/><circle cx="6.6" cy="19.7" r="1.9"/>
     </g>` : '';
 
   return `<svg style="width:28px;height:32px;flex-shrink:0;overflow:visible;" viewBox="0 0 60 70" xmlns="http://www.w3.org/2000/svg">
     <defs>${defs}</defs>
-    <polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="${plateFill}" stroke="${style.stroke}" stroke-width="2" ${glowStyle}/>
-    ${ring1}${ring3}${ring2}${ticks}${rivets}
-    <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" letter-spacing="3" fill="${numFill}">${numeral}</text>
+    <polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="url(#${plateGradId})" stroke="${style.stroke}" stroke-width="2" ${glowStyle}/>
+    ${sheen}${ring1}${ring3}${ring2}${ring4}${ticks}${rivets}
+    <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" letter-spacing="3"
+      fill="url(#${numGradId})" stroke="rgba(0,0,0,0.55)" stroke-width="1.4" paint-order="stroke fill"
+      style="filter:drop-shadow(0 1px 1.2px rgba(0,0,0,.55));">${numeral}</text>
   </svg>`;
 }
 
