@@ -2913,12 +2913,29 @@ function initApp(uid) {
     return groups;
   }
 
+  /* Distance's unit (mi/km/m/yd/ft) is self-descriptive on its own, so
+     it needs no extra label. "Lvl N" alone is ambiguous between incline
+     and resistance, so that variant gets an explicit suffix; lbs/kg
+     resistance is self-descriptive like distance. */
+  function cardioDistanceText(s) {
+    return `${s.distance} ${s.distanceUnit || 'mi'}`;
+  }
+  function cardioInclineText(s) {
+    return (s.inclineUnit || '%') === 'level' ? `Lvl ${s.incline} incline` : `${s.incline}% incline`;
+  }
+  function cardioResistanceText(s) {
+    const unit = s.resistanceUnit || 'level';
+    if (unit === 'lbs') return `${s.resistance} lbs`;
+    if (unit === 'kg')  return `${s.resistance} kg`;
+    return `Lvl ${s.resistance} resistance`;
+  }
+
   function renderCardioSetLine(s) {
     const topStats = [`<span class="cardio-stat cardio-stat-primary">${escapeHTML(formatDurationMMSS(s.durationSeconds))}</span>`];
-    if (s.distance) topStats.push(`<span class="cardio-stat">${escapeHTML(String(s.distance))} mi</span>`);
+    if (s.distance) topStats.push(`<span class="cardio-stat">${escapeHTML(cardioDistanceText(s))}</span>`);
     const bottomStats = [];
-    if (s.incline)    bottomStats.push(`<span class="cardio-stat">${escapeHTML(String(s.incline))}% incline</span>`);
-    if (s.resistance) bottomStats.push(`<span class="cardio-stat">Lvl ${escapeHTML(String(s.resistance))} resistance</span>`);
+    if (s.incline)    bottomStats.push(`<span class="cardio-stat">${escapeHTML(cardioInclineText(s))}</span>`);
+    if (s.resistance) bottomStats.push(`<span class="cardio-stat">${escapeHTML(cardioResistanceText(s))}</span>`);
     return `
       <div class="cardio-set-line" data-id="${s.id}">
         <div class="cardio-set-body">
@@ -2981,6 +2998,20 @@ function initApp(uid) {
   }
 
   /* Builds an inline-editable version of a cardio row */
+  /* Shared option lists for the Distance/Incline/Resistance unit pickers --
+     used both to build the edit row's <select> (with the entry's saved
+     unit pre-selected) and to interpret a saved unit for display. */
+  const CARDIO_UNITS = {
+    distance:   { def:'mi',    opts:[['mi','mi'],['km','km'],['m','m'],['yd','yd'],['ft','ft']] },
+    incline:    { def:'%',     opts:[['%','%'],['level','Level']] },
+    resistance: { def:'level', opts:[['level','Level'],['lbs','lbs'],['kg','kg']] },
+  };
+  function cardioUnitOptions(type, current) {
+    const cfg = CARDIO_UNITS[type];
+    const sel = current || cfg.def;
+    return cfg.opts.map(([val, label]) => `<option value="${val}"${val === sel ? ' selected' : ''}>${label}</option>`).join('');
+  }
+
   function buildCardioEditRow(s) {
     return `
       <tr data-id="${s.id}" class="editing-row">
@@ -2990,11 +3021,14 @@ function initApp(uid) {
           <div class="log-edit-meta">
             <input class="edit-field edit-num" id="ed-cardio-duration" type="text" value="${formatDurationMMSS(s.durationSeconds)}">
             <span style="color:var(--text-dimmer)">·</span>
-            <input class="edit-field edit-num" id="ed-cardio-distance" type="number" value="${s.distance || ''}" step="0.1" min="0" placeholder="mi" style="width:56px">
+            <input class="edit-field edit-num" id="ed-cardio-distance" type="number" value="${s.distance || ''}" step="0.1" min="0" placeholder="mi" style="width:50px">
+            <select class="edit-cardio-unit" id="ed-cardio-distance-unit">${cardioUnitOptions('distance', s.distanceUnit)}</select>
             <span style="color:var(--text-dimmer)">·</span>
-            <input class="edit-field edit-num" id="ed-cardio-incline" type="number" value="${s.incline || ''}" step="0.5" min="0" placeholder="% incline" style="width:70px">
+            <input class="edit-field edit-num" id="ed-cardio-incline" type="number" value="${s.incline || ''}" step="0.5" min="0" placeholder="incline" style="width:50px">
+            <select class="edit-cardio-unit" id="ed-cardio-incline-unit">${cardioUnitOptions('incline', s.inclineUnit)}</select>
             <span style="color:var(--text-dimmer)">·</span>
-            <input class="edit-field edit-num" id="ed-cardio-resistance" type="number" value="${s.resistance || ''}" step="1" min="0" placeholder="resistance" style="width:70px">
+            <input class="edit-field edit-num" id="ed-cardio-resistance" type="number" value="${s.resistance || ''}" step="1" min="0" placeholder="resistance" style="width:50px">
+            <select class="edit-cardio-unit" id="ed-cardio-resistance-unit">${cardioUnitOptions('resistance', s.resistanceUnit)}</select>
             <span style="color:var(--text-dimmer)">·</span>
             <input class="edit-field" id="ed-cardio-note" type="text" value="${escapeHTML(s.note)}" placeholder="Note…" style="width:90px">
           </div>
@@ -3478,13 +3512,17 @@ function initApp(uid) {
     const distance   = +document.getElementById('cardioDistance').value || 0;
     const incline    = +document.getElementById('cardioIncline').value || 0;
     const resistance = +document.getElementById('cardioResistance').value || 0;
+    const distanceUnit   = document.getElementById('cardioDistanceUnit').value;
+    const inclineUnit    = document.getElementById('cardioInclineUnit').value;
+    const resistanceUnit = document.getElementById('cardioResistanceUnit').value;
     const note     = document.getElementById('cardioNote').value.trim();
     if (!dateVal || !activity || !durationSeconds) {
       showToast('Please fill in date, activity, and duration.'); return;
     }
     cardioCurrentPage = 1;
     cardioSessionsRef().add({
-      date: formatDate(dateVal), dateRaw: dateVal, activity, durationSeconds, distance, incline, resistance, note,
+      date: formatDate(dateVal), dateRaw: dateVal, activity, durationSeconds,
+      distance, incline, resistance, distanceUnit, inclineUnit, resistanceUnit, note,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     }).then(() => {
       ['cardioActivity','cardioDistance','cardioIncline','cardioResistance','cardioNote'].forEach(id => document.getElementById(id).value = '');
@@ -3515,10 +3553,13 @@ function initApp(uid) {
       const distance   = +document.getElementById('ed-cardio-distance').value || 0;
       const incline    = +document.getElementById('ed-cardio-incline').value || 0;
       const resistance = +document.getElementById('ed-cardio-resistance').value || 0;
+      const distanceUnit   = document.getElementById('ed-cardio-distance-unit').value;
+      const inclineUnit    = document.getElementById('ed-cardio-incline-unit').value;
+      const resistanceUnit = document.getElementById('ed-cardio-resistance-unit').value;
       const note     = document.getElementById('ed-cardio-note').value.trim();
       if (!activity || !durationSeconds) { showToast('Please fill in activity and duration.'); return; }
       cardioSessionsRef().doc(id)
-        .update({ activity, durationSeconds, distance, incline, resistance, note, dateRaw: s?.dateRaw, date: s?.date })
+        .update({ activity, durationSeconds, distance, incline, resistance, distanceUnit, inclineUnit, resistanceUnit, note, dateRaw: s?.dateRaw, date: s?.date })
         .catch(err => showToast('Could not update cardio session — ' + (err?.message || 'check your connection.')));
       return;
     }

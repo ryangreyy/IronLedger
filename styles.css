@@ -1443,7 +1443,7 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 .log-table th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
   color:var(--text-dimmer); font-weight:700; padding:14px 16px; border-bottom:1px solid var(--border-strong);}
 .log-table td{padding:15px 16px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:14px;}
-.log-main-cell{ width:100%; }
+.log-main-cell{ width:100%; min-width:0; }
 .log-meta-line{ font-size:12px; color:var(--text-dimmer); margin-top:5px; }
 .log-note-line{ font-size:12px; margin-top:3px; }
 .log-group-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -1482,10 +1482,10 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 .cardio-set-line{
   display:flex; align-items:center; justify-content:space-between; gap:14px;
   padding:18px 16px; border:1px solid var(--border); border-radius:10px;
-  background:rgba(255,255,255,0.03);
+  background:rgba(255,255,255,0.03); min-width:0;
 }
 .cardio-set-body{ display:flex; flex-direction:column; gap:10px; min-width:0; flex:1; }
-.cardio-stat-grid{ display:flex; flex-direction:column; gap:8px; }
+.cardio-stat-grid{ display:flex; flex-direction:column; gap:8px; min-width:0; }
 /* Each row (Time+Distance, or Incline+Resistance) stays on one line no
    matter how long its values get -- wrapping reads as broken, and
    shrinking/truncating a chip's text reads as clipped. Scrolling
@@ -1493,6 +1493,7 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 .cardio-stat-row{
   display:flex; flex-wrap:nowrap; align-items:center; gap:8px;
   overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+  contain:inline-size;
 }
 .cardio-stat-row::-webkit-scrollbar{ display:none; }
 .cardio-stat{
@@ -1505,6 +1506,24 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
   background:rgba(193,39,45,0.16); border-color:rgba(193,39,45,0.5);
 }
 [data-theme="light"] .cardio-stat-primary{ background:rgba(193,39,45,0.4); border-color:var(--accent); color:var(--text); }
+
+/* Unit picker sitting to the right of the Distance/Incline/Resistance
+   digit in the add-session form and its inline edit row. */
+.cardio-unit-field{ display:flex; align-items:center; gap:2px; width:100%; }
+.cardio-unit-field .log-stepper-val{ flex:1; min-width:0; text-align:right; }
+.cardio-unit-select{
+  flex-shrink:0; background:transparent; border:none; outline:none;
+  font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text-dim);
+  -webkit-appearance:none; appearance:none; cursor:pointer; padding:0; max-width:44px;
+}
+.cardio-unit-select:hover{ color:var(--accent-bright); }
+.cardio-unit-select option{ background:var(--surface); color:var(--text); }
+.edit-cardio-unit{
+  background:transparent; border:none; outline:none; cursor:pointer;
+  font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text-dim); padding:0;
+}
+.edit-cardio-unit:hover{ color:var(--accent-bright); }
+.edit-cardio-unit option{ background:var(--surface); color:var(--text); }
 
 /* ---------- ATHLETE PROFILE (WHERE YOU STAND) ---------- */
 .profile-inputs{
