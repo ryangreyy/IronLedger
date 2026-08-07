@@ -1496,6 +1496,14 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
   contain:inline-size;
 }
 .cardio-stat-row::-webkit-scrollbar{ display:none; }
+/* Added by JS only when a row's chips actually overflow -- fades the
+   trailing edge so an unscrolled row visibly hints "more this way"
+   instead of the content just abruptly stopping, which read as
+   clipping into the edit/delete buttons next to it. */
+.cardio-stat-row.has-overflow{
+  -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 20px), transparent 100%);
+  mask-image:linear-gradient(to right, #000 calc(100% - 20px), transparent 100%);
+}
 .cardio-stat{
   font-family:var(--mono); font-size:12px; color:var(--text-dim); line-height:1.2;
   background:var(--bg-2); border:1px solid var(--border-strong); border-radius:8px;
@@ -1509,12 +1517,19 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 
 /* Unit picker sitting to the right of the Distance/Incline/Resistance
    digit in the add-session form and its inline edit row. */
+/* The unit <select> only sits on the right, so centering the digit
+   input by itself (flex:1 alone) actually centers it in the leftover
+   space next to the select, not in the box as a whole -- it still
+   reads as pulled left. A same-width invisible spacer on the left
+   balances that out so the digit lands truly centered in the box. */
 .cardio-unit-field{ display:flex; align-items:center; gap:12px; width:100%; }
 .cardio-unit-field .log-stepper-val{ flex:1; min-width:0; text-align:center; }
+.cardio-unit-spacer{ width:34px; flex-shrink:0; }
 .cardio-unit-select{
   flex-shrink:0; background:transparent; border:none; outline:none;
   font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text-dim);
-  -webkit-appearance:none; appearance:none; cursor:pointer; padding:0; max-width:44px;
+  -webkit-appearance:none; appearance:none; cursor:pointer; padding:0;
+  width:34px; text-align:center;
 }
 .cardio-unit-select:hover{ color:var(--accent-bright); }
 .cardio-unit-select option{ background:var(--surface); color:var(--text); }

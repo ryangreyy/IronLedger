@@ -2981,6 +2981,13 @@ function initApp(uid) {
            <div class="log-empty-sub">Your cardio history will appear here</div>
          </td></tr>`;
 
+    /* Fade the trailing edge only on rows that actually overflow -- an
+       unscrolled row that just abruptly stops (no scrollbar, since it's
+       hidden) reads as clipped rather than scrollable. */
+    bodyEl.querySelectorAll('.cardio-stat-row').forEach(row => {
+      row.classList.toggle('has-overflow', row.scrollWidth > row.clientWidth + 1);
+    });
+
     const pag = document.getElementById('cardio-pagination');
     if (pag) {
       if (rows.length > CARDIO_PAGE_SIZE) {
