@@ -1476,16 +1476,20 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
    of one long dot-joined string, and duration (the one field every
    entry always has) reads as the visually primary stat. */
 .cardio-set-list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+/* Taller than a lift log's .log-set-line -- a cardio entry carries up
+   to two rows of stats (Time+Distance, then Incline+Resistance) so it
+   needs the extra vertical room to not feel squeezed. */
 .cardio-set-line{
   display:flex; align-items:center; justify-content:space-between; gap:14px;
-  padding:13px 15px; border:1px solid var(--border); border-radius:10px;
+  padding:18px 16px; border:1px solid var(--border); border-radius:10px;
   background:rgba(255,255,255,0.03);
 }
-.cardio-set-body{ display:flex; flex-direction:column; gap:8px; min-width:0; flex:1; }
-/* Chips stay on one line no matter how many metrics an entry has --
-   wrapping to a second line reads as broken, and shrinking/truncating
-   a chip's text reads as clipped. Scrolling sideways is the one option
-   that's neither, so it's the fallback once chips stop fitting. */
+.cardio-set-body{ display:flex; flex-direction:column; gap:10px; min-width:0; flex:1; }
+.cardio-stat-grid{ display:flex; flex-direction:column; gap:8px; }
+/* Each row (Time+Distance, or Incline+Resistance) stays on one line no
+   matter how long its values get -- wrapping reads as broken, and
+   shrinking/truncating a chip's text reads as clipped. Scrolling
+   sideways is the one option that's neither. */
 .cardio-stat-row{
   display:flex; flex-wrap:nowrap; align-items:center; gap:8px;
   overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
@@ -1500,7 +1504,6 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
   font-size:14px; font-weight:700; color:#fff;
   background:rgba(193,39,45,0.16); border-color:rgba(193,39,45,0.5);
 }
-.cardio-set-note{ font-size:12px; color:var(--text-dim); font-style:italic; }
 [data-theme="light"] .cardio-stat-primary{ background:rgba(193,39,45,0.4); border-color:var(--accent); color:var(--text); }
 
 /* ---------- ATHLETE PROFILE (WHERE YOU STAND) ---------- */

@@ -2914,15 +2914,19 @@ function initApp(uid) {
   }
 
   function renderCardioSetLine(s) {
-    const stats = [`<span class="cardio-stat cardio-stat-primary">${escapeHTML(formatDurationMMSS(s.durationSeconds))}</span>`];
-    if (s.distance)   stats.push(`<span class="cardio-stat">${escapeHTML(String(s.distance))} mi</span>`);
-    if (s.incline)    stats.push(`<span class="cardio-stat">${escapeHTML(String(s.incline))}% incline</span>`);
-    if (s.resistance) stats.push(`<span class="cardio-stat">Lvl ${escapeHTML(String(s.resistance))} resistance</span>`);
+    const topStats = [`<span class="cardio-stat cardio-stat-primary">${escapeHTML(formatDurationMMSS(s.durationSeconds))}</span>`];
+    if (s.distance) topStats.push(`<span class="cardio-stat">${escapeHTML(String(s.distance))} mi</span>`);
+    const bottomStats = [];
+    if (s.incline)    bottomStats.push(`<span class="cardio-stat">${escapeHTML(String(s.incline))}% incline</span>`);
+    if (s.resistance) bottomStats.push(`<span class="cardio-stat">Lvl ${escapeHTML(String(s.resistance))} resistance</span>`);
     return `
       <div class="cardio-set-line" data-id="${s.id}">
         <div class="cardio-set-body">
-          <div class="cardio-stat-row">${stats.join('')}</div>
-          ${s.note ? `<div class="cardio-set-note">${escapeHTML(s.note)}</div>` : ''}
+          <div class="cardio-stat-grid">
+            <div class="cardio-stat-row">${topStats.join('')}</div>
+            ${bottomStats.length ? `<div class="cardio-stat-row">${bottomStats.join('')}</div>` : ''}
+          </div>
+          ${s.note ? '<span class="log-set-note"><span class="pr-flag">★ ' + escapeHTML(s.note) + '</span></span>' : ''}
         </div>
         <div class="log-set-actions">
           <button class="btn-row-edit" data-id="${s.id}" title="Edit this session">✎</button>
