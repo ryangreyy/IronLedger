@@ -2933,7 +2933,7 @@ function initApp(uid) {
   }
 
   function renderCardioSetLine(s) {
-    const topStats = [`<span class="cardio-stat cardio-stat-primary">${escapeHTML(cardioDurationText(s))}</span>`];
+    const topStats = [`<span class="cardio-stat">${escapeHTML(cardioDurationText(s))}</span>`];
     if (s.distance) topStats.push(`<span class="cardio-stat">${escapeHTML(cardioDistanceText(s))}</span>`);
     const bottomStats = [];
     if (s.incline)    bottomStats.push(`<span class="cardio-stat">${escapeHTML(cardioInclineText(s))}</span>`);
