@@ -1455,7 +1455,7 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
   background:rgba(255,255,255,0.03);
 }
 .log-set-copy{ display:flex; flex-direction:column; gap:3px; min-width:0; }
-.log-set-summary{ font-size:12px; color:var(--text-dim); }
+.log-set-summary{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:12px; color:var(--text-dim); }
 .log-set-note{ font-size:12px; }
 .log-set-actions{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
 .log-edit-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-top:6px; }

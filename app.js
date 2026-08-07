@@ -2786,10 +2786,12 @@ function initApp(uid) {
   }
 
   function renderLogSetLine(s, showDate) {
+    const effort = `${s.sets}×${repMetricText(s)}`;
+    const load = s.bodyweight ? 'Bodyweight' : `${s.wt} lbs`;
     return `
       <div class="log-set-line" data-id="${s.id}">
         <div class="log-set-copy">
-          <span class="log-set-summary">${showDate ? escapeHTML(s.date) + ' · ' : ''}${escapeHTML(logSetSummary(s))}</span>
+          <span class="log-set-summary">${showDate ? '<span class="log-set-date-chip">' + escapeHTML(s.date) + '</span>' : ''}<span class="cardio-stat">${escapeHTML(effort)}</span><span class="cardio-stat">${escapeHTML(load)}</span></span>
           ${s.note ? '<span class="log-set-note"><span class="pr-flag">★ ' + escapeHTML(s.note) + '</span></span>' : ''}
         </div>
         <div class="log-set-actions">
