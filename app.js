@@ -2913,28 +2913,27 @@ function initApp(uid) {
     return groups;
   }
 
-  /* Kept as short as the units allow -- "Lvl 8 resistance" was long
-     enough to push the bottom stat row into needing a scroll on a
-     narrow phone, which read as the word getting cut off. Duration and
-     Distance already get away with no field-name label at all (a
-     fixed left-to-right position is enough context, same as a table
-     column), so Incline/Resistance follow the same convention now
-     instead of spelling themselves out. */
+  /* Duration/Incline/Distance spell their field name out; Resistance
+     abbreviates to "Res" since its own value (Lvl N / N lbs / N kg) is
+     already the longest of the four. */
+  function cardioDurationText(s) {
+    return `Duration ${formatDurationMMSS(s.durationSeconds)}`;
+  }
   function cardioDistanceText(s) {
-    return `${s.distance} ${s.distanceUnit || 'mi'}`;
+    return `Distance ${s.distance} ${s.distanceUnit || 'mi'}`;
   }
   function cardioInclineText(s) {
-    return (s.inclineUnit || '%') === 'level' ? `Lvl ${s.incline}` : `${s.incline}%`;
+    return (s.inclineUnit || '%') === 'level' ? `Incline Lvl ${s.incline}` : `Incline ${s.incline}%`;
   }
   function cardioResistanceText(s) {
     const unit = s.resistanceUnit || 'level';
-    if (unit === 'lbs') return `${s.resistance} lbs`;
-    if (unit === 'kg')  return `${s.resistance} kg`;
-    return `Lvl ${s.resistance}`;
+    if (unit === 'lbs') return `Res ${s.resistance} lbs`;
+    if (unit === 'kg')  return `Res ${s.resistance} kg`;
+    return `Res Lvl ${s.resistance}`;
   }
 
   function renderCardioSetLine(s) {
-    const topStats = [`<span class="cardio-stat cardio-stat-primary">${escapeHTML(formatDurationMMSS(s.durationSeconds))}</span>`];
+    const topStats = [`<span class="cardio-stat cardio-stat-primary">${escapeHTML(cardioDurationText(s))}</span>`];
     if (s.distance) topStats.push(`<span class="cardio-stat">${escapeHTML(cardioDistanceText(s))}</span>`);
     const bottomStats = [];
     if (s.incline)    bottomStats.push(`<span class="cardio-stat">${escapeHTML(cardioInclineText(s))}</span>`);
