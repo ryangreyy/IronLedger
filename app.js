@@ -2271,7 +2271,9 @@ function initApp(uid) {
     const cols = document.getElementById('homeSuggCols');
     if (!card || !cols) return;
 
-    const ranked = rankSuggestedGroups(currentSessions);
+    /* Explicit {} for calColors -- a planned-ahead calendar day (painted
+       but not actually trained yet) must not count as trained here. */
+    const ranked = rankSuggestedGroups(currentSessions, localDateISO(), {});
 
     if (!ranked.length) { card.style.display = 'none'; return; }
 
@@ -2486,12 +2488,13 @@ function initApp(uid) {
     }
   }
 
-  /* Resolve muscle recovery directly from the same date->group source the
-     overview calendar and home Suggested card use. The body map should be
-     a visual reflection of the calendar, not a separate per-exercise read. */
+  /* Resolve muscle recovery from actually-logged sessions only -- a
+     planned-ahead calendar day (painted but not trained yet) is a lower-
+     opacity placeholder on the calendar and must not count as "trained"
+     here, or recovery would read fresh before the workout even happened. */
   function muscleDaysByDate() {
     const dayMuscles = {};
-    Object.entries(calendarGroupsByDate(currentSessions, currentSettings?.calendarColors || {})).forEach(([dateRaw, clsRaw]) => {
+    Object.entries(calendarGroupsByDate(currentSessions, {})).forEach(([dateRaw, clsRaw]) => {
       const cls = overviewCalendarCls(clsRaw);
       const muscles = LIFT_CLS_TO_MUSCLES[cls];
       if (muscles && muscles.length) dayMuscles[dateRaw] = new Set(muscles);
