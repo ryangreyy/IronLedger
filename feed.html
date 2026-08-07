@@ -171,7 +171,7 @@
   padding:7px 9px; border:1px solid var(--border); border-radius:8px;
   background:rgba(255,255,255,0.03);
 }
-.c3-set-stat{ font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+.c3-set-stat{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
 .c3-set-note{ font-size:11px; color:var(--text-dim); font-style:italic; line-height:1.35; }
 
 /* ── Rest day card body ── */
@@ -1036,11 +1036,14 @@
       .replace(/'/g, '&#39;');
   }
 
-  function feedSetSummary(s) {
+  function feedSetSummaryChips(s) {
     const reps = feedRepMetricText(s);
     const vol = (s.sets && reps) ? `${s.sets}×${reps}` : '';
     const wt = s.bodyweight ? 'Bodyweight' : (s.wt ? s.wt + ' lbs' : '');
-    return [vol, wt].filter(Boolean).join(' · ');
+    return [vol, wt]
+      .filter(Boolean)
+      .map(v => `<span class="cardio-stat">${feedEscapeHTML(v)}</span>`)
+      .join('');
   }
 
   function groupFeedLifts(lifts) {
@@ -1077,10 +1080,10 @@
       const rows = groupFeedLifts(lifts).map(group => {
         const dot = colors[group.cls] || '#888';
         const setRows = group.sessions.map(s => {
-          const stat = feedSetSummary(s);
+          const stat = feedSetSummaryChips(s);
           const note = s.note ? `<span class="c3-set-note">${feedEscapeHTML(s.note)}</span>` : '';
           return `<div class="c3-set-row">
-            <span class="c3-set-stat">${feedEscapeHTML(stat)}</span>
+            <span class="c3-set-stat">${stat}</span>
             ${note}
           </div>`;
         }).join('');
