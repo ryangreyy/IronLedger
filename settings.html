@@ -429,12 +429,28 @@
     }
   }
 
+  /* ── DEEP LINKS ──
+     This page starts hidden behind the auth check, so a #hash from another
+     page (e.g. "Can't find your exercise?" on the training log) has nothing
+     to scroll to when the browser first handles it. Re-apply it once the
+     content is actually on screen. */
+  function scrollToHashTarget() {
+    const id = (location.hash || '').slice(1);
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target) return;
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   /* ── AUTH STATE ── */
   auth.onAuthStateChanged(async user => {
     if (!user) { window.location.href = 'index.html'; return; }
     currentUid = user.uid;
 
     document.getElementById('settings-page').style.display = '';
+    scrollToHashTarget();
     document.getElementById('nav-signed-in').style.display = 'flex';
     document.getElementById('nav-user-name').textContent   = user.displayName || user.email.split('@')[0];
     document.getElementById('settingsName').value          = user.displayName || '';
