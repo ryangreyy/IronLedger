@@ -2238,18 +2238,39 @@ function initApp(uid) {
     return byDate;
   }
 
-  function rankSuggestedGroups(sessions, todayISO = localDateISO(), calColors = currentSettings?.calendarColors || {}) {
+  /* calendarGroupsByDate() picks one "winning" class per date because a
+     calendar cell can only paint one color -- fine for the calendar, but
+     it silently drops every other muscle group trained that same day.
+     Muscle Recovery and the Suggested card need credit for ALL of them
+     (e.g. a back+legs day shouldn't lose back's recovery credit just
+     because legs resolved first), so they read from this instead: every
+     class actually logged per date, not just one. */
+  function allClsByDate(sessions = currentSessions) {
+    const byDate = {};
+    (Array.isArray(sessions) ? sessions : []).forEach(s => {
+      if (!s || !s.dateRaw || s.isRestDay) return;
+      const cls = overviewCalendarCls(s.cls || liftToCls(s.lift) || 'other');
+      if (!cls) return;
+      if (!byDate[s.dateRaw]) byDate[s.dateRaw] = new Set();
+      byDate[s.dateRaw].add(cls);
+    });
+    return byDate;
+  }
+
+  function rankSuggestedGroups(sessions, todayISO = localDateISO()) {
     const today = new Date(todayISO + 'T12:00:00');
     const lastDate = SUGGESTED_CATS.reduce((acc, cls) => {
       acc[cls] = '';
       return acc;
     }, {});
 
-    Object.entries(calendarGroupsByDate(sessions, calColors)).forEach(([dateRaw, clsRaw]) => {
+    Object.entries(allClsByDate(sessions)).forEach(([dateRaw, clsSet]) => {
       if (!dateRaw || dateRaw > todayISO) return;
-      const cls = normalizeLiftCls(clsRaw);
-      if (!Object.prototype.hasOwnProperty.call(lastDate, cls)) return;
-      if (!lastDate[cls] || dateRaw > lastDate[cls]) lastDate[cls] = dateRaw;
+      clsSet.forEach(clsRaw => {
+        const cls = normalizeLiftCls(clsRaw);
+        if (!Object.prototype.hasOwnProperty.call(lastDate, cls)) return;
+        if (!lastDate[cls] || dateRaw > lastDate[cls]) lastDate[cls] = dateRaw;
+      });
     });
 
     return SUGGESTED_CATS.map(cls => {
@@ -2271,9 +2292,10 @@ function initApp(uid) {
     const cols = document.getElementById('homeSuggCols');
     if (!card || !cols) return;
 
-    /* Explicit {} for calColors -- a planned-ahead calendar day (painted
-       but not actually trained yet) must not count as trained here. */
-    const ranked = rankSuggestedGroups(currentSessions, localDateISO(), {});
+    /* rankSuggestedGroups reads only actually-logged sessions -- a
+       planned-ahead calendar day (painted but not trained yet) never
+       factors in here. */
+    const ranked = rankSuggestedGroups(currentSessions);
 
     if (!ranked.length) { card.style.display = 'none'; return; }
 
@@ -2491,13 +2513,19 @@ function initApp(uid) {
   /* Resolve muscle recovery from actually-logged sessions only -- a
      planned-ahead calendar day (painted but not trained yet) is a lower-
      opacity placeholder on the calendar and must not count as "trained"
-     here, or recovery would read fresh before the workout even happened. */
+     here, or recovery would read fresh before the workout even happened.
+     Reads allClsByDate() (every class logged per day), not
+     calendarGroupsByDate()'s single winner, so a back+legs day credits
+     both instead of losing whichever class didn't "win" the day. */
   function muscleDaysByDate() {
     const dayMuscles = {};
-    Object.entries(calendarGroupsByDate(currentSessions, {})).forEach(([dateRaw, clsRaw]) => {
-      const cls = overviewCalendarCls(clsRaw);
-      const muscles = LIFT_CLS_TO_MUSCLES[cls];
-      if (muscles && muscles.length) dayMuscles[dateRaw] = new Set(muscles);
+    Object.entries(allClsByDate(currentSessions)).forEach(([dateRaw, clsSet]) => {
+      clsSet.forEach(cls => {
+        const muscles = LIFT_CLS_TO_MUSCLES[cls];
+        if (!muscles || !muscles.length) return;
+        if (!dayMuscles[dateRaw]) dayMuscles[dateRaw] = new Set();
+        muscles.forEach(m => dayMuscles[dateRaw].add(m));
+      });
     });
     return dayMuscles;
   }
