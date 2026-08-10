@@ -1942,6 +1942,8 @@ function initApp(uid) {
   let currentCardioSessions = [];
   let cardioCurrentPage = 1;
   const CARDIO_PAGE_SIZE = 6;
+  let coreCurrentPage = 1;
+  const CORE_PAGE_SIZE = 5;
 
   /* Muscle recovery card state (declared here so guest-mode renderMuscleMap() can access them) */
   let mrWidgetFront = null;
@@ -2649,6 +2651,12 @@ function initApp(uid) {
     return localDateISO(x);
   }
 
+  function coreSessions(sessions) {
+    return (sessions || []).filter(s =>
+      s.dateRaw && !s.isRestDay &&
+      normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other') === 'core');
+  }
+
   /* Core is a secondary group kept out of the main-lift analytics, so it
      gets its own dedicated summary tab instead: set counts, a daily trend,
      and the recent core log. */
@@ -2660,10 +2668,12 @@ function initApp(uid) {
     const trendEl  = document.getElementById('coreTrend');
     const recentEl = document.getElementById('coreRecent');
     const emptyEl  = document.getElementById('coreEmpty');
+    const pagEl    = document.getElementById('core-pagination');
+    const infoEl   = document.getElementById('core-page-info');
+    const prevBtn  = document.getElementById('core-prev');
+    const nextBtn  = document.getElementById('core-next');
 
-    const core = (sessions || []).filter(s =>
-      s.dateRaw && !s.isRestDay &&
-      normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other') === 'core');
+    const core = coreSessions(sessions);
 
     const today = new Date(); today.setHours(12, 0, 0, 0);
     const todayISO     = localDateISO(today);
@@ -2718,16 +2728,28 @@ function initApp(uid) {
     /* Recent core log — newest first. */
     if (recentEl) {
       const recent = core.slice()
-        .sort((a, b) => (a.dateRaw < b.dateRaw ? 1 : a.dateRaw > b.dateRaw ? -1 : 0))
-        .slice(0, 12);
-      recentEl.innerHTML = recent.map(s => `
+        .sort((a, b) => (a.dateRaw < b.dateRaw ? 1 : a.dateRaw > b.dateRaw ? -1 : 0));
+      const totalPages = Math.max(1, Math.ceil(recent.length / CORE_PAGE_SIZE));
+      if (coreCurrentPage > totalPages) coreCurrentPage = totalPages;
+      const page = recent.slice((coreCurrentPage - 1) * CORE_PAGE_SIZE, coreCurrentPage * CORE_PAGE_SIZE);
+      recentEl.innerHTML = page.map(s => `
         <div class="core-row">
           <span class="pill core">${escapeHTML(s.lift || '—')}</span>
           <span class="core-row-meta">${s.sets || 1} &times; ${repMetricText(s)}</span>
           <span class="core-row-date">${escapeHTML(s.date || formatDate(s.dateRaw))}</span>
         </div>`).join('');
-      recentEl.style.display = recent.length ? '' : 'none';
+      recentEl.style.display = page.length ? '' : 'none';
       if (emptyEl) emptyEl.style.display = recent.length ? 'none' : '';
+      if (pagEl) {
+        if (recent.length > CORE_PAGE_SIZE) {
+          pagEl.style.display = 'flex';
+          if (infoEl) infoEl.textContent = `Page ${coreCurrentPage} of ${totalPages}`;
+          if (prevBtn) prevBtn.disabled = coreCurrentPage <= 1;
+          if (nextBtn) nextBtn.disabled = coreCurrentPage >= totalPages;
+        } else {
+          pagEl.style.display = 'none';
+        }
+      }
     }
   }
 
@@ -3444,6 +3466,7 @@ function initApp(uid) {
     const cls  = liftToCls(lift);
     currentPage = 1;
     historyPage = 1;
+    if (cls === 'core') coreCurrentPage = 1;
     /* PR check: does this beat the best weight ever logged for this exact lift? */
     const prevBest = (currentSessions || [])
       .filter(s => (s.lift || '').toLowerCase() === lift.toLowerCase())
@@ -3543,6 +3566,13 @@ function initApp(uid) {
   document.getElementById('log-next')?.addEventListener('click', () => {
     const totalPages = Math.ceil(groupedLogRows(currentSessions).length / PAGE_SIZE);
     if (currentPage < totalPages) { currentPage++; renderLog(currentSessions); }
+  });
+  document.getElementById('core-prev')?.addEventListener('click', () => {
+    if (coreCurrentPage > 1) { coreCurrentPage--; renderCore(currentSessions); }
+  });
+  document.getElementById('core-next')?.addEventListener('click', () => {
+    const totalPages = Math.max(1, Math.ceil(coreSessions(currentSessions).length / CORE_PAGE_SIZE));
+    if (coreCurrentPage < totalPages) { coreCurrentPage++; renderCore(currentSessions); }
   });
 
   /* ===== CARDIO LOG: add / edit / delete / pagination — mirrors the
