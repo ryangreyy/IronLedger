@@ -1654,6 +1654,9 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
 }
 .calc-hint-link:hover{ color:var(--accent-bright); border-bottom-color:var(--accent-bright); }
 
+/* Pair of shortcut links under the log form: plate calculator + custom exercise. */
+.log-hint-links{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+
 /* Smaller text in the form inputs so they feel compact */
 .controls-grid .field input,
 .controls-grid .field select,
@@ -1754,6 +1757,10 @@ footer{border-top:1px solid var(--border); margin-top:40px;}
   .log-ticket-actions{ flex-direction:column-reverse; align-items:stretch; }
   .log-ticket-actions .btn{ width:100%; text-align:center; }
   .log-ticket-actions .calc-hint-link{ text-align:center; }
+  /* Sit the two hint links side by side beneath the button. min-width:0 lets each
+     one shrink and wrap its own text instead of forcing the row wider. */
+  .log-hint-links{ gap:14px; flex-wrap:nowrap; align-items:flex-start; }
+  .log-hint-links .calc-hint-link{ flex:1 1 0; min-width:0; text-align:center; }
   /* Sets/Reps need real width for their +/- buttons plus a 2-digit number —
      three-abreast with Weight leaves them too cramped on narrow phones, so
      Weight (which has no buttons to fit) drops to its own full-width row. */
