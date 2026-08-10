@@ -957,8 +957,8 @@ document.getElementById('emailSignUp').addEventListener('click', () => {
     .catch(err => { authError.textContent = friendlyError(err.code); });
 });
 
-/* Sign out */
-document.getElementById('signOut').addEventListener('click', () => auth.signOut());
+/* Sign out — Settings owns the visible sign-out button now. */
+document.getElementById('signOut')?.addEventListener('click', () => auth.signOut());
 
 /* Custom lift dropdown — bypasses unreliable native datalist on mobile.
    Defined here but only wired up from inside initApp() (see initLiftPicker
