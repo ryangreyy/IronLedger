@@ -1681,7 +1681,7 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
    "Shoulders" needs meaningfully more room than "All" or "Back". */
 .log-cat-pills{
   display:flex; background:var(--bg-2); border:1px solid var(--border-strong); border-radius:10px;
-  padding:3px;
+  padding:3px; gap:4px;
 }
 .log-cat-pill{
   flex:1 1 auto; text-align:center; font-family:var(--mono); font-weight:800;
@@ -1692,34 +1692,6 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
 }
 .log-cat-pill:hover{ color:var(--text); }
 .log-cat-pill.active{ background:var(--accent); color:#fff; }
-
-/* Per-category color, reusing the same muscle-group palette already
-   used for .pill.squat/.pill.bench/etc elsewhere (calendar, KPI cards,
-   history chart) so a lift's color means the same thing everywhere.
-   "All" (data-cat="") is deliberately left on the generic red/gray
-   look above -- it isn't a specific group. Shoulders and Arms share a
-   color on purpose, matching how the rest of the app already treats
-   them as one "press" category. Cardio has no pre-existing palette, so
-   Machine/Outdoor/Other get their own fresh, distinct hues. */
-.log-cat-pill[data-cat="legs"]     { color:var(--squat); }
-.log-cat-pill[data-cat="chest"]    { color:var(--bench); }
-.log-cat-pill[data-cat="back"]     { color:var(--dead); }
-.log-cat-pill[data-cat="shoulders"],
-.log-cat-pill[data-cat="arms"]     { color:var(--press); }
-.log-cat-pill[data-cat="core"]     { color:var(--core); }
-.log-cat-pill[data-cat="machine"]  { color:#60A5FA; }
-.log-cat-pill[data-cat="outdoor"]  { color:#4ADE80; }
-.log-cat-pill[data-cat="other"]    { color:#E0A952; }
-
-.log-cat-pill[data-cat="legs"].active     { background:var(--squat-28); border:1px solid var(--squat-55); color:var(--squat); }
-.log-cat-pill[data-cat="chest"].active    { background:var(--bench-28); border:1px solid var(--bench-55); color:var(--bench); }
-.log-cat-pill[data-cat="back"].active     { background:var(--dead-28);  border:1px solid var(--dead-55);  color:var(--dead); }
-.log-cat-pill[data-cat="shoulders"].active,
-.log-cat-pill[data-cat="arms"].active     { background:var(--press-28); border:1px solid var(--press-55); color:var(--press); }
-.log-cat-pill[data-cat="core"].active     { background:var(--core-28);  border:1px solid var(--core-55);  color:var(--core); }
-.log-cat-pill[data-cat="machine"].active  { background:rgba(96,165,250,0.2);  border:1px solid rgba(96,165,250,0.55);  color:#60A5FA; }
-.log-cat-pill[data-cat="outdoor"].active  { background:rgba(74,222,128,0.2);  border:1px solid rgba(74,222,128,0.55);  color:#4ADE80; }
-.log-cat-pill[data-cat="other"].active    { background:rgba(224,169,82,0.2);  border:1px solid rgba(224,169,82,0.55);  color:#E0A952; }
 .log-ticket-body{ padding:22px; }
 .log-ticket-row1{ display:grid; grid-template-columns:1fr 1.4fr; gap:14px; margin-bottom:20px; }
 .log-ticket-body .field input,
