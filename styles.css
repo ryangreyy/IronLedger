@@ -2310,6 +2310,19 @@ html[data-authredirect] body{ visibility:hidden; }
 .ob-range-label{ font-size:12px; color:var(--text-dim); font-family:var(--mono); width:80px; flex-shrink:0; }
 .ob-range{ flex:1; accent-color:var(--accent,#c1272d); }
 
+/* Onboarding training profile step */
+.ob-training-block{ margin-bottom:16px; }
+.ob-pill-row{ display:flex; flex-wrap:wrap; gap:7px; }
+.ob-pill{
+  border:1px solid var(--border-strong); background:var(--bg-2); color:var(--text-dim);
+  border-radius:8px; padding:8px 12px; font-family:var(--body); font-size:12px; font-weight:600;
+  cursor:pointer; transition:border-color .15s, background .15s, color .15s;
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+}
+.ob-pill:hover{ border-color:var(--text-dim); }
+.ob-pill.active{ border-color:var(--accent-bright); background:rgba(193,39,45,.12); color:var(--accent-bright); }
+.ob-training-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+
 /* Onboarding privacy step — Public/Private choice cards */
 .ob-privacy-opt{
   display:block; width:100%; text-align:left; padding:14px 16px; border-radius:10px;

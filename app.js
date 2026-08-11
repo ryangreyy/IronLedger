@@ -336,6 +336,10 @@ function showOnboardingModal(user) {
   let obBannerX = 50;
   let obBannerY = 50;
   let obIsPrivate = false;
+  let obTrainingExperience = '';
+  let obLiftingFrequency = '';
+  let obHeight = '';
+  let obBodyweight = '';
 
   authScreen.style.display = 'none';
 
@@ -379,7 +383,7 @@ function showOnboardingModal(user) {
   /* ---- Step 2: First name (required) ---- */
   function renderStepFirstName() {
     card.innerHTML = `
-      <div class="eyebrow">Step 2 of 7</div>
+      <div class="eyebrow">Step 2 of 8</div>
       <h2 class="title" style="margin:6px 0 22px;">What's your first name?</h2>
       <input id="ob-first-name" type="text" class="auth-input" placeholder="First name"
              value="${obFirstName.replace(/"/g,'&quot;')}" maxlength="40"
@@ -407,7 +411,7 @@ function showOnboardingModal(user) {
   /* ---- Step 3: Last name (required) ---- */
   function renderStepLastName() {
     card.innerHTML = `
-      <div class="eyebrow">Step 3 of 7</div>
+      <div class="eyebrow">Step 3 of 8</div>
       <h2 class="title" style="margin:6px 0 22px;">What's your last name?</h2>
       <input id="ob-last-name" type="text" class="auth-input" placeholder="Last name"
              value="${obLastName.replace(/"/g,'&quot;')}" maxlength="40"
@@ -435,25 +439,133 @@ function showOnboardingModal(user) {
   /* ---- Step 4: Email confirm (required, read-only — already tied to the account) ---- */
   function renderStepEmailConfirm() {
     card.innerHTML = `
-      <div class="eyebrow">Step 4 of 7</div>
+      <div class="eyebrow">Step 4 of 8</div>
       <h2 class="title" style="margin:6px 0 22px;">Confirm your email</h2>
       <input type="text" class="auth-input" value="${(user.email || '').replace(/"/g,'&quot;')}" disabled
              style="width:100%;margin-bottom:16px;opacity:0.6;cursor:not-allowed;">
       <button id="ob-email-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
       <button id="ob-email-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
     `;
-    document.getElementById('ob-email-continue').addEventListener('click', renderStepPrivacy);
+    document.getElementById('ob-email-continue').addEventListener('click', renderStepTrainingProfile);
     document.getElementById('ob-email-back').addEventListener('click', renderStepLastName);
   }
 
-  /* ---- Step 5: Feed privacy ----
+  /* ---- Step 5: Training profile ---- */
+  function renderStepTrainingProfile() {
+    const expOpts = [
+      ['starting', 'Just starting'],
+      ['under_1_year', 'Under 1 year'],
+      ['1_3_years', '1-3 years'],
+      ['3_plus_years', '3+ years'],
+    ];
+    const freqOpts = [
+      ['1_2_days', '1-2 days/week'],
+      ['3_4_days', '3-4 days/week'],
+      ['5_plus_days', '5+ days/week'],
+      ['not_consistent', 'Not consistent yet'],
+    ];
+    const hVal = parseInt(obHeight, 10);
+    const selFt = Number.isFinite(hVal) ? Math.floor(hVal / 12) : '';
+    const selIn = Number.isFinite(hVal) ? hVal % 12 : '';
+
+    card.innerHTML = `
+      <div class="eyebrow">Step 5 of 8</div>
+      <h2 class="title" style="margin:6px 0 10px;">Build your training profile</h2>
+      <p style="color:var(--text-dim);font-size:13px;line-height:1.5;margin:0 0 18px;">
+        This helps IronGladiator tune your goals, challenges, and workout guidance.
+      </p>
+      <div class="ob-training-block">
+        <div class="ob-group-label">Training experience</div>
+        <div class="ob-pill-row">
+          ${expOpts.map(([id, label]) => `
+            <button type="button" class="ob-pill${obTrainingExperience === id ? ' active' : ''}" data-exp="${id}">${label}</button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="ob-training-block">
+        <div class="ob-group-label">Lifting frequency</div>
+        <div class="ob-pill-row">
+          ${freqOpts.map(([id, label]) => `
+            <button type="button" class="ob-pill${obLiftingFrequency === id ? ' active' : ''}" data-freq="${id}">${label}</button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="ob-training-grid">
+        <div class="field" style="margin-bottom:14px;">
+          <label for="ob-height-ft">Height - feet</label>
+          <select id="ob-height-ft">
+            <option value="">-</option>
+            ${[4,5,6,7].map(f => `<option value="${f}"${selFt === f ? ' selected' : ''}>${f} ft</option>`).join('')}
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label for="ob-height-in">Inches</label>
+          <select id="ob-height-in">
+            <option value="">-</option>
+            ${Array.from({ length: 12 }, (_, i) => `<option value="${i}"${selIn === i ? ' selected' : ''}>${i} in</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label for="ob-bodyweight">Bodyweight (lbs)</label>
+        <input id="ob-bodyweight" type="number" min="80" step="1" placeholder="-" value="${obBodyweight}">
+      </div>
+      <p id="ob-training-err" style="color:var(--down);font-size:12px;margin:0 0 8px;min-height:16px;"></p>
+      <button id="ob-training-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+      <button id="ob-training-skip" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
+      <button id="ob-training-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">&larr; Back</button>
+    `;
+
+    function syncHeight() {
+      const ft = document.getElementById('ob-height-ft')?.value;
+      const inch = document.getElementById('ob-height-in')?.value;
+      obHeight = ft !== '' && inch !== '' ? String(parseInt(ft, 10) * 12 + parseInt(inch, 10)) : '';
+    }
+
+    card.querySelectorAll('[data-exp]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        obTrainingExperience = btn.dataset.exp;
+        card.querySelectorAll('[data-exp]').forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+    card.querySelectorAll('[data-freq]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        obLiftingFrequency = btn.dataset.freq;
+        card.querySelectorAll('[data-freq]').forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+    document.getElementById('ob-height-ft')?.addEventListener('change', syncHeight);
+    document.getElementById('ob-height-in')?.addEventListener('change', syncHeight);
+    document.getElementById('ob-bodyweight')?.addEventListener('input', e => { obBodyweight = e.target.value; });
+
+    document.getElementById('ob-training-continue').addEventListener('click', () => {
+      syncHeight();
+      const bwRaw = document.getElementById('ob-bodyweight')?.value.trim() || '';
+      if (bwRaw && (+bwRaw < 80 || !Number.isFinite(+bwRaw))) {
+        document.getElementById('ob-training-err').textContent = 'Enter a valid bodyweight or leave it blank.';
+        return;
+      }
+      obBodyweight = bwRaw;
+      renderStepPrivacy();
+    });
+    document.getElementById('ob-training-skip').addEventListener('click', () => {
+      obTrainingExperience = '';
+      obLiftingFrequency = '';
+      obHeight = '';
+      obBodyweight = '';
+      renderStepPrivacy();
+    });
+    document.getElementById('ob-training-back').addEventListener('click', renderStepEmailConfirm);
+  }
+
+  /* ---- Step 6: Feed privacy ----
      The feed updates automatically off logged sessions and is visible
      to friends by default -- this is the one point in onboarding where
      that's made explicit, with an opt-out. Also editable later in
      Settings (this isn't a one-time-only choice). */
   function renderStepPrivacy() {
     card.innerHTML = `
-      <div class="eyebrow">Step 5 of 7</div>
+      <div class="eyebrow">Step 6 of 8</div>
       <h2 class="title" style="margin:6px 0 10px;">Choose your feed privacy</h2>
       <p style="color:var(--text-dim);font-size:13px;line-height:1.5;margin:0 0 20px;">
         Your feed updates automatically whenever you log a session, and friends can see it by default. You can change this anytime in Settings.
@@ -480,13 +592,13 @@ function showOnboardingModal(user) {
     });
 
     document.getElementById('ob-privacy-continue').addEventListener('click', renderStepPhoto);
-    document.getElementById('ob-privacy-back').addEventListener('click', renderStepEmailConfirm);
+    document.getElementById('ob-privacy-back').addEventListener('click', renderStepTrainingProfile);
   }
 
-  /* ---- Step 6: Profile photo ---- */
+  /* ---- Step 7: Profile photo ---- */
   function renderStepPhoto() {
     card.innerHTML = `
-      <div class="eyebrow">Step 6 of 7</div>
+      <div class="eyebrow">Step 7 of 8</div>
       <h2 class="title" style="margin:6px 0 20px;">Set your profile photo</h2>
       <div style="display:flex;justify-content:center;margin-bottom:16px;">
         <div id="ob-av-circle" class="ob-av-circle">
@@ -571,10 +683,10 @@ function showOnboardingModal(user) {
     document.getElementById('ob-av-back').addEventListener('click', renderStepPrivacy);
   }
 
-  /* ---- Step 7: Profile banner ---- */
+  /* ---- Step 8: Profile banner ---- */
   function renderStepBanner() {
     card.innerHTML = `
-      <div class="eyebrow">Step 7 of 7</div>
+      <div class="eyebrow">Step 8 of 8</div>
       <h2 class="title" style="margin:6px 0 16px;">Set your profile banner</h2>
       <div id="ob-banner-preview" class="ob-banner-preview">
         <div id="ob-banner-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);padding:20px;">
@@ -674,6 +786,10 @@ function showOnboardingModal(user) {
     if (obFirstName) textData.firstName = obFirstName;
     if (obLastName)  textData.lastName  = obLastName;
     textData.isPrivate = obIsPrivate;
+    if (obTrainingExperience) textData.trainingExperience = obTrainingExperience;
+    if (obLiftingFrequency)   textData.liftingFrequency = obLiftingFrequency;
+    if (obHeight)             textData.height = +obHeight;
+    if (obBodyweight)         textData.bodyweight = +obBodyweight;
 
     const data = { ...textData };
 
