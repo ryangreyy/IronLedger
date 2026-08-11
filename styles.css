@@ -2311,17 +2311,40 @@ html[data-authredirect] body{ visibility:hidden; }
 .ob-range{ flex:1; accent-color:var(--accent,#c1272d); }
 
 /* Onboarding training profile step */
-.ob-training-block{ margin-bottom:16px; }
+.ob-step-sub{ color:var(--text-dim); font-size:13px; line-height:1.45; margin:0 0 20px; }
+.ob-section{ padding:0 0 18px; margin-bottom:18px; border-bottom:1px solid var(--border); }
+.ob-section-last{ padding-bottom:4px; margin-bottom:8px; border-bottom:none; }
+.ob-section-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-bottom:12px; font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--text);
+}
+.ob-section-head small{ color:var(--text-dimmer); font-size:10px; font-weight:700; letter-spacing:.08em; }
+.ob-question{ margin-bottom:14px; }
+.ob-question:last-child{ margin-bottom:0; }
+.ob-question-label{ color:var(--text-dim); font-size:12px; font-weight:700; margin:0 0 8px; }
 .ob-pill-row{ display:flex; flex-wrap:wrap; gap:7px; }
+.ob-pill-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
 .ob-pill{
+  width:100%;
   border:1px solid var(--border-strong); background:var(--bg-2); color:var(--text-dim);
-  border-radius:8px; padding:8px 12px; font-family:var(--body); font-size:12px; font-weight:600;
+  border-radius:8px; padding:9px 10px; font-family:var(--body); font-size:12px; font-weight:700;
   cursor:pointer; transition:border-color .15s, background .15s, color .15s;
   touch-action:manipulation; -webkit-tap-highlight-color:transparent;
 }
 .ob-pill:hover{ border-color:var(--text-dim); }
 .ob-pill.active{ border-color:var(--accent-bright); background:rgba(193,39,45,.12); color:var(--accent-bright); }
-.ob-training-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.ob-baseline-grid{ display:grid; grid-template-columns:1fr 1fr 1.2fr; gap:10px; }
+.ob-compact-field{ margin-bottom:0; min-width:0; }
+.ob-compact-field label{ font-size:11px; }
+.ob-compact-field input,
+.ob-compact-field select{ font-size:15px; padding:10px 11px; }
+.ob-error-line{ color:var(--down); font-size:12px; margin:0 0 8px; min-height:16px; }
+@media(max-width:460px){
+  .ob-pill-grid{ grid-template-columns:1fr; }
+  .ob-baseline-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ob-baseline-grid .ob-compact-field:last-child{ grid-column:1 / -1; }
+}
 
 /* Onboarding privacy step — Public/Private choice cards */
 .ob-privacy-opt{

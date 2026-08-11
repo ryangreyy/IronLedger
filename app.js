@@ -470,47 +470,60 @@ function showOnboardingModal(user) {
 
     card.innerHTML = `
       <div class="eyebrow">Step 5 of 8</div>
-      <h2 class="title" style="margin:6px 0 10px;">Build your training profile</h2>
-      <p style="color:var(--text-dim);font-size:13px;line-height:1.5;margin:0 0 18px;">
-        This helps IronGladiator tune your goals, challenges, and workout guidance.
-      </p>
-      <div class="ob-training-block">
-        <div class="ob-group-label">Training experience</div>
-        <div class="ob-pill-row">
-          ${expOpts.map(([id, label]) => `
-            <button type="button" class="ob-pill${obTrainingExperience === id ? ' active' : ''}" data-exp="${id}">${label}</button>
-          `).join('')}
+      <h2 class="title" style="margin:6px 0 6px;">Training profile</h2>
+      <p class="ob-step-sub">A quick baseline for guidance and challenges.</p>
+
+      <div class="ob-section">
+        <div class="ob-section-head">
+          <span>Training rhythm</span>
+          <small>Optional</small>
+        </div>
+        <div class="ob-question">
+          <div class="ob-question-label">How long have you been lifting?</div>
+          <div class="ob-pill-row ob-pill-grid">
+            ${expOpts.map(([id, label]) => `
+              <button type="button" class="ob-pill${obTrainingExperience === id ? ' active' : ''}" data-exp="${id}">${label}</button>
+            `).join('')}
+          </div>
+        </div>
+        <div class="ob-question">
+          <div class="ob-question-label">How often do you lift?</div>
+          <div class="ob-pill-row ob-pill-grid">
+            ${freqOpts.map(([id, label]) => `
+              <button type="button" class="ob-pill${obLiftingFrequency === id ? ' active' : ''}" data-freq="${id}">${label}</button>
+            `).join('')}
+          </div>
         </div>
       </div>
-      <div class="ob-training-block">
-        <div class="ob-group-label">Lifting frequency</div>
-        <div class="ob-pill-row">
-          ${freqOpts.map(([id, label]) => `
-            <button type="button" class="ob-pill${obLiftingFrequency === id ? ' active' : ''}" data-freq="${id}">${label}</button>
-          `).join('')}
+
+      <div class="ob-section ob-section-last">
+        <div class="ob-section-head">
+          <span>Body baseline</span>
+          <small>Optional</small>
+        </div>
+        <div class="ob-baseline-grid">
+          <div class="field ob-compact-field">
+            <label for="ob-height-ft">Feet</label>
+            <select id="ob-height-ft">
+              <option value="">-</option>
+              ${[4,5,6,7].map(f => `<option value="${f}"${selFt === f ? ' selected' : ''}>${f} ft</option>`).join('')}
+            </select>
+          </div>
+          <div class="field ob-compact-field">
+            <label for="ob-height-in">Inches</label>
+            <select id="ob-height-in">
+              <option value="">-</option>
+              ${Array.from({ length: 12 }, (_, i) => `<option value="${i}"${selIn === i ? ' selected' : ''}>${i} in</option>`).join('')}
+            </select>
+          </div>
+          <div class="field ob-compact-field">
+            <label for="ob-bodyweight">Weight (lbs)</label>
+            <input id="ob-bodyweight" type="number" min="80" step="1" placeholder="-" value="${obBodyweight}">
+          </div>
         </div>
       </div>
-      <div class="ob-training-grid">
-        <div class="field" style="margin-bottom:14px;">
-          <label for="ob-height-ft">Height - feet</label>
-          <select id="ob-height-ft">
-            <option value="">-</option>
-            ${[4,5,6,7].map(f => `<option value="${f}"${selFt === f ? ' selected' : ''}>${f} ft</option>`).join('')}
-          </select>
-        </div>
-        <div class="field" style="margin-bottom:14px;">
-          <label for="ob-height-in">Inches</label>
-          <select id="ob-height-in">
-            <option value="">-</option>
-            ${Array.from({ length: 12 }, (_, i) => `<option value="${i}"${selIn === i ? ' selected' : ''}>${i} in</option>`).join('')}
-          </select>
-        </div>
-      </div>
-      <div class="field" style="margin-bottom:10px;">
-        <label for="ob-bodyweight">Bodyweight (lbs)</label>
-        <input id="ob-bodyweight" type="number" min="80" step="1" placeholder="-" value="${obBodyweight}">
-      </div>
-      <p id="ob-training-err" style="color:var(--down);font-size:12px;margin:0 0 8px;min-height:16px;"></p>
+
+      <p id="ob-training-err" class="ob-error-line"></p>
       <button id="ob-training-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
       <button id="ob-training-skip" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
       <button id="ob-training-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">&larr; Back</button>
