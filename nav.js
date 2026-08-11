@@ -205,10 +205,18 @@
       res[1].docs.forEach(function (d) { var f = d.data().fromUid; if (f && f !== uid) friendUids[f] = true; });
       var uids = Object.keys(friendUids);
       if (!uids.length) return [];
+      /* A private friend never lights the dot -- even just signaling
+         "this account did something today" is activity the feed itself
+         would show, so it gets the same treatment as the feed proper. */
       return Promise.all(uids.map(function (fUid) {
-        return fdb.collection('users/' + fUid + '/sessions').where('dateRaw', '==', todayISO).limit(1).get()
-          .then(function (snap) { return snap.empty ? null : fUid; })
-          .catch(function () { return null; });
+        return Promise.all([
+          fdb.collection('users/' + fUid + '/sessions').where('dateRaw', '==', todayISO).limit(1).get(),
+          fdb.doc('users/' + fUid + '/settings/main').get(),
+        ]).then(function (res) {
+          if (res[0].empty) return null;
+          var settings = res[1].exists ? res[1].data() : {};
+          return settings.isPrivate ? null : fUid;
+        }).catch(function () { return null; });
       })).then(function (results) { return results.filter(Boolean).sort(); });
     }).catch(function () { return []; });
 

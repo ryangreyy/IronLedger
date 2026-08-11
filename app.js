@@ -335,6 +335,7 @@ function showOnboardingModal(user) {
   let obBannerZoom = 1;
   let obBannerX = 50;
   let obBannerY = 50;
+  let obIsPrivate = false;
 
   authScreen.style.display = 'none';
 
@@ -378,7 +379,7 @@ function showOnboardingModal(user) {
   /* ---- Step 2: First name (required) ---- */
   function renderStepFirstName() {
     card.innerHTML = `
-      <div class="eyebrow">Step 2 of 6</div>
+      <div class="eyebrow">Step 2 of 7</div>
       <h2 class="title" style="margin:6px 0 22px;">What's your first name?</h2>
       <input id="ob-first-name" type="text" class="auth-input" placeholder="First name"
              value="${obFirstName.replace(/"/g,'&quot;')}" maxlength="40"
@@ -406,7 +407,7 @@ function showOnboardingModal(user) {
   /* ---- Step 3: Last name (required) ---- */
   function renderStepLastName() {
     card.innerHTML = `
-      <div class="eyebrow">Step 3 of 6</div>
+      <div class="eyebrow">Step 3 of 7</div>
       <h2 class="title" style="margin:6px 0 22px;">What's your last name?</h2>
       <input id="ob-last-name" type="text" class="auth-input" placeholder="Last name"
              value="${obLastName.replace(/"/g,'&quot;')}" maxlength="40"
@@ -434,21 +435,58 @@ function showOnboardingModal(user) {
   /* ---- Step 4: Email confirm (required, read-only — already tied to the account) ---- */
   function renderStepEmailConfirm() {
     card.innerHTML = `
-      <div class="eyebrow">Step 4 of 6</div>
+      <div class="eyebrow">Step 4 of 7</div>
       <h2 class="title" style="margin:6px 0 22px;">Confirm your email</h2>
       <input type="text" class="auth-input" value="${(user.email || '').replace(/"/g,'&quot;')}" disabled
              style="width:100%;margin-bottom:16px;opacity:0.6;cursor:not-allowed;">
       <button id="ob-email-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
       <button id="ob-email-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
     `;
-    document.getElementById('ob-email-continue').addEventListener('click', renderStepPhoto);
+    document.getElementById('ob-email-continue').addEventListener('click', renderStepPrivacy);
     document.getElementById('ob-email-back').addEventListener('click', renderStepLastName);
   }
 
-  /* ---- Step 5: Profile photo ---- */
+  /* ---- Step 5: Feed privacy ----
+     The feed updates automatically off logged sessions and is visible
+     to friends by default -- this is the one point in onboarding where
+     that's made explicit, with an opt-out. Also editable later in
+     Settings (this isn't a one-time-only choice). */
+  function renderStepPrivacy() {
+    card.innerHTML = `
+      <div class="eyebrow">Step 5 of 7</div>
+      <h2 class="title" style="margin:6px 0 10px;">Choose your feed privacy</h2>
+      <p style="color:var(--text-dim);font-size:13px;line-height:1.5;margin:0 0 20px;">
+        Your feed updates automatically whenever you log a session, and friends can see it by default. You can change this anytime in Settings.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <button type="button" class="ob-privacy-opt${!obIsPrivate ? ' active' : ''}" data-private="0">
+          <div class="ob-privacy-opt-title">Public</div>
+          <div class="ob-privacy-opt-desc">Friends can see your feed activity and leaderboard rank.</div>
+        </button>
+        <button type="button" class="ob-privacy-opt${obIsPrivate ? ' active' : ''}" data-private="1">
+          <div class="ob-privacy-opt-title">Private</div>
+          <div class="ob-privacy-opt-desc">Your feed is hidden from everyone else. You can still see your own feed.</div>
+        </button>
+      </div>
+      <button id="ob-privacy-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+      <button id="ob-privacy-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+    `;
+
+    card.querySelectorAll('.ob-privacy-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        obIsPrivate = btn.dataset.private === '1';
+        card.querySelectorAll('.ob-privacy-opt').forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+
+    document.getElementById('ob-privacy-continue').addEventListener('click', renderStepPhoto);
+    document.getElementById('ob-privacy-back').addEventListener('click', renderStepEmailConfirm);
+  }
+
+  /* ---- Step 6: Profile photo ---- */
   function renderStepPhoto() {
     card.innerHTML = `
-      <div class="eyebrow">Step 5 of 6</div>
+      <div class="eyebrow">Step 6 of 7</div>
       <h2 class="title" style="margin:6px 0 20px;">Set your profile photo</h2>
       <div style="display:flex;justify-content:center;margin-bottom:16px;">
         <div id="ob-av-circle" class="ob-av-circle">
@@ -530,13 +568,13 @@ function showOnboardingModal(user) {
 
     document.getElementById('ob-av-continue').addEventListener('click', renderStepBanner);
     document.getElementById('ob-av-skip').addEventListener('click', renderStepBanner);
-    document.getElementById('ob-av-back').addEventListener('click', renderStepEmailConfirm);
+    document.getElementById('ob-av-back').addEventListener('click', renderStepPrivacy);
   }
 
-  /* ---- Step 6: Profile banner ---- */
+  /* ---- Step 7: Profile banner ---- */
   function renderStepBanner() {
     card.innerHTML = `
-      <div class="eyebrow">Step 6 of 6</div>
+      <div class="eyebrow">Step 7 of 7</div>
       <h2 class="title" style="margin:6px 0 16px;">Set your profile banner</h2>
       <div id="ob-banner-preview" class="ob-banner-preview">
         <div id="ob-banner-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);padding:20px;">
@@ -635,6 +673,7 @@ function showOnboardingModal(user) {
     const textData = {};
     if (obFirstName) textData.firstName = obFirstName;
     if (obLastName)  textData.lastName  = obLastName;
+    textData.isPrivate = obIsPrivate;
 
     const data = { ...textData };
 
@@ -3159,7 +3198,10 @@ function initApp(uid) {
           }))
         )).then(results => {
           if (!stillCurrent()) return;
-          const trained = results.filter(Boolean).map(r => ({
+          /* A private friend never shows up here either -- this list is
+             friends-only to begin with (never the viewer), so no "except
+             yourself" exception is needed like the feed/leaderboard have. */
+          const trained = results.filter(r => r && !r.settings.isPrivate).map(r => ({
             ...r,
             username: r.settings.username || r.settings.displayName || r.username || 'Athlete',
             trainedToday: true,

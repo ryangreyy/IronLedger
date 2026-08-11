@@ -2309,6 +2309,18 @@ html[data-authredirect] body{ visibility:hidden; }
 .ob-range-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
 .ob-range-label{ font-size:12px; color:var(--text-dim); font-family:var(--mono); width:80px; flex-shrink:0; }
 .ob-range{ flex:1; accent-color:var(--accent,#c1272d); }
+
+/* Onboarding privacy step — Public/Private choice cards */
+.ob-privacy-opt{
+  display:block; width:100%; text-align:left; padding:14px 16px; border-radius:10px;
+  border:1px solid var(--border-strong); background:var(--bg-2); cursor:pointer;
+  transition:border-color .15s, background .15s;
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+}
+.ob-privacy-opt:hover{ border-color:var(--text-dim); }
+.ob-privacy-opt.active{ border-color:var(--accent-bright); background:rgba(193,39,45,0.12); }
+.ob-privacy-opt-title{ font-family:var(--body); font-weight:700; font-size:14px; color:var(--text); margin-bottom:3px; }
+.ob-privacy-opt-desc{ font-family:var(--body); font-size:12px; color:var(--text-dim); line-height:1.4; }
 .auth-input{
   width:100%; background:var(--bg-2); border:1px solid var(--border-strong);
   color:var(--text); font-family:var(--mono); font-size:18px; font-weight:700;

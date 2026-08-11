@@ -11,17 +11,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=308">
+<link rel="stylesheet" href="styles.css?v=309">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
-<link rel="manifest" href="/manifest.json?v=107">
+<link rel="manifest" href="/manifest.json?v=108">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=5"></script>
-<script src="pwa-update.js?v=97"></script>
+<script src="pwa-update.js?v=98"></script>
 <style>
 /* ── Feed page wrapper ── */
 .feed-wrap{ max-width:820px; margin:0 auto; padding:14px 20px 120px; }
@@ -1181,7 +1181,9 @@
         ...recvSnap.docs.map(d => ({ uid: d.data().fromUid, username: d.data().fromUsername })),
       ];
 
-      const rows = await Promise.all(friends.map(async f => {
+      /* A private friend never appears in leaderboard rows (but you
+         always appear in your own, regardless of your own setting). */
+      const rows = (await Promise.all(friends.map(async f => {
         const [sessSnap, settingsSnap, xpSnap] = await Promise.all([
           db.collection(`users/${f.uid}/sessions`).orderBy('dateRaw', 'desc').limit(200).get(),
           db.doc(`users/${f.uid}/settings/main`).get(),
@@ -1194,7 +1196,7 @@
         const xpTotal   = xpSnap.exists ? (xpSnap.data().total || 0) : 0;
         const rank      = getRankFromXP(xpTotal);
         return { uid: f.uid, username, settings, streak, bestStreak, xpTotal, rank };
-      }));
+      }))).filter(r => r.uid === myUid || !r.settings.isPrivate);
 
       lbData.streak = [...rows].sort((a, b) => b.streak - a.streak || b.bestStreak - a.bestStreak);
       lbData.best   = [...rows].sort((a, b) => b.bestStreak - a.bestStreak || b.streak - a.streak);
@@ -1929,7 +1931,10 @@
       cutoff.setDate(cutoff.getDate() - 7);
       const cutoffStr = cutoff.toISOString().slice(0, 10);
 
-      const perFriend = await Promise.all(friends.map(async f => {
+      /* A private friend's posts are excluded below (but never your own --
+         you can always see your own feed regardless of your own privacy
+         setting). */
+      const perFriend = (await Promise.all(friends.map(async f => {
         const [sessSnap, settingsSnap] = await Promise.all([
           db.collection(`users/${f.uid}/sessions`)
             .where('dateRaw', '>=', cutoffStr)
@@ -1942,7 +1947,7 @@
         const username = settings.username || settings.displayName || f.username || 'Athlete';
         uidToName[f.uid] = username;
         return { uid: f.uid, username, settings, sessions: sessSnap.docs.map((d, i) => ({ ...d.data(), id: d.id, feedFetchIndex: i })) };
-      }));
+      }))).filter(f => f.uid === myUid || !f.settings.isPrivate);
 
       /* Group by date → uid → { username, settings, sessions[] } */
       const byDate = {};
@@ -2196,6 +2201,6 @@
   });
 </script>
 <script src="nav-auth.js?v=2"></script>
-<script src="nav.js?v=16"></script>
+<script src="nav.js?v=17"></script>
 </body>
 </html>
