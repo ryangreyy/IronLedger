@@ -1681,17 +1681,17 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
    "Shoulders" needs meaningfully more room than "All" or "Back". */
 .log-cat-pills{
   display:flex; background:var(--bg-2); border:1px solid var(--border-strong); border-radius:10px;
-  padding:3px; gap:4px;
+  padding:5px; gap:8px;
 }
 .log-cat-pill{
   flex:1 1 auto; text-align:center; font-family:var(--mono); font-weight:800;
   font-size:9px; text-transform:uppercase; letter-spacing:.01em; color:var(--text-dim);
-  padding:8px 3px; border-radius:7px; border:none; background:transparent; cursor:pointer;
-  white-space:nowrap; transition:background .15s, color .15s;
+  padding:8px 3px; border-radius:7px; border:1px solid var(--border); background:var(--surface); cursor:pointer;
+  white-space:nowrap; transition:background .15s, color .15s, border-color .15s;
   touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none;
 }
-.log-cat-pill:hover{ color:var(--text); }
-.log-cat-pill.active{ background:var(--accent); color:#fff; }
+.log-cat-pill:hover{ color:var(--text); border-color:var(--border-strong); }
+.log-cat-pill.active{ background:var(--accent); border-color:var(--accent-bright); color:#fff; }
 .log-ticket-body{ padding:22px; }
 .log-ticket-row1{ display:grid; grid-template-columns:1fr 1.4fr; gap:14px; margin-bottom:20px; }
 .log-ticket-body .field input,
