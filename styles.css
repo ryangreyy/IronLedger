@@ -2340,6 +2340,11 @@ html[data-authredirect] body{ visibility:hidden; }
 .ob-compact-field input,
 .ob-compact-field select{ font-size:15px; padding:10px 11px; }
 .ob-error-line{ color:var(--down); font-size:12px; margin:0 0 8px; min-height:16px; }
+.ob-label-optional{ color:var(--text-dimmer); font-size:10px; font-family:var(--mono); font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.ob-identity-grid .field{ margin-bottom:14px; }
+.ob-media-stack{ display:flex; flex-direction:column; gap:14px; margin-bottom:18px; }
+.ob-media-panel{ background:var(--bg-2); border:1px solid var(--border); border-radius:12px; padding:14px; }
+.ob-media-upload-btn{ width:100%; margin-bottom:0; }
 @media(max-width:460px){
   .ob-pill-grid{ grid-template-columns:1fr; }
   .ob-baseline-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }

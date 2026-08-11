@@ -350,107 +350,77 @@ function showOnboardingModal(user) {
   overlay.appendChild(card);
   document.body.appendChild(overlay);
 
-  /* ---- Step 1: Display name ---- */
+  /* ---- Step 1: Identity ---- */
   function renderStepName() {
     card.innerHTML = `
       <div class="eyebrow">Welcome to IronGladiator</div>
-      <h2 class="title" style="margin:6px 0 22px;">What should we call you?</h2>
-      <input id="ob-name" type="text" class="auth-input" placeholder="Username"
-             value="${obName.replace(/"/g,'&quot;')}" maxlength="30"
-             style="width:100%;margin-bottom:16px;">
-      <button id="ob-name-continue" class="btn btn-primary" style="width:100%;margin-bottom:10px;">Continue</button>
-      <button id="ob-skip-name" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;">Skip for now</button>
+      <h2 class="title" style="margin:6px 0 6px;">Create your profile</h2>
+      <p class="ob-step-sub">Tell us what to call you in the app.</p>
+      <div class="ob-identity-grid">
+        <div class="field">
+          <label for="ob-name">Username <span class="ob-label-optional">Optional</span></label>
+          <input id="ob-name" type="text" class="auth-input" placeholder="Username"
+                 value="${obName.replace(/"/g,'&quot;')}" maxlength="30">
+        </div>
+        <div class="field">
+          <label for="ob-first-name">First name</label>
+          <input id="ob-first-name" type="text" class="auth-input" placeholder="First name"
+                 value="${obFirstName.replace(/"/g,'&quot;')}" maxlength="40">
+        </div>
+        <div class="field">
+          <label for="ob-last-name">Last name</label>
+          <input id="ob-last-name" type="text" class="auth-input" placeholder="Last name"
+                 value="${obLastName.replace(/"/g,'&quot;')}" maxlength="40">
+        </div>
+      </div>
+      <p id="ob-name-err" class="ob-error-line"></p>
+      <button id="ob-name-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
     `;
-    const input = document.getElementById('ob-name');
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
+    const usernameInput = document.getElementById('ob-name');
+    const firstInput = document.getElementById('ob-first-name');
+    const lastInput = document.getElementById('ob-last-name');
+    usernameInput.focus();
+    usernameInput.setSelectionRange(usernameInput.value.length, usernameInput.value.length);
 
     async function advanceName() {
-      const name = input.value.trim();
+      const name = usernameInput.value.trim();
+      const first = firstInput.value.trim();
+      const last = lastInput.value.trim();
+      if (!first || !last) {
+        document.getElementById('ob-name-err').textContent = 'Please enter your first and last name.';
+        return;
+      }
+      obName = name;
+      obFirstName = first;
+      obLastName = last;
       if (name) {
-        obName = name;
         try { await user.updateProfile({ displayName: name }); } catch(e) {}
         navUserName.textContent = name;
       }
-      renderStepFirstName();
-    }
-
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') advanceName(); });
-    document.getElementById('ob-name-continue').addEventListener('click', advanceName);
-    document.getElementById('ob-skip-name').addEventListener('click', renderStepFirstName);
-  }
-
-  /* ---- Step 2: First name (required) ---- */
-  function renderStepFirstName() {
-    card.innerHTML = `
-      <div class="eyebrow">Step 2 of 8</div>
-      <h2 class="title" style="margin:6px 0 22px;">What's your first name?</h2>
-      <input id="ob-first-name" type="text" class="auth-input" placeholder="First name"
-             value="${obFirstName.replace(/"/g,'&quot;')}" maxlength="40"
-             style="width:100%;margin-bottom:8px;">
-      <p id="ob-first-name-err" style="color:var(--down);font-size:12px;margin:0 0 8px;min-height:16px;"></p>
-      <button id="ob-first-name-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
-      <button id="ob-first-name-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
-    `;
-    const input = document.getElementById('ob-first-name');
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
-
-    function advance() {
-      const val = input.value.trim();
-      if (!val) { document.getElementById('ob-first-name-err').textContent = 'Please enter your first name.'; return; }
-      obFirstName = val;
-      renderStepLastName();
-    }
-
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') advance(); });
-    document.getElementById('ob-first-name-continue').addEventListener('click', advance);
-    document.getElementById('ob-first-name-back').addEventListener('click', renderStepName);
-  }
-
-  /* ---- Step 3: Last name (required) ---- */
-  function renderStepLastName() {
-    card.innerHTML = `
-      <div class="eyebrow">Step 3 of 8</div>
-      <h2 class="title" style="margin:6px 0 22px;">What's your last name?</h2>
-      <input id="ob-last-name" type="text" class="auth-input" placeholder="Last name"
-             value="${obLastName.replace(/"/g,'&quot;')}" maxlength="40"
-             style="width:100%;margin-bottom:8px;">
-      <p id="ob-last-name-err" style="color:var(--down);font-size:12px;margin:0 0 8px;min-height:16px;"></p>
-      <button id="ob-last-name-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
-      <button id="ob-last-name-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
-    `;
-    const input = document.getElementById('ob-last-name');
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
-
-    function advance() {
-      const val = input.value.trim();
-      if (!val) { document.getElementById('ob-last-name-err').textContent = 'Please enter your last name.'; return; }
-      obLastName = val;
       renderStepEmailConfirm();
     }
 
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') advance(); });
-    document.getElementById('ob-last-name-continue').addEventListener('click', advance);
-    document.getElementById('ob-last-name-back').addEventListener('click', renderStepFirstName);
+    [usernameInput, firstInput, lastInput].forEach(input => {
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') advanceName(); });
+    });
+    document.getElementById('ob-name-continue').addEventListener('click', advanceName);
   }
 
-  /* ---- Step 4: Email confirm (required, read-only — already tied to the account) ---- */
+  /* ---- Step 2: Email confirm (required, read-only — already tied to the account) ---- */
   function renderStepEmailConfirm() {
     card.innerHTML = `
-      <div class="eyebrow">Step 4 of 8</div>
+      <div class="eyebrow">Step 2 of 5</div>
       <h2 class="title" style="margin:6px 0 22px;">Confirm your email</h2>
       <input type="text" class="auth-input" value="${(user.email || '').replace(/"/g,'&quot;')}" disabled
              style="width:100%;margin-bottom:16px;opacity:0.6;cursor:not-allowed;">
       <button id="ob-email-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
-      <button id="ob-email-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+      <button id="ob-email-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">&larr; Back</button>
     `;
     document.getElementById('ob-email-continue').addEventListener('click', renderStepTrainingProfile);
-    document.getElementById('ob-email-back').addEventListener('click', renderStepLastName);
+    document.getElementById('ob-email-back').addEventListener('click', renderStepName);
   }
 
-  /* ---- Step 5: Training profile ---- */
+  /* ---- Step 3: Training profile ---- */
   function renderStepTrainingProfile() {
     const expOpts = [
       ['starting', 'Just starting'],
@@ -469,7 +439,7 @@ function showOnboardingModal(user) {
     const selIn = Number.isFinite(hVal) ? hVal % 12 : '';
 
     card.innerHTML = `
-      <div class="eyebrow">Step 5 of 8</div>
+      <div class="eyebrow">Step 3 of 5</div>
       <h2 class="title" style="margin:6px 0 6px;">Training profile</h2>
       <p class="ob-step-sub">A quick baseline for guidance and challenges.</p>
 
@@ -571,14 +541,14 @@ function showOnboardingModal(user) {
     document.getElementById('ob-training-back').addEventListener('click', renderStepEmailConfirm);
   }
 
-  /* ---- Step 6: Feed privacy ----
+  /* ---- Step 4: Feed privacy ----
      The feed updates automatically off logged sessions and is visible
      to friends by default -- this is the one point in onboarding where
      that's made explicit, with an opt-out. Also editable later in
      Settings (this isn't a one-time-only choice). */
   function renderStepPrivacy() {
     card.innerHTML = `
-      <div class="eyebrow">Step 6 of 8</div>
+      <div class="eyebrow">Step 4 of 5</div>
       <h2 class="title" style="margin:6px 0 10px;">Choose your feed privacy</h2>
       <p style="color:var(--text-dim);font-size:13px;line-height:1.5;margin:0 0 20px;">
         Your feed updates automatically whenever you log a session, and friends can see it by default. You can change this anytime in Settings.
@@ -594,7 +564,7 @@ function showOnboardingModal(user) {
         </button>
       </div>
       <button id="ob-privacy-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
-      <button id="ob-privacy-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+      <button id="ob-privacy-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">&larr; Back</button>
     `;
 
     card.querySelectorAll('.ob-privacy-opt').forEach(btn => {
@@ -604,46 +574,80 @@ function showOnboardingModal(user) {
       });
     });
 
-    document.getElementById('ob-privacy-continue').addEventListener('click', renderStepPhoto);
+    document.getElementById('ob-privacy-continue').addEventListener('click', renderStepMedia);
     document.getElementById('ob-privacy-back').addEventListener('click', renderStepTrainingProfile);
   }
 
-  /* ---- Step 7: Profile photo ---- */
-  function renderStepPhoto() {
+  /* ---- Step 5: Profile media ---- */
+  function renderStepMedia() {
     card.innerHTML = `
-      <div class="eyebrow">Step 7 of 8</div>
-      <h2 class="title" style="margin:6px 0 20px;">Set your profile photo</h2>
-      <div style="display:flex;justify-content:center;margin-bottom:16px;">
-        <div id="ob-av-circle" class="ob-av-circle">
-          <div id="ob-av-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);">
-            <i class="ti ti-user" style="font-size:36px;opacity:.3;"></i>
+      <div class="eyebrow">Step 5 of 5</div>
+      <h2 class="title" style="margin:6px 0 6px;">Set your profile photos</h2>
+      <p class="ob-step-sub">Add an avatar and cover banner, or skip them for now.</p>
+      <div class="ob-media-stack">
+        <div class="ob-media-panel">
+          <div class="ob-section-head"><span>Avatar</span><small>Optional</small></div>
+          <div style="display:flex;justify-content:center;margin-bottom:14px;">
+            <div id="ob-av-circle" class="ob-av-circle">
+              <div id="ob-av-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);">
+                <i class="ti ti-user" style="font-size:36px;opacity:.3;"></i>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="ob-av-file" accept="image/*" style="display:none">
+          <button id="ob-av-btn" class="btn btn-ghost ob-media-upload-btn">
+            <i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>${obAvatarDataUrl ? 'Change avatar' : 'Upload avatar'}
+          </button>
+          <div id="ob-av-sliders" style="${obAvatarDataUrl ? '' : 'display:none;'}margin-top:10px;">
+            <div class="ob-range-row">
+              <label class="ob-range-label">Zoom</label>
+              <input type="range" id="ob-av-zoom" class="ob-range" min="1" max="3" step="0.01" value="${obAvatarZoom}">
+            </div>
+            <div class="ob-range-row">
+              <label class="ob-range-label">Horizontal</label>
+              <input type="range" id="ob-av-x" class="ob-range" min="0" max="100" step="1" value="${obAvatarX}">
+            </div>
+            <div class="ob-range-row">
+              <label class="ob-range-label">Vertical</label>
+              <input type="range" id="ob-av-y" class="ob-range" min="0" max="100" step="1" value="${obAvatarY}">
+            </div>
+          </div>
+        </div>
+        <div class="ob-media-panel">
+          <div class="ob-section-head"><span>Cover banner</span><small>Optional</small></div>
+          <div id="ob-banner-preview" class="ob-banner-preview">
+            <div id="ob-banner-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);padding:20px;">
+              <i class="ti ti-photo" style="font-size:28px;opacity:.3;"></i>
+              <span style="font-size:12px;font-family:var(--mono);">No banner</span>
+            </div>
+          </div>
+          <input type="file" id="ob-banner-file" accept="image/*" style="display:none">
+          <button id="ob-banner-btn" class="btn btn-ghost ob-media-upload-btn" style="margin-top:10px;">
+            <i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>${obBannerDataUrl ? 'Change banner' : 'Upload banner'}
+          </button>
+          <div id="ob-banner-sliders" style="${obBannerDataUrl ? '' : 'display:none;'}margin-top:10px;">
+            <div class="ob-range-row">
+              <label class="ob-range-label">Zoom</label>
+              <input type="range" id="ob-banner-zoom" class="ob-range" min="1" max="3" step="0.01" value="${obBannerZoom}">
+            </div>
+            <div class="ob-range-row">
+              <label class="ob-range-label">Horizontal</label>
+              <input type="range" id="ob-banner-x" class="ob-range" min="0" max="100" step="1" value="${obBannerX}">
+            </div>
+            <div class="ob-range-row">
+              <label class="ob-range-label">Vertical</label>
+              <input type="range" id="ob-banner-y" class="ob-range" min="0" max="100" step="1" value="${obBannerY}">
+            </div>
           </div>
         </div>
       </div>
-      <input type="file" id="ob-av-file" accept="image/*" style="display:none">
-      <button id="ob-av-btn" class="btn btn-ghost" style="width:100%;margin-bottom:8px;">
-        <i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>${obAvatarDataUrl ? 'Change photo' : 'Upload photo'}
-      </button>
-      <div id="ob-av-sliders" style="${obAvatarDataUrl ? '' : 'display:none;'}margin-bottom:12px;">
-        <div class="ob-range-row">
-          <label class="ob-range-label">Zoom</label>
-          <input type="range" id="ob-av-zoom" class="ob-range" min="1" max="3" step="0.01" value="${obAvatarZoom}">
-        </div>
-        <div class="ob-range-row">
-          <label class="ob-range-label">Horizontal</label>
-          <input type="range" id="ob-av-x" class="ob-range" min="0" max="100" step="1" value="${obAvatarX}">
-        </div>
-        <div class="ob-range-row">
-          <label class="ob-range-label">Vertical</label>
-          <input type="range" id="ob-av-y" class="ob-range" min="0" max="100" step="1" value="${obAvatarY}">
-        </div>
-      </div>
-      <button id="ob-av-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
-      <button id="ob-av-skip" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
-      <button id="ob-av-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
+      <button id="ob-media-done" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Finish setup</button>
+      <button id="ob-media-skip" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
+      <button id="ob-media-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">&larr; Back</button>
     `;
 
     if (obAvatarDataUrl) applyAvPreview();
+    if (obBannerDataUrl) applyBannerPreview();
 
     function applyAvPreview() {
       const circle = document.getElementById('ob-av-circle');
@@ -675,62 +679,6 @@ function showOnboardingModal(user) {
       img.style.left   = -((dW - cW) * obAvatarX / 100) + 'px';
       img.style.top    = -((dH - cH) * obAvatarY / 100) + 'px';
     }
-
-    document.getElementById('ob-av-file').addEventListener('change', async e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      obAvatarDataUrl = await compressImage(file, 800, 0.95);
-      applyAvPreview();
-      document.getElementById('ob-av-sliders').style.display = '';
-      const btn = document.getElementById('ob-av-btn');
-      if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change photo';
-    });
-    document.getElementById('ob-av-btn').addEventListener('click', () => document.getElementById('ob-av-file').click());
-
-    document.getElementById('ob-av-zoom')?.addEventListener('input', e => { obAvatarZoom = parseFloat(e.target.value); updateAvPreview(); });
-    document.getElementById('ob-av-x')?.addEventListener('input',    e => { obAvatarX    = parseFloat(e.target.value); updateAvPreview(); });
-    document.getElementById('ob-av-y')?.addEventListener('input',    e => { obAvatarY    = parseFloat(e.target.value); updateAvPreview(); });
-
-    document.getElementById('ob-av-continue').addEventListener('click', renderStepBanner);
-    document.getElementById('ob-av-skip').addEventListener('click', renderStepBanner);
-    document.getElementById('ob-av-back').addEventListener('click', renderStepPrivacy);
-  }
-
-  /* ---- Step 8: Profile banner ---- */
-  function renderStepBanner() {
-    card.innerHTML = `
-      <div class="eyebrow">Step 8 of 8</div>
-      <h2 class="title" style="margin:6px 0 16px;">Set your profile banner</h2>
-      <div id="ob-banner-preview" class="ob-banner-preview">
-        <div id="ob-banner-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dimmer);padding:20px;">
-          <i class="ti ti-photo" style="font-size:28px;opacity:.3;"></i>
-          <span style="font-size:12px;font-family:var(--mono);">No banner</span>
-        </div>
-      </div>
-      <input type="file" id="ob-banner-file" accept="image/*" style="display:none">
-      <button id="ob-banner-btn" class="btn btn-ghost" style="width:100%;margin-top:12px;margin-bottom:8px;">
-        <i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>${obBannerDataUrl ? 'Change banner' : 'Upload banner'}
-      </button>
-      <div id="ob-banner-sliders" style="${obBannerDataUrl ? '' : 'display:none;'}margin-bottom:12px;">
-        <div class="ob-range-row">
-          <label class="ob-range-label">Zoom</label>
-          <input type="range" id="ob-banner-zoom" class="ob-range" min="1" max="3" step="0.01" value="${obBannerZoom}">
-        </div>
-        <div class="ob-range-row">
-          <label class="ob-range-label">Horizontal</label>
-          <input type="range" id="ob-banner-x" class="ob-range" min="0" max="100" step="1" value="${obBannerX}">
-        </div>
-        <div class="ob-range-row">
-          <label class="ob-range-label">Vertical</label>
-          <input type="range" id="ob-banner-y" class="ob-range" min="0" max="100" step="1" value="${obBannerY}">
-        </div>
-      </div>
-      <button id="ob-banner-done" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Finish setup</button>
-      <button id="ob-banner-skip" class="btn btn-ghost" style="font-size:13px;padding:10px 16px;width:100%;margin-bottom:8px;">Skip for now</button>
-      <button id="ob-banner-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">← Back</button>
-    `;
-
-    if (obBannerDataUrl) applyBannerPreview();
 
     function applyBannerPreview() {
       const preview = document.getElementById('ob-banner-preview');
@@ -764,6 +712,20 @@ function showOnboardingModal(user) {
       img.style.top    = -((dH - cH) * obBannerY / 100) + 'px';
     }
 
+    document.getElementById('ob-av-file').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      obAvatarDataUrl = await compressImage(file, 800, 0.95);
+      applyAvPreview();
+      document.getElementById('ob-av-sliders').style.display = '';
+      const btn = document.getElementById('ob-av-btn');
+      if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change avatar';
+    });
+    document.getElementById('ob-av-btn').addEventListener('click', () => document.getElementById('ob-av-file').click());
+    document.getElementById('ob-av-zoom')?.addEventListener('input', e => { obAvatarZoom = parseFloat(e.target.value); updateAvPreview(); });
+    document.getElementById('ob-av-x')?.addEventListener('input',    e => { obAvatarX    = parseFloat(e.target.value); updateAvPreview(); });
+    document.getElementById('ob-av-y')?.addEventListener('input',    e => { obAvatarY    = parseFloat(e.target.value); updateAvPreview(); });
+
     document.getElementById('ob-banner-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
@@ -774,14 +736,13 @@ function showOnboardingModal(user) {
       if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change banner';
     });
     document.getElementById('ob-banner-btn').addEventListener('click', () => document.getElementById('ob-banner-file').click());
-
     document.getElementById('ob-banner-zoom')?.addEventListener('input', e => { obBannerZoom = parseFloat(e.target.value); updateBannerPreview(); });
     document.getElementById('ob-banner-x')?.addEventListener('input',    e => { obBannerX    = parseFloat(e.target.value); updateBannerPreview(); });
     document.getElementById('ob-banner-y')?.addEventListener('input',    e => { obBannerY    = parseFloat(e.target.value); updateBannerPreview(); });
 
-    document.getElementById('ob-banner-done').addEventListener('click', () => finishOnboarding());
-    document.getElementById('ob-banner-skip').addEventListener('click', () => finishOnboarding());
-    document.getElementById('ob-banner-back').addEventListener('click', renderStepPhoto);
+    document.getElementById('ob-media-done').addEventListener('click', () => finishOnboarding());
+    document.getElementById('ob-media-skip').addEventListener('click', () => finishOnboarding());
+    document.getElementById('ob-media-back').addEventListener('click', renderStepPrivacy);
   }
 
   /* ---- Finish ----
