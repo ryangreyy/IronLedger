@@ -1854,6 +1854,20 @@ function initApp(uid) {
     return clsColor(cls);
   }
 
+  function resolveLiftHistoryCls(liftName, liftSessions) {
+    const canonical = normalizeLiftCls(liftToCls(liftName));
+    if (canonical && canonical !== 'other') return canonical;
+
+    const counts = {};
+    (liftSessions || []).forEach(s => {
+      const cls = normalizeLiftCls(s.cls || '');
+      if (!cls || cls === 'other') return;
+      counts[cls] = (counts[cls] || 0) + 1;
+    });
+    const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return ranked[0]?.[0] || 'other';
+  }
+
   function ptOnCircle(cx, cy, r, deg) {
     const rad = (deg - 90) * Math.PI / 180;
     return { x: +(cx + r * Math.cos(rad)).toFixed(2), y: +(cy + r * Math.sin(rad)).toFixed(2) };
@@ -1995,7 +2009,7 @@ function initApp(uid) {
       if (empty) empty.style.display = 'none';
       if (note)  note.textContent = `${allLiftSessions.length} total session${allLiftSessions.length !== 1 ? 's' : ''}`;
 
-      const historyCls = normalizeLiftCls(liftSessions[0]?.cls || liftToCls(liftName) || 'other');
+      const historyCls = resolveLiftHistoryCls(liftName, allLiftSessions);
       const historyColor = clsColor(historyCls);
 
       /* Bodyweight lifts have no meaningful weight to chart — plot reps instead */
@@ -4664,6 +4678,7 @@ function initApp(uid) {
     }
     renderLog(currentSessions);
     renderDonut(currentSessions.filter(s => !s.isRestDay));
+    renderHistoryChart(currentSessions.filter(s => !s.isRestDay));
     updateKPIs();
     renderCalendar();
     renderTracker();
