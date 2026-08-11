@@ -2480,6 +2480,16 @@ function initApp(uid) {
 
     if (!ranked.length) { card.style.display = 'none'; return; }
 
+    /* A brand-new account with nothing logged yet has every category at
+       days:null -- showing 2 picks from a fixed fallback order labeled
+       "not yet" reads as arbitrary. Same empty-state pattern the rest
+       of the app already uses for zero-data instead. */
+    if (ranked.every(r => r.days == null)) {
+      card.style.display = 'flex';
+      cols.innerHTML = '<div class="sugg-empty">Log a session to see suggestions</div>';
+      return;
+    }
+
     card.style.display = 'flex';
     cols.innerHTML = ranked.slice(0, 2).map(r => `
       <div class="sugg-col">
