@@ -328,10 +328,12 @@ function showOnboardingModal(user) {
   let obFirstName = '';
   let obLastName = '';
   let obAvatarDataUrl = null;
+  let obAvatarPending = null;
   let obAvatarZoom = 1;
   let obAvatarX = 50;
   let obAvatarY = 50;
   let obBannerDataUrl = null;
+  let obBannerPending = null;
   let obBannerZoom = 1;
   let obBannerX = 50;
   let obBannerY = 50;
@@ -649,6 +651,17 @@ function showOnboardingModal(user) {
     if (obAvatarDataUrl) applyAvPreview();
     if (obBannerDataUrl) applyBannerPreview();
 
+    function updateMediaBusy() {
+      const busy = !!(obAvatarPending || obBannerPending);
+      const done = document.getElementById('ob-media-done');
+      const skip = document.getElementById('ob-media-skip');
+      if (done) {
+        done.disabled = busy;
+        done.textContent = busy ? 'Preparing photos...' : 'Finish setup';
+      }
+      if (skip) skip.disabled = busy;
+    }
+
     function applyAvPreview() {
       const circle = document.getElementById('ob-av-circle');
       if (!circle || !obAvatarDataUrl) return;
@@ -715,11 +728,23 @@ function showOnboardingModal(user) {
     document.getElementById('ob-av-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obAvatarDataUrl = await compressImage(file, 800, 0.95);
-      applyAvPreview();
-      document.getElementById('ob-av-sliders').style.display = '';
-      const btn = document.getElementById('ob-av-btn');
-      if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change avatar';
+      obAvatarPending = (async () => {
+        try {
+          obAvatarDataUrl = await compressImage(file, 800, 0.95);
+          applyAvPreview();
+          document.getElementById('ob-av-sliders').style.display = '';
+          const btn = document.getElementById('ob-av-btn');
+          if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change avatar';
+        } catch (err) {
+          console.error('Avatar prepare failed:', err);
+          showToast('Could not prepare your profile photo. Please try another image.');
+        } finally {
+          obAvatarPending = null;
+          updateMediaBusy();
+        }
+      })();
+      updateMediaBusy();
+      await obAvatarPending;
     });
     document.getElementById('ob-av-btn').addEventListener('click', () => document.getElementById('ob-av-file').click());
     document.getElementById('ob-av-zoom')?.addEventListener('input', e => { obAvatarZoom = parseFloat(e.target.value); updateAvPreview(); });
@@ -729,11 +754,23 @@ function showOnboardingModal(user) {
     document.getElementById('ob-banner-file').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      obBannerDataUrl = await compressImage(file, 2200, 0.92);
-      applyBannerPreview();
-      document.getElementById('ob-banner-sliders').style.display = '';
-      const btn = document.getElementById('ob-banner-btn');
-      if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change banner';
+      obBannerPending = (async () => {
+        try {
+          obBannerDataUrl = await compressImage(file, 2200, 0.92);
+          applyBannerPreview();
+          document.getElementById('ob-banner-sliders').style.display = '';
+          const btn = document.getElementById('ob-banner-btn');
+          if (btn) btn.innerHTML = '<i class="ti ti-upload" style="font-size:15px;margin-right:6px;"></i>Change banner';
+        } catch (err) {
+          console.error('Banner prepare failed:', err);
+          showToast('Could not prepare your profile banner. Please try another image.');
+        } finally {
+          obBannerPending = null;
+          updateMediaBusy();
+        }
+      })();
+      updateMediaBusy();
+      await obBannerPending;
     });
     document.getElementById('ob-banner-btn').addEventListener('click', () => document.getElementById('ob-banner-file').click());
     document.getElementById('ob-banner-zoom')?.addEventListener('input', e => { obBannerZoom = parseFloat(e.target.value); updateBannerPreview(); });
@@ -751,10 +788,20 @@ function showOnboardingModal(user) {
      one go. A failed photo upload never blocks the name, and never
      blocks the other photo — each failure just surfaces its own toast. */
   async function finishOnboarding() {
-    overlay.remove();
-    /* Fire immediately, before the (possibly slower) work below — the
-       install prompt shouldn't wait on network/upload/save latency. */
-    try { showInstallPrompt(); } catch (e) { console.error('Install prompt error:', e); }
+    const finishBtn = document.getElementById('ob-media-done');
+    const skipBtn = document.getElementById('ob-media-skip');
+    if (finishBtn) {
+      finishBtn.disabled = true;
+      finishBtn.textContent = 'Saving...';
+    }
+    if (skipBtn) skipBtn.disabled = true;
+
+    const pendingMedia = [obAvatarPending, obBannerPending].filter(Boolean);
+    if (pendingMedia.length) {
+      if (finishBtn) finishBtn.textContent = 'Preparing photos...';
+      await Promise.allSettled(pendingMedia);
+      if (finishBtn) finishBtn.textContent = 'Saving...';
+    }
 
     const textData = {};
     if (obFirstName) textData.firstName = obFirstName;
@@ -807,6 +854,9 @@ function showOnboardingModal(user) {
     if (data.avatarPhotoUrl) {
       applyNavAvatar(user, null, null, null, null, data.avatarPhotoUrl, obAvatarZoom, obAvatarX, obAvatarY);
     }
+
+    overlay.remove();
+    try { showInstallPrompt(); } catch (e) { console.error('Install prompt error:', e); }
   }
 
   renderStepName();
