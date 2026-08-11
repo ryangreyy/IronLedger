@@ -1619,8 +1619,8 @@ table.pct td.w{color:var(--accent-bright); font-weight:700;}
 }
 .dna-tick{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); opacity:0.6; }
 
-footer{border-top:1px solid var(--border); margin-top:40px;}
-.foot-inner{max-width:1140px; margin:0 auto; padding:30px 28px; display:flex;
+footer{border-top:1px solid var(--border); margin-top:20px;}
+.foot-inner{max-width:1140px; margin:0 auto; padding:16px 28px; display:flex;
   justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
   color:var(--text-dimmer); font-size:13px;}
 
