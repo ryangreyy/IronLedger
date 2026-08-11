@@ -947,6 +947,29 @@ function isIndexPage() {
   return p === '' || p === '/index' || p.endsWith('/index.html');
 }
 
+/* add-friend.html stashes a scanned QR target uid here before bouncing a
+   signed-out scanner to this sign-in gate. Once sign-in resolves, send them
+   back to finish the friend-request flow -- but only once any onboarding /
+   install-prompt overlay (both use .onboarding-overlay) has fully closed,
+   so a brand-new signup never gets yanked away mid-setup. */
+function maybeRedirectPendingFriendUid() {
+  let pending;
+  try { pending = sessionStorage.getItem('ig-pending-friend-uid'); } catch (e) { return; }
+  if (!pending) return;
+  if (document.querySelector('.onboarding-overlay')) {
+    const obs = new MutationObserver(() => {
+      if (!document.querySelector('.onboarding-overlay')) {
+        obs.disconnect();
+        maybeRedirectPendingFriendUid();
+      }
+    });
+    obs.observe(document.body, { childList: true });
+    return;
+  }
+  try { sessionStorage.removeItem('ig-pending-friend-uid'); } catch (e) {}
+  location.href = '/add-friend.html?u=' + encodeURIComponent(pending);
+}
+
 auth.onAuthStateChanged(user => {
   try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
   document.documentElement.toggleAttribute('data-guess-signedin', !!user);
@@ -978,6 +1001,7 @@ auth.onAuthStateChanged(user => {
       applyNavAvatar(user, d.avatarId || null, d.avatarRingColor || null, d.avatarBgColor || null, d.avatarIconColor || null, d.avatarPhotoUrl || null, d.avatarZoom != null ? d.avatarZoom : null, d.avatarPosX != null ? d.avatarPosX : null, d.avatarPosY != null ? d.avatarPosY : null, true);
     }).catch(() => { applyNavAvatar(user, null, null, null, null, null, null, null, null, true); });
     initApp(user.uid);
+    if (isIndexPage()) setTimeout(maybeRedirectPendingFriendUid, 300);
     if (location.hash) setTimeout(() => {
       const el = document.querySelector(location.hash);
       if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
