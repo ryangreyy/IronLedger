@@ -1238,6 +1238,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       console.error('Comment heart toggle failed:', err);
       btn?.classList.toggle('active', wasActive);
       if (ct) ct.textContent = prevCount > 0 ? prevCount : '';
+      alert('Could not save that like: ' + err.message);
     }
   }
 
