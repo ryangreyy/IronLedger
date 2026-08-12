@@ -234,28 +234,22 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 .feed-gate h2{ margin-bottom:12px; }
 .feed-gate p{ font-size:14px; color:var(--text-dim); margin-bottom:28px; }
 
-/* ── Reaction bar ── */
+/* ── Reaction bar (like only) ── */
 .rxn-bar{display:flex;align-items:center;gap:5px;padding-top:11px;border-top:1px solid rgba(255,255,255,.055);margin-top:10px}
-.rxn-main{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 10px;border-radius:30px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;font-size:17px;line-height:1;transition:all .15s ease;flex-shrink:0}
-.rxn-main:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);transform:scale(1.04)}
-.rxn-main .rxn-ct{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.45)}
-.rxn-main.rxn-on{border-color:rgba(255,55,85,.65);background:rgba(255,55,85,.13)}
-.rxn-main.rxn-on .rxn-ct{color:#ff6080}
-.rxn-tog{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);cursor:pointer;font-size:16px;color:rgba(255,255,255,.3);transition:all .15s;flex-shrink:0}
-.rxn-tog:hover{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6);background:rgba(255,255,255,.07);transform:scale(1.06)}
-.rxn-tog.rxn-open{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.65)}
-.rxn-slide{display:flex;gap:5px;overflow:hidden;max-width:0;opacity:0;transition:max-width .3s cubic-bezier(.4,0,.2,1),opacity .22s ease}
-.rxn-slide.rxn-open{max-width:260px;opacity:1}
-.rxn-extra{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 10px;border-radius:30px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;font-size:17px;line-height:1;transition:all .15s ease;flex-shrink:0;white-space:nowrap}
-.rxn-extra:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);transform:scale(1.04)}
-.rxn-extra .rxn-ct{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.45)}
-.rxn-extra.rxn-fire{border-color:rgba(255,125,0,.6);background:rgba(255,125,0,.13)}
-.rxn-extra.rxn-fire .rxn-ct{color:#ff9020}
-.rxn-extra.rxn-skull{border-color:rgba(155,175,255,.5);background:rgba(155,175,255,.1)}
-.rxn-extra.rxn-skull .rxn-ct{color:#a0b4ff}
-.rxn-extra.rxn-ins{border-color:rgba(255,200,0,.55);background:rgba(255,200,0,.1)}
-.rxn-extra.rxn-ins .rxn-ct{color:#ffc400}
-.rxn-ct[data-count]{cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+.rxn-heart{
+  display:inline-flex; align-items:center; gap:6px; padding:6px 13px 6px 10px; border-radius:30px;
+  border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); cursor:pointer;
+  color:rgba(255,255,255,.55); transition:background .15s, border-color .15s, color .15s; flex-shrink:0;
+  touch-action:manipulation; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
+}
+.rxn-heart:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); }
+.rxn-heart svg{ display:block; }
+.rxn-heart .rxn-ct{ font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.45); }
+.rxn-heart.rxn-on{ border-color:rgba(255,55,85,.65); background:rgba(255,55,85,.13); color:#ff6080; }
+.rxn-heart.rxn-on svg{ fill:currentColor; }
+.rxn-heart.rxn-on .rxn-ct{ color:#ff6080; }
+.rxn-heart.rxn-pop svg{ animation:rxnPop .32s cubic-bezier(.17,.89,.32,1.49); }
+@keyframes rxnPop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.4); } 100%{ transform:scale(1); } }
 
 /* ── Comments ── */
 .cmt-section{ display:flex; flex-direction:column; gap:10px; padding-top:11px; border-top:1px solid rgba(255,255,255,.055); margin-top:2px; }
@@ -309,7 +303,6 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 .rxn-sheet-title{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:14px;}
 .rxn-sheet-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.055);}
 .rxn-sheet-row:last-child{border-bottom:none;}
-.rxn-sheet-emoji{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
 .rxn-sheet-name{flex:1;font-size:14px;color:#fff;font-weight:600;}
 .rxn-sheet-empty{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.3);text-align:center;padding:16px 0;}
 
@@ -575,29 +568,16 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   border-color:rgba(18,23,33,.10);
 }
 [data-theme="light"] .rxn-bar{ border-top-color:rgba(18,23,33,.10); }
-[data-theme="light"] .rxn-main,
-[data-theme="light"] .rxn-extra{
+[data-theme="light"] .rxn-heart{
   background:rgba(18,23,33,.045);
   border-color:rgba(18,23,33,.12);
+  color:rgba(18,23,33,.52);
 }
-[data-theme="light"] .rxn-main:hover,
-[data-theme="light"] .rxn-extra:hover{
+[data-theme="light"] .rxn-heart:hover{
   background:rgba(18,23,33,.075);
   border-color:rgba(18,23,33,.20);
 }
-[data-theme="light"] .rxn-main .rxn-ct,
-[data-theme="light"] .rxn-extra .rxn-ct{ color:rgba(18,23,33,.52); }
-[data-theme="light"] .rxn-tog{
-  background:rgba(18,23,33,.04);
-  border-color:rgba(18,23,33,.12);
-  color:rgba(18,23,33,.42);
-}
-[data-theme="light"] .rxn-tog:hover,
-[data-theme="light"] .rxn-tog.rxn-open{
-  background:rgba(18,23,33,.075);
-  border-color:rgba(18,23,33,.20);
-  color:rgba(18,23,33,.68);
-}
+[data-theme="light"] .rxn-heart .rxn-ct{ color:rgba(18,23,33,.52); }
 
 @media(min-width:681px){
   .feed-head-row{
@@ -895,9 +875,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   };
   const CLS_FALLBACK = '#c1272d';
 
-  const RXN_TYPES  = ['heart', 'fire', 'skull', 'ins'];
-  const RXN_EMOJI  = { heart: '❤️', fire: '🔥', skull: '💀', ins: '🤯' };
-  const RXN_CLASS  = { fire: 'rxn-fire', skull: 'rxn-skull', ins: 'rxn-ins' };
+  const RXN_HEART_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>';
   let feedCurrentUser = null;
   let feedMyUsername = null;
   let feedFriendSearchInited = false;
@@ -912,6 +890,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   let feedMySettingsCache = null;
   let feedCommentsInited = false;
   let feedCommentUnsubs = [];
+  let feedReactionsInited = false;
 
   /* Build a color map from a friend's settings doc */
   function clsColors(settings) {
@@ -987,8 +966,11 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 
   const reactionCache = {};
   const uidToName = {};
+  const uidToSettings = {};
 
-  /* Fetch reaction counts for all cards and apply active states */
+  /* feedReactions/{friendUid}_{dateRaw} -> { uid: true, ... } -- a flat
+     like-map, same shape as feedCommentHearts. Fetch counts/active state
+     for every visible post. */
   async function loadReactions(myUid, container) {
     const bars = container.querySelectorAll('.rxn-bar[data-frienduid]');
     if (!bars.length) return;
@@ -999,122 +981,135 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     results.forEach(({ bar, data }) => {
       const key = `${bar.dataset.frienduid}_${bar.dataset.dateraw}`;
       reactionCache[key] = data;
-      RXN_TYPES.forEach(type => {
-        const voters = data[type] || {};
-        const count  = Object.keys(voters).length;
-        const active = voters[myUid] === true;
-        const btn    = bar.querySelector(`[data-type="${type}"]`);
-        if (!btn) return;
-        const ct = btn.querySelector('.rxn-ct');
-        if (ct) {
-          ct.textContent = count > 0 ? count : '';
-          if (count > 0) {
-            ct.setAttribute('data-count', count);
-            ct.style.cssText = 'cursor:pointer;text-decoration:underline;text-underline-offset:2px;';
-            ct.onclick = e => {
-              e.stopPropagation();
-              showReactorSheet(bar.dataset.frienduid, bar.dataset.dateraw);
-            };
-          } else {
-            ct.removeAttribute('data-count');
-            ct.style.cssText = '';
-            ct.onclick = null;
-          }
-        }
-        if (type === 'heart') {
-          btn.classList.toggle('rxn-on', active);
-        } else {
-          btn.classList.toggle(RXN_CLASS[type], active);
-        }
-      });
+      const count  = Object.keys(data).length;
+      const active = data[myUid] === true;
+      const btn = bar.querySelector('.rxn-heart');
+      if (!btn) return;
+      btn.classList.toggle('rxn-on', active);
+      const ct = btn.querySelector('.rxn-ct');
+      if (ct) ct.textContent = count > 0 ? count : '';
     });
   }
 
-  /* Show bottom sheet listing everyone who reacted to a post */
-  async function showReactorSheet(friendUid, dateRaw) {
+  /* Bottom sheet listing everyone who liked a post, with avatars --
+     only ever invoked for the post's own owner (see the long-press
+     gate in initFeedReactionHandlers). */
+  async function showLikersSheet(friendUid, dateRaw) {
     document.querySelector('.rxn-sheet-overlay')?.remove();
     document.querySelector('.rxn-sheet')?.remove();
 
     const key  = `${friendUid}_${dateRaw}`;
     const data = reactionCache[key] || {};
+    const likerUids = Object.keys(data).filter(uid => data[uid] === true);
+    if (!likerUids.length) return;
 
-    const allReactors = RXN_TYPES.flatMap(type =>
-      Object.keys(data[type] || {}).map(uid => ({ uid, type }))
-    );
-    if (!allReactors.length) return;
-
-    const unknownUids = [...new Set(allReactors.map(r => r.uid).filter(uid => !uidToName[uid]))];
+    const unknownUids = likerUids.filter(uid => !uidToSettings[uid]);
     if (unknownUids.length) {
       await Promise.all(unknownUids.map(uid =>
         db.doc(`users/${uid}/settings/main`).get()
-          .then(snap => {
-            const d = snap.exists ? snap.data() : {};
-            uidToName[uid] = d.username || d.displayName || 'Athlete';
-          })
-          .catch(() => { uidToName[uid] = 'Athlete'; })
+          .then(snap => { uidToSettings[uid] = snap.exists ? snap.data() : {}; })
+          .catch(() => { uidToSettings[uid] = {}; })
       ));
     }
 
-    const rows = allReactors.map(({ uid, type }) => `
-      <div class="rxn-sheet-row">
-        <span class="rxn-sheet-emoji">${RXN_EMOJI[type]}</span>
-        <span class="rxn-sheet-name">${uidToName[uid] || 'Athlete'}</span>
-      </div>`).join('');
+    const rows = likerUids.map(uid => {
+      const s = uidToSettings[uid] || {};
+      const name = s.username || s.displayName || 'Athlete';
+      uidToName[uid] = name;
+      return `<div class="rxn-sheet-row">
+        ${buildAvatarEl(s, name)}
+        <span class="rxn-sheet-name">@${feedEscapeHTML(name)}</span>
+      </div>`;
+    }).join('');
 
     const overlay = document.createElement('div');
     overlay.className = 'rxn-sheet-overlay';
     const sheet = document.createElement('div');
     sheet.className = 'rxn-sheet';
-    sheet.innerHTML = `<div class="rxn-sheet-handle"></div><div class="rxn-sheet-title">Reactions</div>${rows}`;
+    sheet.innerHTML = `<div class="rxn-sheet-handle"></div><div class="rxn-sheet-title">Liked by</div>${rows}`;
 
     document.body.appendChild(overlay);
     document.body.appendChild(sheet);
+    applyPhotoAvatars();
 
     const close = () => { overlay.remove(); sheet.remove(); };
     overlay.addEventListener('click', close);
     sheet.addEventListener('click', e => e.stopPropagation());
   }
 
-  /* Toggle a reaction in Firestore with optimistic UI update */
-  async function handleReactionClick(e, myUid) {
-    const tog = e.target.closest('.rxn-tog');
-    if (tog) {
-      const slide = tog.nextElementSibling;
-      if (slide?.classList.contains('rxn-slide')) {
-        const open = slide.classList.toggle('rxn-open');
-        tog.textContent = open ? '×' : '+';
-        tog.classList.toggle('rxn-open', open);
-      }
-      return;
-    }
-    const btn = e.target.closest('[data-type]');
-    if (!btn) return;
+  /* Toggle my like on a post with an optimistic UI update. */
+  async function toggleHeart(btn) {
     const bar = btn.closest('.rxn-bar');
-    if (!bar) return;
-    const type     = btn.dataset.type;
-    const docRef   = db.doc(`feedReactions/${bar.dataset.frienduid}_${bar.dataset.dateraw}`);
-    const isActive = type === 'heart'
-      ? btn.classList.contains('rxn-on')
-      : btn.classList.contains(RXN_CLASS[type]);
-    const ct       = btn.querySelector('.rxn-ct');
-    const prev     = parseInt(ct?.textContent || '0') || 0;
-    const next     = isActive ? Math.max(0, prev - 1) : prev + 1;
+    if (!bar || !feedMyUidCache) return;
+    const isActive = btn.classList.contains('rxn-on');
+    const ct   = btn.querySelector('.rxn-ct');
+    const prev = parseInt(ct?.textContent || '0') || 0;
+    const next = isActive ? Math.max(0, prev - 1) : prev + 1;
 
-    if (ct) ct.textContent = next || '';
-    if (type === 'heart') btn.classList.toggle('rxn-on', !isActive);
-    else btn.classList.toggle(RXN_CLASS[type], !isActive);
-
-    try {
-      const val = isActive
-        ? firebase.firestore.FieldValue.delete()
-        : true;
-      await docRef.set({ [type]: { [myUid]: val } }, { merge: true });
-    } catch (err) {
-      console.error('Reaction write failed:', err);
-      if (ct) ct.textContent = prev || '';
-      if (type === 'heart') btn.classList.toggle('rxn-on', isActive);
-      else btn.classList.toggle(RXN_CLASS[type], isActive);
+    btn.classList.toggle('rxn-on', !isActive);
+    if (ct) ct.textContent = next > 0 ? next : '';
+    if (!isActive) {
+      btn.classList.remove('rxn-pop');
+      void btn.offsetWidth; // restart the animation on repeated likes
+      btn.classList.add('rxn-pop');
     }
+
+    const docRef = db.doc(`feedReactions/${bar.dataset.frienduid}_${bar.dataset.dateraw}`);
+    try {
+      const val = isActive ? firebase.firestore.FieldValue.delete() : true;
+      await docRef.set({ [feedMyUidCache]: val }, { merge: true });
+    } catch (err) {
+      console.error('Like toggle failed:', err);
+      btn.classList.toggle('rxn-on', isActive);
+      if (ct) ct.textContent = prev > 0 ? prev : '';
+      alert('Could not save your like: ' + err.message);
+    }
+  }
+
+  /* A quick tap toggles your own like. Holding the heart down opens the
+     "liked by" sheet -- but only for the post's own owner, since that's
+     the only person this is meant for. Delegated + attached once so it
+     survives every feed re-render without piling up listeners. */
+  function initFeedReactionHandlers() {
+    if (feedReactionsInited) return;
+    feedReactionsInited = true;
+    const container = document.getElementById('feedContainer');
+    if (!container) return;
+
+    const LONG_PRESS_MS = 450;
+    let pressTimer = null;
+    let longPressFired = false;
+
+    function clearPressTimer() {
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    }
+
+    container.addEventListener('pointerdown', e => {
+      const btn = e.target.closest('.rxn-heart');
+      if (!btn) return;
+      longPressFired = false;
+      const bar = btn.closest('.rxn-bar');
+      const isOwner = bar && feedMyUidCache && bar.dataset.frienduid === feedMyUidCache;
+      if (!isOwner) return;
+      pressTimer = setTimeout(() => {
+        longPressFired = true;
+        showLikersSheet(bar.dataset.frienduid, bar.dataset.dateraw);
+      }, LONG_PRESS_MS);
+    });
+    container.addEventListener('pointerup', e => {
+      const btn = e.target.closest('.rxn-heart');
+      clearPressTimer();
+      if (!btn) return;
+      if (longPressFired) { longPressFired = false; return; }
+      toggleHeart(btn);
+    });
+    container.addEventListener('pointerout', e => {
+      if (e.target.closest('.rxn-heart')) clearPressTimer();
+    });
+    container.addEventListener('pointercancel', clearPressTimer);
+    container.addEventListener('contextmenu', e => {
+      if (e.target.closest('.rxn-heart')) e.preventDefault();
+    });
   }
 
   /* ── Comments ── */
@@ -1427,13 +1422,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     }
 
     const rxnBar = `<div class="rxn-bar" data-frienduid="${friendUid}" data-dateraw="${dateRaw}">
-      <button class="rxn-main" data-type="heart">${RXN_EMOJI.heart} <span class="rxn-ct"></span></button>
-      <button class="rxn-tog">+</button>
-      <div class="rxn-slide">
-        <button class="rxn-extra" data-type="fire">${RXN_EMOJI.fire} <span class="rxn-ct"></span></button>
-        <button class="rxn-extra" data-type="skull">${RXN_EMOJI.skull} <span class="rxn-ct"></span></button>
-        <button class="rxn-extra" data-type="ins">${RXN_EMOJI.ins} <span class="rxn-ct"></span></button>
-      </div>
+      <button class="rxn-heart" aria-label="Like">${RXN_HEART_ICON}<span class="rxn-ct"></span></button>
     </div>`;
 
     const cmtSection = `<div class="cmt-section" data-frienduid="${friendUid}" data-dateraw="${dateRaw}">
@@ -2410,7 +2399,6 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       applyPhotoAvatars();
       loadReactions(myUid, container);
       loadComments(container);
-      container.addEventListener('click', e => handleReactionClick(e, myUid));
 
     } catch (err) {
       container.innerHTML = `<p style="color:var(--down);font-family:var(--mono);font-size:13px;">Error: ${err.message}</p>`;
@@ -2674,6 +2662,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       initFeedFriends(user.uid);
       initFeedActivitySearch();
       initFeedCommentsHandlers();
+      initFeedReactionHandlers();
       loadHeadToHead(user.uid);
       loadLeaderboards(user.uid);
       loadFeed(user.uid);
