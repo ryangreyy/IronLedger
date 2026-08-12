@@ -257,6 +257,34 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 .rxn-extra.rxn-ins .rxn-ct{color:#ffc400}
 .rxn-ct[data-count]{cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
 
+/* ── Comments ── */
+.cmt-section{ display:flex; flex-direction:column; gap:10px; padding-top:11px; border-top:1px solid rgba(255,255,255,.055); margin-top:2px; }
+.cmt-list{ display:flex; flex-direction:column; gap:10px; }
+.cmt-row{ display:flex; gap:8px; align-items:flex-start; }
+.cmt-body{ min-width:0; flex:1; }
+.cmt-head-line{ display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; }
+.cmt-name{ font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text); }
+.cmt-time{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); }
+.cmt-text{ font-size:13px; color:var(--text-dim); line-height:1.4; margin-top:2px; overflow-wrap:anywhere; }
+.cmt-input-row{ display:flex; gap:8px; align-items:center; }
+.cmt-input{
+  flex:1; min-width:0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+  border-radius:20px; padding:8px 14px; font-size:16px; color:var(--text); outline:none; transition:border-color .15s;
+}
+.cmt-input::placeholder{ color:var(--text-dimmer); font-size:13px; }
+.cmt-input:focus{ border-color:var(--accent-bright); }
+.cmt-send-btn{
+  display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); color:rgba(255,255,255,.55);
+  cursor:pointer; flex-shrink:0; font-size:15px; transition:all .15s;
+}
+.cmt-send-btn:hover{ background:rgba(255,255,255,.08); color:#fff; }
+.cmt-send-btn:disabled{ opacity:.4; cursor:default; }
+[data-theme="light"] .cmt-section{ border-top-color:rgba(18,23,33,.10); }
+[data-theme="light"] .cmt-input,
+[data-theme="light"] .cmt-send-btn{ background:rgba(18,23,33,.045); border-color:rgba(18,23,33,.12); }
+[data-theme="light"] .cmt-send-btn{ color:rgba(18,23,33,.55); }
+
 /* ── Reactor bottom sheet ── */
 .rxn-sheet-overlay{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.55);}
 .rxn-sheet{position:fixed;bottom:0;left:0;right:0;z-index:1101;background:#14171c;border-radius:16px 16px 0 0;padding:20px 20px calc(68px + env(safe-area-inset-bottom,0px));max-height:65vh;overflow-y:auto;animation:rxnSlideUp .22s cubic-bezier(.4,0,.2,1);}
@@ -865,6 +893,8 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   let feedPerFriendCache = [];   // last-7-days sessions per friend, refreshed by loadFeed()
   let feedViewerColorsCache = null;
   let feedMyUidCache = null;
+  let feedMySettingsCache = null;
+  let feedCommentsInited = false;
 
   /* Build a color map from a friend's settings doc */
   function clsColors(settings) {
@@ -1070,6 +1100,119 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     }
   }
 
+  /* ── Comments ── */
+
+  function formatCommentTime(ts) {
+    let ms;
+    if (!ts) return '';
+    if (typeof ts.toMillis === 'function') ms = ts.toMillis();
+    else if (typeof ts.seconds === 'number') ms = ts.seconds * 1000;
+    else if (ts instanceof Date) ms = ts.getTime();
+    else if (typeof ts === 'number') ms = ts;
+    else return '';
+    const diff = Date.now() - ms;
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    if (diff < 172800000) return 'Yesterday';
+    if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+    return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function renderCommentRow(c) {
+    return `<div class="cmt-row">
+      ${buildAvatarEl(c, c.username)}
+      <div class="cmt-body">
+        <div class="cmt-head-line">
+          <span class="cmt-name">@${feedEscapeHTML(c.username)}</span>
+          <span class="cmt-time">${formatCommentTime(c.createdAt)}</span>
+        </div>
+        <p class="cmt-text">${feedEscapeHTML(c.text)}</p>
+      </div>
+    </div>`;
+  }
+
+  /* Comments live in a subcollection keyed the same way as reactions
+     (feedComments/{friendUid}_{dateRaw}/comments) so a post's comment
+     thread and its reaction doc share the same "which post" identity. */
+  async function loadComments(container) {
+    const sections = container.querySelectorAll('.cmt-section[data-frienduid]');
+    if (!sections.length) return;
+    await Promise.all(Array.from(sections).map(async section => {
+      try {
+        const snap = await db.collection(`feedComments/${section.dataset.frienduid}_${section.dataset.dateraw}/comments`)
+          .orderBy('createdAt', 'asc')
+          .limit(50)
+          .get();
+        const list = section.querySelector('.cmt-list');
+        if (list) list.innerHTML = snap.docs.map(d => renderCommentRow(d.data())).join('');
+      } catch (err) {
+        console.error('Comment load failed:', err);
+      }
+    }));
+    applyPhotoAvatars();
+  }
+
+  async function submitComment(section) {
+    const input = section.querySelector('.cmt-input');
+    const btn   = section.querySelector('.cmt-send-btn');
+    const text  = input?.value.trim();
+    if (!text || !feedMyUidCache) return;
+
+    if (btn) btn.disabled = true;
+    if (input) input.disabled = true;
+
+    const comment = {
+      uid: feedMyUidCache,
+      username: feedMyUsername || 'Athlete',
+      avatarPhotoUrl: feedMySettingsCache?.avatarPhotoUrl || null,
+      avatarId: feedMySettingsCache?.avatarId || null,
+      avatarRingColor: feedMySettingsCache?.avatarRingColor || null,
+      avatarBgColor: feedMySettingsCache?.avatarBgColor || null,
+      avatarIconColor: feedMySettingsCache?.avatarIconColor || null,
+      text,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+
+    try {
+      await db.collection(`feedComments/${section.dataset.frienduid}_${section.dataset.dateraw}/comments`).add(comment);
+      if (input) input.value = '';
+      const list = section.querySelector('.cmt-list');
+      if (list) {
+        list.insertAdjacentHTML('beforeend', renderCommentRow({ ...comment, createdAt: new Date() }));
+        applyPhotoAvatars();
+      }
+    } catch (err) {
+      console.error('Comment post failed:', err);
+      alert('Could not post comment: ' + err.message);
+    } finally {
+      if (btn) btn.disabled = false;
+      if (input) { input.disabled = false; input.focus(); }
+    }
+  }
+
+  function initFeedCommentsHandlers() {
+    if (feedCommentsInited) return;
+    feedCommentsInited = true;
+    const container = document.getElementById('feedContainer');
+    if (!container) return;
+
+    container.addEventListener('click', e => {
+      const btn = e.target.closest('.cmt-send-btn');
+      if (!btn) return;
+      const section = btn.closest('.cmt-section');
+      if (section) submitComment(section);
+    });
+    container.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const input = e.target.closest('.cmt-input');
+      if (!input) return;
+      e.preventDefault();
+      const section = input.closest('.cmt-section');
+      if (section) submitComment(section);
+    });
+  }
+
   /* Determine which cls appears most in a group of sessions */
   function dominantCls(sessions) {
     const counts = {};
@@ -1177,6 +1320,14 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       </div>
     </div>`;
 
+    const cmtSection = `<div class="cmt-section" data-frienduid="${friendUid}" data-dateraw="${dateRaw}">
+      <div class="cmt-list"></div>
+      <div class="cmt-input-row">
+        <input class="cmt-input" type="text" placeholder="Add a comment…" maxlength="300" autocomplete="off">
+        <button class="cmt-send-btn" aria-label="Post comment"><i class="ti ti-send-2" aria-hidden="true"></i></button>
+      </div>
+    </div>`;
+
     return `<div class="c3-card card">
       <div class="c3-bar" style="background:${barColor};"></div>
       <div class="c3-inner">
@@ -1189,6 +1340,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         </div>
         ${liftRowsHtml}
         ${rxnBar}
+        ${cmtSection}
       </div>
     </div>`;
   }
@@ -2039,6 +2191,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       container.innerHTML = html;
       applyPhotoAvatars();
       if (feedMyUidCache) loadReactions(feedMyUidCache, container);
+      loadComments(container);
     }
 
     document.getElementById('feedFriendBackBtn')?.addEventListener('click', () => {
@@ -2063,6 +2216,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       const viewerColors  = clsColors(mySettings);
       const viewerUsername = mySettings.username || 'me';
       feedMyUsername = mySettings.username || mySettings.displayName || feedCurrentUser?.displayName || feedCurrentUser?.email?.split('@')[0] || 'Athlete';
+      feedMySettingsCache = mySettings;
       const friends = [
         { uid: myUid, username: viewerUsername },
         ...sentSnap.docs.map(d => ({ uid: d.data().toUid,   username: d.data().toUsername   })),
@@ -2137,6 +2291,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       container.innerHTML = html;
       applyPhotoAvatars();
       loadReactions(myUid, container);
+      loadComments(container);
       container.addEventListener('click', e => handleReactionClick(e, myUid));
 
     } catch (err) {
@@ -2400,6 +2555,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       if (page) page.style.display = '';
       initFeedFriends(user.uid);
       initFeedActivitySearch();
+      initFeedCommentsHandlers();
       loadHeadToHead(user.uid);
       loadLeaderboards(user.uid);
       loadFeed(user.uid);
