@@ -4636,20 +4636,24 @@ function initApp(uid) {
     });
   }
 
-  const CLS_TO_CAT = { squat:'legs', bench:'chest', dead:'back', arm:'arms' };
+  const CLS_TO_CAT = { squat:'legs', bench:'chest', dead:'back', arm:'arms', core:'core' };
   function applyCustomLifts(lifts) {
-    const datalist = document.getElementById('lift-options');
-    if (!datalist) return;
-    datalist.querySelectorAll('option[data-custom]').forEach(o => o.remove());
+    const liftDatalist = document.getElementById('lift-options');
+    const cardioDatalist = document.getElementById('cardio-options');
+    liftDatalist?.querySelectorAll('option[data-custom]').forEach(o => o.remove());
+    cardioDatalist?.querySelectorAll('option[data-custom]').forEach(o => o.remove());
+    if (!liftDatalist && !cardioDatalist) return;
     (lifts || []).forEach(l => {
       const name = typeof l === 'string' ? l : l.name;
       const cls  = typeof l === 'string' ? '' : normalizeLiftCls(l.cls || '');
       if (!name) return;
+      const target = cls === 'cardio' ? cardioDatalist : liftDatalist;
+      if (!target) return;
       const opt = document.createElement('option');
       opt.value = name;
       opt.dataset.custom = '1';
-      opt.dataset.cat = CLS_TO_CAT[cls] || '';
-      datalist.appendChild(opt);
+      opt.dataset.cat = cls === 'cardio' ? 'other' : (CLS_TO_CAT[cls] || '');
+      target.appendChild(opt);
     });
   }
 

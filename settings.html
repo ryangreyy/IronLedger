@@ -188,7 +188,7 @@
           <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
 
           <p class="settings-card-title" id="custom-exercises" style="scroll-margin-top:90px;">Custom exercises</p>
-          <p class="settings-card-desc">Missing a lift? Add it here and pick which muscle group it belongs to.</p>
+          <p class="settings-card-desc">Missing an exercise? Add it here and pick where it belongs.</p>
           <div style="display:flex;gap:10px;max-width:480px;flex-wrap:wrap;margin-bottom:14px;">
             <div class="field" style="flex:2;min-width:160px;margin:0;">
               <input id="customLiftInput" type="text" placeholder="e.g. Bulgarian Split Squat" maxlength="50" autocomplete="off">
@@ -199,6 +199,8 @@
                 <option value="bench">Chest</option>
                 <option value="dead">Back</option>
                 <option value="arm">Arms</option>
+                <option value="core">Core</option>
+                <option value="cardio">Cardio</option>
               </select>
             </div>
             <button id="addCustomLift" class="btn btn-ghost" style="padding:10px 18px;white-space:nowrap;">Add</button>
@@ -509,7 +511,7 @@
 
   /* ── CUSTOM EXERCISES ── */
   let customLifts = [];
-  const GROUP_LABELS = { squat:'Legs', bench:'Chest', dead:'Back', arm:'Arms' };
+  const GROUP_LABELS = { squat:'Legs', bench:'Chest', dead:'Back', arm:'Arms', core:'Core', cardio:'Cardio' };
 
   function renderCustomLiftList() {
     const list = document.getElementById('customLiftList');
