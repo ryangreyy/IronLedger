@@ -182,7 +182,7 @@
     busy = true;
     var target = new URL(url, location.href);
 
-    fetch(target.href, { credentials: 'same-origin' })
+    fetch(target.href, { credentials: 'same-origin', cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('Navigation fetch failed');
         return r.text();
