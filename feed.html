@@ -27,6 +27,38 @@
 /* ── Feed page wrapper ── */
 .feed-wrap{ max-width:820px; margin:0 auto; padding:14px 20px 120px; }
 #feedActivityWrap{ padding-top:8px; }
+.feed-friend-search-wrap{ position:relative; margin-bottom:20px; }
+.feed-friend-search-icon{
+  position:absolute; left:16px; top:50%; transform:translateY(-50%);
+  font-size:14px; color:var(--text-dimmer); pointer-events:none;
+}
+.feed-friend-search-input{
+  width:100%; box-sizing:border-box; background:var(--bg-2); border:1px solid var(--border-strong);
+  border-radius:999px; padding:12px 16px 12px 40px; font-family:var(--mono); font-size:13px; font-weight:600;
+  color:var(--text); outline:none; transition:border-color .15s;
+}
+.feed-friend-search-input::placeholder{ color:var(--text-dimmer); font-weight:500; }
+.feed-friend-search-input:focus{ border-color:var(--accent-bright); }
+.feed-friend-search-results{
+  display:none; position:absolute; left:0; right:0; top:calc(100% + 8px); z-index:20;
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:14px;
+  box-shadow:0 14px 32px rgba(0,0,0,.35); overflow-y:auto; max-height:280px;
+}
+.feed-friend-search-results.open{ display:block; }
+.fsr-row{
+  display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background .12s;
+}
+.fsr-row:hover, .fsr-row:focus-visible{ background:var(--bg-2); }
+.fsr-row + .fsr-row{ border-top:1px solid var(--border); }
+.fsr-name{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text); }
+.fsr-empty{ padding:14px; font-family:var(--mono); font-size:12px; color:var(--text-dimmer); text-align:center; }
+.feed-friend-back{
+  display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer;
+  color:var(--text-dim); font-family:var(--mono); font-size:12px; font-weight:700;
+  letter-spacing:0.04em; text-transform:uppercase; padding:0; margin-bottom:16px;
+}
+.feed-friend-back:hover{ color:var(--text); }
+.feed-friend-back i{ font-size:15px; }
 .h2h-wrap{ padding-bottom:0; }
 .feed-head-row{ position:relative; }
 .feed-head-row .eyebrow{ margin-bottom:14px; transform:translateY(-7px); }
@@ -767,6 +799,11 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     </button>
 
     <div class="feed-wrap feed-toplevel-panel active" id="feedActivityWrap">
+      <div class="feed-friend-search-wrap">
+        <i class="ti ti-search feed-friend-search-icon" aria-hidden="true"></i>
+        <input id="feedFriendSearchInput" type="text" class="feed-friend-search-input" placeholder="Search your friends…" autocomplete="off" spellcheck="false">
+        <div id="feedFriendSearchResults" class="feed-friend-search-results"></div>
+      </div>
       <div id="feedContainer"><p class="feed-loading">Loading…</p></div>
     </div>
   </div>
@@ -824,6 +861,10 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   let feedReceivedFriendReqs = [];
   let feedUnsubFriendsSent = null;
   let feedUnsubFriendsRecv = null;
+  let feedActivitySearchInited = false;
+  let feedPerFriendCache = [];   // last-7-days sessions per friend, refreshed by loadFeed()
+  let feedViewerColorsCache = null;
+  let feedMyUidCache = null;
 
   /* Build a color map from a friend's settings doc */
   function clsColors(settings) {
@@ -1927,6 +1968,84 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     }
   });
 
+  function initFeedActivitySearch() {
+    if (feedActivitySearchInited) return;
+    feedActivitySearchInited = true;
+
+    const input   = document.getElementById('feedFriendSearchInput');
+    const results = document.getElementById('feedFriendSearchResults');
+    if (!input || !results) return;
+
+    input.addEventListener('input', () => renderFeedFriendSearchResults(input.value.trim()));
+    input.addEventListener('focus', () => { if (input.value.trim()) renderFeedFriendSearchResults(input.value.trim()); });
+    input.addEventListener('keydown', e => { if (e.key === 'Escape') { input.blur(); results.classList.remove('open'); } });
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.feed-friend-search-wrap')) results.classList.remove('open');
+    });
+    results.addEventListener('click', e => {
+      const row = e.target.closest('.fsr-row');
+      if (!row) return;
+      results.classList.remove('open');
+      input.value = '';
+      showFriendDetail(row.dataset.uid);
+    });
+  }
+
+  function renderFeedFriendSearchResults(query) {
+    const results = document.getElementById('feedFriendSearchResults');
+    if (!results) return;
+    if (!query) { results.classList.remove('open'); results.innerHTML = ''; return; }
+
+    const q = query.toLowerCase().replace(/^@/, '');
+    const matches = feedPerFriendCache.filter(f => f.username.toLowerCase().includes(q));
+
+    results.innerHTML = matches.length
+      ? matches.slice(0, 8).map(f => `
+        <div class="fsr-row" data-uid="${f.uid}" tabindex="0">
+          ${buildAvatarEl(f.settings, f.username)}
+          <span class="fsr-name">@${f.username}</span>
+        </div>`).join('')
+      : '<p class="fsr-empty">No friends match that search.</p>';
+    applyPhotoAvatars();
+    results.classList.add('open');
+  }
+
+  /* Friend's last 7 days, pulled from the same per-friend data loadFeed()
+     already fetched -- no second Firestore round-trip needed. */
+  function showFriendDetail(uid) {
+    const container = document.getElementById('feedContainer');
+    const friend = feedPerFriendCache.find(f => f.uid === uid);
+    if (!container || !friend) return;
+
+    const byDate = {};
+    for (const s of friend.sessions) {
+      if (!s.dateRaw) continue;
+      (byDate[s.dateRaw] = byDate[s.dateRaw] || []).push(s);
+    }
+    const dates = Object.keys(byDate).sort().reverse();
+    const backBtn = `<button class="feed-friend-back" id="feedFriendBackBtn"><i class="ti ti-arrow-left" aria-hidden="true"></i>Back to Feed</button>`;
+    const colors = feedViewerColorsCache || clsColors(friend.settings);
+
+    if (!dates.length) {
+      container.innerHTML = backBtn + `<p class="feed-empty">@${friend.username} hasn't logged anything in the last 7 days.</p>`;
+    } else {
+      let html = backBtn;
+      for (const date of dates) {
+        html += `<div class="feed-day-label">${formatFeedDate(date)}</div>`;
+        html += '<div class="feed-grid">';
+        html += renderFriendDayCard(uid, friend.username, friend.settings, sortFeedSessionsByLoggedOrder(byDate[date]), date, colors);
+        html += '</div>';
+      }
+      container.innerHTML = html;
+      applyPhotoAvatars();
+      if (feedMyUidCache) loadReactions(feedMyUidCache, container);
+    }
+
+    document.getElementById('feedFriendBackBtn')?.addEventListener('click', () => {
+      if (feedMyUidCache) loadFeed(feedMyUidCache);
+    });
+  }
+
   async function loadFeed(myUid) {
     const container = document.getElementById('feedContainer');
     if (!container) return;
@@ -1951,6 +2070,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       ];
 
       if (!friends.length) {
+        feedPerFriendCache = [];
         container.innerHTML = '<p class="feed-empty">Add friends above to see their workouts here.</p>';
         return;
       }
@@ -1976,6 +2096,12 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         uidToName[f.uid] = username;
         return { uid: f.uid, username, settings, sessions: sessSnap.docs.map((d, i) => ({ ...d.data(), id: d.id, feedFetchIndex: i })) };
       }))).filter(f => f.uid === myUid || !f.settings.isPrivate);
+
+      /* Cache for the friend search bar -- lets it show a friend's last 7
+         days instantly without a second Firestore round-trip. */
+      feedPerFriendCache = perFriend.filter(f => f.uid !== myUid);
+      feedViewerColorsCache = viewerColors;
+      feedMyUidCache = myUid;
 
       /* Group by date → uid → { username, settings, sessions[] } */
       const byDate = {};
@@ -2273,6 +2399,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       if (gate) gate.style.display = 'none';
       if (page) page.style.display = '';
       initFeedFriends(user.uid);
+      initFeedActivitySearch();
       loadHeadToHead(user.uid);
       loadLeaderboards(user.uid);
       loadFeed(user.uid);
