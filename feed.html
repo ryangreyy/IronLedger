@@ -911,6 +911,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   let feedMyUidCache = null;
   let feedMySettingsCache = null;
   let feedCommentsInited = false;
+  let feedCommentUnsubs = [];
 
   /* Build a color map from a friend's settings doc */
   function clsColors(settings) {
@@ -1164,28 +1165,35 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
      thread and its reaction doc share the same "which post" identity.
      Comment hearts are a separate top-level doc per comment
      (feedCommentHearts/{commentId} -> {uid: true, ...}), mirroring how
-     feedReactions works for posts. */
-  async function loadComments(container) {
+     feedReactions works for posts.
+
+     Live-listened, not a one-time fetch -- a comment posted from a
+     different account (or a different tab) shows up here on its own,
+     without the viewer needing to reload the page. teardownCommentListeners()
+     must run before every re-render so listeners don't pile up on
+     detached cards. */
+  function loadComments(container) {
     const sections = container.querySelectorAll('.cmt-section[data-frienduid]');
-    if (!sections.length) return;
-    await Promise.all(Array.from(sections).map(async section => {
-      try {
-        const snap = await db.collection(`feedComments/${section.dataset.frienduid}_${section.dataset.dateraw}/comments`)
-          .orderBy('createdAt', 'asc')
-          .limit(50)
-          .get();
-        const list = section.querySelector('.cmt-list');
-        if (list) {
+    sections.forEach(section => {
+      const unsub = db.collection(`feedComments/${section.dataset.frienduid}_${section.dataset.dateraw}/comments`)
+        .orderBy('createdAt', 'asc')
+        .limit(50)
+        .onSnapshot(snap => {
+          const list = section.querySelector('.cmt-list');
+          if (!list) return;
           list.innerHTML = snap.docs
             .map(d => renderCommentRow({ ...d.data(), id: d.id }, section.dataset.frienduid))
             .join('');
-        }
-      } catch (err) {
-        console.error('Comment load failed:', err);
-      }
-    }));
-    applyPhotoAvatars();
-    loadCommentHearts(container);
+          applyPhotoAvatars();
+          loadCommentHearts(section);
+        }, err => console.error('Comment listener failed:', err));
+      feedCommentUnsubs.push(unsub);
+    });
+  }
+
+  function teardownCommentListeners() {
+    feedCommentUnsubs.forEach(unsub => { try { unsub(); } catch (e) {} });
+    feedCommentUnsubs = [];
   }
 
   function applyCommentHeartState(row, data) {
@@ -2275,6 +2283,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     const container = document.getElementById('feedContainer');
     const friend = feedPerFriendCache.find(f => f.uid === uid);
     if (!container || !friend) return;
+    teardownCommentListeners();
 
     const byDate = {};
     for (const s of friend.sessions) {
@@ -2309,6 +2318,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   async function loadFeed(myUid) {
     const container = document.getElementById('feedContainer');
     if (!container) return;
+    teardownCommentListeners();
     container.innerHTML = '<p class="feed-loading">Loading…</p>';
 
     try {
@@ -2674,6 +2684,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       myQrRendered = false;
       if (feedUnsubFriendsSent) { feedUnsubFriendsSent(); feedUnsubFriendsSent = null; }
       if (feedUnsubFriendsRecv) { feedUnsubFriendsRecv(); feedUnsubFriendsRecv = null; }
+      teardownCommentListeners();
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }
