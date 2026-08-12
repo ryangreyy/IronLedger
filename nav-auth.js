@@ -137,7 +137,7 @@
 
   if (signOutBtn) signOutBtn.addEventListener('click', () => auth.signOut());
 
-  auth.onAuthStateChanged(async user => {
+  async function handleNavAuthState(user) {
     try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
     if (!user) {
       /* Login wall: none of these pages are reachable while signed out —
@@ -166,6 +166,21 @@
       if (navSignedOut) { navSignedOut.style.display = ''; requestAnimationFrame(() => requestAnimationFrame(() => { navSignedOut.style.opacity = '1'; })); }
       applyAvatar(navAvatarEl, null, null, null, null, null, null, null, null, null);
     }
+  }
+
+  let navAuthDeferredForAppLock = false;
+  auth.onAuthStateChanged(user => {
+    if (window.IGAppLock?.isLocked()) {
+      if (!navAuthDeferredForAppLock) {
+        navAuthDeferredForAppLock = true;
+        window.IGAppLock.afterUnlock(() => {
+          navAuthDeferredForAppLock = false;
+          handleNavAuthState(auth.currentUser);
+        });
+      }
+      return;
+    }
+    handleNavAuthState(user);
   });
 
   /* Hamburger toggle */

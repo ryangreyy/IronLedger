@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=316">
+<link rel="stylesheet" href="styles.css?v=317">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
 <link rel="manifest" href="/manifest.json?v=108">
@@ -20,8 +20,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
-<script src="applock.js?v=5"></script>
-<script src="pwa-update.js?v=99"></script>
+<script src="applock.js?v=6"></script>
+<script src="pwa-update.js?v=101"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 <style>
 /* ── Feed page wrapper ── */
@@ -990,11 +990,18 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         reactionCache[key] = data;
         const btn = bar.querySelector('.rxn-heart');
         if (!btn) return;
-        const count  = Object.keys(data).length;
+        /* Only count keys whose value is really `true` -- a handful of
+           posts still carry a leftover key from the old {heart:{...},
+           fire:{...}} shape (before reactions were flattened to a plain
+           uid map), and Object.keys(data).length alone would count
+           those stale type-keys as if they were real likers. This is
+           the same filter showLikersSheet already uses for its list, so
+           the count and the list can never disagree again. */
+        const likerUids = Object.keys(data).filter(uid => data[uid] === true);
         const active = data[myUid] === true;
         btn.classList.toggle('rxn-on', active);
         const ct = btn.querySelector('.rxn-ct');
-        if (ct) ct.textContent = count > 0 ? count : '';
+        if (ct) ct.textContent = likerUids.length > 0 ? likerUids.length : '';
       }, err => console.error('Reaction listener failed:', err));
       feedReactionUnsubs.push(unsub);
     });
@@ -2669,7 +2676,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     } catch (err) { alert('Could not remove: ' + err.message); }
   }
 
-  auth.onAuthStateChanged(user => {
+  function handleFeedAuthState(user) {
     const gate = document.getElementById('feed-gate');
     const page = document.getElementById('feed-page');
     if (user) {
@@ -2696,9 +2703,24 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }
+  }
+
+  let feedAuthDeferredForAppLock = false;
+  auth.onAuthStateChanged(user => {
+    if (window.IGAppLock?.isLocked()) {
+      if (!feedAuthDeferredForAppLock) {
+        feedAuthDeferredForAppLock = true;
+        window.IGAppLock.afterUnlock(() => {
+          feedAuthDeferredForAppLock = false;
+          handleFeedAuthState(auth.currentUser);
+        });
+      }
+      return;
+    }
+    handleFeedAuthState(user);
   });
 </script>
-<script src="nav-auth.js?v=2"></script>
+<script src="nav-auth.js?v=3"></script>
 <script src="nav.js?v=17"></script>
 </body>
 </html>
