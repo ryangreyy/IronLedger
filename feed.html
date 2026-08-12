@@ -240,8 +240,10 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   display:inline-flex; align-items:center; gap:6px; padding:6px 13px 6px 10px; border-radius:30px;
   border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); cursor:pointer;
   color:rgba(255,255,255,.55); transition:background .15s, border-color .15s, color .15s; flex-shrink:0;
-  touch-action:manipulation; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
+  touch-action:none; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
+  -webkit-tap-highlight-color:transparent;
 }
+.rxn-heart *{ -webkit-user-select:none; user-select:none; }
 .rxn-heart:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); }
 .rxn-heart svg{ display:block; }
 .rxn-heart .rxn-ct{ font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.45); }
@@ -891,6 +893,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   let feedCommentsInited = false;
   let feedCommentUnsubs = [];
   let feedReactionsInited = false;
+  let feedReactionUnsubs = [];
 
   /* Build a color map from a friend's settings doc */
   function clsColors(settings) {
@@ -969,26 +972,37 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   const uidToSettings = {};
 
   /* feedReactions/{friendUid}_{dateRaw} -> { uid: true, ... } -- a flat
-     like-map, same shape as feedCommentHearts. Fetch counts/active state
-     for every visible post. */
-  async function loadReactions(myUid, container) {
+     like-map, same shape as feedCommentHearts.
+
+     Live-listened, not a one-time fetch -- the count is always rendered
+     straight from this listener's snapshot, never hand-incremented
+     locally, so it can't drift out of sync with what's actually in
+     Firestore (that drift was the bug: toggleHeart used to do its own
+     +1/-1 math on the displayed number, which fell out of sync from the
+     real doc under concurrent likes or a failed write).
+     teardownReactionListeners() must run before every re-render. */
+  function loadReactions(myUid, container) {
     const bars = container.querySelectorAll('.rxn-bar[data-frienduid]');
-    if (!bars.length) return;
-    const results = await Promise.all(Array.from(bars).map(bar =>
-      db.doc(`feedReactions/${bar.dataset.frienduid}_${bar.dataset.dateraw}`).get()
-        .then(snap => ({ bar, data: snap.exists ? snap.data() : {} }))
-    ));
-    results.forEach(({ bar, data }) => {
+    bars.forEach(bar => {
       const key = `${bar.dataset.frienduid}_${bar.dataset.dateraw}`;
-      reactionCache[key] = data;
-      const count  = Object.keys(data).length;
-      const active = data[myUid] === true;
-      const btn = bar.querySelector('.rxn-heart');
-      if (!btn) return;
-      btn.classList.toggle('rxn-on', active);
-      const ct = btn.querySelector('.rxn-ct');
-      if (ct) ct.textContent = count > 0 ? count : '';
+      const unsub = db.doc(`feedReactions/${key}`).onSnapshot(snap => {
+        const data = snap.exists ? snap.data() : {};
+        reactionCache[key] = data;
+        const btn = bar.querySelector('.rxn-heart');
+        if (!btn) return;
+        const count  = Object.keys(data).length;
+        const active = data[myUid] === true;
+        btn.classList.toggle('rxn-on', active);
+        const ct = btn.querySelector('.rxn-ct');
+        if (ct) ct.textContent = count > 0 ? count : '';
+      }, err => console.error('Reaction listener failed:', err));
+      feedReactionUnsubs.push(unsub);
     });
+  }
+
+  function teardownReactionListeners() {
+    feedReactionUnsubs.forEach(unsub => { try { unsub(); } catch (e) {} });
+    feedReactionUnsubs = [];
   }
 
   /* Bottom sheet listing everyone who liked a post, with avatars --
@@ -1042,12 +1056,13 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     const bar = btn.closest('.rxn-bar');
     if (!bar || !feedMyUidCache) return;
     const isActive = btn.classList.contains('rxn-on');
-    const ct   = btn.querySelector('.rxn-ct');
-    const prev = parseInt(ct?.textContent || '0') || 0;
-    const next = isActive ? Math.max(0, prev - 1) : prev + 1;
 
+    /* Instant visual feedback only -- the live listener in loadReactions
+       is the single source of truth for the count text, so it's never
+       hand-incremented here. It'll re-render within a beat once the
+       write lands (Firestore applies local writes to its cache
+       immediately, so the listener fires almost instantly). */
     btn.classList.toggle('rxn-on', !isActive);
-    if (ct) ct.textContent = next > 0 ? next : '';
     if (!isActive) {
       btn.classList.remove('rxn-pop');
       void btn.offsetWidth; // restart the animation on repeated likes
@@ -1060,8 +1075,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       await docRef.set({ [feedMyUidCache]: val }, { merge: true });
     } catch (err) {
       console.error('Like toggle failed:', err);
-      btn.classList.toggle('rxn-on', isActive);
-      if (ct) ct.textContent = prev > 0 ? prev : '';
+      btn.classList.toggle('rxn-on', isActive); // listener will confirm the true state moments later regardless
       alert('Could not save your like: ' + err.message);
     }
   }
@@ -1087,6 +1101,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     container.addEventListener('pointerdown', e => {
       const btn = e.target.closest('.rxn-heart');
       if (!btn) return;
+      e.preventDefault(); // stop the browser's own long-press text-selection/callout gesture
       longPressFired = false;
       const bar = btn.closest('.rxn-bar');
       const isOwner = bar && feedMyUidCache && bar.dataset.frienduid === feedMyUidCache;
@@ -2274,6 +2289,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     const friend = feedPerFriendCache.find(f => f.uid === uid);
     if (!container || !friend) return;
     teardownCommentListeners();
+    teardownReactionListeners();
 
     const byDate = {};
     for (const s of friend.sessions) {
@@ -2309,6 +2325,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     const container = document.getElementById('feedContainer');
     if (!container) return;
     teardownCommentListeners();
+    teardownReactionListeners();
     container.innerHTML = '<p class="feed-loading">Loading…</p>';
 
     try {
@@ -2675,6 +2692,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       if (feedUnsubFriendsSent) { feedUnsubFriendsSent(); feedUnsubFriendsSent = null; }
       if (feedUnsubFriendsRecv) { feedUnsubFriendsRecv(); feedUnsubFriendsRecv = null; }
       teardownCommentListeners();
+      teardownReactionListeners();
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }
