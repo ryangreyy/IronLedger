@@ -20,8 +20,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
-<script src="applock.js?v=5"></script>
-<script src="pwa-update.js?v=100"></script>
+<script src="applock.js?v=6"></script>
+<script src="pwa-update.js?v=101"></script>
 <style>
 .mac-wrap{ max-width:640px; margin:0 auto; padding:14px 20px 120px; }
 
@@ -1442,7 +1442,7 @@
   document.getElementById('macFormSubmit').onclick = addEntry;
 
   /* ── Auth state ── */
-  auth.onAuthStateChanged(user => {
+  function handleMacrosAuthState(user) {
     const gate = document.getElementById('mac-gate');
     const page = document.getElementById('mac-page');
     if (user) {
@@ -1457,9 +1457,24 @@
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }
+  }
+
+  let macrosAuthDeferredForAppLock = false;
+  auth.onAuthStateChanged(user => {
+    if (window.IGAppLock?.isLocked()) {
+      if (!macrosAuthDeferredForAppLock) {
+        macrosAuthDeferredForAppLock = true;
+        window.IGAppLock.afterUnlock(() => {
+          macrosAuthDeferredForAppLock = false;
+          handleMacrosAuthState(auth.currentUser);
+        });
+      }
+      return;
+    }
+    handleMacrosAuthState(user);
   });
 </script>
-<script src="nav-auth.js?v=2"></script>
+<script src="nav-auth.js?v=3"></script>
 <script src="nav.js?v=17"></script>
 </body>
 </html>

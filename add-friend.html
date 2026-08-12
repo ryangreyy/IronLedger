@@ -21,8 +21,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
-<script src="applock.js?v=5"></script>
-<script src="pwa-update.js?v=100"></script>
+<script src="applock.js?v=6"></script>
+<script src="pwa-update.js?v=101"></script>
 <style>
 .af-wrap{ max-width:420px; margin:0 auto; padding:56px 24px 120px; }
 .af-card{ text-align:center; }
@@ -236,7 +236,7 @@
     document.getElementById('afNotNowBtn').addEventListener('click', () => { location.href = 'feed.html'; });
   }
 
-  auth.onAuthStateChanged(user => {
+  function handleAddFriendAuthState(user) {
     if (user) {
       try { sessionStorage.removeItem('ig-pending-friend-uid'); } catch (e) {}
       run(user);
@@ -244,10 +244,25 @@
     /* Signed-out: nav-auth.js owns the bounce to index.html. The head
        guard already stashed the target uid in sessionStorage above, so
        app.js picks it back up and returns here once sign-in completes. */
+  }
+
+  let addFriendAuthDeferredForAppLock = false;
+  auth.onAuthStateChanged(user => {
+    if (window.IGAppLock?.isLocked()) {
+      if (!addFriendAuthDeferredForAppLock) {
+        addFriendAuthDeferredForAppLock = true;
+        window.IGAppLock.afterUnlock(() => {
+          addFriendAuthDeferredForAppLock = false;
+          handleAddFriendAuthState(auth.currentUser);
+        });
+      }
+      return;
+    }
+    handleAddFriendAuthState(user);
   });
 })();
 </script>
-<script src="nav-auth.js?v=2"></script>
+<script src="nav-auth.js?v=3"></script>
 <script src="nav.js?v=17"></script>
 </body>
 </html>

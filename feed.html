@@ -20,8 +20,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
-<script src="applock.js?v=5"></script>
-<script src="pwa-update.js?v=100"></script>
+<script src="applock.js?v=6"></script>
+<script src="pwa-update.js?v=101"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 <style>
 /* ── Feed page wrapper ── */
@@ -2676,7 +2676,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     } catch (err) { alert('Could not remove: ' + err.message); }
   }
 
-  auth.onAuthStateChanged(user => {
+  function handleFeedAuthState(user) {
     const gate = document.getElementById('feed-gate');
     const page = document.getElementById('feed-page');
     if (user) {
@@ -2703,9 +2703,24 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       if (gate) gate.style.display = '';
       if (page) page.style.display = 'none';
     }
+  }
+
+  let feedAuthDeferredForAppLock = false;
+  auth.onAuthStateChanged(user => {
+    if (window.IGAppLock?.isLocked()) {
+      if (!feedAuthDeferredForAppLock) {
+        feedAuthDeferredForAppLock = true;
+        window.IGAppLock.afterUnlock(() => {
+          feedAuthDeferredForAppLock = false;
+          handleFeedAuthState(auth.currentUser);
+        });
+      }
+      return;
+    }
+    handleFeedAuthState(user);
   });
 </script>
-<script src="nav-auth.js?v=2"></script>
+<script src="nav-auth.js?v=3"></script>
 <script src="nav.js?v=17"></script>
 </body>
 </html>

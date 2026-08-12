@@ -970,7 +970,7 @@ function maybeRedirectPendingFriendUid() {
   location.href = '/add-friend.html?u=' + encodeURIComponent(pending);
 }
 
-auth.onAuthStateChanged(user => {
+function handleAuthState(user) {
   try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
   document.documentElement.toggleAttribute('data-guess-signedin', !!user);
   if (user) {
@@ -1021,6 +1021,21 @@ auth.onAuthStateChanged(user => {
     switchAuthTab('signin');
     authScreen.style.display   = ''; // reveal the gate (CSS base rule is display:flex)
   }
+}
+
+let authStateDeferredForAppLock = false;
+auth.onAuthStateChanged(user => {
+  if (window.IGAppLock?.isLocked()) {
+    if (!authStateDeferredForAppLock) {
+      authStateDeferredForAppLock = true;
+      window.IGAppLock.afterUnlock(() => {
+        authStateDeferredForAppLock = false;
+        handleAuthState(auth.currentUser);
+      });
+    }
+    return;
+  }
+  handleAuthState(user);
 });
 
 /* ---- Auth modal open / close ---- */
