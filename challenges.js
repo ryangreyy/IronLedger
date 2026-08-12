@@ -108,8 +108,10 @@ function rankHexBadge(rank, xpTotal) {
     <polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="url(#${plateGradId})" stroke="${style.stroke}" stroke-width="2" ${glowStyle}/>
     ${sheen}${ring1}${ring3}${ring2}${ring4}${ticks}${rivets}
     <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" letter-spacing="3"
-      fill="url(#${numGradId})" stroke="rgba(0,0,0,0.55)" stroke-width="1.4" paint-order="stroke fill"
-      style="filter:drop-shadow(0 1px 1.2px rgba(0,0,0,.55));">${numeral}</text>
+      fill="none" stroke="rgba(0,0,0,0.8)" stroke-width="4.2" stroke-linejoin="round">${numeral}</text>
+    <text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" letter-spacing="3"
+      fill="url(#${numGradId})" stroke="rgba(0,0,0,0.6)" stroke-width="1.2" paint-order="stroke fill"
+      style="filter:drop-shadow(0 1px 1.2px rgba(0,0,0,.6));">${numeral}</text>
   </svg>`;
 }
 
