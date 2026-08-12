@@ -395,7 +395,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   background:linear-gradient(90deg,var(--accent),var(--accent-bright));
 }
 @media(max-width:720px){
-  body.index-page{ padding-top:20px; }
+  body.index-page{ padding-top:32px; }
   .brand-text{ display:none; }
   .brand img.mark{ height:42px; filter:none; }
   #nav-signed-out{ gap:8px; }
