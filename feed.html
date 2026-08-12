@@ -990,11 +990,18 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         reactionCache[key] = data;
         const btn = bar.querySelector('.rxn-heart');
         if (!btn) return;
-        const count  = Object.keys(data).length;
+        /* Only count keys whose value is really `true` -- a handful of
+           posts still carry a leftover key from the old {heart:{...},
+           fire:{...}} shape (before reactions were flattened to a plain
+           uid map), and Object.keys(data).length alone would count
+           those stale type-keys as if they were real likers. This is
+           the same filter showLikersSheet already uses for its list, so
+           the count and the list can never disagree again. */
+        const likerUids = Object.keys(data).filter(uid => data[uid] === true);
         const active = data[myUid] === true;
         btn.classList.toggle('rxn-on', active);
         const ct = btn.querySelector('.rxn-ct');
-        if (ct) ct.textContent = count > 0 ? count : '';
+        if (ct) ct.textContent = likerUids.length > 0 ? likerUids.length : '';
       }, err => console.error('Reaction listener failed:', err));
       feedReactionUnsubs.push(unsub);
     });
