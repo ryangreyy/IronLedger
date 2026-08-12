@@ -266,6 +266,22 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 .cmt-name{ font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text); }
 .cmt-time{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); }
 .cmt-text{ font-size:13px; color:var(--text-dim); line-height:1.4; margin-top:2px; overflow-wrap:anywhere; }
+.cmt-actions{ display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; padding-top:1px; }
+.cmt-heart-btn{
+  display:flex; flex-direction:column; align-items:center; gap:1px; background:none; border:none; padding:2px;
+  cursor:pointer; color:var(--text-dimmer); transition:color .15s, transform .1s;
+}
+.cmt-heart-btn:hover{ color:rgba(255,96,128,.7); }
+.cmt-heart-btn:active{ transform:scale(1.15); }
+.cmt-heart-btn i{ font-size:14px; }
+.cmt-heart-btn.active{ color:#ff6080; }
+.cmt-heart-ct{ font-family:var(--mono); font-size:9px; line-height:1; }
+.cmt-delete-btn{
+  display:flex; align-items:center; justify-content:center; background:none; border:none; padding:2px;
+  cursor:pointer; color:var(--text-dimmer); transition:color .15s;
+}
+.cmt-delete-btn:hover{ color:var(--down); }
+.cmt-delete-btn i{ font-size:13px; }
 .cmt-input-row{ display:flex; gap:8px; align-items:center; }
 .cmt-input{
   flex:1; min-width:0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
@@ -1119,8 +1135,12 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
-  function renderCommentRow(c) {
-    return `<div class="cmt-row">
+  /* postOwnerUid = the friend whose post this comment thread belongs to --
+     they can delete any comment on their own post, same as a comment's
+     own author can delete theirs (mirrors Instagram's comment permissions). */
+  function renderCommentRow(c, postOwnerUid) {
+    const canDelete = feedMyUidCache && (c.uid === feedMyUidCache || postOwnerUid === feedMyUidCache);
+    return `<div class="cmt-row" data-commentid="${c.id}">
       ${buildAvatarEl(c, c.username)}
       <div class="cmt-body">
         <div class="cmt-head-line">
@@ -1129,12 +1149,22 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         </div>
         <p class="cmt-text">${feedEscapeHTML(c.text)}</p>
       </div>
+      <div class="cmt-actions">
+        <button class="cmt-heart-btn" aria-label="Like comment">
+          <i class="ti ti-heart" aria-hidden="true"></i>
+          <span class="cmt-heart-ct"></span>
+        </button>
+        ${canDelete ? `<button class="cmt-delete-btn" aria-label="Delete comment"><i class="ti ti-trash" aria-hidden="true"></i></button>` : ''}
+      </div>
     </div>`;
   }
 
   /* Comments live in a subcollection keyed the same way as reactions
      (feedComments/{friendUid}_{dateRaw}/comments) so a post's comment
-     thread and its reaction doc share the same "which post" identity. */
+     thread and its reaction doc share the same "which post" identity.
+     Comment hearts are a separate top-level doc per comment
+     (feedCommentHearts/{commentId} -> {uid: true, ...}), mirroring how
+     feedReactions works for posts. */
   async function loadComments(container) {
     const sections = container.querySelectorAll('.cmt-section[data-frienduid]');
     if (!sections.length) return;
@@ -1145,12 +1175,74 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
           .limit(50)
           .get();
         const list = section.querySelector('.cmt-list');
-        if (list) list.innerHTML = snap.docs.map(d => renderCommentRow(d.data())).join('');
+        if (list) {
+          list.innerHTML = snap.docs
+            .map(d => renderCommentRow({ ...d.data(), id: d.id }, section.dataset.frienduid))
+            .join('');
+        }
       } catch (err) {
         console.error('Comment load failed:', err);
       }
     }));
     applyPhotoAvatars();
+    loadCommentHearts(container);
+  }
+
+  function applyCommentHeartState(row, data) {
+    const btn = row.querySelector('.cmt-heart-btn');
+    if (!btn) return;
+    const count  = Object.keys(data).length;
+    const active = !!(feedMyUidCache && data[feedMyUidCache] === true);
+    btn.classList.toggle('active', active);
+    const ct = btn.querySelector('.cmt-heart-ct');
+    if (ct) ct.textContent = count > 0 ? count : '';
+  }
+
+  async function loadCommentHearts(container) {
+    const rows = container.querySelectorAll('.cmt-row[data-commentid]');
+    if (!rows.length) return;
+    await Promise.all(Array.from(rows).map(async row => {
+      try {
+        const snap = await db.doc(`feedCommentHearts/${row.dataset.commentid}`).get();
+        applyCommentHeartState(row, snap.exists ? snap.data() : {});
+      } catch (err) {
+        console.error('Comment heart load failed:', err);
+      }
+    }));
+  }
+
+  async function toggleCommentHeart(row) {
+    const commentId = row.dataset.commentid;
+    if (!commentId || !feedMyUidCache) return;
+    const btn  = row.querySelector('.cmt-heart-btn');
+    const ct   = btn?.querySelector('.cmt-heart-ct');
+    const wasActive  = !!btn?.classList.contains('active');
+    const prevCount  = parseInt(ct?.textContent || '0') || 0;
+    const nextCount  = wasActive ? Math.max(0, prevCount - 1) : prevCount + 1;
+
+    btn?.classList.toggle('active', !wasActive);
+    if (ct) ct.textContent = nextCount > 0 ? nextCount : '';
+
+    try {
+      const val = wasActive ? firebase.firestore.FieldValue.delete() : true;
+      await db.doc(`feedCommentHearts/${commentId}`).set({ [feedMyUidCache]: val }, { merge: true });
+    } catch (err) {
+      console.error('Comment heart toggle failed:', err);
+      btn?.classList.toggle('active', wasActive);
+      if (ct) ct.textContent = prevCount > 0 ? prevCount : '';
+    }
+  }
+
+  async function deleteComment(row, section) {
+    const commentId = row.dataset.commentid;
+    if (!commentId || !confirm('Delete this comment?')) return;
+    try {
+      await db.collection(`feedComments/${section.dataset.frienduid}_${section.dataset.dateraw}/comments`).doc(commentId).delete();
+      row.remove();
+    } catch (err) {
+      console.error('Comment delete failed:', err);
+      alert('Could not delete comment: ' + err.message);
+    }
   }
 
   async function submitComment(section) {
@@ -1175,11 +1267,11 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     };
 
     try {
-      await db.collection(`feedComments/${section.dataset.frienduid}_${section.dataset.dateraw}/comments`).add(comment);
+      const ref = await db.collection(`feedComments/${section.dataset.frienduid}_${section.dataset.dateraw}/comments`).add(comment);
       if (input) input.value = '';
       const list = section.querySelector('.cmt-list');
       if (list) {
-        list.insertAdjacentHTML('beforeend', renderCommentRow({ ...comment, createdAt: new Date() }));
+        list.insertAdjacentHTML('beforeend', renderCommentRow({ ...comment, id: ref.id, createdAt: new Date() }, section.dataset.frienduid));
         applyPhotoAvatars();
       }
     } catch (err) {
@@ -1198,10 +1290,25 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     if (!container) return;
 
     container.addEventListener('click', e => {
-      const btn = e.target.closest('.cmt-send-btn');
-      if (!btn) return;
-      const section = btn.closest('.cmt-section');
-      if (section) submitComment(section);
+      const sendBtn = e.target.closest('.cmt-send-btn');
+      if (sendBtn) {
+        const section = sendBtn.closest('.cmt-section');
+        if (section) submitComment(section);
+        return;
+      }
+      const heartBtn = e.target.closest('.cmt-heart-btn');
+      if (heartBtn) {
+        const row = heartBtn.closest('.cmt-row');
+        if (row) toggleCommentHeart(row);
+        return;
+      }
+      const deleteBtn = e.target.closest('.cmt-delete-btn');
+      if (deleteBtn) {
+        const row = deleteBtn.closest('.cmt-row');
+        const section = deleteBtn.closest('.cmt-section');
+        if (row && section) deleteComment(row, section);
+        return;
+      }
     });
     container.addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
