@@ -680,6 +680,7 @@
               <p class="my-qr-hint">Friends can scan this to send you a request.</p>
               <div class="my-qr-link-row">
                 <input id="myQrLink" type="text" readonly>
+                <button id="myQrShareBtn" class="btn btn-primary" style="display:none;padding:8px 12px;font-size:12px;white-space:nowrap;">Share</button>
                 <button id="myQrCopyBtn" class="btn btn-ghost" style="padding:8px 12px;font-size:12px;white-space:nowrap;">Copy</button>
               </div>
             </div>
@@ -2154,6 +2155,15 @@
     const url = `${location.origin}/add-friend.html?u=${feedCurrentUser.uid}`;
     const linkInput = document.getElementById('myQrLink');
     if (linkInput) linkInput.value = url;
+    const shareBtn = document.getElementById('myQrShareBtn');
+    if (shareBtn && navigator.share) {
+      shareBtn.style.display = '';
+      shareBtn.addEventListener('click', async () => {
+        try {
+          await navigator.share({ title: 'Add me on IronGladiator', url });
+        } catch (e) { /* user cancelled the share sheet -- nothing to do */ }
+      });
+    }
     try {
       const container = document.getElementById('myQrCanvas');
       container.innerHTML = '';
