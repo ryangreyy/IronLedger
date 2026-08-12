@@ -1685,7 +1685,7 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
    "Shoulders" needs meaningfully more room than "All" or "Back". */
 .log-cat-pills{
   display:flex; background:var(--bg-2); border:1px solid var(--border-strong); border-radius:10px;
-  padding:5px; gap:8px;
+  padding:4px; gap:4px;
 }
 .log-cat-pill{
   flex:1 1 auto; text-align:center; font-family:var(--mono); font-weight:800;
