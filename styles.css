@@ -2863,14 +2863,6 @@ html[data-authredirect] body{ visibility:hidden; }
    paint, so page content never flashes before the lock covers it. */
 html[data-locked="1"] body > *:not(.applock){ display:none !important; }
 html[data-locked="1"] body{ overflow:hidden; }
-/* The signed-out anti-flash guard (data-authredirect, see index.html /
-   nav-auth.js) sets body{visibility:hidden} while the real auth check is
-   still pending. That guard can be active at the same time as the lock
-   -- without this override, the lock screen inherits that hidden
-   visibility and renders invisibly while Face ID's native prompt still
-   fires underneath it, which reads as "Face ID succeeded but nothing
-   happened." The lock must win regardless of what else is hiding body. */
-html[data-locked="1"] .applock{ visibility:visible !important; }
 .applock{
   position:fixed; inset:0; z-index:2147483000;
   background:var(--bg);

@@ -19,19 +19,6 @@
 (function () {
   'use strict';
 
-  window.IGAppLock = window.IGAppLock || {
-    isLocked: function () {
-      return document.documentElement.hasAttribute('data-locked');
-    },
-    afterUnlock: function (fn) {
-      if (!document.documentElement.hasAttribute('data-locked')) {
-        fn();
-        return;
-      }
-      window.addEventListener('ig:applock-unlocked', function () { setTimeout(fn, 0); }, { once: true });
-    }
-  };
-
   var locked;
   try {
     locked = localStorage.getItem('ig-faceid-lock') === '1' &&

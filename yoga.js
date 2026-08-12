@@ -157,27 +157,12 @@
   setupStretchFinder();
   loadPoses();
 
-  function handleYogaAuthState(user) {
+  auth.onAuthStateChanged(user => {
     currentUser = user;
     const in_ = !!user;
     show('sessions-auth-gate', !in_);
     show('sessions-content', in_);
     if (in_) loadYogaSessions();
-  }
-
-  let yogaAuthDeferredForAppLock = false;
-  auth.onAuthStateChanged(user => {
-    if (window.IGAppLock?.isLocked()) {
-      if (!yogaAuthDeferredForAppLock) {
-        yogaAuthDeferredForAppLock = true;
-        window.IGAppLock.afterUnlock(() => {
-          yogaAuthDeferredForAppLock = false;
-          handleYogaAuthState(auth.currentUser);
-        });
-      }
-      return;
-    }
-    handleYogaAuthState(user);
   });
 
   function show(id, visible) {
