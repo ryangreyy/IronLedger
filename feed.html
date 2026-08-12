@@ -40,8 +40,9 @@
 .friends-count{ font-family:var(--mono); font-size:12px; color:var(--text-dimmer); margin-left:8px; font-weight:600; }
 .friends-empty{ font-size:13px; color:var(--text-dimmer); font-family:var(--mono); padding:4px 0; }
 .friends-section-label{ font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:8px; }
-.my-qr-divider{ margin-top:18px; padding-top:16px; border-top:1px solid var(--border); }
-.my-qr-box{ display:flex; justify-content:center; padding:16px; background:#fff; border-radius:10px; margin-top:12px; }
+.af-card{ padding:20px 22px; }
+.af-tabs .lb-tab{ position:relative; }
+.my-qr-box{ display:flex; justify-content:center; padding:16px; background:#fff; border-radius:10px; }
 .my-qr-box canvas{ display:block; }
 .my-qr-hint{ font-size:12px; color:var(--text-dimmer); text-align:center; margin-top:10px; }
 .my-qr-link-row{ display:flex; gap:8px; margin-top:10px; }
@@ -661,36 +662,39 @@
       </div>
 
       <div id="addFriendDropdown" class="feed-friend-dropdown">
-        <div class="card" style="padding:20px 22px;">
-          <p class="friends-section-label" style="margin-top:0;margin-bottom:10px;">Find by username</p>
-          <div class="friend-search-wrap">
-            <div class="field"><input id="friendSearchInput" type="text" placeholder="@username" autocomplete="off" maxlength="30" spellcheck="false"></div>
-            <button id="friendSearchBtn" class="btn btn-primary" style="padding:10px 16px;font-size:13px;white-space:nowrap;">Find</button>
-          </div>
-          <div id="friendSearchResult"></div>
-          <div id="pendingRequestsList"></div>
-
-          <div class="my-qr-divider">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <p class="friends-section-label" style="margin:0;">My QR code</p>
-              <button id="myQrToggle" class="btn btn-ghost" style="padding:4px 10px;font-size:12px;">Show</button>
-            </div>
-            <div id="myQrPanel" style="display:none;">
-              <div class="my-qr-box"><div id="myQrCanvas"></div></div>
-              <p class="my-qr-hint">Friends can scan this to send you a request.</p>
-              <div class="my-qr-link-row">
-                <input id="myQrLink" type="text" readonly>
-                <button id="myQrShareBtn" class="btn btn-primary" style="display:none;padding:8px 12px;font-size:12px;white-space:nowrap;">Share</button>
-                <button id="myQrCopyBtn" class="btn btn-ghost" style="padding:8px 12px;font-size:12px;white-space:nowrap;">Copy</button>
-              </div>
-            </div>
+        <div class="card af-card">
+          <div class="lb-tabs af-tabs" id="afTabs">
+            <button class="lb-tab active" data-af="search">Search</button>
+            <button class="lb-tab" data-af="qr">My QR Code</button>
+            <button class="lb-tab" data-af="friends">Friends<span id="afFriendsBadge" class="tab-badge" style="display:none;"></span></button>
           </div>
 
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:8px;">
-            <p class="friends-section-label" style="margin:0;">Friends</p>
-            <span id="friendCount" class="friends-count"></span>
+          <div class="af-pane" id="afPaneSearch">
+            <div class="friend-search-wrap">
+              <div class="field"><input id="friendSearchInput" type="text" placeholder="@username" autocomplete="off" maxlength="30" spellcheck="false"></div>
+              <button id="friendSearchBtn" class="btn btn-primary" style="padding:10px 16px;font-size:13px;white-space:nowrap;">Find</button>
+            </div>
+            <div id="friendSearchResult"></div>
           </div>
-          <div id="friendsList"><p class="friends-empty">No friends yet. Search by username to add someone.</p></div>
+
+          <div class="af-pane" id="afPaneQr" style="display:none;">
+            <div class="my-qr-box"><div id="myQrCanvas"></div></div>
+            <p class="my-qr-hint">Friends can scan this to send you a request.</p>
+            <div class="my-qr-link-row">
+              <input id="myQrLink" type="text" readonly>
+              <button id="myQrShareBtn" class="btn btn-primary" style="display:none;padding:8px 12px;font-size:12px;white-space:nowrap;">Share</button>
+              <button id="myQrCopyBtn" class="btn btn-ghost" style="padding:8px 12px;font-size:12px;white-space:nowrap;">Copy</button>
+            </div>
+          </div>
+
+          <div class="af-pane" id="afPaneFriends" style="display:none;">
+            <div id="pendingRequestsList"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:8px;">
+              <p class="friends-section-label" style="margin:0;">Friends</p>
+              <span id="friendCount" class="friends-count"></span>
+            </div>
+            <div id="friendsList"><p class="friends-empty">No friends yet. Search by username to add someone.</p></div>
+          </div>
         </div>
       </div>
 
@@ -2045,6 +2049,11 @@
     renderFeedPendingRequests(pending);
     const countEl = document.getElementById('friendCount');
     if (countEl) countEl.textContent = accepted.length ? `(${accepted.length})` : '';
+    const badge = document.getElementById('afFriendsBadge');
+    if (badge) {
+      badge.textContent = pending.length;
+      badge.style.display = pending.length ? 'flex' : 'none';
+    }
   }
 
   function renderFeedFriendsList(list) {
@@ -2121,14 +2130,16 @@
       if (e.key === 'Enter') doFeedFriendSearch();
     });
 
-    document.getElementById('myQrToggle')?.addEventListener('click', () => {
-      const panel = document.getElementById('myQrPanel');
-      const btn = document.getElementById('myQrToggle');
-      if (!panel || !btn) return;
-      const show = panel.style.display === 'none';
-      panel.style.display = show ? 'block' : 'none';
-      btn.textContent = show ? 'Hide' : 'Show';
-      if (show) renderMyQr();
+    document.querySelectorAll('#afTabs .lb-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('#afTabs .lb-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const which = tab.dataset.af;
+        document.getElementById('afPaneSearch').style.display  = which === 'search'  ? '' : 'none';
+        document.getElementById('afPaneQr').style.display      = which === 'qr'      ? '' : 'none';
+        document.getElementById('afPaneFriends').style.display = which === 'friends' ? '' : 'none';
+        if (which === 'qr') renderMyQr();
+      });
     });
     document.getElementById('myQrCopyBtn')?.addEventListener('click', async () => {
       const input = document.getElementById('myQrLink');
