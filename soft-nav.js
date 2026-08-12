@@ -1,63 +1,177 @@
-/* soft-nav.js — opt-in client-side ("soft") navigation. FEATURE-FLAGGED,
-   OFF BY DEFAULT. When on, navigating between the pages listed in
-   SOFT_PAGES swaps just #main-content behind a crossfade instead of a
-   full document reload, so nav/background/login session stay mounted and
-   nothing reloads. Any link outside that set falls back to normal
-   navigation, as does any error — so this can never trap the user.
-
-   Enable/disable without a console (phone-friendly):
-     ?softnav=1  turns it on,  ?softnav=0  turns it off.
-   Or the Settings toggle, which sets the same localStorage flag.
-
-   POC scope: Dashboard <-> Training (both load app.js, which exposes
-   window.__IG_activate to re-wire + re-render the swapped-in page). */
+/* soft-nav.js — client-side navigation for IronGladiator pages.
+   Swaps the page body area without reloading the whole app shell. The
+   normal browser navigation remains the fallback on any unsupported page
+   or runtime error. */
 (function () {
   'use strict';
 
   var FLAG = 'ig-softnav';
+  var ROOT_ID = 'ig-soft-root';
+  var HEAD_ASSET = 'data-soft-nav-head';
+  var PAGE_SCRIPTS = { 'yoga.js': true };
+  var SOFT_PAGES = [
+    'index.html', 'feed.html', 'training.html', 'dashboard.html',
+    'macros.html', 'profile.html', 'settings.html', 'tools.html',
+    'guide.html', 'yoga.html', 'add-friend.html',
+  ];
+  var busy = false;
 
-  /* URL-param enable/disable, then strip the param from the address bar. */
   try {
     var q = new URLSearchParams(location.search);
     if (q.has('softnav')) {
-      if (q.get('softnav') === '1') localStorage.setItem(FLAG, '1');
-      else localStorage.removeItem(FLAG);
+      if (q.get('softnav') === '0') localStorage.setItem(FLAG, '0');
+      else localStorage.setItem(FLAG, '1');
       q.delete('softnav');
       history.replaceState(history.state, '',
         location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash);
     }
   } catch (e) {}
 
-  function enabled() { try { return localStorage.getItem(FLAG) === '1'; } catch (e) { return false; } }
+  function enabled() {
+    try { return localStorage.getItem(FLAG) !== '0'; }
+    catch (e) { return true; }
+  }
   if (!enabled()) return;
-
-  var SOFT_PAGES = ['index.html', 'dashboard.html', 'training.html'];
-  var CONTENT = '#main-content';
-  var busy = false;
 
   function pageName(url) {
     try {
       var u = new URL(url, location.href);
       if (u.origin !== location.origin) return null;
-      return (u.pathname.split('/').pop() || 'index.html');
+      return (u.pathname.split('/').pop() || 'index.html').toLowerCase();
     } catch (e) { return null; }
   }
-  function isSoft(url) { return SOFT_PAGES.indexOf(pageName(url)) !== -1; }
 
-  /* Re-execute the incoming page's inline body scripts (e.g. the page-tab
-     handler) — innerHTML alone never runs <script>. Wrapped in an IIFE so
-     repeated runs can't collide on top-level declarations. Shared libs
-     (app.js, nav.js, firebase…) have a src and are skipped — they stay
-     loaded once. */
-  function runBodyScripts(doc) {
-    doc.querySelectorAll('body script:not([src])').forEach(function (old) {
-      var txt = (old.textContent || '').trim();
-      if (!txt) return;
-      var s = document.createElement('script');
-      s.textContent = '(function(){\n' + txt + '\n})();';
-      document.body.appendChild(s);
-      s.parentNode.removeChild(s);
+  function isSoft(url) {
+    return SOFT_PAGES.indexOf(pageName(url)) !== -1;
+  }
+
+  function scriptName(src) {
+    try { return new URL(src, location.href).pathname.split('/').pop().toLowerCase(); }
+    catch (e) { return ''; }
+  }
+
+  function assetUrl(el) {
+    return el && (el.getAttribute('src') || el.getAttribute('href') || '');
+  }
+
+  function hasLoadedAsset(url) {
+    if (!url) return true;
+    var target;
+    try { target = new URL(url, location.href); } catch (e) { return true; }
+    return Array.from(document.querySelectorAll('script[src],link[href]')).some(function (el) {
+      try {
+        var loaded = new URL(assetUrl(el), location.href);
+        if (el.tagName === 'SCRIPT') return loaded.pathname === target.pathname;
+        return loaded.href === target.href;
+      }
+      catch (e) { return false; }
     });
+  }
+
+  function keepBodyNode(node) {
+    if (node.nodeType !== 1) return false;
+    if (node.tagName === 'SCRIPT') return true;
+    if (node.tagName === 'NAV') return true;
+    if (node.classList.contains('applock')) return true;
+    if (node.classList.contains('mobile-bottom-nav')) return true;
+    return false;
+  }
+
+  function ensureRoot() {
+    var root = document.getElementById(ROOT_ID);
+    if (root) return root;
+
+    root = document.createElement('div');
+    root.id = ROOT_ID;
+
+    var firstScript = Array.from(document.body.children).find(function (el) {
+      return el.tagName === 'SCRIPT';
+    });
+    document.body.insertBefore(root, firstScript || null);
+
+    Array.from(document.body.childNodes).forEach(function (node) {
+      if (node === root || keepBodyNode(node)) return;
+      root.appendChild(node);
+    });
+    return root;
+  }
+
+  function pageFragment(doc) {
+    var frag = document.createDocumentFragment();
+    Array.from(doc.body.childNodes).forEach(function (node) {
+      if (keepBodyNode(node)) return;
+      frag.appendChild(document.importNode(node, true));
+    });
+    return frag;
+  }
+
+  function syncHead(doc) {
+    document.querySelectorAll('[' + HEAD_ASSET + ']').forEach(function (el) { el.remove(); });
+
+    doc.head.querySelectorAll('link[rel="stylesheet"]').forEach(function (link) {
+      var href = link.getAttribute('href');
+      if (!href || hasLoadedAsset(href)) return;
+      var clone = document.importNode(link, true);
+      clone.setAttribute(HEAD_ASSET, '1');
+      document.head.appendChild(clone);
+    });
+
+    doc.head.querySelectorAll('style').forEach(function (style) {
+      var clone = document.importNode(style, true);
+      clone.setAttribute(HEAD_ASSET, '1');
+      document.head.appendChild(clone);
+    });
+  }
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = new URL(src, location.href).href;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.body.appendChild(s);
+    });
+  }
+
+  function loadHeadScripts(doc) {
+    var chain = Promise.resolve();
+    doc.head.querySelectorAll('script[src]').forEach(function (s) {
+      var src = s.getAttribute('src');
+      if (!src || hasLoadedAsset(src)) return;
+      chain = chain.then(function () { return loadScript(src); });
+    });
+    return chain;
+  }
+
+  function runInlineScript(old) {
+    var txt = (old.textContent || '').trim();
+    if (!txt) return;
+    var s = document.createElement('script');
+    s.textContent = '(function(){\n' + txt + '\n})();';
+    document.body.appendChild(s);
+    s.parentNode.removeChild(s);
+  }
+
+  function runBodyScripts(doc) {
+    var chain = Promise.resolve();
+    doc.querySelectorAll('body script').forEach(function (old) {
+      var src = old.getAttribute('src');
+      if (!src) {
+        chain = chain.then(function () { runInlineScript(old); });
+        return;
+      }
+
+      var name = scriptName(src);
+      if (PAGE_SCRIPTS[name]) {
+        chain = chain.then(function () { return loadScript(src); });
+        return;
+      }
+
+      if (!hasLoadedAsset(src)) {
+        chain = chain.then(function () { return loadScript(src); });
+      }
+    });
+    return chain;
   }
 
   function updateNavActive(name) {
@@ -67,36 +181,70 @@
     document.querySelectorAll('.mobile-bottom-nav a[href]').forEach(function (a) {
       a.classList.toggle('mbn-active', pageName(a.getAttribute('href')) === name);
     });
+    var signOut = document.getElementById('signOut');
+    if (signOut) signOut.style.display = name === 'settings.html' ? '' : 'none';
+    if (typeof window.igCheckFeedNotifications === 'function') window.igCheckFeedNotifications();
+  }
+
+  function scrollAfterNavigation(target) {
+    if (target.hash) {
+      var id = decodeURIComponent(target.hash.slice(1));
+      var el = id && document.getElementById(id);
+      if (el) { el.scrollIntoView({ behavior: 'instant', block: 'start' }); return; }
+    }
+    window.scrollTo(0, 0);
   }
 
   function navigate(url, push) {
     if (busy) return;
     busy = true;
-    fetch(url, { credentials: 'same-origin' })
-      .then(function (r) { return r.text(); })
+    var target = new URL(url, location.href);
+
+    fetch(target.href, { credentials: 'same-origin' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('Navigation fetch failed');
+        return r.text();
+      })
       .then(function (html) {
         var doc = new DOMParser().parseFromString(html, 'text/html');
-        var next = doc.querySelector(CONTENT);
-        var cur = document.querySelector(CONTENT);
-        if (!next || !cur) { busy = false; location.href = url; return; } // hard fallback
+        var root = ensureRoot();
+        var frag = pageFragment(doc);
+        var targetUsesApp = !!doc.querySelector('script[src*="app.js"]');
+
         var apply = function () {
-          if (push) history.pushState({ soft: 1 }, '', url);
-          cur.innerHTML = next.innerHTML;
+          if (push) history.pushState({ soft: 1 }, '', target.href);
+          document.body.className = doc.body.className || '';
+          syncHead(doc);
+          root.replaceChildren(frag);
           if (doc.title) document.title = doc.title;
-          updateNavActive(pageName(url));
-          runBodyScripts(doc);
-          if (typeof window.__IG_activate === 'function') window.__IG_activate();
-          window.scrollTo(0, 0);
+          updateNavActive(pageName(target.href));
         };
+
+        var afterApply = function () {
+          return loadHeadScripts(doc)
+            .then(function () { return runBodyScripts(doc); })
+            .then(function () {
+              if (targetUsesApp && typeof window.__IG_activate === 'function') window.__IG_activate();
+              scrollAfterNavigation(target);
+            });
+        };
+
         var finish = function () { busy = false; };
+        var fail = function () { busy = false; location.href = target.href; };
+
         if (document.startViewTransition) {
-          document.startViewTransition(apply).finished.then(finish, finish);
+          document.startViewTransition(apply).finished.then(function () {
+            afterApply().then(finish, fail);
+          }, fail);
         } else {
-          apply(); finish();
+          apply();
+          afterApply().then(finish, fail);
         }
       })
-      .catch(function () { busy = false; location.href = url; });
+      .catch(function () { busy = false; location.href = target.href; });
   }
+
+  ensureRoot();
 
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -106,9 +254,9 @@
     if (a.hasAttribute('target') && a.getAttribute('target') !== '_self') return;
     var href = a.getAttribute('href');
     if (!href || href.charAt(0) === '#') return;
-    if (!isSoft(location.href) || !isSoft(href)) return; // only between soft pages
+    if (!isSoft(location.href) || !isSoft(href)) return;
     var target = new URL(href, location.href);
-    if (target.href === location.href) { e.preventDefault(); return; } // same page
+    if (target.href === location.href) { e.preventDefault(); return; }
     e.preventDefault();
     navigate(target.href, true);
   }, true);

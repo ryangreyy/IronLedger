@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=101"></script>
+<script src="pwa-update.js?v=102"></script>
 </head>
 <body>
 
@@ -137,7 +137,7 @@
 
           <!-- Seamless navigation (beta) -->
           <p class="settings-card-title">Seamless navigation <span style="font-size:10px;font-family:var(--mono);letter-spacing:.08em;color:var(--accent-bright);vertical-align:2px;">BETA</span></p>
-          <p class="settings-card-desc">Flip between Dashboard and Training without a page reload. Experimental — turn it off any time if anything feels off. Saved on this device.</p>
+          <p class="settings-card-desc">Move through IronGladiator without a full page reload. Turn it off any time if anything feels off. Saved on this device.</p>
           <div class="unit-toggle" id="softNavToggle">
             <button data-softnav="off"><i class="ti ti-player-stop" style="vertical-align:-2px;margin-right:7px;"></i>Off</button>
             <button data-softnav="on"><i class="ti ti-bolt" style="vertical-align:-2px;margin-right:7px;"></i>On</button>
@@ -578,9 +578,12 @@
   });
 
   /* ── SIGN OUT ── */
-  document.getElementById('signOut').addEventListener('click', () => {
-    auth.signOut().then(() => { window.location.href = 'index.html'; });
-  });
+  const signOutBtn = document.getElementById('signOut');
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', () => {
+      auth.signOut().then(() => { window.location.href = 'index.html'; });
+    });
+  }
 
   /* ── SAVE USERNAME ── */
   document.getElementById('saveProfile').addEventListener('click', async () => {
@@ -1094,13 +1097,13 @@
   })();
 
   /* ── SEAMLESS NAVIGATION (beta) ── device-local flag read by soft-nav.js.
-     On = swap Dashboard/Training content without a full reload. ── */
+     On = app-wide soft page swaps without a full reload. ── */
   (function () {
     const KEY = 'ig-softnav';
     const toggle = document.getElementById('softNavToggle');
     if (!toggle) return;
     function reflect() {
-      const on = (() => { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } })();
+      const on = (() => { try { return localStorage.getItem(KEY) !== '0'; } catch (e) { return true; } })();
       toggle.querySelectorAll('button').forEach(b =>
         b.classList.toggle('active', b.dataset.softnav === (on ? 'on' : 'off')));
     }
@@ -1109,7 +1112,7 @@
       if (!btn) return;
       try {
         if (btn.dataset.softnav === 'on') localStorage.setItem(KEY, '1');
-        else localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, '0');
       } catch (e) {}
       reflect();
     });
@@ -1119,5 +1122,6 @@
 </script>
 <script src="nav-auth.js?v=3"></script>
 <script src="nav.js?v=17"></script>
+<script src="soft-nav.js?v=4"></script>
 </body>
 </html>
