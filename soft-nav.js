@@ -5,7 +5,6 @@
 (function () {
   'use strict';
 
-  var FLAG = 'ig-softnav';
   var ROOT_ID = 'ig-soft-root';
   var HEAD_ASSET = 'data-soft-nav-head';
   var PAGE_SCRIPTS = { 'yoga.js': true };
@@ -15,23 +14,6 @@
     'guide.html', 'yoga.html', 'add-friend.html',
   ];
   var busy = false;
-
-  try {
-    var q = new URLSearchParams(location.search);
-    if (q.has('softnav')) {
-      if (q.get('softnav') === '0') localStorage.setItem(FLAG, '0');
-      else localStorage.setItem(FLAG, '1');
-      q.delete('softnav');
-      history.replaceState(history.state, '',
-        location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash);
-    }
-  } catch (e) {}
-
-  function enabled() {
-    try { return localStorage.getItem(FLAG) !== '0'; }
-    catch (e) { return true; }
-  }
-  if (!enabled()) return;
 
   function pageName(url) {
     try {

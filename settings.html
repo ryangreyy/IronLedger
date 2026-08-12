@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=103"></script>
+<script src="pwa-update.js?v=104"></script>
 </head>
 <body>
 
@@ -131,16 +131,6 @@
           <div class="unit-toggle" id="themeToggle">
             <button data-theme-choice="dark"><i class="ti ti-moon" style="vertical-align:-2px;margin-right:7px;"></i>Dark</button>
             <button data-theme-choice="light"><i class="ti ti-sun" style="vertical-align:-2px;margin-right:7px;"></i>Light</button>
-          </div>
-
-          <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
-
-          <!-- Seamless navigation (beta) -->
-          <p class="settings-card-title">Seamless navigation <span style="font-size:10px;font-family:var(--mono);letter-spacing:.08em;color:var(--accent-bright);vertical-align:2px;">BETA</span></p>
-          <p class="settings-card-desc">Move through IronGladiator without a full page reload. Turn it off any time if anything feels off. Saved on this device.</p>
-          <div class="unit-toggle" id="softNavToggle">
-            <button data-softnav="off"><i class="ti ti-player-stop" style="vertical-align:-2px;margin-right:7px;"></i>Off</button>
-            <button data-softnav="on"><i class="ti ti-bolt" style="vertical-align:-2px;margin-right:7px;"></i>On</button>
           </div>
 
           <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
@@ -1028,8 +1018,7 @@
   });
 
   /* ── PRIVACY TOGGLE ── same click-to-select + explicit save pattern as
-     the unit toggle above (an account setting, not a device-local one
-     like theme/soft-nav, so it needs its own Firestore write). */
+     the unit toggle above. */
   function setPrivacyToggle(privacy) {
     document.querySelectorAll('#privacyToggle button').forEach(b => {
       b.classList.toggle('active', b.dataset.privacy === privacy);
@@ -1096,32 +1085,9 @@
     reflect();
   })();
 
-  /* ── SEAMLESS NAVIGATION (beta) ── device-local flag read by soft-nav.js.
-     On = app-wide soft page swaps without a full reload. ── */
-  (function () {
-    const KEY = 'ig-softnav';
-    const toggle = document.getElementById('softNavToggle');
-    if (!toggle) return;
-    function reflect() {
-      const on = (() => { try { return localStorage.getItem(KEY) !== '0'; } catch (e) { return true; } })();
-      toggle.querySelectorAll('button').forEach(b =>
-        b.classList.toggle('active', b.dataset.softnav === (on ? 'on' : 'off')));
-    }
-    toggle.addEventListener('click', e => {
-      const btn = e.target.closest('button[data-softnav]');
-      if (!btn) return;
-      try {
-        if (btn.dataset.softnav === 'on') localStorage.setItem(KEY, '1');
-        else localStorage.setItem(KEY, '0');
-      } catch (e) {}
-      reflect();
-    });
-    reflect();
-  })();
-
 </script>
 <script src="nav-auth.js?v=3"></script>
 <script src="nav.js?v=17"></script>
-<script src="soft-nav.js?v=4"></script>
+<script src="soft-nav.js?v=5"></script>
 </body>
 </html>
