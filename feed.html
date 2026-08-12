@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=102"></script>
+<script src="pwa-update.js?v=103"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 <style>
 /* ── Feed page wrapper ── */
@@ -605,8 +605,25 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   .feed-wrap{ padding:14px 14px 100px; }
   .h2h-wrap{ padding-bottom:0; }
   .feed-grid{ grid-template-columns:1fr; }
-  h2.feed-head-title{ margin-bottom:20px; }
-  .feed-add-friend{ padding:8px 12px; font-size:12px; }
+  .feed-head-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    column-gap:12px;
+    row-gap:2px;
+    align-items:start;
+  }
+  .feed-head-row .eyebrow{ grid-column:1; grid-row:1; }
+  h2.feed-head-title{ grid-column:1; grid-row:2; margin-bottom:20px; }
+  .feed-add-friend{
+    position:static;
+    grid-column:2;
+    grid-row:1 / span 2;
+    align-self:start;
+    padding:8px 12px;
+    font-size:12px;
+    transform:none;
+  }
+  .feed-add-friend:hover{ transform:none; }
 
   /* Head-to-head/Leaderboards move from inline desktop tabs to rounded
      pill tabs, and challenge creation moves off the scroll into a
@@ -654,6 +671,16 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   .h2h-sheet-handle{
     display:block; width:34px; height:3px; background:rgba(255,255,255,.2);
     border-radius:2px; margin:0 auto 14px;
+  }
+}
+@media(max-width:360px){
+  .feed-head-row{ grid-template-columns:1fr; }
+  .feed-add-friend{
+    grid-column:1;
+    grid-row:3;
+    justify-self:start;
+    margin-top:-8px;
+    margin-bottom:12px;
   }
 }
 </style>
