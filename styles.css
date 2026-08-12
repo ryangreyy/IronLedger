@@ -395,6 +395,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
   background:linear-gradient(90deg,var(--accent),var(--accent-bright));
 }
 @media(max-width:720px){
+  body.index-page{ padding-top:12px; }
   .brand-text{ display:none; }
   .brand img.mark{ height:42px; filter:none; }
   #nav-signed-out{ gap:8px; }
@@ -460,7 +461,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
 }
 
 /* ---------- HERO ---------- */
-.hero{padding-top:72px; padding-bottom:30px; text-align:center; position:relative;}
+.hero{padding-top:30px; padding-bottom:30px; text-align:center; position:relative;}
 .hero::before{
   content:""; position:absolute; top:-60px; left:50%; transform:translateX(-50%);
   width:700px; height:420px; pointer-events:none;
@@ -493,7 +494,7 @@ nav.nav-hidden{ transform:translateY(-100%); }
    (desktop) already cover navigation, so this is pure status. */
 .home-status-header{
   display:none;
-  max-width:640px; margin:0 auto; padding:56px 28px 5px; text-align:center;
+  max-width:640px; margin:0 auto; padding:26px 28px 5px; text-align:center;
 }
 /* No-FOUC guess: a tiny inline script in <head> reads a localStorage
    flag set on the last real auth result and applies it synchronously,
