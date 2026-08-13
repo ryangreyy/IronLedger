@@ -2472,21 +2472,21 @@ function initApp(uid) {
     return byDate;
   }
 
-  /* calendarGroupsByDate() picks one "winning" class per date because a
-     calendar cell can only paint one color -- fine for the calendar, but
-     it silently drops every other muscle group trained that same day.
-     Muscle Recovery and the Suggested card need credit for ALL of them
-     (e.g. a back+legs day shouldn't lose back's recovery credit just
-     because legs resolved first), so they read from this instead: every
-     class actually logged per date, not just one. */
-  function allClsByDate(sessions = currentSessions) {
+  /* The overview calendar paints one solid group block per logged day.
+     Muscle Recovery and Home Suggested use this same visible block:
+     planned/faint days do not count, and manual colors only count when
+     they override a day that already has a solid logged-session block. */
+  function solidCalendarGroupsByDate(sessions = currentSessions, calColors = currentSettings?.calendarColors || {}) {
     const byDate = {};
     (Array.isArray(sessions) ? sessions : []).forEach(s => {
-      if (!s || !s.dateRaw || s.isRestDay) return;
-      const cls = overviewCalendarCls(s.cls || liftToCls(s.lift) || 'other');
-      if (!cls) return;
-      if (!byDate[s.dateRaw]) byDate[s.dateRaw] = new Set();
-      byDate[s.dateRaw].add(cls);
+      if (!s || !s.dateRaw || byDate[s.dateRaw]) return;
+      const cls = overviewCalendarCls(s.isRestDay ? 'rest' : (s.cls || liftToCls(s.lift) || 'other'));
+      if (cls) byDate[s.dateRaw] = cls;
+    });
+    Object.entries(calColors || {}).forEach(([dateRaw, clsRaw]) => {
+      if (!byDate[dateRaw]) return;
+      const cls = overviewCalendarCls(clsRaw);
+      if (cls) byDate[dateRaw] = cls;
     });
     return byDate;
   }
@@ -2498,13 +2498,11 @@ function initApp(uid) {
       return acc;
     }, {});
 
-    Object.entries(allClsByDate(sessions)).forEach(([dateRaw, clsSet]) => {
+    Object.entries(solidCalendarGroupsByDate(sessions)).forEach(([dateRaw, clsRaw]) => {
       if (!dateRaw || dateRaw > todayISO) return;
-      clsSet.forEach(clsRaw => {
-        const cls = normalizeLiftCls(clsRaw);
-        if (!Object.prototype.hasOwnProperty.call(lastDate, cls)) return;
-        if (!lastDate[cls] || dateRaw > lastDate[cls]) lastDate[cls] = dateRaw;
-      });
+      const cls = normalizeLiftCls(clsRaw);
+      if (!Object.prototype.hasOwnProperty.call(lastDate, cls)) return;
+      if (!lastDate[cls] || dateRaw > lastDate[cls]) lastDate[cls] = dateRaw;
     });
 
     return SUGGESTED_CATS.map(cls => {
@@ -2758,18 +2756,15 @@ function initApp(uid) {
      planned-ahead calendar day (painted but not trained yet) is a lower-
      opacity placeholder on the calendar and must not count as "trained"
      here, or recovery would read fresh before the workout even happened.
-     Reads allClsByDate() (every class logged per day), not
-     calendarGroupsByDate()'s single winner, so a back+legs day credits
-     both instead of losing whichever class didn't "win" the day. */
+     Reads solidCalendarGroupsByDate(), so the highlighted body parts
+     match the same solid group blocks visible in the overview calendar. */
   function muscleDaysByDate() {
     const dayMuscles = {};
-    Object.entries(allClsByDate(currentSessions)).forEach(([dateRaw, clsSet]) => {
-      clsSet.forEach(cls => {
-        const muscles = LIFT_CLS_TO_MUSCLES[cls];
-        if (!muscles || !muscles.length) return;
-        if (!dayMuscles[dateRaw]) dayMuscles[dateRaw] = new Set();
-        muscles.forEach(m => dayMuscles[dateRaw].add(m));
-      });
+    Object.entries(solidCalendarGroupsByDate()).forEach(([dateRaw, cls]) => {
+      const muscles = LIFT_CLS_TO_MUSCLES[cls];
+      if (!muscles || !muscles.length) return;
+      if (!dayMuscles[dateRaw]) dayMuscles[dateRaw] = new Set();
+      muscles.forEach(m => dayMuscles[dateRaw].add(m));
     });
     return dayMuscles;
   }
