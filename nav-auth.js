@@ -183,12 +183,4 @@
     handleNavAuthState(user);
   });
 
-  /* Hamburger toggle */
-  const hamburger  = document.getElementById('nav-hamburger');
-  const navLinksEl = document.getElementById('nav-links');
-  if (hamburger && navLinksEl) {
-    hamburger.addEventListener('click', e => { e.stopPropagation(); navLinksEl.classList.toggle('open'); });
-    navLinksEl.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinksEl.classList.remove('open')));
-    document.addEventListener('click', () => navLinksEl.classList.remove('open'));
-  }
 })();

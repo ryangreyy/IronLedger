@@ -1049,18 +1049,6 @@ function showInstallPrompt() {
   renderAsk();
 }
 
-/* ===== HAMBURGER MENU ============================================= */
-const navHamburger = document.getElementById('nav-hamburger');
-const navLinksEl   = document.getElementById('nav-links');
-navHamburger.addEventListener('click', e => {
-  e.stopPropagation();
-  navLinksEl.classList.toggle('open');
-});
-navLinksEl.querySelectorAll('a').forEach(a => {
-  a.addEventListener('click', () => navLinksEl.classList.remove('open'));
-});
-document.addEventListener('click', () => navLinksEl.classList.remove('open'));
-
 document.querySelector('nav .brand')?.addEventListener('click', e => {
   if (e.currentTarget.getAttribute('href') === '#') {
     e.preventDefault();

@@ -1,4 +1,47 @@
 (function () {
+  function setHamburgerExpanded(open) {
+    var hamburger = document.getElementById('nav-hamburger');
+    if (hamburger) hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  function closeHamburgerMenu() {
+    var links = document.getElementById('nav-links');
+    if (!links) return;
+    links.classList.remove('open');
+    setHamburgerExpanded(false);
+  }
+
+  function bindHamburgerMenu() {
+    if (window.__igHamburgerBound) return;
+    window.__igHamburgerBound = true;
+
+    document.addEventListener('click', function (e) {
+      var target = e.target;
+      var closest = target && target.closest ? target.closest.bind(target) : null;
+      var links = document.getElementById('nav-links');
+      if (!links || !closest) return;
+
+      var hamburger = closest('#nav-hamburger');
+      if (hamburger) {
+        e.preventDefault();
+        e.stopPropagation();
+        var open = !links.classList.contains('open');
+        links.classList.toggle('open', open);
+        setHamburgerExpanded(open);
+        return;
+      }
+
+      if (closest('#nav-links a')) {
+        closeHamburgerMenu();
+        return;
+      }
+
+      if (!closest('#nav-links')) closeHamburgerMenu();
+    }, true);
+  }
+
+  bindHamburgerMenu();
+
   var EMBLEMS = {
     gladius:'ti-sword', scutum:'ti-shield', summit:'ti-mountain', inferno:'ti-flame',
     surge:'ti-bolt', iron:'ti-barbell', duellum:'ti-swords', target:'ti-target',
