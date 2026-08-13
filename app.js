@@ -342,6 +342,11 @@ function showOnboardingModal(user) {
   let obLiftingFrequency = '';
   let obHeight = '';
   let obBodyweight = '';
+  let obMrGender = 'male';
+  let obMrSkin = 0;
+  let obMrHair = 0;
+  const OB_MR_SKIN_TONES = ['#f5c9a0', '#d4956a', '#9c6440', '#5c3320'];
+  const OB_MR_HAIR_COLORS = ['#1a1208', '#4a2c1a', '#c49828', '#e0dbd4'];
 
   authScreen.style.display = 'none';
 
@@ -411,7 +416,7 @@ function showOnboardingModal(user) {
   /* ---- Step 2: Email confirm (required, read-only — already tied to the account) ---- */
   function renderStepEmailConfirm() {
     card.innerHTML = `
-      <div class="eyebrow">Step 2 of 5</div>
+      <div class="eyebrow">Step 2 of 6</div>
       <h2 class="title" style="margin:6px 0 22px;">Confirm your email</h2>
       <input type="text" class="auth-input" value="${(user.email || '').replace(/"/g,'&quot;')}" disabled
              style="width:100%;margin-bottom:16px;opacity:0.6;cursor:not-allowed;">
@@ -441,7 +446,7 @@ function showOnboardingModal(user) {
     const selIn = Number.isFinite(hVal) ? hVal % 12 : '';
 
     card.innerHTML = `
-      <div class="eyebrow">Step 3 of 5</div>
+      <div class="eyebrow">Step 3 of 6</div>
       <h2 class="title" style="margin:6px 0 6px;">Training profile</h2>
       <p class="ob-step-sub">A quick baseline for guidance and challenges.</p>
 
@@ -531,26 +536,101 @@ function showOnboardingModal(user) {
         return;
       }
       obBodyweight = bwRaw;
-      renderStepPrivacy();
+      renderStepRecoveryCustomization();
     });
     document.getElementById('ob-training-skip').addEventListener('click', () => {
       obTrainingExperience = '';
       obLiftingFrequency = '';
       obHeight = '';
       obBodyweight = '';
-      renderStepPrivacy();
+      renderStepRecoveryCustomization();
     });
     document.getElementById('ob-training-back').addEventListener('click', renderStepEmailConfirm);
   }
 
-  /* ---- Step 4: Feed privacy ----
+  /* ---- Step 4: Recovery avatar ---- */
+  function renderStepRecoveryCustomization() {
+    card.innerHTML = `
+      <div class="eyebrow">Step 4 of 6</div>
+      <h2 class="title" style="margin:6px 0 6px;">Recovery avatar</h2>
+      <p class="ob-step-sub">Choose how the Muscle Recovery body map appears.</p>
+
+      <div class="ob-recovery-preview">
+        <div class="ob-recovery-body ${obMrGender}" style="--ob-skin:${OB_MR_SKIN_TONES[obMrSkin]};--ob-hair:${OB_MR_HAIR_COLORS[obMrHair]};">
+          <div class="ob-recovery-head"></div>
+          <div class="ob-recovery-torso"></div>
+        </div>
+      </div>
+
+      <div class="ob-section">
+        <div class="ob-section-head"><span>Body type</span><small>Recovery map</small></div>
+        <div class="mr-toggle ob-recovery-toggle">
+          <button type="button" data-ob-mr-gender="male" class="${obMrGender === 'male' ? 'active' : ''}">Male</button>
+          <button type="button" data-ob-mr-gender="female" class="${obMrGender === 'female' ? 'active' : ''}">Female</button>
+        </div>
+      </div>
+
+      <div class="ob-section">
+        <div class="ob-section-head"><span>Skin tone</span><small>Optional</small></div>
+        <div class="mr-swatch-row ob-recovery-swatches">
+          ${OB_MR_SKIN_TONES.map((color, i) => `<button type="button" class="mr-swatch${obMrSkin === i ? ' active' : ''}" data-ob-mr-skin="${i}" style="background:${color}" aria-label="Skin tone ${i + 1}"></button>`).join('')}
+        </div>
+      </div>
+
+      <div class="ob-section ob-section-last">
+        <div class="ob-section-head"><span>Hair color</span><small>Optional</small></div>
+        <div class="mr-swatch-row ob-recovery-swatches">
+          ${OB_MR_HAIR_COLORS.map((color, i) => `<button type="button" class="mr-swatch${obMrHair === i ? ' active' : ''}" data-ob-mr-hair="${i}" style="background:${color}" aria-label="Hair color ${i + 1}"></button>`).join('')}
+        </div>
+      </div>
+
+      <button id="ob-recovery-continue" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+      <button id="ob-recovery-back" class="btn btn-ghost" style="font-size:13px;padding:6px 16px;width:100%;">&larr; Back</button>
+    `;
+
+    function updatePreview() {
+      const body = document.querySelector('.ob-recovery-body');
+      if (!body) return;
+      body.classList.toggle('male', obMrGender === 'male');
+      body.classList.toggle('female', obMrGender === 'female');
+      body.style.setProperty('--ob-skin', OB_MR_SKIN_TONES[obMrSkin]);
+      body.style.setProperty('--ob-hair', OB_MR_HAIR_COLORS[obMrHair]);
+    }
+
+    card.querySelectorAll('[data-ob-mr-gender]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        obMrGender = btn.dataset.obMrGender;
+        card.querySelectorAll('[data-ob-mr-gender]').forEach(b => b.classList.toggle('active', b === btn));
+        updatePreview();
+      });
+    });
+    card.querySelectorAll('[data-ob-mr-skin]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        obMrSkin = +btn.dataset.obMrSkin;
+        card.querySelectorAll('[data-ob-mr-skin]').forEach(b => b.classList.toggle('active', b === btn));
+        updatePreview();
+      });
+    });
+    card.querySelectorAll('[data-ob-mr-hair]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        obMrHair = +btn.dataset.obMrHair;
+        card.querySelectorAll('[data-ob-mr-hair]').forEach(b => b.classList.toggle('active', b === btn));
+        updatePreview();
+      });
+    });
+
+    document.getElementById('ob-recovery-continue').addEventListener('click', renderStepPrivacy);
+    document.getElementById('ob-recovery-back').addEventListener('click', renderStepTrainingProfile);
+  }
+
+  /* ---- Step 5: Feed privacy ----
      The feed updates automatically off logged sessions and is visible
      to friends by default -- this is the one point in onboarding where
      that's made explicit, with an opt-out. Also editable later in
      Settings (this isn't a one-time-only choice). */
   function renderStepPrivacy() {
     card.innerHTML = `
-      <div class="eyebrow">Step 4 of 5</div>
+      <div class="eyebrow">Step 5 of 6</div>
       <h2 class="title" style="margin:6px 0 10px;">Choose your feed privacy</h2>
       <p style="color:var(--text-dim);font-size:13px;line-height:1.5;margin:0 0 20px;">
         Your feed updates automatically whenever you log a session, and friends can see it by default. You can change this anytime in Settings.
@@ -577,13 +657,13 @@ function showOnboardingModal(user) {
     });
 
     document.getElementById('ob-privacy-continue').addEventListener('click', renderStepMedia);
-    document.getElementById('ob-privacy-back').addEventListener('click', renderStepTrainingProfile);
+    document.getElementById('ob-privacy-back').addEventListener('click', renderStepRecoveryCustomization);
   }
 
-  /* ---- Step 5: Profile media ---- */
+  /* ---- Step 6: Profile media ---- */
   function renderStepMedia() {
     card.innerHTML = `
-      <div class="eyebrow">Step 5 of 5</div>
+      <div class="eyebrow">Step 6 of 6</div>
       <h2 class="title" style="margin:6px 0 6px;">Set your profile photos</h2>
       <p class="ob-step-sub">Add an avatar and cover banner, or skip them for now.</p>
       <div class="ob-media-stack">
@@ -811,6 +891,9 @@ function showOnboardingModal(user) {
     if (obLiftingFrequency)   textData.liftingFrequency = obLiftingFrequency;
     if (obHeight)             textData.height = +obHeight;
     if (obBodyweight)         textData.bodyweight = +obBodyweight;
+    textData.muscleRecoveryGender = obMrGender;
+    textData.muscleRecoverySkin = obMrSkin;
+    textData.muscleRecoveryHair = obMrHair;
 
     const data = { ...textData };
 
@@ -2180,9 +2263,20 @@ function initApp(uid) {
   /* Muscle recovery card state (declared here so guest-mode renderMuscleMap() can access them) */
   let mrWidgetFront = null;
   let mrWidgetBack  = null;
+  const MR_SKIN_TONES = [
+    'rgb(245,201,160)', 'rgb(212,149,106)', 'rgb(156,100,64)', 'rgb(92,51,32)',
+  ];
+  const MR_HAIR_COLORS = [
+    'rgb(26,18,8)', 'rgb(74,44,26)', 'rgb(196,152,40)', 'rgb(224,219,212)',
+  ];
   const MR_GENDER_KEY = 'ig-muscle-recovery-gender';
+  const MR_SKIN_KEY = 'ig-muscle-recovery-skin';
+  const MR_HAIR_KEY = 'ig-muscle-recovery-hair';
   function mrValidGender(gender) {
     return gender === 'male' || gender === 'female';
+  }
+  function mrValidSwatchIndex(idx, list) {
+    return Number.isInteger(idx) && idx >= 0 && idx < list.length;
   }
   function mrSavedGender() {
     try {
@@ -2191,20 +2285,28 @@ function initApp(uid) {
     } catch (_) {}
     return 'male';
   }
+  function mrSavedSwatch(key, list) {
+    try {
+      const saved = parseInt(localStorage.getItem(key), 10);
+      if (mrValidSwatchIndex(saved, list)) return saved;
+    } catch (_) {}
+    return 0;
+  }
   function mrPersistGender(gender) {
     try { localStorage.setItem(MR_GENDER_KEY, gender); } catch (_) {}
   }
+  function mrPersistSkin(idx) {
+    try { localStorage.setItem(MR_SKIN_KEY, String(idx)); } catch (_) {}
+  }
+  function mrPersistHair(idx) {
+    try { localStorage.setItem(MR_HAIR_KEY, String(idx)); } catch (_) {}
+  }
   let mrGender = mrSavedGender();
-  let mrSkin   = 0;
-  let mrHairColor = 'rgb(26,18,8)';
+  let mrSkin   = mrSavedSwatch(MR_SKIN_KEY, MR_SKIN_TONES);
+  let mrHair   = mrSavedSwatch(MR_HAIR_KEY, MR_HAIR_COLORS);
+  let mrHairColor = MR_HAIR_COLORS[mrHair];
   let mrHighlights = {};
   let mrLibraryLoading = false;
-  const MR_SKIN_TONES = [
-    'rgb(245,201,160)', 'rgb(212,149,106)', 'rgb(156,100,64)', 'rgb(92,51,32)',
-  ];
-  const MR_HAIR_COLORS = [
-    'rgb(26,18,8)', 'rgb(74,44,26)', 'rgb(196,152,40)', 'rgb(224,219,212)',
-  ];
   /* Coarse fallback — one muscle set per lift *class*. Used for custom
      lifts and manually color-painted calendar days, where all we know is
      the broad category (squat / bench / dead / arm). */
@@ -2598,15 +2700,32 @@ function initApp(uid) {
     mrApplyHighlights();
   }
 
-  function mrSetSkin(idx) {
+  function mrSetSkin(idx, persist = true) {
+    if (!mrValidSwatchIndex(idx, MR_SKIN_TONES)) idx = 0;
     mrSkin = idx;
+    if (persist) {
+      mrPersistSkin(idx);
+      if (uid) {
+        settingsRef().set({ muscleRecoverySkin: idx }, { merge: true })
+          .catch(err => showToast('Could not save skin tone - ' + (err?.message || 'check your connection.')));
+      }
+    }
     document.querySelectorAll('#mr-skin-swatches .mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
     const style = mrBuildStyle();
     [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) w.setStyle(style); });
   }
 
-  function mrSetHairColor(idx) {
-    mrHairColor = MR_HAIR_COLORS[idx];
+  function mrSetHairColor(idx, persist = true) {
+    if (!mrValidSwatchIndex(idx, MR_HAIR_COLORS)) idx = 0;
+    mrHair = idx;
+    mrHairColor = MR_HAIR_COLORS[mrHair];
+    if (persist) {
+      mrPersistHair(idx);
+      if (uid) {
+        settingsRef().set({ muscleRecoveryHair: idx }, { merge: true })
+          .catch(err => showToast('Could not save hair color - ' + (err?.message || 'check your connection.')));
+      }
+    }
     document.querySelectorAll('#mr-hair-swatches .mr-swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
     const style = mrBuildStyle();
     [mrWidgetFront, mrWidgetBack].forEach(w => { if (w) w.setStyle(style); });
@@ -4704,6 +4823,20 @@ function initApp(uid) {
       if (mrValidGender(currentSettings.muscleRecoveryGender) && currentSettings.muscleRecoveryGender !== mrGender) {
         mrPersistGender(currentSettings.muscleRecoveryGender);
         mrSetGender(currentSettings.muscleRecoveryGender, false);
+      }
+      const settingsMrSkin = Number.isInteger(currentSettings.muscleRecoverySkin)
+        ? currentSettings.muscleRecoverySkin
+        : parseInt(currentSettings.muscleRecoverySkin, 10);
+      if (mrValidSwatchIndex(settingsMrSkin, MR_SKIN_TONES) && settingsMrSkin !== mrSkin) {
+        mrPersistSkin(settingsMrSkin);
+        mrSetSkin(settingsMrSkin, false);
+      }
+      const settingsMrHair = Number.isInteger(currentSettings.muscleRecoveryHair)
+        ? currentSettings.muscleRecoveryHair
+        : parseInt(currentSettings.muscleRecoveryHair, 10);
+      if (mrValidSwatchIndex(settingsMrHair, MR_HAIR_COLORS) && settingsMrHair !== mrHair) {
+        mrPersistHair(settingsMrHair);
+        mrSetHairColor(settingsMrHair, false);
       }
       applyNavAvatar(currentUser, currentSettings.avatarId || null, currentSettings.avatarRingColor || null, currentSettings.avatarBgColor || null, currentSettings.avatarIconColor || null, currentSettings.avatarPhotoUrl || null, currentSettings.avatarZoom != null ? currentSettings.avatarZoom : null, currentSettings.avatarPosX != null ? currentSettings.avatarPosX : null, currentSettings.avatarPosY != null ? currentSettings.avatarPosY : null, true);
     } else {
