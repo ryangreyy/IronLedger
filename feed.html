@@ -414,6 +414,13 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 .h2h-fo-result{ text-align:center; font-family:var(--display); font-size:18px; margin-top:10px; letter-spacing:.5px; }
 .h2h-fo-result.h2h-fo-won{ color:#4ade80; }
 .h2h-fo-result.h2h-fo-lost{ color:var(--text-dimmer); }
+.h2h-card-completed{ position:relative; }
+.h2h-dismiss-btn{
+  position:absolute; top:10px; right:10px; width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; background:none; border:none;
+  color:var(--text-dimmer); cursor:pointer; transition:color .15s, background .15s; font-size:14px;
+}
+.h2h-dismiss-btn:hover{ color:var(--down); background:rgba(255,255,255,.05); }
 .h2h-fo-actions{ display:flex; gap:8px; margin-top:12px; }
 .h2h-fo-actions button{
   flex:1; padding:8px; border-radius:8px; font-family:var(--mono); font-size:11px; font-weight:700;
@@ -1737,7 +1744,16 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         c[myAwardField(c)] = true;
       }
 
-      renderH2HList(challenges, mySettings, otherSettingsByUid);
+      /* A completed challenge dismissed from one side stays intact for the
+         other -- headToHead is a shared doc, so this is a per-viewer hide,
+         not a delete. */
+      const visibleChallenges = challenges.filter(c => {
+        if (c.status !== 'completed') return true;
+        const dismissedByMe = c.myRole === 'challenger' ? c.dismissedByChallenger : c.dismissedByOpponent;
+        return !dismissedByMe;
+      });
+
+      renderH2HList(visibleChallenges, mySettings, otherSettingsByUid);
       updateH2HTabDot(challenges);
     } catch (err) {
       console.error('Head-to-head load failed:', err);
@@ -1848,7 +1864,8 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       /* completed */
       const draw = !c.winnerUid;
       const won  = c.winnerUid === h2hMyUid;
-      return `<div class="h2h-card">
+      return `<div class="h2h-card h2h-card-completed">
+        <button class="h2h-dismiss-btn" data-h2h-dismiss="${c.id}" data-h2h-dismiss-role="${c.myRole}" aria-label="Remove this challenge"><i class="ti ti-x" aria-hidden="true"></i></button>
         <div class="h2h-fo-top"><span class="h2h-fo-lift">${feedEscapeHTML(c.lift)}</span><span class="h2h-fo-meta">Final</span></div>
         <div class="h2h-fo-faceoff">
           <div class="h2h-fo-side${won ? ' h2h-fo-lead' : (draw ? '' : ' h2h-fo-dim')}">
@@ -2259,6 +2276,22 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     const acceptBtn  = e.target.closest('[data-h2h-accept]');
     const declineBtn = e.target.closest('[data-h2h-decline]');
     const expandCard = e.target.closest('[data-h2h-expand]');
+    const dismissBtn = e.target.closest('[data-h2h-dismiss]');
+    if (dismissBtn) {
+      const id = dismissBtn.dataset.h2hDismiss;
+      const role = dismissBtn.dataset.h2hDismissRole;
+      const field = role === 'challenger' ? 'dismissedByChallenger' : 'dismissedByOpponent';
+      dismissBtn.disabled = true;
+      const card = dismissBtn.closest('.h2h-card');
+      try {
+        await db.doc(`headToHead/${id}`).update({ [field]: true });
+        if (card) card.remove();
+      } catch (err) {
+        dismissBtn.disabled = false;
+        alert('Could not remove that challenge: ' + err.message);
+      }
+      return;
+    }
     if (acceptBtn) {
       const id = acceptBtn.dataset.h2hAccept;
       acceptBtn.textContent = '…'; acceptBtn.disabled = true;
