@@ -381,40 +381,48 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 /* ── Head-to-head challenges ── */
 .h2h-cards{ display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
 .h2h-card{
-  padding:14px 16px; border-radius:10px;
-  background:rgba(255,255,255,.03); border:1px solid var(--border);
+  padding:14px 16px; border-radius:12px;
+  background:linear-gradient(180deg,var(--surface),var(--bg-2)); border:1px solid var(--border);
 }
-.h2h-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:2px; }
-.h2h-card-title{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text); }
-.h2h-card-sub{ font-family:var(--mono); font-size:11px; color:var(--text-dimmer); margin-top:3px; }
 .h2h-card-message{
   font-family:var(--body); font-size:13px; font-style:italic; color:var(--text-dim);
-  margin-top:8px; padding:8px 10px; border-radius:8px; background:var(--bg-2);
+  margin-top:10px; padding:8px 10px; border-radius:8px; background:var(--bg-2);
   border-left:2px solid var(--accent);
 }
-.h2h-badge{
-  font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-  padding:3px 9px; border-radius:20px; flex-shrink:0; white-space:nowrap;
-}
-.h2h-badge.pending{ background:rgba(255,193,7,.12); color:#ffc107; border:1px solid rgba(255,193,7,.35); }
-.h2h-badge.active{ background:rgba(193,39,45,.12); color:var(--accent-bright); border:1px solid rgba(193,39,45,.35); }
-.h2h-badge.won{ background:rgba(74,222,128,.12); color:#4ade80; border:1px solid rgba(74,222,128,.35); }
-.h2h-badge.lost{ background:rgba(255,255,255,.05); color:var(--text-dimmer); border:1px solid var(--border); }
-.h2h-progress-row{ display:flex; align-items:center; gap:10px; margin-top:9px; font-family:var(--mono); font-size:12px; }
-.h2h-progress-name{ width:88px; flex-shrink:0; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.h2h-progress-track{ flex:1; height:6px; background:var(--bg-2); border-radius:3px; overflow:hidden; border:1px solid var(--border); }
-.h2h-progress-fill{ height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent),var(--accent-bright)); transition:width .5s; }
-.h2h-progress-val{ width:58px; text-align:right; flex-shrink:0; font-weight:700; color:var(--text); }
-.h2h-actions{ display:flex; gap:8px; margin-top:10px; }
-.h2h-actions button{
+.h2h-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:16px 0; }
+
+/* ── Face-off card (pending / active / completed) ── */
+.h2h-fo-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.h2h-fo-lift{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text); }
+.h2h-fo-meta{ font-family:var(--mono); font-size:10px; color:var(--text-dimmer); text-transform:uppercase; letter-spacing:.08em; }
+.h2h-fo-faceoff{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
+.h2h-fo-side{ display:flex; flex-direction:column; align-items:center; gap:5px; text-align:center; min-width:0; position:relative; }
+.h2h-fo-side .c3-avatar{ transition:opacity .2s, filter .2s; }
+.h2h-fo-side.h2h-fo-dim .c3-avatar{ opacity:.4; filter:grayscale(.6); }
+.h2h-fo-side.h2h-fo-lead .c3-avatar{ box-shadow:0 0 0 2px var(--gold,#FFD700), 0 4px 14px rgba(255,215,0,.35); }
+.h2h-fo-crown{ position:absolute; top:-15px; left:50%; transform:translateX(-50%); font-size:14px; color:var(--gold,#FFD700); }
+.h2h-fo-name{ font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text-dim); max-width:92px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.h2h-fo-score{ font-family:var(--display); font-size:22px; color:var(--text); line-height:1; }
+.h2h-fo-score .h2h-fo-unit{ font-family:var(--mono); font-size:9px; color:var(--text-dimmer); margin-left:3px; font-weight:700; }
+.h2h-fo-vs{ display:flex; flex-direction:column; align-items:center; gap:7px; }
+.h2h-fo-vs-text{ font-family:var(--display); font-size:14px; color:var(--text-dimmer); }
+.h2h-fo-waiting-icon{ font-size:15px; color:var(--text-dimmer); opacity:.7; }
+.h2h-fo-tug{ display:flex; width:44px; height:4px; border-radius:2px; overflow:hidden; background:var(--border-strong); }
+.h2h-fo-tug-me{ background:linear-gradient(90deg,var(--accent),var(--accent-bright)); }
+.h2h-fo-tug-them{ background:var(--bench); }
+.h2h-fo-caption{ text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin-top:12px; }
+.h2h-fo-result{ text-align:center; font-family:var(--display); font-size:18px; margin-top:10px; letter-spacing:.5px; }
+.h2h-fo-result.h2h-fo-won{ color:#4ade80; }
+.h2h-fo-result.h2h-fo-lost{ color:var(--text-dimmer); }
+.h2h-fo-actions{ display:flex; gap:8px; margin-top:12px; }
+.h2h-fo-actions button{
   flex:1; padding:8px; border-radius:8px; font-family:var(--mono); font-size:11px; font-weight:700;
   letter-spacing:.05em; text-transform:uppercase; cursor:pointer; transition:all .15s; border:none;
 }
-.h2h-accept-btn{ background:var(--accent); border:1px solid var(--accent-bright) !important; color:#fff; }
-.h2h-accept-btn:hover{ background:#a01f24; }
-.h2h-decline-btn{ background:transparent; border:1px solid var(--border-strong) !important; color:var(--text-dim); }
-.h2h-decline-btn:hover{ border-color:var(--down) !important; color:var(--down); }
-.h2h-empty{ font-family:var(--mono); font-size:13px; color:var(--text-dimmer); padding:16px 0; }
+.h2h-fo-accept{ background:var(--accent); border:1px solid var(--accent-bright) !important; color:#fff; }
+.h2h-fo-accept:hover{ background:#a01f24; }
+.h2h-fo-decline{ background:transparent; border:1px solid var(--border-strong) !important; color:var(--text-dim); }
+.h2h-fo-decline:hover{ border-color:var(--down) !important; color:var(--down); }
 
 .h2h-card-expandable{ cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
 .h2h-card-expandable:hover{ border-color:var(--border-strong); background:rgba(255,255,255,.045); }
@@ -1665,6 +1673,13 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         ...asOpponent.docs.map(d => ({ id: d.id, ...d.data(), myRole: 'opponent' })),
       ];
 
+      /* Avatars for the face-off cards -- one settings fetch per unique
+         opponent across all challenges, not per card. */
+      const otherUids = [...new Set(challenges.map(c => c.myRole === 'challenger' ? c.opponentUid : c.challengerUid))];
+      const otherSettingsSnaps = await Promise.all(otherUids.map(uid => db.doc(`users/${uid}/settings/main`).get()));
+      const otherSettingsByUid = {};
+      otherUids.forEach((uid, i) => { otherSettingsByUid[uid] = otherSettingsSnaps[i].exists ? otherSettingsSnaps[i].data() : {}; });
+
       /* Recalculate both sides from current sessions on every load. Totals
          can go down after a delete/edit, so stored challenge values must be
          exact snapshots of the live logs, not only ever-increasing bests. */
@@ -1719,7 +1734,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         c[myAwardField(c)] = true;
       }
 
-      renderH2HList(challenges);
+      renderH2HList(challenges, mySettings, otherSettingsByUid);
       updateH2HTabDot(challenges);
     } catch (err) {
       console.error('Head-to-head load failed:', err);
@@ -1740,7 +1755,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     if (mobileDot)  mobileDot.style.display  = display;
   }
 
-  function renderH2HList(challenges) {
+  function renderH2HList(challenges, mySettings, otherSettingsByUid) {
     const list = document.getElementById('h2hList');
     if (!list) return;
 
@@ -1751,6 +1766,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 
     const order = { pending: 0, active: 1, completed: 2 };
     challenges.sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3));
+    const myAvatar = buildAvatarEl(mySettings, 'You');
 
     list.innerHTML = '<div class="h2h-cards">' + challenges.map(c => {
       const otherName = c.myRole === 'challenger' ? c.opponentUsername   : c.challengerUsername;
@@ -1758,61 +1774,68 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       const otherBest = c.myRole === 'challenger' ? c.opponentBest       : c.challengerBest;
       const byLabel   = c.endDate ? 'by ' + h2hFmtDate(c.endDate) : '';
       const unit      = H2H_METRIC_LABELS[c.metric] || H2H_METRIC_LABELS.weight;
+      const otherUid  = c.myRole === 'challenger' ? c.opponentUid : c.challengerUid;
+      const otherAvatar = buildAvatarEl(otherSettingsByUid[otherUid] || {}, otherName);
 
       if (c.status === 'pending') {
         if (c.myRole === 'opponent') {
           const messageHtml = c.message
             ? `<div class="h2h-card-message">"${feedEscapeHTML(c.message)}"</div>` : '';
           return `<div class="h2h-card">
-            <div class="h2h-card-head">
-              <div>
-                <div class="h2h-card-title">${c.challengerUsername} challenged you</div>
-                <div class="h2h-card-sub">${c.lift} · ${byLabel}</div>
-                ${messageHtml}
-              </div>
-              <span class="h2h-badge pending">Pending</span>
+            <div class="h2h-fo-top"><span class="h2h-fo-lift">${feedEscapeHTML(c.lift)}</span><span class="h2h-fo-meta">${byLabel}</span></div>
+            <div class="h2h-fo-faceoff">
+              <div class="h2h-fo-side">${otherAvatar}<div class="h2h-fo-name">${feedEscapeHTML(c.challengerUsername)}</div></div>
+              <div class="h2h-fo-vs"><div class="h2h-fo-vs-text">VS</div><i class="ti ti-hourglass h2h-fo-waiting-icon" aria-hidden="true"></i></div>
+              <div class="h2h-fo-side h2h-fo-dim">${myAvatar}<div class="h2h-fo-name">You</div></div>
             </div>
-            <div class="h2h-actions">
-              <button class="h2h-accept-btn" data-h2h-accept="${c.id}">Accept</button>
-              <button class="h2h-decline-btn" data-h2h-decline="${c.id}">Decline</button>
+            <div class="h2h-fo-caption">${feedEscapeHTML(c.challengerUsername)} challenged you</div>
+            ${messageHtml}
+            <div class="h2h-fo-actions">
+              <button class="h2h-fo-accept" data-h2h-accept="${c.id}">Accept</button>
+              <button class="h2h-fo-decline" data-h2h-decline="${c.id}">Decline</button>
             </div>
           </div>`;
         }
         return `<div class="h2h-card">
-          <div class="h2h-card-head">
-            <div>
-              <div class="h2h-card-title">Waiting on ${c.opponentUsername}</div>
-              <div class="h2h-card-sub">${c.lift} · ${byLabel}</div>
-            </div>
-            <span class="h2h-badge pending">Pending</span>
+          <div class="h2h-fo-top"><span class="h2h-fo-lift">${feedEscapeHTML(c.lift)}</span><span class="h2h-fo-meta">${byLabel}</span></div>
+          <div class="h2h-fo-faceoff">
+            <div class="h2h-fo-side">${myAvatar}<div class="h2h-fo-name">You</div></div>
+            <div class="h2h-fo-vs"><div class="h2h-fo-vs-text">VS</div><i class="ti ti-hourglass h2h-fo-waiting-icon" aria-hidden="true"></i></div>
+            <div class="h2h-fo-side h2h-fo-dim">${otherAvatar}<div class="h2h-fo-name">${feedEscapeHTML(c.opponentUsername)}</div></div>
           </div>
+          <div class="h2h-fo-caption">Waiting on ${feedEscapeHTML(c.opponentUsername)}</div>
         </div>`;
       }
 
       if (c.status === 'active') {
-        const daysLeft = h2hDaysLeft(c.endDate);
-        const maxVal   = Math.max(myBest, otherBest, 1);
-        const otherUid = c.myRole === 'challenger' ? c.opponentUid : c.challengerUid;
+        const daysLeft  = h2hDaysLeft(c.endDate);
+        const total     = (myBest || 0) + (otherBest || 0);
+        const myShare   = total > 0 ? (myBest || 0) / total : 0.5;
+        const iLead     = (myBest || 0) > (otherBest || 0);
+        const theyLead  = (otherBest || 0) > (myBest || 0);
         return `<div class="h2h-card h2h-card-expandable" data-h2h-expand="${c.id}"
              data-h2h-lift="${feedEscapeHTML(c.lift)}" data-h2h-start="${c.startDate}" data-h2h-end="${c.endDate}"
              data-h2h-metric="${feedEscapeHTML(c.metric || 'weight')}"
              data-h2h-other-uid="${otherUid}" data-h2h-other-name="${feedEscapeHTML(otherName)}">
-          <div class="h2h-card-head">
-            <div>
-              <div class="h2h-card-title">${c.lift}</div>
-              <div class="h2h-card-sub">${daysLeft > 0 ? daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' left' : 'Ending today'}</div>
+          <div class="h2h-fo-top">
+            <span class="h2h-fo-lift">${feedEscapeHTML(c.lift)}</span>
+            <span class="h2h-fo-meta">${daysLeft > 0 ? daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' left' : 'Ending today'}</span>
+          </div>
+          <div class="h2h-fo-faceoff">
+            <div class="h2h-fo-side${iLead ? ' h2h-fo-lead' : ''}">
+              ${iLead ? '<i class="ti ti-crown h2h-fo-crown" aria-hidden="true"></i>' : ''}
+              ${myAvatar}<div class="h2h-fo-name">You</div>
+              <div class="h2h-fo-score">${myBest || '—'}<span class="h2h-fo-unit">${unit}</span></div>
             </div>
-            <span class="h2h-badge active">Active</span>
-          </div>
-          <div class="h2h-progress-row">
-            <div class="h2h-progress-name">You</div>
-            <div class="h2h-progress-track"><div class="h2h-progress-fill" style="width:${myBest / maxVal * 100}%"></div></div>
-            <div class="h2h-progress-val">${myBest || '—'} ${unit}</div>
-          </div>
-          <div class="h2h-progress-row">
-            <div class="h2h-progress-name">${otherName}</div>
-            <div class="h2h-progress-track"><div class="h2h-progress-fill" style="width:${otherBest / maxVal * 100}%"></div></div>
-            <div class="h2h-progress-val">${otherBest || '—'} ${unit}</div>
+            <div class="h2h-fo-vs">
+              <div class="h2h-fo-vs-text">VS</div>
+              <div class="h2h-fo-tug"><div class="h2h-fo-tug-me" style="width:${myShare * 100}%"></div><div class="h2h-fo-tug-them" style="width:${(1 - myShare) * 100}%"></div></div>
+            </div>
+            <div class="h2h-fo-side${theyLead ? ' h2h-fo-lead' : ''}">
+              ${theyLead ? '<i class="ti ti-crown h2h-fo-crown" aria-hidden="true"></i>' : ''}
+              ${otherAvatar}<div class="h2h-fo-name">${feedEscapeHTML(otherName)}</div>
+              <div class="h2h-fo-score">${otherBest || '—'}<span class="h2h-fo-unit">${unit}</span></div>
+            </div>
           </div>
           <div class="h2h-expand-hint"><i class="ti ti-chevron-down" aria-hidden="true"></i> Tap to see sessions</div>
           <div class="h2h-sessions-detail" id="h2hDetail-${c.id}"></div>
@@ -1820,20 +1843,28 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       }
 
       /* completed */
-      const draw     = !c.winnerUid;
-      const won      = c.winnerUid === h2hMyUid;
-      const badgeCls = draw ? 'lost' : (won ? 'won' : 'lost');
-      const badgeTxt = draw ? 'Draw' : (won ? 'You won' : 'You lost');
+      const draw = !c.winnerUid;
+      const won  = c.winnerUid === h2hMyUid;
       return `<div class="h2h-card">
-        <div class="h2h-card-head">
-          <div>
-            <div class="h2h-card-title">${c.lift} vs ${otherName}</div>
-            <div class="h2h-card-sub">You ${myBest} ${unit} · ${otherName} ${otherBest} ${unit}</div>
+        <div class="h2h-fo-top"><span class="h2h-fo-lift">${feedEscapeHTML(c.lift)}</span><span class="h2h-fo-meta">Final</span></div>
+        <div class="h2h-fo-faceoff">
+          <div class="h2h-fo-side${won ? ' h2h-fo-lead' : (draw ? '' : ' h2h-fo-dim')}">
+            ${won ? '<i class="ti ti-crown h2h-fo-crown" aria-hidden="true"></i>' : ''}
+            ${myAvatar}<div class="h2h-fo-name">You</div>
+            <div class="h2h-fo-score">${myBest}<span class="h2h-fo-unit">${unit}</span></div>
           </div>
-          <span class="h2h-badge ${badgeCls}">${badgeTxt}</span>
+          <div class="h2h-fo-vs"><div class="h2h-fo-vs-text">VS</div></div>
+          <div class="h2h-fo-side${(!won && !draw) ? ' h2h-fo-lead' : (draw ? '' : ' h2h-fo-dim')}">
+            ${(!won && !draw) ? '<i class="ti ti-crown h2h-fo-crown" aria-hidden="true"></i>' : ''}
+            ${otherAvatar}<div class="h2h-fo-name">${feedEscapeHTML(otherName)}</div>
+            <div class="h2h-fo-score">${otherBest}<span class="h2h-fo-unit">${unit}</span></div>
+          </div>
         </div>
+        <div class="h2h-fo-result ${draw ? 'h2h-fo-lost' : (won ? 'h2h-fo-won' : 'h2h-fo-lost')}">${draw ? 'DRAW' : (won ? 'YOU WON' : 'YOU LOST')}</div>
       </div>`;
     }).join('') + '</div>';
+
+    applyPhotoAvatars();
   }
 
   /* ── Future-only calendar date picker for the challenge end date.
