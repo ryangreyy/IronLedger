@@ -13,6 +13,8 @@
     'macros.html', 'profile.html', 'settings.html', 'tools.html',
     'guide.html', 'yoga.html', 'add-friend.html',
   ];
+  var PAGE_CACHE = window.__IG_PAGE_CACHE = window.__IG_PAGE_CACHE || {};
+  var PAGE_CACHE_TTL = 5 * 60 * 1000;
   var busy = false;
 
   function pageName(url) {
@@ -25,6 +27,44 @@
 
   function isSoft(url) {
     return SOFT_PAGES.indexOf(pageName(url)) !== -1;
+  }
+
+  function absoluteUrl(url) {
+    try { return new URL(url, location.href).href; }
+    catch (e) { return ''; }
+  }
+
+  function fetchPageHtml(url) {
+    var href = absoluteUrl(url);
+    if (!href) return Promise.reject(new Error('Bad navigation URL'));
+
+    var cached = PAGE_CACHE[href];
+    var now = Date.now();
+    if (cached && cached.html && now - cached.time < PAGE_CACHE_TTL) {
+      return Promise.resolve(cached.html);
+    }
+    if (cached && cached.promise) return cached.promise;
+
+    var promise = fetch(href, { credentials: 'same-origin' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('Navigation fetch failed');
+        return r.text();
+      })
+      .then(function (html) {
+        PAGE_CACHE[href] = { html: html, time: Date.now() };
+        return html;
+      }, function (err) {
+        delete PAGE_CACHE[href];
+        throw err;
+      });
+
+    PAGE_CACHE[href] = { promise: promise, time: now };
+    return promise;
+  }
+
+  function prefetchPage(url) {
+    if (!isSoft(url)) return;
+    fetchPageHtml(url).catch(function () {});
   }
 
   function scriptName(src) {
@@ -182,11 +222,7 @@
     busy = true;
     var target = new URL(url, location.href);
 
-    fetch(target.href, { credentials: 'same-origin', cache: 'no-store' })
-      .then(function (r) {
-        if (!r.ok) throw new Error('Navigation fetch failed');
-        return r.text();
-      })
+    fetchPageHtml(target.href)
       .then(function (html) {
         var doc = new DOMParser().parseFromString(html, 'text/html');
         var root = ensureRoot();
@@ -227,6 +263,13 @@
   }
 
   ensureRoot();
+
+  window.IGSoftNavPrefetch = prefetchPage;
+  window.IGSoftNavPrefetchAll = function () {
+    SOFT_PAGES.forEach(function (page) {
+      if (page !== pageName(location.href)) prefetchPage(page);
+    });
+  };
 
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;

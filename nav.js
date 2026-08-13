@@ -308,16 +308,38 @@
      Safari, which has never reliably supported rel=prefetch. A warm
      HTTP cache entry is all a normal <a href> navigation needs to load
      near-instantly afterward. */
+  var PREFETCH_PAGES = [
+    'index.html', 'feed.html', 'training.html', 'dashboard.html',
+    'macros.html', 'profile.html', 'settings.html', 'tools.html',
+    'guide.html', 'yoga.html', 'add-friend.html',
+  ];
+  var PAGE_CACHE = window.__IG_PAGE_CACHE = window.__IG_PAGE_CACHE || {};
   var prefetched = {};
   function prefetchUrl(url) {
     if (!url || prefetched[url] || url === p) return;
     prefetched[url] = true;
-    fetch(url, { credentials: 'same-origin' }).catch(function () {});
+    if (typeof window.IGSoftNavPrefetch === 'function') {
+      window.IGSoftNavPrefetch(url);
+      return;
+    }
+    try {
+      var href = new URL(url, location.href).href;
+      var cached = PAGE_CACHE[href];
+      if (cached && (cached.html || cached.promise)) return;
+      var promise = fetch(href, { credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error('Prefetch failed'); return r.text(); })
+        .then(function (html) { PAGE_CACHE[href] = { html: html, time: Date.now() }; return html; },
+          function (err) { delete PAGE_CACHE[href]; throw err; });
+      PAGE_CACHE[href] = { promise: promise, time: Date.now() };
+    } catch (e) {}
   }
 
-  // Idle: warm the 6 most-visited pages (bottom nav) ahead of any tap.
+  // Idle: warm every app page ahead of any tap. Staggering keeps the
+  // current page responsive while still making later navigation near-instant.
   var idlePrefetch = function () {
-    items.forEach(function (item) { prefetchUrl(item[0]); });
+    PREFETCH_PAGES.forEach(function (page, idx) {
+      setTimeout(function () { prefetchUrl(page); }, idx * 80);
+    });
   };
   if ('requestIdleCallback' in window) requestIdleCallback(idlePrefetch, { timeout: 2000 });
   else setTimeout(idlePrefetch, 1500);
