@@ -2749,14 +2749,6 @@ function initApp(uid) {
     if (typeof w.clearSelection === 'function') {
       try { w.clearSelection(); } catch (_) {}
     }
-    w.on('muscleEnter', e => {
-      const el = document.getElementById('mr-muscle-label');
-      if (el) el.textContent = e.displayName || e.muscle;
-    });
-    w.on('muscleLeave', () => {
-      const el = document.getElementById('mr-muscle-label');
-      if (el) el.textContent = 'Hover a muscle';
-    });
     requestAnimationFrame(() => w.resize());
     return w;
   }
@@ -2913,10 +2905,6 @@ function initApp(uid) {
 
     mrRefreshVisibleWidgets();
 
-    const labelEl = document.getElementById('mr-muscle-label');
-    if (labelEl && Object.keys(mrHighlights).length === 0) {
-      labelEl.textContent = '';
-    }
   }
 
   /* The widgets are constructed while the Muscle Recovery tab panel is
