@@ -345,8 +345,23 @@ function showOnboardingModal(user) {
   let obMrGender = 'male';
   let obMrSkin = 0;
   let obMrHair = 0;
-  const OB_MR_SKIN_TONES = ['#f5c9a0', '#d4956a', '#9c6440', '#5c3320'];
-  const OB_MR_HAIR_COLORS = ['#1a1208', '#4a2c1a', '#c49828', '#e0dbd4'];
+  let obMrWidget = null;
+  const OB_MR_SKIN_TONES = [
+    { color: '#f7d6bc', label: 'Fair' },
+    { color: '#e4ad7c', label: 'Light' },
+    { color: '#b8754e', label: 'Medium' },
+    { color: '#70412d', label: 'Deep' },
+    { color: '#4b2f24', label: 'Dark' },
+    { color: '#2f201b', label: 'Ebony' },
+  ];
+  const OB_MR_HAIR_COLORS = [
+    { color: '#15100c', label: 'Black' },
+    { color: '#4a2b18', label: 'Dark brown' },
+    { color: '#d2a44c', label: 'Blonde' },
+    { color: '#c7beb4', label: 'Gray' },
+    { color: '#8a4d2c', label: 'Auburn' },
+    { color: '#f1eadf', label: 'Platinum' },
+  ];
 
   authScreen.style.display = 'none';
 
@@ -357,8 +372,27 @@ function showOnboardingModal(user) {
   overlay.appendChild(card);
   document.body.appendChild(overlay);
 
+  function obMrStyle() {
+    return {
+      defaultFillColor: 'rgb(52,58,68)',
+      strokeColor: 'rgb(30,34,42)', strokeWidth: 0.4,
+      selectionColor: '#c1272d', selectionStrokeColor: '#f0565b', selectionStrokeWidth: 2,
+      headColor: OB_MR_SKIN_TONES[obMrSkin]?.color || OB_MR_SKIN_TONES[0].color,
+      hairColor: OB_MR_HAIR_COLORS[obMrHair]?.color || OB_MR_HAIR_COLORS[0].color,
+      shadowColor: 'transparent', shadowRadius: 0, shadowOffsetX: 0, shadowOffsetY: 0,
+    };
+  }
+
+  function obDestroyRecoveryWidget() {
+    if (obMrWidget && typeof obMrWidget.destroy === 'function') {
+      try { obMrWidget.destroy(); } catch (_) {}
+    }
+    obMrWidget = null;
+  }
+
   /* ---- Step 1: Identity ---- */
   function renderStepName() {
+    obDestroyRecoveryWidget();
     card.innerHTML = `
       <div class="eyebrow">Welcome to IronGladiator</div>
       <h2 class="title" style="margin:6px 0 6px;">Create your profile</h2>
@@ -415,6 +449,7 @@ function showOnboardingModal(user) {
 
   /* ---- Step 2: Email confirm (required, read-only — already tied to the account) ---- */
   function renderStepEmailConfirm() {
+    obDestroyRecoveryWidget();
     card.innerHTML = `
       <div class="eyebrow">Step 2 of 6</div>
       <h2 class="title" style="margin:6px 0 22px;">Confirm your email</h2>
@@ -429,6 +464,7 @@ function showOnboardingModal(user) {
 
   /* ---- Step 3: Training profile ---- */
   function renderStepTrainingProfile() {
+    obDestroyRecoveryWidget();
     const expOpts = [
       ['starting', 'Just starting'],
       ['under_1_year', 'Under 1 year'],
@@ -556,10 +592,7 @@ function showOnboardingModal(user) {
       <p class="ob-step-sub">Choose how the Muscle Recovery body map appears.</p>
 
       <div class="ob-recovery-preview">
-        <div class="ob-recovery-body ${obMrGender}" style="--ob-skin:${OB_MR_SKIN_TONES[obMrSkin]};--ob-hair:${OB_MR_HAIR_COLORS[obMrHair]};">
-          <div class="ob-recovery-head"></div>
-          <div class="ob-recovery-torso"></div>
-        </div>
+        <div id="ob-recovery-map" class="ob-recovery-map" aria-label="Muscle Recovery preview"></div>
       </div>
 
       <div class="ob-section">
@@ -573,14 +606,14 @@ function showOnboardingModal(user) {
       <div class="ob-section">
         <div class="ob-section-head"><span>Skin tone</span><small>Optional</small></div>
         <div class="mr-swatch-row ob-recovery-swatches">
-          ${OB_MR_SKIN_TONES.map((color, i) => `<button type="button" class="mr-swatch${obMrSkin === i ? ' active' : ''}" data-ob-mr-skin="${i}" style="background:${color}" aria-label="Skin tone ${i + 1}"></button>`).join('')}
+          ${OB_MR_SKIN_TONES.map((tone, i) => `<button type="button" class="mr-swatch${obMrSkin === i ? ' active' : ''}" data-ob-mr-skin="${i}" style="background:${tone.color}" aria-label="${tone.label} skin tone" title="${tone.label}"></button>`).join('')}
         </div>
       </div>
 
       <div class="ob-section ob-section-last">
         <div class="ob-section-head"><span>Hair color</span><small>Optional</small></div>
         <div class="mr-swatch-row ob-recovery-swatches">
-          ${OB_MR_HAIR_COLORS.map((color, i) => `<button type="button" class="mr-swatch${obMrHair === i ? ' active' : ''}" data-ob-mr-hair="${i}" style="background:${color}" aria-label="Hair color ${i + 1}"></button>`).join('')}
+          ${OB_MR_HAIR_COLORS.map((tone, i) => `<button type="button" class="mr-swatch${obMrHair === i ? ' active' : ''}" data-ob-mr-hair="${i}" style="background:${tone.color}" aria-label="${tone.label} hair color" title="${tone.label}"></button>`).join('')}
         </div>
       </div>
 
@@ -589,12 +622,26 @@ function showOnboardingModal(user) {
     `;
 
     function updatePreview() {
-      const body = document.querySelector('.ob-recovery-body');
-      if (!body) return;
-      body.classList.toggle('male', obMrGender === 'male');
-      body.classList.toggle('female', obMrGender === 'female');
-      body.style.setProperty('--ob-skin', OB_MR_SKIN_TONES[obMrSkin]);
-      body.style.setProperty('--ob-hair', OB_MR_HAIR_COLORS[obMrHair]);
+      if (!obMrWidget) return;
+      obMrWidget.setGender(obMrGender);
+      obMrWidget.setStyle(obMrStyle());
+    }
+
+    function initPreview() {
+      const container = document.getElementById('ob-recovery-map');
+      if (!container) return;
+      obDestroyRecoveryWidget();
+      if (typeof MuscleMapJS === 'undefined') {
+        container.innerHTML = '<div class="ob-recovery-map-fallback"></div>';
+        return;
+      }
+      obMrWidget = new MuscleMapJS.MuscleMapWidget(container, {
+        gender: obMrGender,
+        side: 'front',
+        interactive: false,
+      });
+      obMrWidget.setStyle(obMrStyle());
+      requestAnimationFrame(() => obMrWidget?.resize?.());
     }
 
     card.querySelectorAll('[data-ob-mr-gender]').forEach(btn => {
@@ -621,6 +668,7 @@ function showOnboardingModal(user) {
 
     document.getElementById('ob-recovery-continue').addEventListener('click', renderStepPrivacy);
     document.getElementById('ob-recovery-back').addEventListener('click', renderStepTrainingProfile);
+    requestAnimationFrame(initPreview);
   }
 
   /* ---- Step 5: Feed privacy ----
@@ -629,6 +677,7 @@ function showOnboardingModal(user) {
      that's made explicit, with an opt-out. Also editable later in
      Settings (this isn't a one-time-only choice). */
   function renderStepPrivacy() {
+    obDestroyRecoveryWidget();
     card.innerHTML = `
       <div class="eyebrow">Step 5 of 6</div>
       <h2 class="title" style="margin:6px 0 10px;">Choose your feed privacy</h2>
@@ -662,6 +711,7 @@ function showOnboardingModal(user) {
 
   /* ---- Step 6: Profile media ---- */
   function renderStepMedia() {
+    obDestroyRecoveryWidget();
     card.innerHTML = `
       <div class="eyebrow">Step 6 of 6</div>
       <h2 class="title" style="margin:6px 0 6px;">Set your profile photos</h2>
@@ -938,6 +988,7 @@ function showOnboardingModal(user) {
       applyNavAvatar(user, null, null, null, null, data.avatarPhotoUrl, obAvatarZoom, obAvatarX, obAvatarY);
     }
 
+    obDestroyRecoveryWidget();
     overlay.remove();
     try { showInstallPrompt(); } catch (e) { console.error('Install prompt error:', e); }
   }
@@ -2264,10 +2315,12 @@ function initApp(uid) {
   let mrWidgetFront = null;
   let mrWidgetBack  = null;
   const MR_SKIN_TONES = [
-    'rgb(245,201,160)', 'rgb(212,149,106)', 'rgb(156,100,64)', 'rgb(92,51,32)',
+    'rgb(247,214,188)', 'rgb(228,173,124)', 'rgb(184,117,78)',
+    'rgb(112,65,45)', 'rgb(75,47,36)', 'rgb(47,32,27)',
   ];
   const MR_HAIR_COLORS = [
-    'rgb(26,18,8)', 'rgb(74,44,26)', 'rgb(196,152,40)', 'rgb(224,219,212)',
+    'rgb(21,16,12)', 'rgb(74,43,24)', 'rgb(210,164,76)',
+    'rgb(199,190,180)', 'rgb(138,77,44)', 'rgb(241,234,223)',
   ];
   const MR_GENDER_KEY = 'ig-muscle-recovery-gender';
   const MR_SKIN_KEY = 'ig-muscle-recovery-skin';
