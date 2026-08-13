@@ -1166,7 +1166,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 /* ---------- MUSCLE RECOVERY CARD ---------- */
 .muscle-recovery-card{ margin-top:18px; padding:18px 20px 18px !important; display:flex; flex-direction:column; gap:12px; }
 .muscle-recovery-card .label{ background:var(--steel-red); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.mr-header{ display:flex; align-items:center; justify-content:center; }
+.mr-header{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
 .mr-toggle{ display:flex; gap:2px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; padding:3px; }
 .mr-toggle button{ background:none; border:none; color:var(--text-dim); font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.08em; padding:4px 10px; border-radius:5px; cursor:pointer; text-transform:uppercase; transition:all .15s; }
 .mr-toggle button.active{ background:rgba(193,39,45,0.18); color:var(--accent-bright); }
@@ -1181,7 +1181,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .mr-map-wrap canvas{ display:block; width:100% !important; height:100% !important; touch-action:pan-y !important; }
 .mr-footer{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .mr-muscle-label{ font-family:var(--mono); font-size:10px; color:var(--text-dim); min-height:14px; }
-.mr-legend{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.mr-legend{ display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; }
 .mr-legend-item{ display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
 .mr-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 .mr-dot-today  { background:#c1272d; box-shadow:0 0 6px #c1272d; }
@@ -1190,10 +1190,9 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .mr-dot-rested { background:#3a4455; border:1px solid rgba(255,255,255,.1); }
 @media(max-width:600px){
   .muscle-recovery-card{ padding:16px !important; gap:14px; }
-  .mr-header{ justify-content:center; }
+  .mr-header{ justify-content:center; gap:9px; }
   .mr-header > .label{ text-align:center; font-size:13px; letter-spacing:.12em; }
-  .mr-footer{ flex-direction:column; align-items:center; }
-  .mr-footer .mr-legend{ display:flex; justify-content:center; }
+  .mr-footer{ justify-content:center; }
   .mr-toggle{ width:100%; }
   .mr-toggle button{ flex:1; padding:7px 8px; }
   .mr-swatch-row{ justify-content:center; gap:8px; }
