@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=117"></script>
+<script src="pwa-update.js?v=118"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 <style>
 /* ── Feed page wrapper ── */
@@ -1519,6 +1519,10 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   let lbMyUid = null;
   let lbData  = { streak: [], best: [], rank: [] };
 
+  function activeLbCategory() {
+    return document.querySelector('#lbTabs .lb-tab.active')?.dataset.lb || 'streak';
+  }
+
   async function loadLeaderboards(myUid) {
     const list = document.getElementById('lbList');
     if (!list) return;
@@ -1558,8 +1562,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       lbData.best   = [...rows].sort((a, b) => b.bestStreak - a.bestStreak || b.streak - a.streak);
       lbData.rank   = [...rows].sort((a, b) => b.xpTotal - a.xpTotal);
 
-      const activeTab = document.querySelector('.lb-tab.active');
-      renderLbList(activeTab ? activeTab.dataset.lb : 'streak');
+      renderLbList(activeLbCategory());
     } catch (err) {
       console.error('Leaderboard load failed:', err);
       list.innerHTML = '<p class="feed-empty">Couldn\'t load leaderboards right now.</p>';
@@ -1608,7 +1611,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   document.getElementById('lbTabs').addEventListener('click', e => {
     const btn = e.target.closest('.lb-tab');
     if (!btn) return;
-    document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#lbTabs .lb-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     renderLbList(btn.dataset.lb);
   });
@@ -2032,6 +2035,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       btn.classList.add('active');
       document.getElementById(panel === 'h2h' ? 'h2hPanel' : 'lbPanel').classList.add('active');
       if (panel === 'h2h') document.getElementById('h2hCreateWrap').classList.add('active');
+      if (panel === 'lb') renderLbList(activeLbCategory());
     }
   });
 
@@ -2048,6 +2052,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
     document.getElementById('feedActivityWrap').classList.toggle('active', panel === 'feed');
     document.getElementById('h2hPanel').classList.toggle('active', panel === 'h2h');
     document.getElementById('lbPanel').classList.toggle('active', panel === 'lb');
+    if (panel === 'lb') renderLbList(activeLbCategory());
   });
 
   /* ── Mobile FAB + bottom sheet for challenge creation. Reuses the exact
