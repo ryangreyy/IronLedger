@@ -2723,9 +2723,18 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       initFeedActivitySearch();
       initFeedCommentsHandlers();
       initFeedReactionHandlers();
-      loadHeadToHead(user.uid);
-      loadLeaderboards(user.uid);
-      loadFeed(user.uid);
+      /* The feed is the point of this page, so it gets the connection to
+         itself. Fired together, the other two panels starved it: the
+         leaderboard pulls up to 200 session docs per friend just to count
+         streaks, and head-to-head re-scores both sides of every active
+         challenge from their raw logs. Next to that the feed's own reads
+         are small, but they were queued behind an order of magnitude more
+         data. Both panels already show "Loading…" in the static HTML, so
+         they just keep showing it a moment longer. */
+      loadFeed(user.uid).finally(() => {
+        loadHeadToHead(user.uid);
+        loadLeaderboards(user.uid);
+      });
     } else {
       feedCurrentUser = null;
       feedMyUsername = null;
