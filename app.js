@@ -3224,8 +3224,7 @@ function initApp(uid) {
     const wrap  = document.getElementById('lastSessions');
     const items = document.getElementById('lastSessionsItems');
     const pill  = document.getElementById('lastSessionsName');
-    const delta = document.getElementById('lastSessionsDelta');
-    if (!wrap || !items || !pill || !delta) return;
+    if (!wrap || !items || !pill) return;
 
     const name = String(liftName || '').trim();
     if (!name) { wrap.hidden = true; items.innerHTML = ''; return; }
@@ -3245,9 +3244,6 @@ function initApp(uid) {
     const cls = normalizeLiftCls(matches[0]?.cls || liftToCls(name) || 'other') || 'other';
     pill.className = 'pill ' + cls;
     pill.textContent = name;
-
-    delta.className = 'last-delta';
-    delta.textContent = '';
 
     if (!matches.length) {
       items.innerHTML = '<span class="last-sessions-none">First time logging this one.</span>';
@@ -3273,18 +3269,6 @@ function initApp(uid) {
                 data-bw="${s.bodyweight ? '1' : '0'}"
               >${load}<span class="ls-vol">${s.sets}&times;${repMetricText(s)}</span><span class="ls-ago">${lastSessionAgo(s.dateRaw)}</span></button>`;
     }).join('');
-
-    /* Only compare loads that are actually comparable. A bodyweight set or
-       a timed hold has no weight to move, and showing "same" off two zeroes
-       would read as a real result. */
-    const comparable = s => !s.bodyweight && +s.wt > 0;
-    if (matches.length === 2 && comparable(matches[0]) && comparable(matches[1])) {
-      const diff = (+matches[0].wt || 0) - (+matches[1].wt || 0);
-      delta.className = 'last-delta ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat');
-      delta.innerHTML = diff > 0 ? `&#9650; ${diff} lbs`
-                      : diff < 0 ? `&#9660; ${Math.abs(diff)} lbs`
-                      : 'same weight';
-    }
 
     items.querySelectorAll('.last-session').forEach(btn => {
       btn.addEventListener('click', () => {

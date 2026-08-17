@@ -1747,12 +1747,9 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
    rules rather than duplicating the palette here. */
 .last-sessions{ margin:0 0 18px; }
 .last-sessions[hidden]{ display:none; }
-.last-sessions-head{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:10px; margin-bottom:8px;
-}
-.last-sessions-head .pill{
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;
+.last-sessions > .pill{
+  display:inline-block; max-width:100%; margin-bottom:8px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:top;
 }
 .last-sessions-items{ display:flex; align-items:stretch; flex-wrap:wrap; gap:7px; }
 .last-session{
@@ -1777,15 +1774,6 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
   letter-spacing:.03em; color:var(--text-dimmer); white-space:nowrap;
 }
 .last-sessions-none{ font-family:var(--body); font-size:12.5px; color:var(--text-dimmer); }
-.last-delta{
-  flex:none; font-family:var(--mono); font-size:9.5px; font-weight:700;
-  letter-spacing:.03em; padding:3px 8px; border-radius:20px;
-  font-variant-numeric:tabular-nums;
-}
-.last-delta:empty{ display:none; }
-.last-delta.up{ color:var(--up); background:rgba(124,227,139,.12); }
-.last-delta.down{ color:var(--down); background:rgba(255,107,107,.12); }
-.last-delta.flat{ color:var(--text-dim); background:rgba(255,255,255,.05); }
 .log-ticket-toggles{ display:flex; gap:18px; flex-wrap:wrap; margin-bottom:18px; }
 .log-ticket-actions{
   display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
