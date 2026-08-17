@@ -3254,11 +3254,11 @@ function initApp(uid) {
       const timed = isTimedSession(s);
       const secs  = +s.timeSeconds || 0;
       const digits = timed ? `${Math.floor(secs / 60)}${String(secs % 60).padStart(2, '0')}` : '';
-      /* Load leads, because it's the number you're deciding against. A
-         timed hold has no load at all, so it simply doesn't get one. */
-      const load = s.bodyweight
-        ? '<span class="ls-load">BW</span>'
-        : (+s.wt > 0 ? `<span class="ls-load">${s.wt}<span class="ls-unit">lbs</span></span>` : '');
+      /* Same two .cardio-stat chips the log's set lines use — effort then
+         load — so a session reads identically here and in Recent Activity.
+         A timed hold carries no load, so it gets the effort chip only. */
+      const effort = `${s.sets}×${repMetricText(s)}`;
+      const load   = s.bodyweight ? 'Bodyweight' : (+s.wt > 0 ? `${s.wt} lbs` : '');
       return `<button type="button" class="last-session"
                 title="${fmtDateDisplay(s.dateRaw)}"
                 data-sets="${s.sets || ''}"
@@ -3267,7 +3267,9 @@ function initApp(uid) {
                 data-wt="${s.bodyweight ? '' : (s.wt || '')}"
                 data-timed="${timed ? '1' : '0'}"
                 data-bw="${s.bodyweight ? '1' : '0'}"
-              >${load}<span class="ls-vol">${s.sets}&times;${repMetricText(s)}</span><span class="ls-ago">${lastSessionAgo(s.dateRaw)}</span></button>`;
+              ><span class="cardio-stat">${escapeHTML(effort)}</span>${
+                load ? `<span class="cardio-stat">${escapeHTML(load)}</span>` : ''
+              }<span class="ls-ago">${lastSessionAgo(s.dateRaw)}</span></button>`;
     }).join('');
 
     items.querySelectorAll('.last-session').forEach(btn => {

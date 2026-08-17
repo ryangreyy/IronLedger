@@ -513,7 +513,7 @@ html[data-guess-signedin="true"] .mobile-brand-header,
 html[data-guess-signedin="true"] #homeHero{ display:none; }
 html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 .home-greeting-row{
-  display:flex; align-items:center; justify-content:flex-start; gap:18px;
+  display:flex; align-items:center; justify-content:flex-start; gap:30px;
   margin-bottom:26px; padding:2px 4px;
 }
 .home-avatar{
@@ -682,7 +682,7 @@ html[data-guess-signedin="true"] #homeStatusHeader{ display:block; }
 [data-theme="light"] .home-rank-badge{ background:rgba(18,23,33,.04); border-color:rgba(18,23,33,.13); box-shadow:inset 0 1px 0 rgba(255,255,255,.75); }
 @media(max-width:480px){
   .home-status-header{ padding:6px 20px 0; }
-  .home-greeting-row{ gap:14px; margin-bottom:26px; padding:2px 4px; }
+  .home-greeting-row{ gap:24px; margin-bottom:26px; padding:2px 4px; }
   .home-avatar{ width:64px; height:64px; font-size:24px; }
   .home-avatar i{ font-size:28px !important; }
   .home-greeting-text .eyebrow{ font-size:11px; letter-spacing:0.2em; margin-bottom:3px; }
@@ -1752,28 +1752,57 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:top;
 }
 .last-sessions-items{ display:flex; align-items:stretch; flex-wrap:wrap; gap:7px; }
+/* Mirrors .log-set-line so an entry here looks the same as one in the log. */
 .last-session{
-  flex:1 1 0; min-width:136px;
-  display:flex; align-items:baseline; gap:8px; text-align:left;
-  background:var(--bg-2); border:1px solid var(--border-strong);
-  border-radius:8px; padding:7px 10px; cursor:pointer;
+  flex:1 1 0; min-width:158px;
+  display:flex; align-items:center; flex-wrap:wrap; gap:6px; text-align:left;
+  background:rgba(255,255,255,0.03); border:1px solid var(--border);
+  border-radius:8px; padding:8px 10px; cursor:pointer;
   transition:border-color .15s, background .15s;
 }
-.last-session:hover{ border-color:var(--accent-bright); background:var(--surface); }
-.ls-load{
-  font-family:var(--mono); font-size:15px; font-weight:700; color:var(--text);
-  font-variant-numeric:tabular-nums; white-space:nowrap;
-}
-.ls-load .ls-unit{ font-size:9px; font-weight:700; color:var(--text-dimmer); margin-left:2px; }
-.ls-vol{
-  font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text-dim);
-  font-variant-numeric:tabular-nums; white-space:nowrap;
-}
+.last-session:hover{ border-color:var(--border-strong); background:rgba(255,255,255,0.06); }
 .ls-ago{
-  margin-left:auto; font-family:var(--mono); font-size:9px; font-weight:700;
-  letter-spacing:.03em; color:var(--text-dimmer); white-space:nowrap;
+  margin-left:auto; font-family:var(--mono); font-size:9px;
+  letter-spacing:.03em; color:var(--text-dimmer); white-space:nowrap; line-height:1.2;
 }
 .last-sessions-none{ font-family:var(--body); font-size:12.5px; color:var(--text-dimmer); }
+
+/* ---- Home avatar: brushed steel hex plate -------------------------------
+   Echoes the hex shields the rank badges use. The plate is drawn as two
+   pseudo-elements on a wrapper that stays exactly the avatar's size, so the
+   larger hex overflows without shifting the greeting row's layout. */
+.home-avatar-plate{
+  position:relative; flex-shrink:0;
+  width:82px; height:82px;
+  display:grid; place-items:center;
+}
+.home-avatar-plate::before,
+.home-avatar-plate::after{
+  content:''; position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%); pointer-events:none;
+  clip-path:polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+}
+.home-avatar-plate::before{
+  width:126px; height:126px;
+  background:var(--steel);
+  filter:drop-shadow(0 6px 16px rgba(0,0,0,.55));
+}
+.home-avatar-plate::after{
+  width:116px; height:116px;
+  background:linear-gradient(180deg, var(--surface-2), var(--bg-2));
+}
+/* .home-avatar already sets position:relative; the z-index lifts it above
+   ::after, which otherwise paints over its own siblings. */
+.home-avatar-plate > .home-avatar{ z-index:1; }
+
+/* Kept here rather than in the main 480px block further up the file: these
+   rules have to come AFTER the base .home-avatar-plate sizes above, or the
+   base widths win on equal specificity regardless of the media query. */
+@media(max-width:480px){
+  .home-avatar-plate{ width:64px; height:64px; }
+  .home-avatar-plate::before{ width:96px; height:96px; }
+  .home-avatar-plate::after{ width:88px; height:88px; }
+}
 .log-ticket-toggles{ display:flex; gap:18px; flex-wrap:wrap; margin-bottom:18px; }
 .log-ticket-actions{
   display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
