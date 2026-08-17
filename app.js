@@ -3229,12 +3229,21 @@ function initApp(uid) {
     const name = String(liftName || '').trim();
     if (!name) { wrap.hidden = true; items.innerHTML = ''; return; }
 
-    /* Sort by dateRaw, not createdAt — a session logged today for last
-       Tuesday should still read as the older of the two. */
-    const matches = (currentSessions || [])
-      .filter(s => !s.isRestDay && (s.lift || '').toLowerCase() === name.toLowerCase())
-      .sort((a, b) => String(b.dateRaw || '').localeCompare(String(a.dateRaw || '')))
-      .slice(0, 2);
+    /* Grouped by day rather than by session: two bench sessions logged on
+       the same date are one training day, which is what you're actually
+       comparing against. Keyed on dateRaw, not createdAt, so a session
+       entered today for last Tuesday still counts as Tuesday. */
+    const byDay = new Map();
+    for (const s of (currentSessions || [])) {
+      if (s.isRestDay) continue;
+      if ((s.lift || '').toLowerCase() !== name.toLowerCase()) continue;
+      const day = String(s.dateRaw || '');
+      if (!day) continue;
+      if (!byDay.has(day)) byDay.set(day, []);
+      byDay.get(day).push(s);
+    }
+    const days = [...byDay.keys()].sort().reverse().slice(0, 2);
+    const matches = days.map(d => byDay.get(d)[0]);
 
     wrap.hidden = false;
 
@@ -3250,29 +3259,34 @@ function initApp(uid) {
       return;
     }
 
-    items.innerHTML = matches.map(s => {
-      const timed = isTimedSession(s);
-      const secs  = +s.timeSeconds || 0;
-      const digits = timed ? `${Math.floor(secs / 60)}${String(secs % 60).padStart(2, '0')}` : '';
-      /* Same two .cardio-stat chips the log's set lines use — effort then
-         load — so a session reads identically here and in Recent Activity.
-         A timed hold carries no load, so it gets the effort chip only. */
-      const effort = `${s.sets}×${repMetricText(s)}`;
-      const load   = s.bodyweight ? 'Bodyweight' : (+s.wt > 0 ? `${s.wt} lbs` : '');
-      return `<button type="button" class="last-session"
-                title="${fmtDateDisplay(s.dateRaw)}"
-                data-sets="${s.sets || ''}"
-                data-reps="${timed ? formatDurationMMSS(secs) : (s.reps || '')}"
-                data-digits="${digits}"
-                data-wt="${s.bodyweight ? '' : (s.wt || '')}"
-                data-timed="${timed ? '1' : '0'}"
-                data-bw="${s.bodyweight ? '1' : '0'}"
-              ><span class="cardio-stat">${escapeHTML(effort)}</span>${
-                load ? `<span class="cardio-stat">${escapeHTML(load)}</span>` : ''
-              }<span class="ls-ago">${lastSessionAgo(s.dateRaw)}</span></button>`;
+    items.innerHTML = days.map(day => {
+      /* One row per session within the day. A day with a single session
+         looks exactly as it did before this grouping existed. */
+      const rows = byDay.get(day).map(s => {
+        const timed = isTimedSession(s);
+        const secs  = +s.timeSeconds || 0;
+        const digits = timed ? `${Math.floor(secs / 60)}${String(secs % 60).padStart(2, '0')}` : '';
+        /* Same two .cardio-stat chips the log's set lines use — effort then
+           load — so a session reads identically here and in Recent Activity.
+           A timed hold carries no load, so it gets the effort chip only. */
+        const effort = `${s.sets}×${repMetricText(s)}`;
+        const load   = s.bodyweight ? 'Bodyweight' : (+s.wt > 0 ? `${s.wt} lbs` : '');
+        return `<button type="button" class="ls-set"
+                  data-sets="${s.sets || ''}"
+                  data-reps="${timed ? formatDurationMMSS(secs) : (s.reps || '')}"
+                  data-digits="${digits}"
+                  data-wt="${s.bodyweight ? '' : (s.wt || '')}"
+                  data-timed="${timed ? '1' : '0'}"
+                  data-bw="${s.bodyweight ? '1' : '0'}"
+                ><span class="cardio-stat">${escapeHTML(effort)}</span>${
+                  load ? `<span class="cardio-stat">${escapeHTML(load)}</span>` : ''
+                }</button>`;
+      }).join('');
+      return `<div class="last-session" title="${fmtDateDisplay(day)}">${rows}` +
+             `<span class="ls-ago">${lastSessionAgo(day)}</span></div>`;
     }).join('');
 
-    items.querySelectorAll('.last-session').forEach(btn => {
+    items.querySelectorAll('.ls-set').forEach(btn => {
       btn.addEventListener('click', () => {
         const setsEl = document.getElementById('logSets');
         const repsEl = document.getElementById('logReps');

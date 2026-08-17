@@ -4,10 +4,10 @@
 
   var VERSION = '348';
   var KEY = 'ig-pwa-version';
-  var EXPECTED_UPDATER = 'pwa-update.js?v=126';
+  var EXPECTED_UPDATER = 'pwa-update.js?v=127';
   var EXPECTED_MANIFEST = 'manifest.json?v=108';
-  var EXPECTED_STYLE = 'styles.css?v=333';
-  var EXPECTED_APP = 'app.js?v=239';
+  var EXPECTED_STYLE = 'styles.css?v=334';
+  var EXPECTED_APP = 'app.js?v=240';
   var EXPECTED_SOFT_NAV = 'soft-nav.js?v=8';
   var GATE_STYLE_ID = 'ig-pwa-refresh-gate-style';
 

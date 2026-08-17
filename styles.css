@@ -1755,15 +1755,22 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:top;
 }
 .last-sessions-items{ display:flex; align-items:stretch; flex-wrap:wrap; gap:7px; }
-/* Mirrors .log-set-line so an entry here looks the same as one in the log. */
+/* One card per training day, mirroring .log-set-line. A day with more than
+   one session of the lift stacks its sessions inside the same card. */
 .last-session{
   flex:1 1 0; min-width:158px;
   display:flex; align-items:center; flex-wrap:wrap; gap:6px; text-align:left;
   background:rgba(255,255,255,0.03); border:1px solid var(--border);
-  border-radius:8px; padding:8px 10px; cursor:pointer;
-  transition:border-color .15s, background .15s;
+  border-radius:8px; padding:8px 10px;
 }
-.last-session:hover{ border-color:var(--border-strong); background:rgba(255,255,255,0.06); }
+.ls-set{
+  flex:0 0 100%;
+  display:flex; align-items:center; flex-wrap:wrap; gap:6px;
+  background:none; border:0; padding:0; margin:0;
+  font:inherit; color:inherit; text-align:left; cursor:pointer;
+}
+.ls-set:hover .cardio-stat{ border-color:var(--accent-bright); color:var(--text); }
+.ls-set:focus-visible{ outline:2px solid var(--accent-bright); outline-offset:3px; border-radius:5px; }
 /* Always breaks to its own line and starts at the row's left edge, so it
    lines up with the left edge of the chips above it. */
 .ls-ago{
