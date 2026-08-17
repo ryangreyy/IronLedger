@@ -1341,9 +1341,15 @@ function initLiftPicker() {
         input.value = el.textContent;
         close();
         input.focus();
+        showLast();
       });
     });
   }
+
+  /* Refresh the "last two sessions" strip under the Lift field. It's defined
+     inside initApp() where currentSessions lives, and is absent on pages
+     without the log form, so always optional-call it. */
+  function showLast() { window.__igRenderLastSessions?.(input.value); }
 
   function open() { render(input.value); list.style.display = ''; list.scrollTop = 0; }
   function close() { list.style.display = 'none'; }
@@ -1363,12 +1369,13 @@ function initLiftPicker() {
         input.value = '';
         open();
         input.focus();
+        showLast();
       });
     });
   }
 
   input.addEventListener('focus', () => open());
-  input.addEventListener('input', () => { if (isOpen()) render(input.value); });
+  input.addEventListener('input', () => { if (isOpen()) render(input.value); showLast(); });
   input.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 
   const outsideHandler = e => {
@@ -1376,6 +1383,11 @@ function initLiftPicker() {
   };
   document.addEventListener('pointerdown', outsideHandler);
   window.__igLiftPickerCleanup = () => document.removeEventListener('pointerdown', outsideHandler);
+
+  /* Soft-nav rebuilds this form on every Training visit, so paint the strip
+     once on init too — otherwise coming back with a lift already in the box
+     would leave it blank until the next keystroke. */
+  showLast();
 }
 
 /* Same custom dropdown as initLiftPicker() above, wired to the Cardio Log
@@ -3188,6 +3200,119 @@ function initApp(uid) {
     return isTimedSession(s) ? formatTimeSeconds(s.timeSeconds || s.reps) : (s.reps || '');
   }
 
+  /* ---- "Last" strip in the log form ------------------------------------
+     The two most recent sessions for whichever lift is in the form, so you
+     don't have to leave the page to remember what you did last time.
+
+     Reads currentSessions, which the sessions listener already keeps live,
+     so picking a lift costs nothing extra — no query, no spinner. It also
+     means the strip re-renders on its own the moment a session is added,
+     edited or deleted. Tapping an entry copies its numbers into the form. */
+  function lastSessionAgo(iso) {
+    if (!iso) return '';
+    const [y, m, d] = String(iso).split('-').map(Number);
+    if (!y || !m || !d) return '';
+    const then = new Date(y, m - 1, d); then.setHours(12, 0, 0, 0);
+    const now = new Date(); now.setHours(12, 0, 0, 0);
+    const days = Math.round((now - then) / 86400000);
+    if (days <= 0) return 'today';
+    if (days === 1) return 'yesterday';
+    return days + 'd';
+  }
+
+  function renderLastSessions(liftName) {
+    const wrap  = document.getElementById('lastSessions');
+    const items = document.getElementById('lastSessionsItems');
+    if (!wrap || !items) return;
+
+    const name = String(liftName || '').trim();
+    if (!name) { wrap.hidden = true; items.innerHTML = ''; return; }
+
+    /* Sort by dateRaw, not createdAt — a session logged today for last
+       Tuesday should still read as the older of the two. */
+    const matches = (currentSessions || [])
+      .filter(s => !s.isRestDay && (s.lift || '').toLowerCase() === name.toLowerCase())
+      .sort((a, b) => String(b.dateRaw || '').localeCompare(String(a.dateRaw || '')))
+      .slice(0, 2);
+
+    wrap.hidden = false;
+    wrap.style.setProperty('--last-accent', clsColor(matches[0]?.cls || liftToCls(name) || 'other'));
+
+    if (!matches.length) {
+      items.innerHTML = '<span class="last-sessions-none">First time logging this one.</span>';
+      return;
+    }
+
+    items.innerHTML = matches.map(s => {
+      const timed = isTimedSession(s);
+      /* A timed hold carries no weight at all, so it gets neither a number
+         nor the "BW" tag — just "3 x 1:30". */
+      const load  = s.bodyweight ? 'BW'
+                  : (+s.wt > 0 ? `@ <span class="ls-wt">${s.wt}</span>` : '');
+      const secs  = +s.timeSeconds || 0;
+      const digits = timed ? `${Math.floor(secs / 60)}${String(secs % 60).padStart(2, '0')}` : '';
+      return `<button type="button" class="last-session"
+                title="${fmtDateDisplay(s.dateRaw)}"
+                data-sets="${s.sets || ''}"
+                data-reps="${timed ? formatDurationMMSS(secs) : (s.reps || '')}"
+                data-digits="${digits}"
+                data-wt="${s.bodyweight ? '' : (s.wt || '')}"
+                data-timed="${timed ? '1' : '0'}"
+                data-bw="${s.bodyweight ? '1' : '0'}"
+              >${s.sets} &times; ${repMetricText(s)} ${load}<span class="ls-ago">${lastSessionAgo(s.dateRaw)}</span></button>`;
+    }).join('');
+
+    /* Only compare loads that are actually comparable. A bodyweight set or
+       a timed hold has no weight to move, and showing "same" off two zeroes
+       would read as a real result. */
+    const comparable = s => !s.bodyweight && +s.wt > 0;
+    if (matches.length === 2 && comparable(matches[0]) && comparable(matches[1])) {
+      const diff = (+matches[0].wt || 0) - (+matches[1].wt || 0);
+      const kind = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+      const text = diff > 0 ? `&#9650; ${diff}` : diff < 0 ? `&#9660; ${Math.abs(diff)}` : 'same';
+      items.insertAdjacentHTML('beforeend', `<span class="last-delta ${kind}">${text}</span>`);
+    }
+
+    items.querySelectorAll('.last-session').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const setsEl = document.getElementById('logSets');
+        const repsEl = document.getElementById('logReps');
+        const wtEl   = document.getElementById('logWeight');
+        const timeEl = document.getElementById('logRepsTime');
+        const bwEl   = document.getElementById('logBodyweight');
+
+        /* Flip the toggles first and let their own change handlers do the
+           mode switching — syncRepsInputMode() blanks the reps field, so
+           filling before this would immediately be wiped. */
+        const wantTimed = btn.dataset.timed === '1';
+        const wantBw    = btn.dataset.bw === '1';
+        if (timeEl && timeEl.checked !== wantTimed) {
+          timeEl.checked = wantTimed;
+          timeEl.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (bwEl && bwEl.checked !== wantBw) {
+          bwEl.checked = wantBw;
+          bwEl.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        if (setsEl) setsEl.value = btn.dataset.sets || '';
+        if (repsEl) {
+          repsEl.value = btn.dataset.reps || '';
+          /* Keep the digit mask's internal state in step with the text we
+             just wrote, or the next keystroke would rebuild from empty. */
+          if (wantTimed && btn.dataset.digits) repsEl.dataset.timeDigits = btn.dataset.digits;
+          else delete repsEl.dataset.timeDigits;
+        }
+        if (wtEl && !wantBw) wtEl.value = btn.dataset.wt || '';
+      });
+    });
+  }
+
+  /* initLiftPicker() lives at top level (soft-nav re-runs it on every
+     Training visit) and can't see currentSessions from there, so hand it a
+     reference the same way the picker's own cleanup hook is shared. */
+  window.__igRenderLastSessions = renderLastSessions;
+
   function escapeHTML(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -3713,6 +3838,10 @@ function initApp(uid) {
       })();
       const liftSessions = currentSessions.filter(s => !s.isRestDay);
       renderLog(currentSessions);
+      /* Keeps the "last two sessions" strip honest — it repaints the moment
+         a session is added, edited or deleted, including the one you just
+         logged for the lift still sitting in the form. */
+      renderLastSessions(document.getElementById('logLift')?.value || '');
       renderDonut(liftSessions);
       renderHistoryChart(liftSessions);
       renderCore(liftSessions);
