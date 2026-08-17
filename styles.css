@@ -501,6 +501,9 @@ nav.nav-hidden{ transform:translateY(-100%); }
 .home-status-header{
   display:none;
   max-width:640px; margin:0 auto; padding:26px 28px 5px; text-align:center;
+  /* Nudged 3px right. A transform rather than padding so it can't disturb
+     the block's centring, its max-width, or how anything inside wraps. */
+  transform:translateX(3px);
 }
 /* No-FOUC guess: a tiny inline script in <head> reads a localStorage
    flag set on the last real auth result and applies it synchronously,
@@ -1761,8 +1764,10 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
   transition:border-color .15s, background .15s;
 }
 .last-session:hover{ border-color:var(--border-strong); background:rgba(255,255,255,0.06); }
+/* Always breaks to its own line and starts at the row's left edge, so it
+   lines up with the left edge of the chips above it. */
 .ls-ago{
-  margin-left:auto; font-family:var(--mono); font-size:9px;
+  flex:0 0 100%; font-family:var(--mono); font-size:9px;
   letter-spacing:.03em; color:var(--text-dimmer); white-space:nowrap; line-height:1.2;
 }
 .last-sessions-none{ font-family:var(--body); font-size:12.5px; color:var(--text-dimmer); }
