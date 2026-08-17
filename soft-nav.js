@@ -8,11 +8,12 @@
   var ROOT_ID = 'ig-soft-root';
   var HEAD_ASSET = 'data-soft-nav-head';
   var PAGE_SCRIPTS = { 'yoga.js': true };
-  var SOFT_PAGES = [
-    'index.html', 'feed.html', 'training.html', 'dashboard.html',
-    'macros.html', 'profile.html', 'settings.html', 'tools.html',
-    'guide.html', 'yoga.html', 'add-friend.html',
-  ];
+  /* The app-shell page list lives in nav.js (window.IG_APP_PAGES), which
+     loads before this file on every page. Keeping one copy avoids the two
+     lists silently drifting apart when a page is added or renamed. If it's
+     somehow missing, isSoft() matches nothing and every link falls back to
+     ordinary browser navigation — slower, but correct. */
+  var SOFT_PAGES = window.IG_APP_PAGES || [];
   var PAGE_CACHE = window.__IG_PAGE_CACHE = window.__IG_PAGE_CACHE || {};
   var PAGE_CACHE_TTL = 5 * 60 * 1000;
   var busy = false;
@@ -265,11 +266,6 @@
   ensureRoot();
 
   window.IGSoftNavPrefetch = prefetchPage;
-  window.IGSoftNavPrefetchAll = function () {
-    SOFT_PAGES.forEach(function (page) {
-      if (page !== pageName(location.href)) prefetchPage(page);
-    });
-  };
 
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;

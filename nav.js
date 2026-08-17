@@ -308,7 +308,10 @@
      Safari, which has never reliably supported rel=prefetch. A warm
      HTTP cache entry is all a normal <a href> navigation needs to load
      near-instantly afterward. */
-  var PREFETCH_PAGES = [
+  /* Single source of truth for the app-shell page list. soft-nav.js reads
+     this off window instead of keeping its own copy — it loads after nav.js
+     on every page, so the value is always set by the time it needs it. */
+  var PREFETCH_PAGES = window.IG_APP_PAGES = [
     'index.html', 'feed.html', 'training.html', 'dashboard.html',
     'macros.html', 'profile.html', 'settings.html', 'tools.html',
     'guide.html', 'yoga.html', 'add-friend.html',
@@ -336,7 +339,16 @@
 
   // Idle: warm every app page ahead of any tap. Staggering keeps the
   // current page responsive while still making later navigation near-instant.
+  /* Only warm the shell for someone who's actually signed in. A signed-out
+     visitor is stuck on the login gate and can't reach any of these pages,
+     so prefetching the whole app just burns their data for nothing. Uses
+     the same ig-signedin-guess flag the anti-flash head guards rely on. */
+  function likelySignedIn() {
+    try { return localStorage.getItem('ig-signedin-guess') === '1'; }
+    catch (e) { return false; }
+  }
   var idlePrefetch = function () {
+    if (!likelySignedIn()) return;
     PREFETCH_PAGES.forEach(function (page, idx) {
       setTimeout(function () { prefetchUrl(page); }, idx * 80);
     });
