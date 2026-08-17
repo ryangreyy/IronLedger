@@ -1741,38 +1741,48 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
 .log-ticket-divider{ height:1px; background:var(--border); margin:18px 0; }
 
 /* ---- "Last" strip -------------------------------------------------------
-   The two most recent sessions for the selected lift, sitting in the gap
-   that already existed between the Date/Lift row and the steppers. Wraps to
-   a second line on narrow phones rather than scrolling sideways. Accent
-   colour comes from --last-accent, set per-lift in renderLastSessions(). */
-.last-sessions{
-  display:flex; align-items:center; flex-wrap:wrap; gap:8px 10px;
-  margin:-6px 0 18px; padding:8px 10px;
-  background:var(--bg-2); border:1px solid var(--border); border-radius:9px;
-}
+   The two most recent sessions for the selected lift, sitting above the
+   Date/Lift row. The lift name is a plain .pill, the same badge the log
+   rows use, so it picks up the group colour from the existing .pill.<cls>
+   rules rather than duplicating the palette here. */
+.last-sessions{ margin:0 0 18px; }
 .last-sessions[hidden]{ display:none; }
-.last-sessions-label{
-  flex:none; font-family:var(--mono); font-size:9px; font-weight:700;
-  letter-spacing:.14em; text-transform:uppercase; color:var(--text-dimmer);
+.last-sessions-head{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; margin-bottom:8px;
 }
-.last-sessions-items{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; min-width:0; }
+.last-sessions-head .pill{
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;
+}
+.last-sessions-items{ display:flex; align-items:stretch; flex-wrap:wrap; gap:7px; }
 .last-session{
-  display:inline-flex; align-items:baseline; gap:6px;
-  font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text);
-  font-variant-numeric:tabular-nums; white-space:nowrap;
-  background:var(--surface); border:1px solid var(--border-strong);
-  border-radius:7px; padding:5px 8px; cursor:pointer;
+  flex:1 1 0; min-width:136px;
+  display:flex; align-items:baseline; gap:8px; text-align:left;
+  background:var(--bg-2); border:1px solid var(--border-strong);
+  border-radius:8px; padding:7px 10px; cursor:pointer;
   transition:border-color .15s, background .15s;
 }
-.last-session:hover{ border-color:var(--accent-bright); background:var(--surface-2); }
-.last-session .ls-wt{ color:var(--last-accent, var(--text)); }
-.last-session .ls-ago{ font-size:9px; font-weight:700; letter-spacing:.04em; color:var(--text-dimmer); }
+.last-session:hover{ border-color:var(--accent-bright); background:var(--surface); }
+.ls-load{
+  font-family:var(--mono); font-size:15px; font-weight:700; color:var(--text);
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.ls-load .ls-unit{ font-size:9px; font-weight:700; color:var(--text-dimmer); margin-left:2px; }
+.ls-vol{
+  font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text-dim);
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.ls-ago{
+  margin-left:auto; font-family:var(--mono); font-size:9px; font-weight:700;
+  letter-spacing:.03em; color:var(--text-dimmer); white-space:nowrap;
+}
 .last-sessions-none{ font-family:var(--body); font-size:12.5px; color:var(--text-dimmer); }
 .last-delta{
-  flex:none; font-family:var(--mono); font-size:10px; font-weight:700;
-  letter-spacing:.03em; padding:3px 7px; border-radius:20px;
+  flex:none; font-family:var(--mono); font-size:9.5px; font-weight:700;
+  letter-spacing:.03em; padding:3px 8px; border-radius:20px;
   font-variant-numeric:tabular-nums;
 }
+.last-delta:empty{ display:none; }
 .last-delta.up{ color:var(--up); background:rgba(124,227,139,.12); }
 .last-delta.down{ color:var(--down); background:rgba(255,107,107,.12); }
 .last-delta.flat{ color:var(--text-dim); background:rgba(255,255,255,.05); }

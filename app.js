@@ -3217,13 +3217,15 @@ function initApp(uid) {
     const days = Math.round((now - then) / 86400000);
     if (days <= 0) return 'today';
     if (days === 1) return 'yesterday';
-    return days + 'd';
+    return days + ' days ago';
   }
 
   function renderLastSessions(liftName) {
     const wrap  = document.getElementById('lastSessions');
     const items = document.getElementById('lastSessionsItems');
-    if (!wrap || !items) return;
+    const pill  = document.getElementById('lastSessionsName');
+    const delta = document.getElementById('lastSessionsDelta');
+    if (!wrap || !items || !pill || !delta) return;
 
     const name = String(liftName || '').trim();
     if (!name) { wrap.hidden = true; items.innerHTML = ''; return; }
@@ -3236,7 +3238,16 @@ function initApp(uid) {
       .slice(0, 2);
 
     wrap.hidden = false;
-    wrap.style.setProperty('--last-accent', clsColor(matches[0]?.cls || liftToCls(name) || 'other'));
+
+    /* Same badge the log rows use, so the group colour comes from the
+       existing .pill.<cls> rules. Falls back to the lift's own group when
+       there's no history yet, so a brand new lift is still colour-coded. */
+    const cls = normalizeLiftCls(matches[0]?.cls || liftToCls(name) || 'other') || 'other';
+    pill.className = 'pill ' + cls;
+    pill.textContent = name;
+
+    delta.className = 'last-delta';
+    delta.textContent = '';
 
     if (!matches.length) {
       items.innerHTML = '<span class="last-sessions-none">First time logging this one.</span>';
@@ -3245,12 +3256,13 @@ function initApp(uid) {
 
     items.innerHTML = matches.map(s => {
       const timed = isTimedSession(s);
-      /* A timed hold carries no weight at all, so it gets neither a number
-         nor the "BW" tag — just "3 x 1:30". */
-      const load  = s.bodyweight ? 'BW'
-                  : (+s.wt > 0 ? `@ <span class="ls-wt">${s.wt}</span>` : '');
       const secs  = +s.timeSeconds || 0;
       const digits = timed ? `${Math.floor(secs / 60)}${String(secs % 60).padStart(2, '0')}` : '';
+      /* Load leads, because it's the number you're deciding against. A
+         timed hold has no load at all, so it simply doesn't get one. */
+      const load = s.bodyweight
+        ? '<span class="ls-load">BW</span>'
+        : (+s.wt > 0 ? `<span class="ls-load">${s.wt}<span class="ls-unit">lbs</span></span>` : '');
       return `<button type="button" class="last-session"
                 title="${fmtDateDisplay(s.dateRaw)}"
                 data-sets="${s.sets || ''}"
@@ -3259,7 +3271,7 @@ function initApp(uid) {
                 data-wt="${s.bodyweight ? '' : (s.wt || '')}"
                 data-timed="${timed ? '1' : '0'}"
                 data-bw="${s.bodyweight ? '1' : '0'}"
-              >${s.sets} &times; ${repMetricText(s)} ${load}<span class="ls-ago">${lastSessionAgo(s.dateRaw)}</span></button>`;
+              >${load}<span class="ls-vol">${s.sets}&times;${repMetricText(s)}</span><span class="ls-ago">${lastSessionAgo(s.dateRaw)}</span></button>`;
     }).join('');
 
     /* Only compare loads that are actually comparable. A bodyweight set or
@@ -3268,9 +3280,10 @@ function initApp(uid) {
     const comparable = s => !s.bodyweight && +s.wt > 0;
     if (matches.length === 2 && comparable(matches[0]) && comparable(matches[1])) {
       const diff = (+matches[0].wt || 0) - (+matches[1].wt || 0);
-      const kind = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
-      const text = diff > 0 ? `&#9650; ${diff}` : diff < 0 ? `&#9660; ${Math.abs(diff)}` : 'same';
-      items.insertAdjacentHTML('beforeend', `<span class="last-delta ${kind}">${text}</span>`);
+      delta.className = 'last-delta ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat');
+      delta.innerHTML = diff > 0 ? `&#9650; ${diff} lbs`
+                      : diff < 0 ? `&#9660; ${Math.abs(diff)} lbs`
+                      : 'same weight';
     }
 
     items.querySelectorAll('.last-session').forEach(btn => {
