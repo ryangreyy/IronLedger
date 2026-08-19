@@ -1773,11 +1773,24 @@ footer{border-top:1px solid var(--border); margin-top:20px;}
 .ls-set:focus-visible{ outline:2px solid var(--accent-bright); outline-offset:3px; border-radius:5px; }
 /* Always breaks to its own line and starts at the row's left edge, so it
    lines up with the left edge of the chips above it. */
+/* --text-dim rather than --text-dimmer: at 9px the dimmer shade measured
+   3.84:1 on dark and 3.02:1 on light, under the 4.5:1 readability bar.
+   This clears it in both themes and still reads as secondary. */
 .ls-ago{
   flex:0 0 100%; font-family:var(--mono); font-size:9px;
-  letter-spacing:.03em; color:var(--text-dimmer); white-space:nowrap; line-height:1.2;
+  letter-spacing:.03em; color:var(--text-dim); white-space:nowrap; line-height:1.2;
 }
 .last-sessions-none{ font-family:var(--body); font-size:12.5px; color:var(--text-dimmer); }
+
+/* ---- Sign out, in the nav, on Settings only -----------------------------
+   keepBodyNode() in soft-nav.js deliberately never swaps <nav>, so a button
+   that lived only in settings.html's markup never appeared when you tapped
+   through to Settings from inside the app — it only showed on a hard load.
+   The button now ships in every page's nav and is revealed by the same
+   .nav-current flag updateNavActive() already keeps in sync, so it tracks
+   soft navigation without any extra JS. */
+#signOut{ display:none; }
+nav:has(.nav-links a[href="settings.html"].nav-current) #signOut{ display:inline-block; }
 
 /* ---- Home avatar: brushed steel hex plate -------------------------------
    Echoes the hex shields the rank badges use. The plate is drawn as two
