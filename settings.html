@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=335">
+<link rel="stylesheet" href="styles.css?v=336">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=6">
 <link rel="manifest" href="/manifest.json?v=108">
@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=128"></script>
+<script src="pwa-update.js?v=129"></script>
 </head>
 <body>
 
@@ -62,7 +62,7 @@
 
   <!-- SETTINGS PAGE (shown after auth check) -->
   <div id="settings-page" style="display:none;position:relative;z-index:1;">
-    <section style="max-width:680px;margin:0 auto;padding:36px 28px 120px;">
+    <section class="settings-shell">
 
       <div class="eyebrow">Your account</div>
       <h2 class="title">Settings</h2>
@@ -70,7 +70,7 @@
       <!-- ===== PROFILE ===== -->
       <div class="settings-group">
         <p class="settings-group-label">Profile</p>
-        <div class="card" style="padding:28px;">
+        <div class="card">
           <div class="field">
             <label for="settingsName">Username</label>
             <input id="settingsName" type="text" placeholder="Choose a username" autocomplete="off" maxlength="30" spellcheck="false">
@@ -87,7 +87,7 @@
       <!-- ===== PERSONAL INFO ===== -->
       <div class="settings-group">
         <p class="settings-group-label">Personal Info</p>
-        <div class="card" style="padding:28px;">
+        <div class="card">
           <div class="field">
             <label for="settingsFirstName">First name</label>
             <input id="settingsFirstName" type="text" placeholder="First name" autocomplete="given-name" maxlength="40">
@@ -95,10 +95,6 @@
           <div class="field">
             <label for="settingsLastName">Last name</label>
             <input id="settingsLastName" type="text" placeholder="Last name" autocomplete="family-name" maxlength="40">
-          </div>
-          <div class="field">
-            <label>Email</label>
-            <input id="settingsPersonalEmail" type="text" disabled style="opacity:0.45;cursor:not-allowed;">
           </div>
           <button id="savePersonalInfo" class="btn btn-primary">Save personal info</button>
           <p id="personalInfoMsg" class="settings-msg"></p>
@@ -108,9 +104,9 @@
       <!-- ===== PRIVACY ===== -->
       <div class="settings-group">
         <p class="settings-group-label">Privacy</p>
-        <div class="card" style="padding:28px;">
+        <div class="card">
           <p class="settings-card-title">Feed visibility</p>
-          <p class="settings-card-desc">Your feed updates automatically whenever you log a session. Public lets friends see your feed activity and leaderboard rank; Private hides it from everyone but you.</p>
+          <p class="settings-card-desc">Public lets friends see your activity and leaderboard rank. Private keeps it to you.</p>
           <div class="unit-toggle" id="privacyToggle">
             <button data-privacy="public" class="active"><i class="ti ti-world" style="vertical-align:-2px;margin-right:7px;"></i>Public</button>
             <button data-privacy="private"><i class="ti ti-lock" style="vertical-align:-2px;margin-right:7px;"></i>Private</button>
@@ -123,11 +119,11 @@
       <!-- ===== APP PREFERENCES ===== -->
       <div class="settings-group">
         <p class="settings-group-label">App Preferences</p>
-        <div class="card" style="padding:28px;">
+        <div class="card">
 
           <!-- Appearance / theme -->
           <p class="settings-card-title">Appearance</p>
-          <p class="settings-card-desc">Dark is the classic forge look. Light is easier on the eyes in a bright room. Saved on this device.</p>
+          <p class="settings-card-desc">Light is easier on the eyes in a bright room. Saved on this device.</p>
           <div class="unit-toggle" id="themeToggle">
             <button data-theme-choice="dark"><i class="ti ti-moon" style="vertical-align:-2px;margin-right:7px;"></i>Dark</button>
             <button data-theme-choice="light"><i class="ti ti-sun" style="vertical-align:-2px;margin-right:7px;"></i>Light</button>
@@ -137,7 +133,7 @@
 
           <!-- Weight unit -->
           <p class="settings-card-title">Weight unit</p>
-          <p class="settings-card-desc">Sets the unit label across the whole app. Enter your weights in whichever unit you train in.</p>
+          <p class="settings-card-desc">Changes the unit shown everywhere. Log weights in whichever you train in.</p>
           <div class="unit-toggle" id="unitToggle">
             <button data-unit="lbs" class="active">lbs</button>
             <button data-unit="kg">kg</button>
@@ -147,7 +143,7 @@
 
           <!-- Default lift -->
           <p class="settings-card-title">Default lift in the log form</p>
-          <p class="settings-card-desc">The lift field will be pre-filled with this when you open the Training Log.</p>
+          <p class="settings-card-desc">Pre-fills the lift field when you open the Training Log.</p>
           <div class="field" style="max-width:260px;">
             <select id="defaultLiftSel">
               <option value="">— No default (leave blank) —</option>
@@ -203,7 +199,7 @@
       <!-- ===== PERSONALIZATION ===== -->
       <div class="settings-group">
         <p class="settings-group-label">Personalization</p>
-        <div class="card" style="padding:28px;">
+        <div class="card">
           <p class="settings-card-title">Lift group colors</p>
           <p class="settings-card-desc">Set the color for each muscle group.</p>
 
@@ -276,7 +272,7 @@
         <p class="settings-group-label">Account Management</p>
 
         <!-- Change password (email/password users only) -->
-        <div class="card" style="padding:28px;margin-bottom:16px;" id="passwordCard">
+        <div class="card" style="margin-bottom:16px;" id="passwordCard">
           <p class="settings-card-title">Change password</p>
           <p class="settings-card-desc" id="passwordDesc">Enter a new password for your account.</p>
           <div id="passwordForm">
@@ -294,9 +290,9 @@
         </div>
 
         <!-- Face ID / biometric lock -->
-        <div class="card" style="padding:28px;" id="faceIdCard">
+        <div class="card" id="faceIdCard">
           <p class="settings-card-title">Face ID lock</p>
-          <p class="settings-card-desc">Require Face ID (or your device fingerprint) every time you open IronGladiator. Set up per device.</p>
+          <p class="settings-card-desc">Ask for Face ID every time you open the app. Set per device.</p>
           <button id="faceIdToggle" class="btn btn-primary">Enable Face ID lock</button>
           <p id="faceIdMsg" class="settings-msg"></p>
         </div>
@@ -306,9 +302,9 @@
       <!-- ===== DANGER ZONE ===== -->
       <div class="settings-group">
         <p class="settings-group-label">Danger Zone</p>
-        <div class="card settings-danger-card" style="padding:28px;">
+        <div class="card settings-danger-card">
           <p class="settings-card-title" style="color:var(--down);">Delete account</p>
-          <p class="settings-card-desc">Permanently removes your account and all logged sessions. This cannot be undone.</p>
+          <p class="settings-card-desc">Deletes your account and every session you’ve logged. Can’t be undone.</p>
           <div id="deleteStep1">
             <button id="deleteBtn" class="btn-danger">Delete my account</button>
           </div>
@@ -461,7 +457,6 @@
     document.getElementById('nav-user-name').textContent   = user.displayName || user.email.split('@')[0];
     document.getElementById('settingsName').value          = user.displayName || '';
     document.getElementById('settingsEmail').value         = user.email || '';
-    document.getElementById('settingsPersonalEmail').value = user.email || '';
 
     /* Google-only accounts have no password credential yet -- offer to add
        one (linkWithCredential) instead of hiding the card. Once linked,
@@ -472,7 +467,7 @@
     if (!hasPasswordProvider) {
       if (pwTitle) pwTitle.textContent = 'Set a password';
       document.getElementById('passwordDesc').textContent =
-        'You signed up with Google, so there’s no password yet. Set one here to also be able to sign in with your email and password.';
+        'You signed up with Google, so there’s no password yet. Set one to sign in with email too.';
       document.getElementById('savePassword').textContent = 'Set password';
     }
 
