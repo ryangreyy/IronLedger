@@ -2851,6 +2851,12 @@ html[data-authredirect] body{ visibility:hidden; }
 .rank-lift .rank-hex{ width:52px; height:60px; flex-shrink:0; }
 .rank-lift-body{ flex:1; min-width:0; }
 .rank-lift-name{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-dim); }
+/* Separates the XP rank headline from the Big-3 strength breakdown, so the
+   tiers below are never mistaken for a second rank. */
+.rank-lifts-note{
+  font-family:var(--mono); font-size:9.5px; text-transform:uppercase;
+  letter-spacing:.2em; color:var(--text-dimmer); margin:18px 0 10px;
+}
 .rank-lift-rank{ font-family:var(--display); font-size:18px; letter-spacing:.4px; color:var(--text); margin:2px 0 8px; }
 .rank-prog{ height:6px; border-radius:3px; background:rgba(255,255,255,.07); overflow:hidden; }
 .rank-prog > span{ display:block; height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent),var(--accent-bright)); width:0; transition:width .9s cubic-bezier(.4,0,.2,1); }

@@ -3931,6 +3931,10 @@ function initApp(uid) {
 
     unsubscribeXP = xpRef.onSnapshot(snap => {
       _xpTotal = snap.exists ? (snap.data().total || 0) : 0;
+      /* Published so renderRank() — which lives in another scope and paints
+         the profile card — reads the same total the home tile does. */
+      window.__igXpTotal = _xpTotal;
+      window.__igRepaintRank?.();
       renderChallengesWhenReady();
       const homeRankEl = document.getElementById('homeStatRank');
       const homeRankBadgeEl = document.getElementById('homeRankBadge');
@@ -4256,8 +4260,17 @@ function initApp(uid) {
   }
 
   /* ===== GLADIATOR RANK SYSTEM =====================================
-     Maps a lift vs the bodyweight strength standards to a rank. */
-  const RANK_NAMES = ['Recruit','Bronze','Silver','Gold','Elite','Titan','Legend','Gladiator'];
+     There is ONE rank in this app and it comes from XP earned through
+     challenges (getRankFromXP in challenges.js) — the same number the home
+     tile, the challenges page and the feed leaderboard all read.
+
+     This block used to derive a SECOND rank from Big-3 strength standards
+     using these same eight names, so the profile card and the home tile
+     routinely disagreed and it looked like the home page was broken.
+     The strength standards still drive the per-lift breakdown below, but
+     they are expressed as tiers (I-VIII) and never as a rank. The old
+     RANK_NAMES list lived here and is gone with it — RANKS in challenges.js
+     is now the only place rank names are defined. */
   function rankWeightClass(bw) {
     const keys = Object.keys(bodyweightStandards).map(Number).sort((a,b) => a-b);
     for (const k of keys) if (bw <= k) return k;
@@ -4285,7 +4298,11 @@ function initApp(uid) {
       '<polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="#15171c" stroke="' + cols[rankIdx][0] + '" stroke-width="2.5"/>' +
       '<text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="' + cols[rankIdx][1] + '">' + num + '</text></svg>';
   }
+  /* Remembered so the XP listener can repaint this card the moment XP
+     changes, without waiting for the profile data to reload. */
+  let lastRankArgs = null;
   function renderRank(sq, bn, dl, bw) {
+    lastRankArgs = [sq, bn, dl, bw];
     const card = document.getElementById('rankCard');
     if (!card) return;
     if (!sq && !bn && !dl) { card.style.display = 'none'; return; }
@@ -4297,30 +4314,38 @@ function initApp(uid) {
       const idx = Math.max(0, Math.min(7, passed - 1));
       sumIdx += idx; n++;
       let pct, nextTxt;
-      if (passed >= 8) { pct = 100; nextTxt = 'Max rank reached — Gladiator'; }
+      if (passed >= 8) { pct = 100; nextTxt = 'Top tier reached'; }
       else {
         const base = passed > 0 ? th[passed-1] : 0;
         const next = th[passed];
         pct = Math.max(4, Math.min(100, Math.round((mx - base) / (next - base) * 100)));
-        nextTxt = '<b>+' + (next - mx) + ' lbs</b> &rarr; ' + RANK_NAMES[Math.min(7, passed)];
+        nextTxt = '<b>+' + (next - mx) + ' lbs</b> &rarr; tier ' + (Math.min(7, passed) + 1);
       }
       rows += '<div class="rank-lift">' + rankHex(idx) + '<div class="rank-lift-body">' +
         '<div class="rank-lift-name">' + label + '</div>' +
-        '<div class="rank-lift-rank">' + RANK_NAMES[idx] + '</div>' +
+        '<div class="rank-lift-rank">Tier ' + (idx + 1) + ' of 8</div>' +
         '<div class="rank-prog"><span data-w="' + pct + '"></span></div>' +
         '<div class="rank-next">' + nextTxt + '</div></div></div>';
     }
-    const overall = n ? Math.round(sumIdx / n) : 0;
+    /* The headline rank is the XP rank — the single source of truth. */
+    const xpTotal = window.__igXpTotal || 0;
+    const xpRank  = getRankFromXP(xpTotal);
+    const flair   = xpRank.nextXP
+      ? xpTotal.toLocaleString() + ' XP &middot; ' + (xpRank.nextXP - xpTotal).toLocaleString() +
+        ' to ' + xpRank.nextName
+      : xpTotal.toLocaleString() + ' XP &middot; max rank';
     card.style.display = '';
     card.innerHTML =
-      '<div class="rank-head"><div class="rank-overall">' + rankHex(overall) +
+      '<div class="rank-head"><div class="rank-overall">' + rankHex(xpRank.rankIndex) +
         '<div class="rank-overall-meta"><div class="rank-eyebrow">Your Gladiator Rank</div>' +
-        '<div class="rank-name">' + RANK_NAMES[overall] + '</div>' +
-        '<div class="rank-flair">Big-3 ranked against lifters in the ' + rankWeightClass(bw) + ' lb class</div>' +
+        '<div class="rank-name">' + xpRank.rankName + '</div>' +
+        '<div class="rank-flair">' + flair + '</div>' +
         '</div></div></div>' +
+      '<div class="rank-lifts-note">Big-3 strength &middot; ' + rankWeightClass(bw) + ' lb class</div>' +
       '<div class="rank-grid">' + rows + '</div>';
     setTimeout(() => card.querySelectorAll('.rank-prog > span').forEach(s => s.style.width = s.dataset.w + '%'), 80);
   }
+  window.__igRepaintRank = () => { if (lastRankArgs) renderRank(...lastRankArgs); };
 
   function renderProfile(squatMax, benchMax, deadMax, bodyweight, height) {
     const sq = +squatMax || 0, bn = +benchMax || 0, dl = +deadMax || 0;
