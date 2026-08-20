@@ -46,7 +46,13 @@
     }
     if (cached && cached.promise) return cached.promise;
 
-    var promise = fetch(href, { credentials: 'same-origin' })
+    /* cache:'no-cache' revalidates with the server instead of trusting the
+       HTTP cache. Without it an installed PWA keeps serving whatever copy of
+       a page it already had — every soft navigation hands back stale HTML,
+       so a deploy appears to work in a browser tab and never reaches the
+       app. Revalidation is cheap: unchanged pages come back 304 with no
+       body, and PAGE_CACHE still serves repeat navigations from memory. */
+    var promise = fetch(href, { credentials: 'same-origin', cache: 'no-cache' })
       .then(function (r) {
         if (!r.ok) throw new Error('Navigation fetch failed');
         return r.text();

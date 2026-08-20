@@ -14,14 +14,14 @@
 <link rel="stylesheet" href="styles.css?v=339">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=6">
-<link rel="manifest" href="/manifest.json?v=111">
+<link rel="manifest" href="/manifest.json?v=112">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=135"></script>
+<script src="pwa-update.js?v=136"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 <style>
 /* ── Feed page wrapper ── */
@@ -215,9 +215,9 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 .c3-set-note{ font-size:11px; color:var(--text-dim); font-style:italic; line-height:1.35; }
 
 /* ── Cardio (sits under the last lift; absent entirely when unlogged) ──
-   Deliberately quieter than a lift block: a hairline and a small label
-   rather than its own tinted panel, so it reads as a footnote to the day
-   instead of competing with the lifts above it. */
+   The rows themselves reuse .c3-lift-block / .c3-set-row so cardio is a
+   visual mirror of a lift. Only the separator, the label and the dot colour
+   are specific to it. */
 .c3-cardio{
   margin-top:9px; padding-top:9px;
   border-top:1px solid var(--border);
@@ -227,14 +227,10 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
   font-family:var(--mono); font-size:9px; text-transform:uppercase;
   letter-spacing:.2em; color:var(--text-dimmer);
 }
-.c3-cardio-row{
-  display:flex; align-items:center; flex-wrap:wrap; gap:6px;
-}
-.c3-cardio-name{
-  font-family:var(--body); font-size:12px; font-weight:600; color:var(--text);
-  margin-right:2px;
-}
-.c3-cardio-stats{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+/* Cardio has no muscle group, so its dot cannot take a group colour the way
+   a lift's does. Dimmed neutral keeps the shape without inventing a
+   category that does not exist. */
+.c3-dot-cardio{ background:var(--text-dimmer); }
 
 /* ── Rest day card body ── */
 .c3-rest{
@@ -1446,11 +1442,28 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 
   function renderFeedCardio(cardio) {
     if (!cardio || !cardio.length) return '';
-    const rows = cardio.map(c => `<div class="c3-cardio-row">
-          <span class="c3-cardio-name">${feedEscapeHTML(c.activity || 'Cardio')}</span>
-          <span class="c3-cardio-stats">${feedCardioChips(c)}</span>
-        </div>`).join('');
-    return `<div class="c3-cardio"><div class="c3-cardio-label">Cardio</div>${rows}</div>`;
+    /* Same markup a lift uses — .c3-lift-block wrapping a .c3-set-row — so
+       cardio inherits the tinted block and boxed stat row rather than
+       carrying a second look of its own. */
+    const blocks = cardio.map(c => {
+      const note = c.note ? `<span class="c3-set-note">${feedEscapeHTML(c.note)}</span>` : '';
+      return `<div class="c3-lift-block">
+          <div class="c3-row">
+            <div class="c3-dot c3-dot-cardio"></div>
+            <span class="c3-lift-name">${feedEscapeHTML(c.activity || 'Cardio')}</span>
+          </div>
+          <div class="c3-set-list">
+            <div class="c3-set-row">
+              <span class="c3-set-stat">${feedCardioChips(c)}</span>
+              ${note}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    return `<div class="c3-cardio">
+      <div class="c3-cardio-label">Cardio</div>
+      <div class="c3-lifts">${blocks}</div>
+    </div>`;
   }
 
   function groupFeedLifts(lifts) {
@@ -2857,6 +2870,6 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 </script>
 <script src="nav-auth.js?v=4"></script>
 <script src="nav.js?v=20"></script>
-<script src="soft-nav.js?v=8"></script>
+<script src="soft-nav.js?v=9"></script>
 </body>
 </html>
