@@ -14,14 +14,14 @@
 <link rel="stylesheet" href="styles.css?v=339">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=6">
-<link rel="manifest" href="/manifest.json?v=110">
+<link rel="manifest" href="/manifest.json?v=111">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=134"></script>
+<script src="pwa-update.js?v=135"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 <style>
 /* ── Feed page wrapper ── */
@@ -2473,11 +2473,18 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
             .limit(30)
             .get(),
           db.doc(`users/${f.uid}/settings/main`).get(),
+          /* Reading a friend's cardio requires a rule that grants it, the same
+             way sessions/ and settings/ are granted. Until that rule exists
+             this read is denied — and an unhandled denial here would reject
+             the whole Promise.all and blank the entire feed with a
+             permissions error. Cardio is additive, so it fails soft: a denial
+             yields no cardio for that friend and every lift still renders. */
           db.collection(`users/${f.uid}/cardioSessions`)
             .where('dateRaw', '>=', cutoffStr)
             .orderBy('dateRaw', 'desc')
             .limit(30)
-            .get(),
+            .get()
+            .catch(() => null),
         ]);
         const settings = settingsSnap.exists ? settingsSnap.data() : {};
         const username = settings.username || settings.displayName || f.username || 'Athlete';
@@ -2485,7 +2492,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         return {
           uid: f.uid, username, settings,
           sessions: sessSnap.docs.map((d, i) => ({ ...d.data(), id: d.id, feedFetchIndex: i })),
-          cardio: cardioSnap.docs.map(d => ({ ...d.data(), id: d.id })),
+          cardio: cardioSnap ? cardioSnap.docs.map(d => ({ ...d.data(), id: d.id })) : [],
         };
       }))).filter(f => f.uid === myUid || !f.settings.isPrivate);
 
