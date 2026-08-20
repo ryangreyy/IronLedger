@@ -113,7 +113,8 @@
    tones used elsewhere for elevated surfaces, dark mode untouched. */
 [data-theme="light"] .flow-duration-input,
 [data-theme="light"] .flow-setup-pill input,
-[data-theme="light"] [data-theme="light"] .flow-seq-item,
+[data-theme="light"] .rank-lift{ background:#E6E9EF; }
+[data-theme="light"] .flow-seq-item,
 [data-theme="light"] .flow-pose-item:hover{ background:#EDF0F5; }
 /* Hero secondary buttons/links use white glints that vanish on light —
    give them a dark-ink surface and border instead. */
@@ -232,7 +233,8 @@
 [data-theme="light"] .ch-reroll-item{ border-bottom-color:var(--border); }
 [data-theme="light"] .effort-pips i,
 [data-theme="light"] .plan-vol-bar,
-[data-theme="light"] [data-theme="light"] .goal-due-pill,
+[data-theme="light"] .rank-prog{ background:rgba(18,23,33,.09); }
+[data-theme="light"] .goal-due-pill,
 [data-theme="light"] .tracker-restore-btn,
 [data-theme="light"] .tracker-restore-date,
 [data-theme="light"] .yoga-tab{ border-color:rgba(18,23,33,.22); }
@@ -2837,15 +2839,23 @@ html[data-authredirect] body{ visibility:hidden; }
 
 /* ---------- (1) GLADIATOR RANK BADGES ---------- */
 .rank-card{ margin-top:18px; padding:26px 22px; }
-/* The 22px bottom margin separated this from the per-lift rows that used
-   to follow it. The head is the whole card now, so the margin would just
-   be dead space under the rank. */
-.rank-head{ display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
+.rank-head{ display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; margin-bottom:22px; }
 .rank-overall{ display:flex; align-items:center; gap:16px; }
 .rank-overall .rank-hex{ width:84px; height:96px; flex-shrink:0; }
 .rank-overall-meta .rank-eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; background:var(--steel-red); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .rank-overall-meta .rank-name{ font-family:var(--display); font-size:34px; line-height:1; letter-spacing:.5px; background:var(--steel); -webkit-background-clip:text; background-clip:text; color:transparent; margin:4px 0 4px; }
 .rank-overall-meta .rank-flair{ font-size:13px; color:var(--text-dim); }
+.rank-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+@media(max-width:620px){ .rank-grid{ grid-template-columns:1fr; } }
+.rank-lift{ background:#0d0e11; border:1px solid var(--border); border-radius:12px; padding:16px 16px 18px; display:flex; align-items:center; gap:14px; }
+.rank-lift .rank-hex{ width:52px; height:60px; flex-shrink:0; }
+.rank-lift-body{ flex:1; min-width:0; }
+.rank-lift-name{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-dim); }
+.rank-lift-rank{ font-family:var(--display); font-size:18px; letter-spacing:.4px; color:var(--text); margin:2px 0 8px; }
+.rank-prog{ height:6px; border-radius:3px; background:rgba(255,255,255,.07); overflow:hidden; }
+.rank-prog > span{ display:block; height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent),var(--accent-bright)); width:0; transition:width .9s cubic-bezier(.4,0,.2,1); }
+.rank-next{ font-size:11px; color:var(--text-dimmer); margin-top:7px; font-family:var(--mono); }
+.rank-next b{ color:var(--accent-bright); font-weight:700; }
 
 /* ---------- (2) NEW-PR MEDALLION STAMP ---------- */
 .pr-stamp-overlay{
