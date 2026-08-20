@@ -14,14 +14,14 @@
 <link rel="stylesheet" href="styles.css?v=339">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=6">
-<link rel="manifest" href="/manifest.json?v=109">
+<link rel="manifest" href="/manifest.json?v=110">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=133"></script>
+<script src="pwa-update.js?v=134"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 <style>
 /* ── Feed page wrapper ── */
@@ -213,6 +213,28 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 }
 .c3-set-stat{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
 .c3-set-note{ font-size:11px; color:var(--text-dim); font-style:italic; line-height:1.35; }
+
+/* ── Cardio (sits under the last lift; absent entirely when unlogged) ──
+   Deliberately quieter than a lift block: a hairline and a small label
+   rather than its own tinted panel, so it reads as a footnote to the day
+   instead of competing with the lifts above it. */
+.c3-cardio{
+  margin-top:9px; padding-top:9px;
+  border-top:1px solid var(--border);
+  display:flex; flex-direction:column; gap:6px;
+}
+.c3-cardio-label{
+  font-family:var(--mono); font-size:9px; text-transform:uppercase;
+  letter-spacing:.2em; color:var(--text-dimmer);
+}
+.c3-cardio-row{
+  display:flex; align-items:center; flex-wrap:wrap; gap:6px;
+}
+.c3-cardio-name{
+  font-family:var(--body); font-size:12px; font-weight:600; color:var(--text);
+  margin-right:2px;
+}
+.c3-cardio-stats{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
 
 /* ── Rest day card body ── */
 .c3-rest{
@@ -1399,6 +1421,38 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       .join('');
   }
 
+  /* ── Cardio ──
+     Formatting mirrors app.js (formatDurationMMSS, cardioDistanceText and
+     friends) so a friend's entry reads the same here as in their own log.
+     renderFeedCardio returns '' when there is no cardio, which is what keeps
+     a card with no cardio byte-for-byte identical to before. */
+  function feedFormatDurationMMSS(seconds) {
+    const total = Math.max(0, Math.round(+seconds || 0));
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  }
+
+  function feedCardioChips(c) {
+    const chips = [feedFormatDurationMMSS(c.durationSeconds)];
+    if (c.distance) chips.push(`${c.distance} ${c.distanceUnit || 'mi'}`);
+    if (c.incline) {
+      chips.push((c.inclineUnit || '%') === 'level' ? `Lvl ${c.incline}` : `${c.incline}%`);
+    }
+    if (c.resistance) {
+      const unit = c.resistanceUnit || 'level';
+      chips.push(unit === 'level' ? `Res Lvl ${c.resistance}` : `Res ${c.resistance} ${unit}`);
+    }
+    return chips.map(v => `<span class="cardio-stat">${feedEscapeHTML(v)}</span>`).join('');
+  }
+
+  function renderFeedCardio(cardio) {
+    if (!cardio || !cardio.length) return '';
+    const rows = cardio.map(c => `<div class="c3-cardio-row">
+          <span class="c3-cardio-name">${feedEscapeHTML(c.activity || 'Cardio')}</span>
+          <span class="c3-cardio-stats">${feedCardioChips(c)}</span>
+        </div>`).join('');
+    return `<div class="c3-cardio"><div class="c3-cardio-label">Cardio</div>${rows}</div>`;
+  }
+
   function groupFeedLifts(lifts) {
     const groups = [];
     const byKey = new Map();
@@ -1416,7 +1470,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
 
   /* Render one C3 card for a single friend on a single day.
      colors = viewer's own palette so the feed matches their settings. */
-  function renderFriendDayCard(friendUid, username, settings, sessions, dateRaw, colors) {
+  function renderFriendDayCard(friendUid, username, settings, sessions, dateRaw, colors, cardio) {
     const avatar   = buildAvatarEl(settings, username);
     const dateStr  = formatFeedDate(dateRaw);
     const lifts    = sessions.filter(s => !s.isRestDay);
@@ -1475,6 +1529,7 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
           </div>
         </div>
         ${liftRowsHtml}
+        ${renderFeedCardio(cardio)}
         ${rxnBar}
         ${cmtSection}
       </div>
@@ -2340,6 +2395,11 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       if (!s.dateRaw) continue;
       (byDate[s.dateRaw] = byDate[s.dateRaw] || []).push(s);
     }
+    const cardioByDate = {};
+    for (const c of (friend.cardio || [])) {
+      if (!c.dateRaw) continue;
+      (cardioByDate[c.dateRaw] = cardioByDate[c.dateRaw] || []).push(c);
+    }
     const dates = Object.keys(byDate).sort().reverse();
     const backBtn = `<button class="feed-friend-back" id="feedFriendBackBtn"><i class="ti ti-arrow-left" aria-hidden="true"></i>Back to Feed</button>`;
     const colors = feedViewerColorsCache || clsColors(friend.settings);
@@ -2351,7 +2411,8 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       for (const date of dates) {
         html += `<div class="feed-day-label">${formatFeedDate(date)}</div>`;
         html += '<div class="feed-grid">';
-        html += renderFriendDayCard(uid, friend.username, friend.settings, sortFeedSessionsByLoggedOrder(byDate[date]), date, colors);
+        html += renderFriendDayCard(uid, friend.username, friend.settings, sortFeedSessionsByLoggedOrder(byDate[date]), date, colors,
+                                    cardioByDate[date]);
         html += '</div>';
       }
       container.innerHTML = html;
@@ -2405,18 +2466,27 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
          you can always see your own feed regardless of your own privacy
          setting). */
       const perFriend = (await Promise.all(friends.map(async f => {
-        const [sessSnap, settingsSnap] = await Promise.all([
+        const [sessSnap, settingsSnap, cardioSnap] = await Promise.all([
           db.collection(`users/${f.uid}/sessions`)
             .where('dateRaw', '>=', cutoffStr)
             .orderBy('dateRaw', 'desc')
             .limit(30)
             .get(),
-          db.doc(`users/${f.uid}/settings/main`).get()
+          db.doc(`users/${f.uid}/settings/main`).get(),
+          db.collection(`users/${f.uid}/cardioSessions`)
+            .where('dateRaw', '>=', cutoffStr)
+            .orderBy('dateRaw', 'desc')
+            .limit(30)
+            .get(),
         ]);
         const settings = settingsSnap.exists ? settingsSnap.data() : {};
         const username = settings.username || settings.displayName || f.username || 'Athlete';
         uidToName[f.uid] = username;
-        return { uid: f.uid, username, settings, sessions: sessSnap.docs.map((d, i) => ({ ...d.data(), id: d.id, feedFetchIndex: i })) };
+        return {
+          uid: f.uid, username, settings,
+          sessions: sessSnap.docs.map((d, i) => ({ ...d.data(), id: d.id, feedFetchIndex: i })),
+          cardio: cardioSnap.docs.map(d => ({ ...d.data(), id: d.id })),
+        };
       }))).filter(f => f.uid === myUid || !f.settings.isPrivate);
 
       /* Cache for the friend search bar -- lets it show a friend's last 7
@@ -2424,6 +2494,17 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
       feedPerFriendCache = perFriend.filter(f => f.uid !== myUid);
       feedViewerColorsCache = viewerColors;
       feedMyUidCache = myUid;
+
+      /* Cardio is indexed on its own rather than folded into byDate, so it can
+         only ever attach to a card that the lift/rest data already produced.
+         A friend with cardio and nothing else changes nothing in the feed. */
+      const cardioByDate = {};
+      for (const f of perFriend) {
+        for (const c of (f.cardio || [])) {
+          if (!c.dateRaw) continue;
+          ((cardioByDate[c.dateRaw] = cardioByDate[c.dateRaw] || {})[f.uid] ||= []).push(c);
+        }
+      }
 
       /* Group by date → uid → { username, settings, sessions[] } */
       const byDate = {};
@@ -2451,7 +2532,8 @@ h2.feed-head-title{ margin-top:-12px; margin-bottom:32px; }
         const sortedUids = Object.keys(byDate[date]).sort((a, b) => a === myUid ? -1 : b === myUid ? 1 : 0);
         for (const uid of sortedUids) {
           const { username, settings, sessions } = byDate[date][uid];
-          html += renderFriendDayCard(uid, username, settings, sortFeedSessionsByLoggedOrder(sessions), date, viewerColors);
+          html += renderFriendDayCard(uid, username, settings, sortFeedSessionsByLoggedOrder(sessions), date, viewerColors,
+                                      cardioByDate[date]?.[uid]);
         }
         html += '</div>';
       }
