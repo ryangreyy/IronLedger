@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=337">
+<link rel="stylesheet" href="styles.css?v=338">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=6">
 <link rel="manifest" href="/manifest.json?v=108">
@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=130"></script>
+<script src="pwa-update.js?v=131"></script>
 <style>
 /* ---- Profile hero ---- */
 .profile-hero-card{ padding:0; }
@@ -105,12 +105,6 @@
 .plift-unit{
   font-family:var(--mono); font-size:15px;
   color:var(--text-dimmer); margin-left:4px;
-}
-.plift-rank{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-.plift-rank .rank-hex{ width:26px; height:30px; }
-.plift-rank-name{
-  font-family:var(--mono); font-size:12px; font-weight:700;
-  color:var(--text-dim); text-transform:uppercase; letter-spacing:0.12em;
 }
 .plift-prog-track{
   height:4px; background:rgba(255,255,255,0.1);
@@ -635,8 +629,8 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     return streak;
   }
 
-  /* ---- Rank system ---- */
-  const RANK_NAMES = ['Recruit','Bronze','Silver','Gold','Elite','Titan','Legend','Gladiator'];
+  /* ---- Strength standards (no ranks — see the XP listener for the
+     account's one rank) ---- */
   function rankWeightClass(bw) {
     const keys = Object.keys(bodyweightStandards).map(Number).sort((a,b) => a-b);
     for (const k of keys) if (bw <= k) return k;
@@ -647,22 +641,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const th = bodyweightStandards[wc][liftKey];
     let passed = 0; for (const t of th) if (max >= t) passed++;
     return { passed, th };
-  }
-  function rankHex(rankIdx) {
-    const cols = [
-      ['#4B5563','#9AA0AC'], // Recruit  — gray
-      ['#7D4A1E','#CD7F32'], // Bronze   — bronze
-      ['#6B7280','#C8CAD0'], // Silver   — silver
-      ['#92700A','#FFD700'], // Gold     — gold
-      ['#1E40AF','#60A5FA'], // Elite    — blue
-      ['#5B21B6','#A78BFA'], // Titan    — purple
-      ['#9A3412','#FB923C'], // Legend   — orange
-      ['#C1272D','#F0565B'], // Gladiator— red
-    ];
-    const num = ['I','II','III','IV','V','VI','VII','VIII'][rankIdx];
-    return '<svg class="rank-hex" viewBox="0 0 60 70">' +
-      '<polygon points="30,3 56,18 56,52 30,67 4,52 4,18" fill="#15171c" stroke="' + cols[rankIdx][0] + '" stroke-width="2.5"/>' +
-      '<text x="30" y="47" text-anchor="middle" font-family="Anton,sans-serif" font-size="28" fill="' + cols[rankIdx][1] + '">' + num + '</text></svg>';
   }
 
   /* ---- Avatar ---- */
@@ -934,17 +912,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     }
   }
 
-  function updateHeroRank(sq, bn, dl, bw) {
-    if (!sq && !bn && !dl) return;
-    const lifts = [['squat',sq],['bench',bn],['dead',dl]];
-    let sumIdx = 0, n = 0;
-    for (const [key, mx] of lifts) {
-      if (!mx) continue;
-      const { passed } = liftTier(key, mx, bw);
-      sumIdx += Math.max(0, Math.min(7, passed - 1)); n++;
-    }
-    currentOverallRank = n ? Math.round(sumIdx / n) : 0;
-  }
 
   /* ---- KPI strip ---- */
   function renderKPIs(sessionCount, streak, big3, totalR) {
@@ -979,17 +946,18 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       const idx = Math.max(0, Math.min(7, passed - 1));
       let pct, nextTxt;
       if (passed >= 8) {
-        pct = 100; nextTxt = 'Max rank reached';
+        pct = 100; nextTxt = 'Top of the standards';
       } else {
         const base = passed > 0 ? th[passed-1] : 0;
         const next = th[passed];
         pct = Math.max(4, Math.min(100, Math.round((val - base) / (next - base) * 100)));
-        nextTxt = `<b>+${next - val} lbs</b> &rarr; ${RANK_NAMES[Math.min(7, passed)]}`;
+        nextTxt = `<b>+${next - val} lbs</b> to the next standard`;
       }
+      /* Strength progress only. This used to print a per-lift rank name,
+         which was a second rank competing with the account's. */
       card.innerHTML = `
         <div class="plift-eyebrow" style="color:var(${colorVar})">${label}</div>
         <div class="plift-weight">${val.toLocaleString()}<span class="plift-unit">lbs</span></div>
-        <div class="plift-rank">${rankHex(idx)}<span class="plift-rank-name">${RANK_NAMES[idx]}</span></div>
         <div class="plift-prog-track"><div class="plift-prog-fill" style="background:var(${colorVar})" data-w="${pct}"></div></div>
         <div class="plift-next">${nextTxt}</div>`;
     });
@@ -1078,7 +1046,6 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
     const big3 = sq + bn + dl;
     const totalR = bw ? (big3 / bw).toFixed(1) : '0';
     updateHeroStats(sq, bn, dl, bw, hIn);
-    updateHeroRank(sq, bn, dl, bw);
     renderKPIs(currentSessionCount, currentStreak, big3, totalR);
     renderLiftCards(sq, bn, dl, bw);
     renderDna(sq, bn, dl, bw);
@@ -1850,7 +1817,14 @@ label.profile-banner-cta:hover{ color:var(--text-dim); }
       /* XP rank bar */
       if (unsubscribeXP) unsubscribeXP();
       unsubscribeXP = db.collection('users').doc(user.uid).collection('xp').doc('main')
-        .onSnapshot(snap => igRenderXPBar(snap.exists ? (snap.data().total || 0) : 0));
+        .onSnapshot(snap => {
+          const xpTotal = snap.exists ? (snap.data().total || 0) : 0;
+          /* The account's only rank. Badges below key off it, so they unlock
+             on the same rank the home tile and leaderboard show. */
+          currentOverallRank = getRankFromXP(xpTotal).rankIndex;
+          igRenderXPBar(xpTotal);
+          renderAll();
+        });
 
       /* Bodyweight log — auto-sync most recent entry */
       if (unsubscribeBw) unsubscribeBw();
