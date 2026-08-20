@@ -745,6 +745,48 @@ function igAssignWeekly(recentIds, profile) {
 }
 
 /* ============================================================
+   XP REPAIR
+   xp/main.total is a running counter: igCheckChallenges only ever
+   increments it, and only ever looks at today's doc and this week's.
+   So if that counter is ever missing or zeroed on an account that
+   already has completion history, every previously completed
+   challenge becomes invisible permanently — nothing ever goes back
+   and re-reads the older docs.
+
+   The completions themselves are durable: every assigned entry keeps
+   its completed flag in users/{uid}/challenges/{daily_*|weekly_*}.
+   So the true total can always be rebuilt from them. Runs once per
+   account, guarded by historyRepairedAt.
+   ============================================================ */
+async function igRepairXPFromHistory(uid, db, xpRef, storedTotal) {
+  const snap = await db.collection('users').doc(uid).collection('challenges').get();
+  let recovered = 0, completedCount = 0, unknownIds = 0;
+  snap.forEach(doc => {
+    const assigned = (doc.data() || {}).assigned || [];
+    for (const entry of assigned) {
+      if (!entry || !entry.completed) continue;
+      completedCount++;
+      const c = CHALLENGE_POOL.find(x => x.id === entry.id);
+      if (c && typeof c.xp === 'number') recovered += c.xp;
+      else unknownIds++;   /* challenge since removed from the pool */
+    }
+  });
+
+  /* Never lower what is already stored. Head-to-head wins add XP from
+     feed.html and leave no trace in the challenges collection, so a
+     rebuild that ignored the stored value would silently delete them. */
+  const total = Math.max(recovered, storedTotal);
+  await xpRef.set({ total, historyRepairedAt: Date.now() }, { merge: true });
+  console.info('[IG] XP repair —',
+    'completed challenges found:', completedCount,
+    '| rebuilt from history:', recovered,
+    '| previously stored:', storedTotal,
+    '| total now:', total,
+    unknownIds ? '| skipped (retired challenge ids): ' + unknownIds : '');
+  return total;
+}
+
+/* ============================================================
    FIRESTORE INIT — call once after sign-in
    Returns { dailyRef, weeklyRef, xpRef }
    ============================================================ */
@@ -795,9 +837,14 @@ async function igInitChallenges(uid, db) {
     await weeklyRef.set({ weekStart, scope: 'weekly', assigned: igAssignWeekly(recentIds, profile) });
   }
 
-  /* Create XP doc if missing */
+  /* Create the XP doc if missing, and rebuild it from completion history
+     the first time — an account whose counter was lost still has every
+     completed challenge on record. */
   const xpSnap = await xpRef.get();
-  if (!xpSnap.exists) await xpRef.set({ total: 0 });
+  const storedTotal = xpSnap.exists ? (xpSnap.data().total || 0) : 0;
+  if (!xpSnap.exists || !xpSnap.data().historyRepairedAt) {
+    await igRepairXPFromHistory(uid, db, xpRef, storedTotal);
+  }
 
   return { dailyRef, weeklyRef, xpRef };
 }
