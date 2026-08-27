@@ -254,13 +254,60 @@ const IG_SPLIT_PRESETS = [
    never opens the setting sees no change at all. */
 const IG_DEFAULT_SPLIT = 'bodypart';
 
-function igSplitById(id) {
-  return IG_SPLIT_PRESETS.find(function (s) { return s.id === id; })
+/* User-built splits live in settings.customSplits and are resolved everywhere
+   a preset is, so nothing downstream needs to know the difference. */
+function igCustomSplits(settings) {
+  const list = settings && settings.customSplits;
+  return Array.isArray(list) ? list : [];
+}
+
+function igAllSplits(settings) {
+  return IG_SPLIT_PRESETS.concat(igCustomSplits(settings));
+}
+
+/* settings is optional: without it only presets resolve, which is all the
+   callers that predate custom splits ever needed. */
+function igSplitById(id, settings) {
+  return igAllSplits(settings).find(function (s) { return s.id === id; })
       || IG_SPLIT_PRESETS.find(function (s) { return s.id === IG_DEFAULT_SPLIT; });
 }
 
 function igActiveSplit(settings) {
-  return igSplitById(settings && settings.split);
+  return igSplitById(settings && settings.split, settings);
+}
+
+/* Every muscle group in exactly one day, every day named and non-empty. The
+   builder's UI makes orphans and duplicates structurally impossible, but this
+   also guards data that arrives from anywhere else — an older client, a
+   half-finished edit, a hand-edited document. */
+function igValidateSplit(split) {
+  const errors = [];
+  const label = (split && split.label || '').trim();
+  const buckets = (split && split.buckets) || [];
+
+  if (!label) errors.push('Give your split a name.');
+  else if (label.length > 30) errors.push('Split name must be 30 characters or less.');
+  if (!buckets.length) errors.push('Add at least one day.');
+
+  const names = buckets.map(function (b) { return (b.label || '').trim().toLowerCase(); });
+  if (names.some(function (n) { return !n; })) errors.push('Every day needs a name.');
+  names.forEach(function (n, i) {
+    if (n && names.indexOf(n) !== i) errors.push('Two days are both called "' + buckets[i].label.trim() + '".');
+  });
+
+  buckets.forEach(function (b) {
+    if (!(b.groups || []).length) errors.push('"' + (b.label || 'Untitled') + '" has no muscles in it.');
+  });
+
+  const seen = [];
+  buckets.forEach(function (b) { seen.push.apply(seen, b.groups || []); });
+  const missing = IG_MUSCLE_GROUPS.map(function (g) { return g.id; })
+    .filter(function (g) { return seen.indexOf(g) === -1; });
+  const dupes = seen.filter(function (g, i) { return seen.indexOf(g) !== i; });
+  if (missing.length) errors.push('Not placed yet: ' + missing.map(igGroupLabel).join(', ') + '.');
+  if (dupes.length) errors.push('In two days at once: ' + dupes.map(igGroupLabel).join(', ') + '.');
+
+  return { ok: errors.length === 0, errors: errors.filter(function (e, i) { return errors.indexOf(e) === i; }) };
 }
 
 /* Which bucket a muscle group falls into under a given split. */
@@ -291,13 +338,37 @@ function igSessionBucket(session, settings) {
 /* Bucket metadata by id, searching the active split first and then every
    preset — so a bucket retired by a split change still resolves to its label
    and colour instead of leaving old history unlabelled and grey. */
+/* Days from splits that no longer exist. A preset's days always resolve
+   because the preset is still in the code, but a custom split the user
+   deleted (or a day they removed while editing) takes its definitions with
+   it — and sessions logged under it would lose their name and colour. So
+   those definitions are archived here on the way out. */
+function igRetiredBuckets(settings) {
+  const r = settings && settings.retiredBuckets;
+  return (r && typeof r === 'object') ? r : {};
+}
+
 function igBucketMeta(bucketId, settings) {
   const active = igActiveSplit(settings);
   const here = active && active.buckets.find(function (b) { return b.id === bucketId; });
   if (here) return here;
-  for (let i = 0; i < IG_SPLIT_PRESETS.length; i++) {
-    const b = IG_SPLIT_PRESETS[i].buckets.find(function (x) { return x.id === bucketId; });
+  const all = igAllSplits(settings);
+  for (let i = 0; i < all.length; i++) {
+    const b = all[i].buckets.find(function (x) { return x.id === bucketId; });
     if (b) return b;
   }
+  const retired = igRetiredBuckets(settings)[bucketId];
+  if (retired) return { id: bucketId, label: retired.label, color: retired.color, groups: [], retired: true };
   return { id:'other', label:'Other', color:'#8A8F98', groups:[] };
+}
+
+/* Fold a set of buckets into the retired map, keeping whatever is already
+   there. Called when a custom split is deleted, and when an edit drops a day
+   that history may still point at. */
+function igArchiveBuckets(settings, buckets) {
+  const out = Object.assign({}, igRetiredBuckets(settings));
+  (buckets || []).forEach(function (b) {
+    if (b && b.id) out[b.id] = { label: b.label, color: b.color };
+  });
+  return out;
 }

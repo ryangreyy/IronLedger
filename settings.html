@@ -11,17 +11,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=340">
+<link rel="stylesheet" href="styles.css?v=341">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=6">
-<link rel="manifest" href="/manifest.json?v=114">
+<link rel="manifest" href="/manifest.json?v=115">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=138"></script>
+<script src="pwa-update.js?v=139"></script>
 </head>
 <body>
 
@@ -148,8 +148,35 @@
             <select id="splitSel"></select>
           </div>
           <div id="splitPreview" class="split-preview"></div>
-          <button id="saveSplit" class="btn btn-primary" style="margin-top:12px;">Save split</button>
+          <div class="split-actions">
+            <button id="saveSplit" class="btn btn-primary">Save split</button>
+            <button id="splitNew" class="btn btn-ghost">Build my own</button>
+            <button id="splitEdit" class="btn btn-ghost" style="display:none;">Edit</button>
+          </div>
           <p id="splitMsg" class="settings-msg"></p>
+
+          <!-- Builder. Each muscle carries exactly one day dropdown, so a
+               muscle cannot be orphaned or land in two days at once. -->
+          <div id="splitBuilder" class="split-builder" style="display:none;">
+            <div class="field" style="max-width:280px;">
+              <label for="splitName">Split name</label>
+              <input id="splitName" type="text" maxlength="30" placeholder="e.g. My Split" autocomplete="off">
+            </div>
+
+            <p class="split-builder-label">Days</p>
+            <div id="splitBucketList"></div>
+            <button id="splitAddBucket" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;margin-top:8px;">+ Add day</button>
+
+            <p class="split-builder-label">Where each muscle goes</p>
+            <div id="splitGroupList"></div>
+
+            <div class="split-actions" style="margin-top:16px;">
+              <button id="splitSaveCustom" class="btn btn-primary">Save</button>
+              <button id="splitCancel" class="btn btn-ghost">Cancel</button>
+              <button id="splitDelete" class="btn btn-ghost split-delete" style="display:none;">Delete</button>
+            </div>
+            <p id="splitBuilderMsg" class="settings-msg"></p>
+          </div>
 
           <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
 
@@ -491,7 +518,7 @@
         const d = doc.data();
         if (d.unit) setUnitToggle(d.unit);
         if (d.defaultLift !== undefined) document.getElementById('defaultLiftSel').value = d.defaultLift;
-        window.__igApplySplitSetting?.(d.split);
+        window.__igApplySplitSetting?.(d.split, d.customSplits, d.retiredBuckets);
         setPrivacyToggle(d.isPrivate ? 'private' : 'public');
         loadColors(d);
         if (Array.isArray(d.customLifts)) { customLifts = d.customLifts; renderCustomLiftList(); }
@@ -636,29 +663,54 @@
 
   /* ── SAVE PERSONAL INFO ── */
   /* ── TRAINING SPLIT ──
-     Writes settings.split only. Sessions already logged keep the bucket they
-     were written with, so switching here never reshapes history — that is the
-     whole reason the bucket is stored per session rather than derived. */
+     Writes settings.split and settings.customSplits. Sessions already logged
+     keep the bucket they were written with, so nothing here reshapes history —
+     that is the whole reason the bucket is stored per session. */
   (function initSplitPicker() {
-    const sel     = document.getElementById('splitSel');
-    const preview = document.getElementById('splitPreview');
-    if (!sel || !preview) return;
+    const sel      = document.getElementById('splitSel');
+    const preview  = document.getElementById('splitPreview');
+    const builder  = document.getElementById('splitBuilder');
+    if (!sel || !preview || !builder) return;
 
-    sel.innerHTML = IG_SPLIT_PRESETS
-      .map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+    const DAY_COLORS = ['#5BD6E6','#FF8A4C','#D6FF3D','#B78BFF','#FFC857','#D98CA6','#7BE0A6','#FF6F91'];
+    let customSplits = [];
+    let retiredBuckets = {};
+    let draft = null;          // the split being edited, null when closed
 
-    function renderPreview(id) {
-      const split = igSplitById(id);
-      preview.innerHTML = `<p class="split-blurb">${split.blurb}</p>` +
+    /* ---------- picker ---------- */
+    function renderOptions(selectedId) {
+      const preset = IG_SPLIT_PRESETS
+        .map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+      const mine = customSplits.length
+        ? `<optgroup label="Yours">` + customSplits
+            .map(c => `<option value="${c.id}">${escHtml(c.label)}</option>`).join('') + `</optgroup>`
+        : '';
+      sel.innerHTML = preset + mine;
+      sel.value = igSplitById(selectedId, { customSplits }).id;
+      renderPreview();
+    }
+
+    function escHtml(v) {
+      return String(v == null ? '' : v)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function renderPreview() {
+      const split = igSplitById(sel.value, { customSplits });
+      const isMine = !!split.custom;
+      document.getElementById('splitEdit').style.display = isMine ? '' : 'none';
+      preview.innerHTML =
+        (split.blurb ? `<p class="split-blurb">${escHtml(split.blurb)}</p>` : '') +
         split.buckets.map(b => `
           <div class="split-bucket">
-            <span class="split-bucket-dot" style="background:${b.color};"></span>
-            <span class="split-bucket-name">${b.label}</span>
+            <span class="split-bucket-dot" style="background:${escHtml(b.color)};"></span>
+            <span class="split-bucket-name">${escHtml(b.label)}</span>
             <span class="split-bucket-groups">${b.groups.map(igGroupLabel).join(' · ')}</span>
           </div>`).join('');
     }
 
-    sel.addEventListener('change', () => renderPreview(sel.value));
+    sel.addEventListener('change', renderPreview);
 
     document.getElementById('saveSplit').addEventListener('click', async () => {
       const msg = document.getElementById('splitMsg');
@@ -668,21 +720,185 @@
       try {
         await settingsRef().set({ split: sel.value }, { merge: true });
         msg.style.color = 'var(--up)';
-        msg.textContent = '\u2713 Split saved — past workouts are unchanged.';
+        msg.textContent = '✓ Split saved — past workouts are unchanged.';
         setTimeout(() => { msg.textContent = ''; }, 3000);
       } catch (err) {
-        msg.style.color = 'var(--down)';
-        msg.textContent = err.message || 'Something went wrong.';
+        msg.style.color = 'var(--down)'; msg.textContent = err.message || 'Something went wrong.';
       } finally { btn.textContent = 'Save split'; btn.disabled = false; }
     });
 
-    /* Filled in again once settings arrive; renders immediately so the card is
-       never blank while Firestore is still in flight. */
-    window.__igApplySplitSetting = function (value) {
-      sel.value = igSplitById(value).id;
-      renderPreview(sel.value);
+    /* ---------- builder ---------- */
+    function openBuilder(seed, isNew) {
+      /* Deep copy so cancelling genuinely discards, and editing never mutates
+         the preset objects shared by every user of that preset. */
+      draft = {
+        id: isNew ? 'custom-' + Date.now().toString(36) : seed.id,
+        label: isNew ? (seed.label + ' (mine)').slice(0, 30) : seed.label,
+        custom: true,
+        buckets: seed.buckets.map((b, i) => ({
+          id: b.id, label: b.label,
+          color: b.color || DAY_COLORS[i % DAY_COLORS.length],
+          groups: b.groups.slice(),
+        })),
+      };
+      document.getElementById('splitName').value = draft.label;
+      document.getElementById('splitDelete').style.display = isNew ? 'none' : '';
+      document.getElementById('splitBuilderMsg').textContent = '';
+      builder.style.display = '';
+      renderBuckets(); renderGroups();
+      builder.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeBuilder() {
+      draft = null;
+      builder.style.display = 'none';
+      document.getElementById('splitBuilderMsg').textContent = '';
+    }
+
+    function renderBuckets() {
+      document.getElementById('splitBucketList').innerHTML = draft.buckets.map((b, i) => `
+        <div class="split-day-row" data-i="${i}">
+          <input type="color" class="split-day-color" value="${escHtml(b.color)}" aria-label="Colour for ${escHtml(b.label)}">
+          <input type="text" class="split-day-name" value="${escHtml(b.label)}" maxlength="24" placeholder="Day name">
+          <button type="button" class="split-day-del" aria-label="Remove day">&times;</button>
+        </div>`).join('');
+    }
+
+    /* One dropdown per muscle. Reassigning moves it, so every muscle is in
+       exactly one day by construction — orphans and duplicates cannot happen
+       through this UI at all. */
+    function renderGroups() {
+      document.getElementById('splitGroupList').innerHTML = IG_MUSCLE_GROUPS.map(g => {
+        const owner = draft.buckets.findIndex(b => b.groups.indexOf(g.id) !== -1);
+        const opts = draft.buckets
+          .map((b, i) => `<option value="${i}"${i === owner ? ' selected' : ''}>${escHtml(b.label)}</option>`).join('');
+        return `<div class="split-group-row">
+            <span class="split-group-name">${g.label}</span>
+            <select class="split-group-sel" data-group="${g.id}">${opts}</select>
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('splitBucketList').addEventListener('input', e => {
+      const row = e.target.closest('.split-day-row'); if (!row || !draft) return;
+      const i = +row.dataset.i;
+      if (e.target.classList.contains('split-day-name'))  { draft.buckets[i].label = e.target.value; renderGroups(); }
+      if (e.target.classList.contains('split-day-color')) { draft.buckets[i].color = e.target.value; }
+    });
+
+    document.getElementById('splitBucketList').addEventListener('click', e => {
+      const btn = e.target.closest('.split-day-del'); if (!btn || !draft) return;
+      if (draft.buckets.length === 1) {
+        showBuilderError('A split needs at least one day.'); return;
+      }
+      const i = +btn.closest('.split-day-row').dataset.i;
+      /* Muscles in a removed day move to the first remaining one rather than
+         vanishing, so the split stays complete at every moment. */
+      const moved = draft.buckets[i].groups;
+      draft.buckets.splice(i, 1);
+      draft.buckets[0].groups = draft.buckets[0].groups.concat(moved);
+      renderBuckets(); renderGroups();
+    });
+
+    document.getElementById('splitAddBucket').addEventListener('click', () => {
+      if (!draft) return;
+      if (draft.buckets.length >= 8) { showBuilderError('Eight days is the most you can have.'); return; }
+      draft.buckets.push({
+        id: 'day-' + Date.now().toString(36) + '-' + draft.buckets.length,
+        label: 'New day', color: DAY_COLORS[draft.buckets.length % DAY_COLORS.length], groups: [],
+      });
+      renderBuckets(); renderGroups();
+    });
+
+    document.getElementById('splitGroupList').addEventListener('change', e => {
+      const s2 = e.target.closest('.split-group-sel'); if (!s2 || !draft) return;
+      const gid = s2.dataset.group, to = +s2.value;
+      draft.buckets.forEach(b => { const k = b.groups.indexOf(gid); if (k !== -1) b.groups.splice(k, 1); });
+      draft.buckets[to].groups.push(gid);
+    });
+
+    document.getElementById('splitName').addEventListener('input', e => {
+      if (draft) draft.label = e.target.value;
+    });
+
+    function showBuilderError(text) {
+      const m = document.getElementById('splitBuilderMsg');
+      m.style.color = 'var(--down)'; m.textContent = text;
+    }
+
+    document.getElementById('splitNew').addEventListener('click', () => {
+      openBuilder(igSplitById(sel.value, { customSplits }), true);
+    });
+    document.getElementById('splitEdit').addEventListener('click', () => {
+      openBuilder(igSplitById(sel.value, { customSplits }), false);
+    });
+    document.getElementById('splitCancel').addEventListener('click', closeBuilder);
+
+    document.getElementById('splitSaveCustom').addEventListener('click', async () => {
+      if (!draft) return;
+      draft.label = document.getElementById('splitName').value.trim();
+      const check = igValidateSplit(draft);
+      if (!check.ok) { showBuilderError(check.errors[0]); return; }
+
+      const btn = document.getElementById('splitSaveCustom');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      try {
+        const next = customSplits.filter(c => c.id !== draft.id).concat([draft]);
+        /* Any day this edit removed is archived, so sessions already logged
+           under it keep their name and colour instead of going grey. */
+        const before = customSplits.find(c => c.id === draft.id);
+        const dropped = before
+          ? before.buckets.filter(b => !draft.buckets.some(x => x.id === b.id))
+          : [];
+        const patch = { customSplits: next, split: draft.id };
+        if (dropped.length) patch.retiredBuckets = igArchiveBuckets({ retiredBuckets: retiredBuckets }, dropped);
+        await settingsRef().set(patch, { merge: true });
+        if (patch.retiredBuckets) retiredBuckets = patch.retiredBuckets;
+        customSplits = next;
+        renderOptions(draft.id);
+        closeBuilder();
+        const msg = document.getElementById('splitMsg');
+        msg.style.color = 'var(--up)';
+        msg.textContent = '✓ "' + draft.label + '" saved and selected.';
+        setTimeout(() => { msg.textContent = ''; }, 3000);
+      } catch (err) {
+        showBuilderError(err.message || 'Something went wrong.');
+      } finally { btn.textContent = 'Save'; btn.disabled = false; }
+    });
+
+    document.getElementById('splitDelete').addEventListener('click', async () => {
+      if (!draft) return;
+      /* Deleting the split you are on falls back to the default. Sessions
+         logged under it keep their day names regardless — igBucketMeta still
+         resolves them, so old history is never affected by this. */
+      const wasActive = sel.value === draft.id;
+      const btn = document.getElementById('splitDelete');
+      btn.textContent = 'Deleting…'; btn.disabled = true;
+      try {
+        const next = customSplits.filter(c => c.id !== draft.id);
+        const patch = {
+          customSplits: next,
+          retiredBuckets: igArchiveBuckets({ retiredBuckets: retiredBuckets }, draft.buckets),
+        };
+        if (wasActive) patch.split = IG_DEFAULT_SPLIT;
+        await settingsRef().set(patch, { merge: true });
+        customSplits = next;
+        retiredBuckets = patch.retiredBuckets;
+        renderOptions(wasActive ? IG_DEFAULT_SPLIT : sel.value);
+        closeBuilder();
+      } catch (err) {
+        showBuilderError(err.message || 'Something went wrong.');
+      } finally { btn.textContent = 'Delete'; btn.disabled = false; }
+    });
+
+    /* Called again once settings arrive; renders now so the card is never
+       blank while Firestore is still in flight. */
+    window.__igApplySplitSetting = function (value, saved, retired) {
+      customSplits = Array.isArray(saved) ? saved : customSplits;
+      if (retired && typeof retired === 'object') retiredBuckets = retired;
+      renderOptions(value);
     };
-    window.__igApplySplitSetting(IG_DEFAULT_SPLIT);
+    renderOptions(IG_DEFAULT_SPLIT);
   })();
 
   document.getElementById('savePersonalInfo').addEventListener('click', async () => {
