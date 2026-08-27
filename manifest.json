@@ -3,7 +3,7 @@
   "short_name": "IronGladiator",
   "description": "Train hard. Track everything.",
   "id": "/index.html",
-  "start_url": "/index.html?v=353",
+  "start_url": "/index.html?v=354",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

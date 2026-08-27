@@ -2046,6 +2046,28 @@ nav:has(.nav-links a[href="settings.html"].nav-current) #signOut{ display:inline
 .settings-group .field input,
 .settings-group .field select{ font-size:14px; padding:9px 11px; }
 
+/* Split preview — shows what a preset actually contains before you commit to
+   it, so picking one is not a guess. */
+.split-preview{ margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+.split-blurb{
+  font-family:var(--mono); font-size:10px; letter-spacing:.06em;
+  color:var(--text-dimmer); margin:0 0 4px;
+}
+.split-bucket{
+  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+  padding:7px 9px; border:1px solid var(--border); border-radius:8px;
+  background:rgba(255,255,255,0.03);
+}
+.split-bucket-dot{
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+  align-self:center;
+}
+.split-bucket-name{ font-size:12px; font-weight:700; color:var(--text); }
+.split-bucket-groups{
+  font-family:var(--mono); font-size:10px; color:var(--text-dim);
+  flex:1; min-width:0;
+}
+
 .settings-danger-card{ border-color:rgba(255,107,107,0.22) !important; }
 
 /* Lbs / kg pill toggle */

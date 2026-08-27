@@ -186,3 +186,118 @@ function igSessionGroup(session, customLifts) {
   if (session.group) return session.group;
   return igLiftToGroup(session.lift, customLifts);
 }
+
+/* ===== SPLIT PRESETS =========================================================
+   A split is only a set of buckets that muscle groups roll up into. Picking a
+   different one never re-tags an exercise and never rewrites history — a curl
+   is always 'biceps', all that changes is whether biceps rolls into Arms, Pull
+   or Upper.
+
+   Every preset must place all 12 groups exactly once. igVerifySplits() checks
+   that, so a group can never be silently orphaned by a preset that forgot it.
+
+   Colors reuse the app's existing group palette so a split looks native the
+   moment it is picked; gold is the one addition, for the shoulders bucket that
+   had no colour of its own before. ======================================== */
+
+const IG_ALL_LEGS  = ['quads','hamstrings','glutes','calves'];
+const IG_ALL_ARMS  = ['biceps','triceps','forearms'];
+
+const IG_SPLIT_PRESETS = [
+  {
+    id: 'bodypart', label: 'Body Part', blurb: 'Chest · Back · Shoulders · Arms · Legs',
+    buckets: [
+      { id:'chest',     label:'Chest',     color:'#5BD6E6', groups:['chest'] },
+      { id:'back',      label:'Back',      color:'#FF8A4C', groups:['back','traps'] },
+      { id:'shoulders', label:'Shoulders', color:'#FFC857', groups:['shoulders'] },
+      { id:'arms',      label:'Arms',      color:'#B78BFF', groups: IG_ALL_ARMS },
+      { id:'legs',      label:'Legs',      color:'#D6FF3D', groups: IG_ALL_LEGS },
+      { id:'core',      label:'Core',      color:'#D98CA6', groups:['core'] },
+    ],
+  },
+  {
+    id: 'ppl', label: 'Push / Pull / Legs', blurb: 'The classic three-way',
+    buckets: [
+      { id:'push', label:'Push', color:'#5BD6E6', groups:['chest','shoulders','triceps'] },
+      { id:'pull', label:'Pull', color:'#FF8A4C', groups:['back','traps','biceps','forearms'] },
+      { id:'legs', label:'Legs', color:'#D6FF3D', groups: IG_ALL_LEGS },
+      { id:'core', label:'Core', color:'#D98CA6', groups:['core'] },
+    ],
+  },
+  {
+    id: 'upperlower', label: 'Upper / Lower', blurb: 'Two days, split at the waist',
+    buckets: [
+      { id:'upper', label:'Upper', color:'#5BD6E6', groups:['chest','back','traps','shoulders','biceps','triceps','forearms'] },
+      { id:'lower', label:'Lower', color:'#D6FF3D', groups: IG_ALL_LEGS },
+      { id:'core',  label:'Core',  color:'#D98CA6', groups:['core'] },
+    ],
+  },
+  {
+    id: 'arnold', label: 'Arnold', blurb: 'Chest & Back · Shoulders & Arms · Legs',
+    buckets: [
+      { id:'chestback',  label:'Chest & Back',     color:'#5BD6E6', groups:['chest','back','traps'] },
+      { id:'shoulderarm',label:'Shoulders & Arms', color:'#B78BFF', groups:['shoulders'].concat(IG_ALL_ARMS) },
+      { id:'legs',       label:'Legs',             color:'#D6FF3D', groups: IG_ALL_LEGS },
+      { id:'core',       label:'Core',             color:'#D98CA6', groups:['core'] },
+    ],
+  },
+  {
+    id: 'fullbody', label: 'Full Body', blurb: 'Everything, every session',
+    buckets: [
+      { id:'full', label:'Full Body', color:'#5BD6E6',
+        groups:['chest','back','traps','shoulders'].concat(IG_ALL_ARMS, IG_ALL_LEGS, ['core']) },
+    ],
+  },
+];
+
+/* Body Part reproduces what the app already does, so an existing user who
+   never opens the setting sees no change at all. */
+const IG_DEFAULT_SPLIT = 'bodypart';
+
+function igSplitById(id) {
+  return IG_SPLIT_PRESETS.find(function (s) { return s.id === id; })
+      || IG_SPLIT_PRESETS.find(function (s) { return s.id === IG_DEFAULT_SPLIT; });
+}
+
+function igActiveSplit(settings) {
+  return igSplitById(settings && settings.split);
+}
+
+/* Which bucket a muscle group falls into under a given split. */
+function igBucketForGroup(split, groupId) {
+  if (!split) return null;
+  return split.buckets.find(function (b) { return b.groups.indexOf(groupId) !== -1; }) || null;
+}
+
+/* The bucket a lift lands in right now, for writing onto a new session. */
+function igBucketForLift(name, settings) {
+  const group  = igLiftToGroup(name, settings && settings.customLifts);
+  const bucket = igBucketForGroup(igActiveSplit(settings), group);
+  return bucket ? bucket.id : 'other';
+}
+
+/* Reading a session back. The stored bucket always wins — that is what keeps
+   history frozen when someone switches splits. Sessions logged before this
+   existed have none, so they fall back to the split they are being read
+   under, which reproduces exactly what the app showed them before. */
+function igSessionBucket(session, settings) {
+  if (!session) return 'other';
+  if (session.bucket) return session.bucket;
+  const group = igSessionGroup(session, settings && settings.customLifts);
+  const bucket = igBucketForGroup(igActiveSplit(settings), group);
+  return bucket ? bucket.id : 'other';
+}
+
+/* Bucket metadata by id, searching the active split first and then every
+   preset — so a bucket retired by a split change still resolves to its label
+   and colour instead of leaving old history unlabelled and grey. */
+function igBucketMeta(bucketId, settings) {
+  const active = igActiveSplit(settings);
+  const here = active && active.buckets.find(function (b) { return b.id === bucketId; });
+  if (here) return here;
+  for (let i = 0; i < IG_SPLIT_PRESETS.length; i++) {
+    const b = IG_SPLIT_PRESETS[i].buckets.find(function (x) { return x.id === bucketId; });
+    if (b) return b;
+  }
+  return { id:'other', label:'Other', color:'#8A8F98', groups:[] };
+}

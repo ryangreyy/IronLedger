@@ -4000,6 +4000,11 @@ function initApp(uid) {
        from today so history starts carrying it immediately — anything logged
        before this falls back to deriving from the lift name. */
     const group = igLiftToGroup(lift, currentSettings?.customLifts);
+    /* The split bucket this lift falls into RIGHT NOW, frozen onto the session.
+       Stored rather than derived on read so switching splits later never
+       reshapes what is already logged — a curl logged on a PPL day stays
+       "Pull" forever, even after switching to Body Part. */
+    const bucket = igBucketForLift(lift, currentSettings);
     currentPage = 1;
     historyPage = 1;
     if (cls === 'core') coreCurrentPage = 1;
@@ -4009,7 +4014,7 @@ function initApp(uid) {
       .reduce((m, s) => Math.max(m, +s.wt || 0), 0);
     const isPR = !bodyweight && prevBest > 0 && wt > prevBest;
     sessionsRef().add({ date: formatDate(dateVal), dateRaw: dateVal,
-                        lift, cls, group, sets, reps, repMode: timed ? 'time' : 'reps', timeSeconds: timed ? timeSeconds : 0, wt, bodyweight, note,
+                        lift, cls, group, bucket, sets, reps, repMode: timed ? 'time' : 'reps', timeSeconds: timed ? timeSeconds : 0, wt, bodyweight, note,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
       .then(() => {
         ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = '');

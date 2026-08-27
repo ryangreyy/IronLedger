@@ -11,17 +11,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=339">
+<link rel="stylesheet" href="styles.css?v=340">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=6">
-<link rel="manifest" href="/manifest.json?v=113">
+<link rel="manifest" href="/manifest.json?v=114">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=137"></script>
+<script src="pwa-update.js?v=138"></script>
 </head>
 <body>
 
@@ -138,6 +138,18 @@
             <button data-unit="lbs" class="active">lbs</button>
             <button data-unit="kg">kg</button>
           </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
+
+          <!-- Training split -->
+          <p class="settings-card-title">Training split</p>
+          <p class="settings-card-desc">How your lifts group into days. Switching never changes anything you've already logged.</p>
+          <div class="field" style="max-width:260px;">
+            <select id="splitSel"></select>
+          </div>
+          <div id="splitPreview" class="split-preview"></div>
+          <button id="saveSplit" class="btn btn-primary" style="margin-top:12px;">Save split</button>
+          <p id="splitMsg" class="settings-msg"></p>
 
           <hr style="border:none;border-top:1px solid var(--border);margin:26px 0;">
 
@@ -479,6 +491,7 @@
         const d = doc.data();
         if (d.unit) setUnitToggle(d.unit);
         if (d.defaultLift !== undefined) document.getElementById('defaultLiftSel').value = d.defaultLift;
+        window.__igApplySplitSetting?.(d.split);
         setPrivacyToggle(d.isPrivate ? 'private' : 'public');
         loadColors(d);
         if (Array.isArray(d.customLifts)) { customLifts = d.customLifts; renderCustomLiftList(); }
@@ -622,6 +635,56 @@
   });
 
   /* ── SAVE PERSONAL INFO ── */
+  /* ── TRAINING SPLIT ──
+     Writes settings.split only. Sessions already logged keep the bucket they
+     were written with, so switching here never reshapes history — that is the
+     whole reason the bucket is stored per session rather than derived. */
+  (function initSplitPicker() {
+    const sel     = document.getElementById('splitSel');
+    const preview = document.getElementById('splitPreview');
+    if (!sel || !preview) return;
+
+    sel.innerHTML = IG_SPLIT_PRESETS
+      .map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+
+    function renderPreview(id) {
+      const split = igSplitById(id);
+      preview.innerHTML = `<p class="split-blurb">${split.blurb}</p>` +
+        split.buckets.map(b => `
+          <div class="split-bucket">
+            <span class="split-bucket-dot" style="background:${b.color};"></span>
+            <span class="split-bucket-name">${b.label}</span>
+            <span class="split-bucket-groups">${b.groups.map(igGroupLabel).join(' · ')}</span>
+          </div>`).join('');
+    }
+
+    sel.addEventListener('change', () => renderPreview(sel.value));
+
+    document.getElementById('saveSplit').addEventListener('click', async () => {
+      const msg = document.getElementById('splitMsg');
+      const btn = document.getElementById('saveSplit');
+      msg.textContent = '';
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      try {
+        await settingsRef().set({ split: sel.value }, { merge: true });
+        msg.style.color = 'var(--up)';
+        msg.textContent = '\u2713 Split saved — past workouts are unchanged.';
+        setTimeout(() => { msg.textContent = ''; }, 3000);
+      } catch (err) {
+        msg.style.color = 'var(--down)';
+        msg.textContent = err.message || 'Something went wrong.';
+      } finally { btn.textContent = 'Save split'; btn.disabled = false; }
+    });
+
+    /* Filled in again once settings arrive; renders immediately so the card is
+       never blank while Firestore is still in flight. */
+    window.__igApplySplitSetting = function (value) {
+      sel.value = igSplitById(value).id;
+      renderPreview(sel.value);
+    };
+    window.__igApplySplitSetting(IG_DEFAULT_SPLIT);
+  })();
+
   document.getElementById('savePersonalInfo').addEventListener('click', async () => {
     const firstName = document.getElementById('settingsFirstName').value.trim();
     const lastName  = document.getElementById('settingsLastName').value.trim();
