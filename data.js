@@ -73,3 +73,116 @@ const bodyweightStandards = {
     dead:  [170, 245, 390, 475, 555, 715, 800, 880]
   }
 };
+
+/* ===== MUSCLE GROUPS =========================================================
+   The fine-grained layer underneath splits. Every lift has exactly ONE home
+   group: a bench hits triceps, but its home is chest. Users never edit this —
+   it describes what a lift IS, not how someone chooses to train it.
+
+   A split (added separately) is only a set of buckets these groups roll up
+   into, which is why switching splits never re-tags a single exercise.
+
+   Lives in data.js because every page loads it. liftToCls() cannot be reused
+   here: it is defined inside initApp() in app.js, so the feed and profile have
+   no access to it and read the stored cls instead.
+
+   NOTE: this is additive. liftToCls() and the stored `cls` are untouched and
+   still drive everything currently on screen. ========================== */
+
+const IG_MUSCLE_GROUPS = [
+  { id: 'chest',      label: 'Chest',      region: 'Upper' },
+  { id: 'back',       label: 'Back',       region: 'Upper' },
+  { id: 'traps',      label: 'Traps',      region: 'Upper' },
+  { id: 'shoulders',  label: 'Shoulders',  region: 'Upper' },
+  { id: 'biceps',     label: 'Biceps',     region: 'Arms'  },
+  { id: 'triceps',    label: 'Triceps',    region: 'Arms'  },
+  { id: 'forearms',   label: 'Forearms',   region: 'Arms'  },
+  { id: 'quads',      label: 'Quads',      region: 'Lower' },
+  { id: 'hamstrings', label: 'Hamstrings', region: 'Lower' },
+  { id: 'glutes',     label: 'Glutes',     region: 'Lower' },
+  { id: 'calves',     label: 'Calves',     region: 'Lower' },
+  { id: 'core',       label: 'Core',       region: 'Core'  },
+];
+
+/* Primary group per lift. Every name liftToCls() recognizes appears exactly
+   once — igVerifyLiftGroups() below asserts that, so adding a lift to one and
+   not the other is caught rather than silently becoming 'other'.
+
+   Judgement calls worth naming:
+     deadlift/rack pull -> back, not hamstrings. Every split files them under
+       back or pull, and that is where people look for them.
+     dips/push-up -> chest, the conventional home despite heavy triceps work.
+     shrugs -> traps, which is why traps exists as its own group at all.
+     hammer curl -> biceps, with forearms as the secondary the muscle map
+       already tracks.
+     adductors -> quads. Anatomically its own thing, but it lands in Legs
+       under every split, and a group nobody splits on is just clutter. */
+const IG_LIFT_GROUP_LISTS = {
+  chest: ['bench','bench press','incline press','decline chest press','db flat press',
+          'db incline press','machine chest press','dips','push-up','chest fly',
+          'low chest fly','mid chest fly','high chest fly','pec dec'],
+  back:  ['deadlift','rack pull','row','barbell row','cable row','chest supported row',
+          'machine row','pulldown','lat pulldown','machine lat pulldown',
+          'cable lat pulldown','pull-up','t-bar row','lat pullover'],
+  traps: ['shrugs'],
+  shoulders: ['overhead press','ohp','shoulder press','arnold press','lateral raise',
+              'db lateral raise','cable lateral raise','machine lateral raise',
+              'rear delt raise','front raise','face pull'],
+  biceps:  ['bicep curl','db bicep curl','cable bicep curl','machine bicep curl',
+            'hammer curl','preacher curl','concentration curl'],
+  triceps: ['tricep pushdown','single arm tricep pushdown','db tricep extension',
+            'cable tricep extension','machine tricep extension','overhead tricep',
+            'skull crusher','close grip bench','jm press'],
+  forearms: [],
+  quads: ['squat','split squat','bulgarian split squats','hack squat','pendulum squat',
+          'bw squat','smith squat','leg press','lunges','leg extension','adductors'],
+  hamstrings: ['rdl','leg curl','seated hamstring curl','lying hamstring curl'],
+  glutes: ['hip thrust','abductors'],
+  calves: ['calf raise'],
+  core: ['crunch','sit-up','cable crunch','hanging leg raise','lying leg raise','plank',
+         'side plank','russian twist','bicycle crunch','ab wheel rollout',
+         'cable woodchopper','hollow hold'],
+};
+
+const IG_LIFT_TO_GROUP = {};
+Object.keys(IG_LIFT_GROUP_LISTS).forEach(function (group) {
+  IG_LIFT_GROUP_LISTS[group].forEach(function (name) { IG_LIFT_TO_GROUP[name] = group; });
+});
+
+/* Legacy bridge for custom exercises. They currently store the coarse `cls`
+   chosen in Settings, which has no muscle-level meaning. Three of those map
+   cleanly; 'arm' deliberately does not, because it lumps biceps, triceps and
+   shoulders together and guessing would be wrong roughly two times in three.
+   Those resolve to 'other' so the settings UI can later surface them as
+   "needs a muscle group" rather than quietly filing them somewhere wrong. */
+const IG_CLS_TO_GROUP = { squat: 'quads', bench: 'chest', dead: 'back', core: 'core' };
+
+/* name -> group id. customLifts is passed in rather than read from a global so
+   this stays pure and usable from the feed and profile, which have no
+   currentSettings of their own. */
+function igLiftToGroup(name, customLifts) {
+  const n = (name || '').toLowerCase().trim();
+  const custom = (customLifts || []).find(function (l) {
+    return (typeof l === 'string' ? l : (l && l.name) || '').toLowerCase() === n;
+  });
+  if (custom && typeof custom !== 'string') {
+    if (custom.group) return custom.group;
+    if (custom.cls && IG_CLS_TO_GROUP[custom.cls]) return IG_CLS_TO_GROUP[custom.cls];
+    return 'other';
+  }
+  return IG_LIFT_TO_GROUP[n] || 'other';
+}
+
+function igGroupLabel(groupId) {
+  const g = IG_MUSCLE_GROUPS.find(function (x) { return x.id === groupId; });
+  return g ? g.label : 'Other';
+}
+
+/* Read a session's muscle group. New sessions store it; anything logged before
+   that does not, so it falls back to deriving from the lift name — which works
+   because the name is stored on every session ever written. */
+function igSessionGroup(session, customLifts) {
+  if (!session) return 'other';
+  if (session.group) return session.group;
+  return igLiftToGroup(session.lift, customLifts);
+}
