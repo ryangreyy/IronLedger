@@ -2,10 +2,10 @@
 (function () {
   'use strict';
 
-  var VERSION = '356';
+  var VERSION = '357';
   var KEY = 'ig-pwa-version';
-  var EXPECTED_UPDATER = 'pwa-update.js?v=140';
-  var EXPECTED_MANIFEST = 'manifest.json?v=116';
+  var EXPECTED_UPDATER = 'pwa-update.js?v=141';
+  var EXPECTED_MANIFEST = 'manifest.json?v=117';
   var EXPECTED_STYLE = 'styles.css?v=341';
   var EXPECTED_APP = 'app.js?v=245';
   var EXPECTED_SOFT_NAV = 'soft-nav.js?v=9';
