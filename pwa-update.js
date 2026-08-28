@@ -2,10 +2,10 @@
 (function () {
   'use strict';
 
-  var VERSION = '359';
+  var VERSION = '360';
   var KEY = 'ig-pwa-version';
-  var EXPECTED_UPDATER = 'pwa-update.js?v=143';
-  var EXPECTED_MANIFEST = 'manifest.json?v=119';
+  var EXPECTED_UPDATER = 'pwa-update.js?v=144';
+  var EXPECTED_MANIFEST = 'manifest.json?v=120';
   var EXPECTED_STYLE = 'styles.css?v=341';
   var EXPECTED_APP = 'app.js?v=247';
   var EXPECTED_SOFT_NAV = 'soft-nav.js?v=9';
@@ -42,6 +42,19 @@
       return p === '' || p === '/index' || p.endsWith('/index.html');
     }
 
+    /* The gate hides the home header while a version check decides whether to
+       reload. Every path that clears it hangs off a fetch resolving or
+       rejecting — but a fetch that simply never settles (a stalled mobile
+       connection) does neither, and the gate would stay up forever. That
+       leaves the home page with its hero, status header and brand header all
+       invisible, and the Goals section below them as the only thing on
+       screen. The failsafe below guarantees the gate always lifts: if a
+       reload really was coming it happens regardless, and showing content a
+       moment before it reloads is far better than a permanently blank
+       header. */
+    var GATE_MAX_MS = 4000;
+    var gateTimer = null;
+
     function setHomeRefreshGate() {
       if (!isHomePage()) return;
       document.documentElement.setAttribute('data-pwa-refresh-check', '1');
@@ -54,9 +67,12 @@
           'html[data-pwa-refresh-check] .mobile-brand-header{visibility:hidden!important}';
         document.head.appendChild(style);
       }
+      if (gateTimer) clearTimeout(gateTimer);
+      gateTimer = setTimeout(clearHomeRefreshGate, GATE_MAX_MS);
     }
 
     function clearHomeRefreshGate() {
+      if (gateTimer) { clearTimeout(gateTimer); gateTimer = null; }
       document.documentElement.removeAttribute('data-pwa-refresh-check');
     }
 
