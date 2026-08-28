@@ -1094,7 +1094,15 @@ function maybeRedirectPendingFriendUid() {
 
 function handleAuthState(user) {
   try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
-  document.documentElement.toggleAttribute('data-guess-signedin', !!user);
+  /* Stamp <html> too, not just localStorage. index.html's head script sets
+     this attribute, but soft navigation never re-runs head scripts (syncHead
+     copies stylesheets and <style> only) — so arriving at Home from any other
+     page left it unset, the CSS swap never applied, and the signed-out layout
+     showed with the old Goals section as the visible home page. Setting it
+     here means it is correct whichever page was hard-loaded, and it survives
+     every soft navigation after that. */
+  if (user) document.documentElement.setAttribute('data-guess-signedin', 'true');
+  else document.documentElement.removeAttribute('data-guess-signedin');
   if (user) {
     /* ---- Signed in ---- */
     document.documentElement.removeAttribute('data-authgate-pending');
