@@ -2045,7 +2045,10 @@ function initApp(uid) {
      nothing that renders today can end up worse off. ===================== */
   function sessionDayMeta(s) {
     if (!s || typeof igSessionBucket !== 'function') return null;
-    const meta = igBucketMeta(igSessionBucket(s, currentSettings), currentSettings);
+    /* igDayDisplay, not igBucketMeta: a day frozen under an old split keeps its
+       name but borrows the current split's colour for that name, so two days
+       called "Back" can never render in two different colours. */
+    const meta = igDayDisplay(igSessionBucket(s, currentSettings), currentSettings);
     return (meta && meta.id !== 'other' && meta.color) ? meta : null;
   }
 
@@ -3068,7 +3071,7 @@ function initApp(uid) {
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${thisYear}-${monthPad}-${String(d).padStart(2, '0')}`;
       const manualRaw = calColors[dateStr];
-      const manualMetaRaw = manualRaw ? igBucketMeta(manualRaw, currentSettings) : null;
+      const manualMetaRaw = manualRaw ? igDayDisplay(manualRaw, currentSettings) : null;
       const manualMeta = (manualMetaRaw && manualMetaRaw.id !== 'other') ? manualMetaRaw : null;
       const manualCls = overviewCalendarCls(manualRaw);
       const cls       = manualCls || sessionMap[d];
@@ -4925,7 +4928,7 @@ function initApp(uid) {
        from the same things the squares used. Without this the legend was
        rebuilt from the old four classes and could not agree with the squares
        once those started following the split. */
-    const usedDays = new Map();
+    const usedDays = new Map();   // keyed by lower-cased LABEL, not id — see igDayDisplay
     const rgbVarMap = { squat:'--squat-rgb', bench:'--bench-rgb', dead:'--dead-rgb', arm:'--press-rgb', press:'--press-rgb' };
 
     for (let d = 1; d <= daysInMonth; d++) {
@@ -4934,7 +4937,7 @@ function initApp(uid) {
       const manualRaw = calColors[dateStr];
       /* A manual paint stores a split day id now and a bare cls historically;
          resolve whichever it is. */
-      const manualMetaRaw = manualRaw ? igBucketMeta(manualRaw, currentSettings) : null;
+      const manualMetaRaw = manualRaw ? igDayDisplay(manualRaw, currentSettings) : null;
       const manualMeta = (manualMetaRaw && manualMetaRaw.id !== 'other') ? manualMetaRaw : null;
       const manualCls = overviewCalendarCls(manualRaw);
       const cls       = manualCls || sessionMap[d] || '';
@@ -4975,7 +4978,7 @@ function initApp(uid) {
           el.style.boxShadow  = `inset 0 4px 9px rgba(0,0,0,.58)`;
         }
         /* Legend entry comes from whatever actually coloured the square. */
-        if (dayMeta) usedDays.set(dayMeta.id, dayMeta);
+        if (dayMeta) usedDays.set(String(dayMeta.label).toLowerCase(), dayMeta);
         else usedCls.push(cls);
       }
 
