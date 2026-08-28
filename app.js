@@ -4065,11 +4065,17 @@ function initApp(uid) {
        from today so history starts carrying it immediately — anything logged
        before this falls back to deriving from the lift name. */
     const group = igLiftToGroup(lift, currentSettings?.customLifts);
-    /* The split bucket this lift falls into RIGHT NOW, frozen onto the session.
-       Stored rather than derived on read so switching splits later never
-       reshapes what is already logged — a curl logged on a PPL day stays
-       "Pull" forever, even after switching to Body Part. */
-    const bucket = igBucketForLift(lift, currentSettings);
+    /* The split day this lift falls into RIGHT NOW, frozen onto the session so
+       switching splits later never reshapes what is already logged — a curl
+       logged on a PPL day stays "Pull" forever.
+
+       Only stamped once the user has actually CHOSEN a split. Before that
+       igActiveSplit() answers with the Body Part default, and freezing that
+       would permanently brand their history with a split they never picked —
+       which then survives every later switch and shows up as stale day names
+       in the calendar legend. Unstamped sessions derive from the current
+       split on read, which is what someone who has never chosen expects. */
+    const bucket = currentSettings?.split ? igBucketForLift(lift, currentSettings) : null;
     currentPage = 1;
     historyPage = 1;
     if (cls === 'core') coreCurrentPage = 1;
@@ -4079,7 +4085,7 @@ function initApp(uid) {
       .reduce((m, s) => Math.max(m, +s.wt || 0), 0);
     const isPR = !bodyweight && prevBest > 0 && wt > prevBest;
     sessionsRef().add({ date: formatDate(dateVal), dateRaw: dateVal,
-                        lift, cls, group, bucket, sets, reps, repMode: timed ? 'time' : 'reps', timeSeconds: timed ? timeSeconds : 0, wt, bodyweight, note,
+                        lift, cls, group, ...(bucket ? { bucket } : {}), sets, reps, repMode: timed ? 'time' : 'reps', timeSeconds: timed ? timeSeconds : 0, wt, bodyweight, note,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp() })
       .then(() => {
         ['logSets','logReps','logWeight','logNote'].forEach(id => document.getElementById(id).value = '');

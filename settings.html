@@ -11,17 +11,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=341">
+<link rel="stylesheet" href="styles.css?v=342">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=6">
-<link rel="manifest" href="/manifest.json?v=121">
+<link rel="manifest" href="/manifest.json?v=122">
 <meta name="theme-color" content="#0B0C0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="IronGladiator">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
 <script src="applock.js?v=6"></script>
-<script src="pwa-update.js?v=145"></script>
+<script src="pwa-update.js?v=146"></script>
 </head>
 <body>
 
@@ -154,6 +154,23 @@
             <button id="splitEdit" class="btn btn-ghost" style="display:none;">Edit</button>
           </div>
           <p id="splitMsg" class="settings-msg"></p>
+
+          <!-- One-time cleanup. Sessions logged before a split was ever chosen
+               were stamped with the Body Part default, which then survives
+               every later switch and shows stale day names in the calendar
+               legend. Clearing the stamp lets them follow the current split. -->
+          <div id="splitRelabelWrap" class="split-relabel">
+            <p class="split-relabel-text">Older workouts can still show day names from a split you weren’t using. Clearing their saved labels lets them follow your current split instead.</p>
+            <button id="splitRelabel" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;">Re-label past workouts</button>
+            <div id="splitRelabelConfirm" style="display:none;margin-top:8px;">
+              <p class="split-relabel-text" style="color:var(--down);">This clears the saved day label from every past workout. Your sets, weights and exercises are untouched.</p>
+              <div class="split-actions">
+                <button id="splitRelabelGo" class="btn btn-primary" style="font-size:12px;padding:7px 14px;">Yes, re-label</button>
+                <button id="splitRelabelCancel" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;">Cancel</button>
+              </div>
+            </div>
+            <p id="splitRelabelMsg" class="settings-msg"></p>
+          </div>
 
           <!-- Builder. Each muscle carries exactly one day dropdown, so a
                muscle cannot be orphaned or land in two days at once. -->
@@ -907,6 +924,46 @@
       } catch (err) {
         showBuilderError(err.message || 'Something went wrong.');
       } finally { btn.textContent = 'Delete'; btn.disabled = false; }
+    });
+
+    /* ---- one-time re-label ----
+       Removes the stored day from past sessions so they derive from the
+       current split again. Only touches the `bucket` field; sets, weights,
+       exercise and muscle group are left exactly as they are. Chunked
+       because Firestore caps a batch at 500 writes. */
+    document.getElementById('splitRelabel').addEventListener('click', () => {
+      document.getElementById('splitRelabelConfirm').style.display = '';
+      document.getElementById('splitRelabelMsg').textContent = '';
+    });
+    document.getElementById('splitRelabelCancel').addEventListener('click', () => {
+      document.getElementById('splitRelabelConfirm').style.display = 'none';
+    });
+    document.getElementById('splitRelabelGo').addEventListener('click', async () => {
+      const msg = document.getElementById('splitRelabelMsg');
+      const btn = document.getElementById('splitRelabelGo');
+      msg.textContent = '';
+      btn.textContent = 'Working…'; btn.disabled = true;
+      try {
+        const uid = auth.currentUser.uid;
+        const snap = await db.collection(`users/${uid}/sessions`).get();
+        const stamped = snap.docs.filter(d => d.data().bucket);
+        for (let i = 0; i < stamped.length; i += 400) {
+          const batch = db.batch();
+          stamped.slice(i, i + 400).forEach(d => {
+            batch.update(d.ref, { bucket: firebase.firestore.FieldValue.delete() });
+          });
+          await batch.commit();
+        }
+        document.getElementById('splitRelabelConfirm').style.display = 'none';
+        msg.style.color = 'var(--up)';
+        msg.textContent = stamped.length
+          ? `\u2713 ${stamped.length} workout${stamped.length === 1 ? '' : 's'} re-labelled.`
+          : '\u2713 Nothing needed re-labelling.';
+        setTimeout(() => { msg.textContent = ''; }, 4000);
+      } catch (err) {
+        msg.style.color = 'var(--down)';
+        msg.textContent = err.message || 'Something went wrong.';
+      } finally { btn.textContent = 'Yes, re-label'; btn.disabled = false; }
     });
 
     /* Called again once settings arrive; renders now so the card is never
