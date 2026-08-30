@@ -2110,9 +2110,6 @@ nav:has(.nav-links a[href="settings.html"].nav-current) #signOut{ display:inline
 }
 .split-delete{ margin-left:auto; color:var(--down); }
 
-.split-relabel{ margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
-.split-relabel-text{ font-size:11.5px; color:var(--text-dim); line-height:1.45; margin:0 0 8px; }
-
 .settings-danger-card{ border-color:rgba(255,107,107,0.22) !important; }
 
 /* Lbs / kg pill toggle */

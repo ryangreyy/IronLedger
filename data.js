@@ -362,43 +362,6 @@ function igBucketMeta(bucketId, settings) {
   return { id:'other', label:'Other', color:'#8A8F98', groups:[] };
 }
 
-/* How a stored day should DISPLAY right now.
-
-   A day is frozen onto a session by id, but two splits can own days with the
-   same name — a custom "Back" day and Body Part's "Back", or two splits that
-   both call a day "Legs". Rendering those by id gives one calendar square
-   orange and another green while both read "Back", and a legend with the same
-   name listed twice in two colours.
-
-   So: keep the stored day's NAME, which is what freezing is actually for, but
-   take the COLOUR from the day of the same name in the split you are on now.
-   Same name always looks the same, and a name the current split does not use
-   keeps its own colour so retired days stay distinguishable. */
-function igDayDisplay(bucketId, settings) {
-  const meta = igBucketMeta(bucketId, settings);
-  if (!meta || meta.id === 'other') return meta;
-  const name = String(meta.label || '').trim().toLowerCase();
-  const sameName = function (b) { return String(b.label || '').trim().toLowerCase() === name; };
-
-  /* The split you are on wins, so days you actually use look the way you set
-     them. */
-  const active = igActiveSplit(settings);
-  const twin = active && active.buckets.find(sameName);
-  if (twin) return { id: twin.id, label: twin.label, color: twin.color };
-
-  /* No day of that name in the current split — two retired days could still
-     share a name (a custom "Back" and Body Part's "Back") and would otherwise
-     render in two different colours while reading identically. Resolve to the
-     first match across every split, in a fixed order, so one name always maps
-     to one colour no matter which session is being drawn. */
-  const all = igAllSplits(settings);
-  for (let i = 0; i < all.length; i++) {
-    const b = all[i].buckets.find(sameName);
-    if (b) return { id: b.id, label: b.label, color: b.color };
-  }
-  return meta;
-}
-
 /* Fold a set of buckets into the retired map, keeping whatever is already
    there. Called when a custom split is deleted, and when an edit drops a day
    that history may still point at. */

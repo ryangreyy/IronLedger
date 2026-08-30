@@ -1095,12 +1095,11 @@ function maybeRedirectPendingFriendUid() {
 function handleAuthState(user) {
   try { localStorage.setItem('ig-signedin-guess', user ? '1' : '0'); } catch (e) {}
   /* Stamp <html> too, not just localStorage. index.html's head script sets
-     this attribute, but soft navigation never re-runs head scripts (syncHead
-     copies stylesheets and <style> only) — so arriving at Home from any other
-     page left it unset, the CSS swap never applied, and the signed-out layout
-     showed with the old Goals section as the visible home page. Setting it
-     here means it is correct whichever page was hard-loaded, and it survives
-     every soft navigation after that. */
+     this attribute, but soft navigation never re-runs head scripts, so
+     arriving at Home from any other page left it unset, the CSS swap never
+     applied, and the signed-out layout showed with the old Goals section as
+     the visible home page. toggleAttribute() cannot be used here: it writes an
+     empty value, and the CSS selector requires ="true". */
   if (user) document.documentElement.setAttribute('data-guess-signedin', 'true');
   else document.documentElement.removeAttribute('data-guess-signedin');
   if (user) {
@@ -2035,38 +2034,6 @@ function initApp(uid) {
     return clsColor(cls);
   }
 
-  /* ===== SPLIT-AWARE COLOUR =================================================
-     A session carries the day it was logged under. These resolve that day to
-     its name and colour, so the app paints what the user actually trained
-     rather than the app's own fixed grouping.
-
-     Anything the split system cannot place — an unrecognised lift, a custom
-     exercise with no muscle group yet — falls back to the old cls colour, so
-     nothing that renders today can end up worse off. ===================== */
-  function sessionDayMeta(s) {
-    if (!s || typeof igSessionBucket !== 'function') return null;
-    /* igDayDisplay, not igBucketMeta: a day frozen under an old split keeps its
-       name but borrows the current split's colour for that name, so two days
-       called "Back" can never render in two different colours. */
-    const meta = igDayDisplay(igSessionBucket(s, currentSettings), currentSettings);
-    return (meta && meta.id !== 'other' && meta.color) ? meta : null;
-  }
-
-  /* Planned-day tints need an "r,g,b" triple for rgba(); day colours are hex. */
-  function hexToRgbTriple(hex) {
-    const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
-    if (!m) return null;
-    const n = parseInt(m[1], 16);
-    return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
-  }
-
-  function sessionDayColor(s) {
-    const meta = sessionDayMeta(s);
-    if (meta) return meta.color;
-    return clsColor(s && (s.cls || liftToCls(s.lift)));
-  }
-
-
   function resolveLiftHistoryCls(liftName, liftSessions) {
     const canonical = normalizeLiftCls(liftToCls(liftName));
     if (canonical && canonical !== 'other') return canonical;
@@ -2126,9 +2093,7 @@ function initApp(uid) {
       day.forEach(s => {
         const key = s.lift || 'Other';
         const cls = normalizeLiftCls(s.cls || liftToCls(s.lift) || 'other');
-        /* sample keeps one real session per lift so the slice can be coloured
-           by the day it was logged under, not just its coarse cls. */
-        if (!groups[key]) groups[key] = { lift: key, cls, sets: 0, sample: s };
+        if (!groups[key]) groups[key] = { lift: key, cls, sets: 0 };
         groups[key].sets += (s.sets || 1);
       });
       const items = Object.values(groups);
@@ -2142,7 +2107,7 @@ function initApp(uid) {
       items.forEach((g, i) => {
         const pct   = g.sets / total;
         const sweep = pct * 360;
-        const color = sessionDayColor(g.sample) || getDonutColor(g.cls);
+        const color = getDonutColor(g.cls);
         const gap   = items.length > 1 ? 2 : 0;
         const d     = segmentPath(cx, cy, ro, ri, angle + gap/2, angle + sweep - gap/2);
         defs += `<filter id="dgf${i}" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="${color}" flood-opacity="0.55"/></filter>`;
@@ -3039,66 +3004,40 @@ function initApp(uid) {
 
     // Build session-derived day→cls map (same logic as renderCalendar)
     const sessionMap = {};
-    const sessionDayMap = {};
     (currentSessions || []).forEach(s => {
       if (!s.dateRaw || s.isRestDay) return;
       const [y, m, dayNum] = s.dateRaw.split('-').map(Number);
       if (y !== thisYear || m - 1 !== thisMonth) return;
       const cls = overviewCalendarCls(s.cls || liftToCls(s.lift) || 'other');
-      if (cls && !sessionMap[dayNum]) {
-        sessionMap[dayNum] = cls;
-        const meta = sessionDayMeta(s);
-        if (meta) sessionDayMap[dayNum] = meta;
-      }
+      if (cls && !sessionMap[dayNum]) sessionMap[dayNum] = cls;
     });
 
     // Merge with manual calendar overrides — same priority as renderCalendar
     const calColors   = currentSettings?.calendarColors || {};
     const daysInMonth = new Date(thisYear, thisMonth + 1, 0).getDate();
-
-    /* Counted per split day rather than the four fixed classes, so a PPL user
-       sees Push/Pull/Legs instead of Legs/Chest/Back/Arms. Keyed by NAME, not
-       id: two splits both calling a day "Legs" are the same bar, which is what
-       keeps a month spanning a split change from doubling up. Days whose
-       sessions cannot be placed fall back to their old cls label. */
-    const counts = {};
-    const bump = (name, color) => {
-      if (!counts[name]) counts[name] = { name, color, count: 0 };
-      counts[name].count++;
-    };
-    const FALLBACK_LABELS = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms' };
+    const counts      = { squat: 0, bench: 0, dead: 0, arm: 0 };
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${thisYear}-${monthPad}-${String(d).padStart(2, '0')}`;
-      const manualRaw = calColors[dateStr];
-      const manualMetaRaw = manualRaw ? igDayDisplay(manualRaw, currentSettings) : null;
-      const manualMeta = (manualMetaRaw && manualMetaRaw.id !== 'other') ? manualMetaRaw : null;
-      const manualCls = overviewCalendarCls(manualRaw);
+      const manualCls = overviewCalendarCls(calColors[dateStr]);
       const cls       = manualCls || sessionMap[d];
-      if (!cls || cls === 'rest' || cls === 'other') continue;
-      /* A manual paint stores a split day id now; without resolving it the day
-         would match no fallback label and vanish from the bars entirely. */
-      const meta = manualMeta || (!manualCls ? sessionDayMap[d] : null) || null;
-      if (meta) bump(meta.label, meta.color);
-      else if (FALLBACK_LABELS[cls]) bump(FALLBACK_LABELS[cls], clsColor(cls));
+      if (cls && cls !== 'rest' && cls !== 'other' && cls in counts) counts[cls]++;
     }
 
-    const rows  = Object.values(counts).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-    const total = rows.reduce((a, r) => a + r.count, 0);
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
     if (total === 0) {
       container.innerHTML = `<div class="freq-empty">Log a session to see your lift breakdown</div>`;
       return;
     }
 
-    const maxCount = Math.max(1, ...rows.map(r => r.count));
+    const maxCount = Math.max(1, ...Object.values(counts));
+    const labels   = { squat: 'Legs', bench: 'Chest', dead: 'Back', arm: 'Arms' };
 
-    /* Colour inline rather than via a per-class rule: day names are
-       user-defined now, so there is no fixed set of classes to style. */
-    container.innerHTML = rows.map(r => `
+    container.innerHTML = Object.entries(counts).map(([cls, count]) => `
       <div class="freq-row">
-        <div class="freq-label">${escapeHTML(r.name)}</div>
-        <div class="freq-track"><div class="freq-fill" style="width:${Math.round(r.count / maxCount * 100)}%;background:linear-gradient(90deg,${r.color}8C,${r.color});"></div></div>
-        <div class="freq-count" style="color:${r.color};">${r.count || '—'}</div>
+        <div class="freq-label">${labels[cls]}</div>
+        <div class="freq-track"><div class="freq-fill ${cls}" style="width:${Math.round(count / maxCount * 100)}%"></div></div>
+        <div class="freq-count ${cls}">${count || '—'}</div>
       </div>
     `).join('');
   }
@@ -4068,16 +4007,13 @@ function initApp(uid) {
        from today so history starts carrying it immediately — anything logged
        before this falls back to deriving from the lift name. */
     const group = igLiftToGroup(lift, currentSettings?.customLifts);
-    /* The split day this lift falls into RIGHT NOW, frozen onto the session so
-       switching splits later never reshapes what is already logged — a curl
-       logged on a PPL day stays "Pull" forever.
-
-       Only stamped once the user has actually CHOSEN a split. Before that
+    /* The split bucket this lift falls into RIGHT NOW, frozen onto the session.
+       Stored rather than derived on read so switching splits later never
+       reshapes what is already logged — a curl logged on a PPL day stays
+       "Pull" forever, even after switching to Body Part. */
+    /* Only stamped once the user has actually CHOSEN a split. Before that
        igActiveSplit() answers with the Body Part default, and freezing that
-       would permanently brand their history with a split they never picked —
-       which then survives every later switch and shows up as stale day names
-       in the calendar legend. Unstamped sessions derive from the current
-       split on read, which is what someone who has never chosen expects. */
+       would brand their history with a split they never picked. */
     const bucket = currentSettings?.split ? igBucketForLift(lift, currentSettings) : null;
     currentPage = 1;
     historyPage = 1;
@@ -4879,25 +4815,13 @@ function initApp(uid) {
     // Build day→cls map from sessions. Core is tracked in the Abs/Core tab,
     // but it is intentionally not a dashboard overview calendar paint class.
     const sessionMap = {};
-    /* Colour per day, from the split day that session was logged under.
-       Kept beside sessionMap rather than replacing it, because cls still
-       decides rest-day treatment and the planned-day styling below. */
-    const sessionColorMap = {};
-    const sessionMetaMap = {};
     (currentSessions || []).forEach(s => {
       if (!s.dateRaw) return;
       const parts = s.dateRaw.split('-').map(Number);
       if (parts[0] === year && parts[1] - 1 === month) {
         const day = parts[2];
         const cls = overviewCalendarCls(s.isRestDay ? 'rest' : (s.cls || liftToCls(s.lift) || 'other'));
-        if (cls && !sessionMap[day]) {
-          sessionMap[day] = cls;
-          if (!s.isRestDay) {
-            sessionColorMap[day] = sessionDayColor(s);
-            const meta = sessionDayMeta(s);
-            if (meta) sessionMetaMap[day] = meta;
-          }
-        }
+        if (cls && !sessionMap[day]) sessionMap[day] = cls;
       }
     });
 
@@ -4924,22 +4848,12 @@ function initApp(uid) {
     }
 
     const usedCls = [];
-    /* Days actually painted this month, keyed by id so the legend can be built
-       from the same things the squares used. Without this the legend was
-       rebuilt from the old four classes and could not agree with the squares
-       once those started following the split. */
-    const usedDays = new Map();   // keyed by lower-cased LABEL, not id — see igDayDisplay
     const rgbVarMap = { squat:'--squat-rgb', bench:'--bench-rgb', dead:'--dead-rgb', arm:'--press-rgb', press:'--press-rgb' };
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr  = `${year}-${monthPad}-${String(d).padStart(2,'0')}`;
       const el       = document.createElement('div');
-      const manualRaw = calColors[dateStr];
-      /* A manual paint stores a split day id now and a bare cls historically;
-         resolve whichever it is. */
-      const manualMetaRaw = manualRaw ? igDayDisplay(manualRaw, currentSettings) : null;
-      const manualMeta = (manualMetaRaw && manualMetaRaw.id !== 'other') ? manualMetaRaw : null;
-      const manualCls = overviewCalendarCls(manualRaw);
+      const manualCls = overviewCalendarCls(calColors[dateStr]);
       const cls       = manualCls || sessionMap[d] || '';
       const isToday  = isThisMonth && d === todayDate;
       const isFuture = isFutureMonth || (isThisMonth && d > todayDate);
@@ -4957,29 +4871,19 @@ function initApp(uid) {
         el.style.borderColor = 'transparent';
         usedCls.push('rest');
       } else if (cls) {
-        const dayMeta = manualMeta || (isPlanned ? null : sessionMetaMap[d]) || null;
         if (isPlanned) {
           classes += ' planned-day';
-          const triple = dayMeta ? hexToRgbTriple(dayMeta.color) : null;
-          if (triple) {
-            el.style.background  = `rgba(${triple},0.15)`;
-            el.style.borderColor = `rgba(${triple},0.5)`;
-          } else {
-            const rv = rgbVarMap[cls];
-            el.style.background  = rv ? `rgba(var(${rv}),0.15)` : 'rgba(154,160,172,0.15)';
-            el.style.borderColor = rv ? `rgba(var(${rv}),0.5)`  : 'rgba(154,160,172,0.5)';
-          }
+          const rv = rgbVarMap[cls];
+          el.style.background  = rv ? `rgba(var(${rv}),0.15)` : 'rgba(154,160,172,0.15)';
+          el.style.borderColor = rv ? `rgba(var(${rv}),0.5)`  : 'rgba(154,160,172,0.5)';
         } else {
           classes += ' has-session';
-          /* Day colour when the session resolved to a split day, else the old
-             cls colour — an unplaceable lift looks exactly as before. */
-          const base = (dayMeta && dayMeta.color) || sessionColorMap[d] || clsColor(cls);
+          const base = clsColor(cls);
+          const rv2 = rgbVarMap[cls];
           el.style.background = `linear-gradient(180deg,rgba(0,0,0,.35),rgba(255,255,255,.02)),${base}`;
           el.style.boxShadow  = `inset 0 4px 9px rgba(0,0,0,.58)`;
         }
-        /* Legend entry comes from whatever actually coloured the square. */
-        if (dayMeta) usedDays.set(String(dayMeta.label).toLowerCase(), dayMeta);
-        else usedCls.push(cls);
+        usedCls.push(cls);
       }
 
       el.className = classes;
@@ -4994,31 +4898,19 @@ function initApp(uid) {
       grid.appendChild(el);
     }
 
-    if (!legend) return;
-
-    /* Built from usedDays — the same day objects that coloured the squares —
-       so a swatch can never disagree with the calendar above it. usedCls now
-       only carries rest days and anything the split could not place, which
-       keeps their old labels and colours. */
     const lbls = { squat:'Legs', bench:'Chest', dead:'Back', arm:'Arms', press:'Arms', other:'Other', rest:'Rest Day' };
     const order = ['squat','bench','dead','arm','press','other','rest'];
-    const dot = color =>
-      `linear-gradient(180deg,rgba(0,0,0,.35),rgba(255,255,255,.02)),${color}`;
-
-    const items = [...usedDays.values()]
-      .sort((a, b) => a.label.localeCompare(b.label))
-      .map(m => ({ label: m.label, bg: dot(m.color) }));
-
-    [...new Set(usedCls)]
-      .sort((a, b) => (order.indexOf(a) ?? 99) - (order.indexOf(b) ?? 99))
-      .forEach(c => {
-        if (c === 'rest') items.push({ label: 'Rest Day', bg: 'rgba(107,114,128,0.4)' });
-        else items.push({ label: lbls[c] || c, bg: dot(clsColor(c)) });
-      });
-
-    legend.innerHTML = items
-      .map(i => `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${i.bg}"></div>${escapeHTML(i.label)}</div>`)
-      .join('');
+    const used = [...new Set(usedCls)].sort((a, b) => (order.indexOf(a) ?? 99) - (order.indexOf(b) ?? 99));
+    if (!legend) return;
+    legend.innerHTML = used.map(c => {
+      if (c === 'rest') {
+        return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(107,114,128,0.4)"></div>${lbls[c] || c}</div>`;
+      }
+      const base = clsColor(c);
+      const rv3 = rgbVarMap[c];
+      const dotBg = `linear-gradient(180deg,rgba(0,0,0,.35),rgba(255,255,255,.02)),${base}`;
+      return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${dotBg}"></div>${lbls[c] || c}</div>`;
+    }).join('');
   }
 
   function showCalPopover(anchor, dateStr, isFuture) {
@@ -5030,24 +4922,19 @@ function initApp(uid) {
       document.body.appendChild(pop);
     }
 
-    /* Offer the days of the split the user is actually on, storing the day id.
-       Older entries stored a bare cls and still resolve on the read side. */
-    const activeSplit = (typeof igActiveSplit === 'function') ? igActiveSplit(currentSettings) : null;
-    const groups = activeSplit
-      ? activeSplit.buckets.map(b => ({ cls: b.id, label: b.label, color: b.color }))
-      : [
-          { cls:'squat', label:'Legs',  color: clsColor('squat') },
-          { cls:'bench', label:'Chest', color: clsColor('bench') },
-          { cls:'dead',  label:'Back',  color: clsColor('dead')  },
-          { cls:'arm',   label:'Arms',  color: clsColor('arm')   },
-        ];
+    const groups = [
+      { cls:'squat', label:'Legs',  color: clsColor('squat') },
+      { cls:'bench', label:'Chest', color: clsColor('bench') },
+      { cls:'dead',  label:'Back',  color: clsColor('dead')  },
+      { cls:'arm',   label:'Arms',  color: clsColor('arm')   },
+    ];
 
     const [y, m, d] = dateStr.split('-').map(Number);
     const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     pop.innerHTML = `
       <div class="cal-pop-date">${MO[m-1]} ${d}, ${y}${isFuture ? ' <span class="cal-pop-plan-tag">Plan</span>' : ''}</div>
       <div class="cal-pop-btns">
-        ${groups.map(g => `<button class="cal-pop-btn" data-cls="${escapeHTML(g.cls)}" style="background:${g.color}">${escapeHTML(g.label)}</button>`).join('')}
+        ${groups.map(g => `<button class="cal-pop-btn" data-cls="${g.cls}" style="background:${g.color}">${g.label}</button>`).join('')}
         ${isFuture ? '' : '<button class="cal-pop-btn cal-pop-rest" data-cls="rest">Rest Day</button>'}
         <button class="cal-pop-btn cal-pop-clear" data-cls="clear">Clear</button>
       </div>`;
